@@ -2,6 +2,8 @@
 
 package com.conwic.mixmaster.ui.projects
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -33,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
@@ -46,6 +49,10 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
 @Composable
 fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
@@ -187,6 +194,8 @@ fun LayoutTab(
     onAssignProduct: (Long, Long?) -> Unit,
     onAddNote: (String, String, Role) -> Unit,
     onAddPhoto: (String) -> Unit,
+    blueprintUri: String?,
+    onSetBlueprint: (String) -> Unit,
 ) {
     var pickerRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
     var addFloorOpen by remember { mutableStateOf(false) }
@@ -211,6 +220,10 @@ fun LayoutTab(
                     )
                 }
             }
+        }
+
+        item {
+            BlueprintSection(blueprintUri = blueprintUri, isEmployer = isEmployer, onSetBlueprint = onSetBlueprint)
         }
 
         item {
@@ -315,7 +328,13 @@ fun LayoutTab(
                     Text(text = note.authorName, style = MaterialTheme.typography.titleMedium)
                     Text(text = note.authorRole.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
-                Text(text = note.text, style = MaterialTheme.typography.bodyMedium)
+                Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                Text(
+                    text = note.createdAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
             }
         }
     }
@@ -333,6 +352,53 @@ fun LayoutTab(
             onDismiss = { pickerRoom = null },
             onPick = { productId -> onAssignProduct(room.id, productId); pickerRoom = null },
         )
+    }
+}
+
+@Composable
+private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBlueprint: (String) -> Unit) {
+    val context = LocalContext.current
+    val pickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            onSetBlueprint(uri.toString())
+        }
+    }
+
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            SectionLabel(text = "Blueprint")
+            if (isEmployer) {
+                Text(
+                    text = if (blueprintUri == null) "+ Attach" else "Replace",
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
+                )
+            }
+        }
+        if (blueprintUri != null) {
+            CardFlat(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).clickable {
+                    val uri = Uri.parse(blueprintUri)
+                    val mimeType = context.contentResolver.getType(uri) ?: "*/*"
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, mimeType)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    runCatching { context.startActivity(intent) }
+                },
+            ) {
+                Text(text = "View blueprint ↗", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            CardFlat(modifier = Modifier.padding(top = 6.dp)) {
+                Text(
+                    text = if (isEmployer) "No blueprint attached yet. Attach a floor plan image or PDF." else "No blueprint attached yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

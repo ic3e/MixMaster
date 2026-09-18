@@ -2,14 +2,19 @@ package com.conwic.mixmaster.data.repository
 
 import com.conwic.mixmaster.data.db.dao.ProductDao
 import com.conwic.mixmaster.data.db.dao.ProductWithComponents
+import com.conwic.mixmaster.data.db.dao.UsageLogDao
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
+import com.conwic.mixmaster.data.db.entity.UsageLogEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-class ProductRepository(private val productDao: ProductDao) {
+class ProductRepository(
+    private val productDao: ProductDao,
+    private val usageLogDao: UsageLogDao,
+) {
 
     fun observeAll(): Flow<List<ProductEntity>> = productDao.observeAll()
 
@@ -22,7 +27,7 @@ class ProductRepository(private val productDao: ProductDao) {
     fun observeWithComponents(productId: Long): Flow<ProductWithComponents?> =
         productDao.observeById(productId).flatMapLatest { product ->
             if (product == null) {
-                kotlinx.coroutines.flow.flowOf(null)
+                flowOf(null)
             } else {
                 productDao.observeComponents(productId).map { components ->
                     ProductWithComponents(product, components)
@@ -48,4 +53,10 @@ class ProductRepository(private val productDao: ProductDao) {
     }
 
     suspend fun delete(product: ProductEntity) = productDao.deleteProduct(product)
+
+    fun observeUsageLogs(productId: Long): Flow<List<UsageLogEntity>> = usageLogDao.observeForProduct(productId)
+
+    suspend fun logUsage(productId: Long, doseGramsPerM2: Double) {
+        usageLogDao.insert(UsageLogEntity(productId = productId, doseGramsPerM2 = doseGramsPerM2, loggedAt = java.time.Instant.now()))
+    }
 }

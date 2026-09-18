@@ -13,6 +13,7 @@ import com.conwic.mixmaster.data.db.dao.ProjectDao
 import com.conwic.mixmaster.data.db.dao.RoomAreaDao
 import com.conwic.mixmaster.data.db.dao.TaskDao
 import com.conwic.mixmaster.data.db.dao.TeamMemberDao
+import com.conwic.mixmaster.data.db.dao.UsageLogDao
 import com.conwic.mixmaster.data.db.entity.FloorEntity
 import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
@@ -22,6 +23,7 @@ import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
+import com.conwic.mixmaster.data.db.entity.UsageLogEntity
 import com.conwic.mixmaster.data.seed.SeedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +42,9 @@ const val DATABASE_NAME = "mixmaster.db"
         NoteEntity::class,
         PhotoEntity::class,
         TeamMemberEntity::class,
+        UsageLogEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -55,6 +58,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun photoDao(): PhotoDao
     abstract fun teamMemberDao(): TeamMemberDao
+    abstract fun usageLogDao(): UsageLogDao
 
     companion object {
         @Volatile
@@ -76,6 +80,10 @@ abstract class AppDatabase : RoomDatabase() {
 
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
+                // No shipped users/data to preserve yet — destructive migration is the
+                // pragmatic choice over hand-writing Migration objects for pre-release schema
+                // changes (schema export is also unconfigured, so there's no history to diff).
+                .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                         super.onCreate(db)

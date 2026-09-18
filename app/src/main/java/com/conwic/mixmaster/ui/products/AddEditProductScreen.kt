@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -28,6 +29,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -71,11 +73,29 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             )
         }
         item {
-            OutlinedTextField(
-                value = state.doseGramsPerM2Text,
-                onValueChange = viewModel::setDose,
-                label = { Text("Typical dose (grams per m²)") },
-                modifier = Modifier.fillMaxWidth(),
+            Text(text = "Coverage range (grams per m²)", style = MaterialTheme.typography.labelLarge)
+        }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = state.minDoseText,
+                    onValueChange = viewModel::setMinDose,
+                    label = { Text("Min") },
+                    modifier = Modifier.weight(1f),
+                )
+                OutlinedTextField(
+                    value = state.maxDoseText,
+                    onValueChange = viewModel::setMaxDose,
+                    label = { Text("Max") },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        item {
+            Text(
+                text = "If you only have one figure from the datasheet, put it in both fields.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         item {
@@ -92,27 +112,64 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         item {
             OutlinedTextField(value = state.sourceNote, onValueChange = viewModel::setSourceNote, label = { Text("Source note") }, modifier = Modifier.fillMaxWidth())
         }
+        item {
+            OutlinedTextField(
+                value = state.datasheetUrl,
+                onValueChange = viewModel::setDatasheetUrl,
+                label = { Text("Datasheet URL (optional)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
 
         item { SectionLabel(text = "Mix components (by ratio)") }
 
         items(state.components.size) { index ->
             val row = state.components[index]
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = row.label,
-                    onValueChange = { viewModel.setComponentLabel(index, it) },
-                    label = { Text("Label") },
-                    modifier = Modifier.weight(2f),
-                )
-                OutlinedTextField(
-                    value = row.ratioText,
-                    onValueChange = { viewModel.setComponentRatio(index, it) },
-                    label = { Text("Ratio") },
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = { viewModel.removeComponentRow(index) }) {
-                    Icon(Icons.Filled.Close, contentDescription = "Remove")
+            CardFlat(modifier = Modifier.fillMaxWidth()) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = row.label,
+                        onValueChange = { viewModel.setComponentLabel(index, it) },
+                        label = { Text("Label") },
+                        modifier = Modifier.weight(2f),
+                    )
+                    OutlinedTextField(
+                        value = row.ratioText,
+                        onValueChange = { viewModel.setComponentRatio(index, it) },
+                        label = { Text("Ratio") },
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { viewModel.removeComponentRow(index) }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Remove")
+                    }
                 }
+                DropdownField(
+                    label = "Basis",
+                    selected = row.basis,
+                    options = listOf("Weight", "Volume"),
+                    onSelect = { basis -> viewModel.setComponentBasis(index, basis) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = row.density,
+                        onValueChange = { viewModel.setComponentDensity(index, it) },
+                        label = { Text("Density (optional)") },
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = row.potLife,
+                        onValueChange = { viewModel.setComponentPotLife(index, it) },
+                        label = { Text("Pot life (optional)") },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                OutlinedTextField(
+                    value = row.notes,
+                    onValueChange = { viewModel.setComponentNotes(index, it) },
+                    label = { Text("Notes (optional)") },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
             }
         }
 

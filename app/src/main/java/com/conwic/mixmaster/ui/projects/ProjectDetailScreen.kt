@@ -125,6 +125,8 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onAssignProduct = viewModel::assignProduct,
                     onAddNote = viewModel::addNote,
                     onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },
+                    blueprintUri = data.project?.blueprintUri,
+                    onSetBlueprint = viewModel::setBlueprintUri,
                 )
                 3 -> MaterialsTab(data = data, roomMixes = roomMixes)
                 4 -> CalendarTab(data = data)

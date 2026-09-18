@@ -28,10 +28,16 @@ object MixCalculator {
      *  - [DosingMode.COATS] → number of coats (e.g. 2.0 for two coats)
      *  - [DosingMode.POUR] → number of pours (usually 1.0)
      *  - [DosingMode.MM] → thickness in millimetres (e.g. 5.0 for a 5mm self-levelling pour)
+     * @param doseGramsPerM2 the per-m² dose to use — defaults to the product's typical (midpoint
+     *  of its datasheet range), but the calculator screen lets it be nudged within that range.
      */
-    fun compute(productWithComponents: ProductWithComponents, areaM2: Double, quantity: Double): MixResult {
-        val product = productWithComponents.product
-        val totalGrams = product.typicalDoseGramsPerM2 * areaM2 * quantity
+    fun compute(
+        productWithComponents: ProductWithComponents,
+        areaM2: Double,
+        quantity: Double,
+        doseGramsPerM2: Double = productWithComponents.product.typicalDoseGramsPerM2,
+    ): MixResult {
+        val totalGrams = doseGramsPerM2 * areaM2 * quantity
         val components = productWithComponents.components
         val ratioSum = components.sumOf { it.ratioParts }.takeIf { it > 0.0 } ?: 1.0
         val amounts = components.map { component ->
