@@ -19,10 +19,26 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Fixed debug keystore committed at keystore/debug.keystore so every build — CI or
+    // local — signs with the same certificate. Without this, each CI runner is a fresh
+    // VM and Android Gradle Plugin auto-generates a new random debug key per run, which
+    // makes every new APK fail to install over the previous one ("App not installed").
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

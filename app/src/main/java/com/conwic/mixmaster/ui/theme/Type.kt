@@ -2,18 +2,26 @@ package com.conwic.mixmaster.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.conwic.mixmaster.R
 
-/**
- * The design prototype uses Archivo (display/headings) and Manrope (body) from Google Fonts.
- * Drop the matching .ttf files under res/font/ and swap FontFamily.Default below for a
- * downloadable/bundled FontFamily to match the web prototype exactly — system sans-serif
- * is used here as a safe default since font binaries can't be fetched in this environment.
- */
-val DisplayFontFamily = FontFamily.Default
-val BodyFontFamily = FontFamily.Default
+/** Archivo (display/headings) and Manrope (body) — the same Google Fonts pair the design prototype uses. */
+val DisplayFontFamily = FontFamily(
+    Font(R.font.archivo_semibold, FontWeight.SemiBold),
+    Font(R.font.archivo_bold, FontWeight.Bold),
+    Font(R.font.archivo_extrabold, FontWeight.ExtraBold),
+    Font(R.font.archivo_black, FontWeight.Black),
+)
+val BodyFontFamily = FontFamily(
+    Font(R.font.manrope_regular, FontWeight.Normal),
+    Font(R.font.manrope_medium, FontWeight.Medium),
+    Font(R.font.manrope_semibold, FontWeight.SemiBold),
+    Font(R.font.manrope_bold, FontWeight.Bold),
+    Font(R.font.manrope_extrabold, FontWeight.ExtraBold),
+)
 
 val MixMasterTypography = Typography(
     headlineLarge = TextStyle(

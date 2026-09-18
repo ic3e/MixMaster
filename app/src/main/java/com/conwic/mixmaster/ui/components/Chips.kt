@@ -11,8 +11,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
 
 data class ChipOption(val label: String, val selected: Boolean, val onClick: () -> Unit)
@@ -25,14 +28,16 @@ fun ChipRow(options: List<ChipOption>, modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(vertical = 2.dp),
     ) {
         items(options) { option ->
-            val bg = if (option.selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-            val fg = if (option.selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            val bg = if (option.selected) Charcoal else MaterialTheme.colorScheme.surface
+            val fg = if (option.selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
             Text(
                 text = option.label,
                 color = fg,
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .background(bg, ChipShape)
+                    .then(if (!option.selected) Modifier.border(1.dp, MaterialTheme.colorScheme.outline, ChipShape) else Modifier)
                     .clickable { option.onClick() }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )

@@ -27,8 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +46,7 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.report.ReportGenerator
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
+import com.conwic.mixmaster.ui.components.SegmentedTabs
 
 private val tabTitles = listOf("Overview", "Tasks", "Layout", "Materials", "Calendar")
 
@@ -103,11 +102,12 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                         }
                     },
                 )
-                TabRow(selectedTabIndex = selectedTab) {
-                    tabTitles.forEachIndexed { index, title ->
-                        Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(title) })
-                    }
-                }
+                SegmentedTabs(
+                    titles = tabTitles,
+                    selectedIndex = selectedTab,
+                    onSelect = { selectedTab = it },
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                )
             }
         },
     ) { insets ->

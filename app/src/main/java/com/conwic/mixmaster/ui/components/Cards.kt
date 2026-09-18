@@ -1,6 +1,7 @@
 package com.conwic.mixmaster.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.Charcoal
 
 /** The flat, warm-surface card used throughout the design for grouped rows of info. */
 @Composable
@@ -20,19 +22,20 @@ fun CardFlat(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CardShape)
+            .background(MaterialTheme.colorScheme.surface, CardShape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CardShape)
             .padding(16.dp),
         content = content,
     )
 }
 
-/** The solid accent-colored "hero" card (quick actions, rollup stats). */
+/** The solid dark "hero" card (quick actions, rollup stats) — matches the design's charcoal card-accent. */
 @Composable
 fun CardAccent(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary, CardShape)
+            .background(Charcoal, CardShape)
             .padding(16.dp),
         content = content,
     )
