@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.data.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -68,4 +69,14 @@ data class ProductComponentEntity(
     val potLife: String = "",
     val notes: String = "",
     val sortOrder: Int,
+    /** How this part is sold, e.g. 20.0 for a 20 kg bag or 10.0 for a 10 L canister.
+     * 0 means nobody has told the app the pack size yet. */
+    @ColumnInfo(defaultValue = "0") val packageSize: Double = 0.0,
+    /** "kg" or "L" — the unit the pack is sold in. */
+    @ColumnInfo(defaultValue = "kg") val packageUnit: String = "kg",
+    /** "bag", "bucket", "canister", "bottle", "drum" or "tub". */
+    @ColumnInfo(defaultValue = "bag") val packageType: String = "bag",
+    /** Needed to convert this part's weight into litres, both for L-sold packs and for
+     * working out whether a batch fits the mixer. 0 means unknown. */
+    @ColumnInfo(defaultValue = "0") val densityKgPerL: Double = 0.0,
 )

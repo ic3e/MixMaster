@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.conwic.mixmaster.data.db.dao.FloorDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
@@ -44,7 +46,7 @@ const val DATABASE_NAME = "mixmaster.db"
         TeamMemberEntity::class,
         UsageLogEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -78,11 +80,23 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds pack size / unit / type and a numeric density to each mix component.
+         * Written as a real migration rather than a destructive one because there are now
+         * projects, tasks and logged usage on devices that must survive the update. */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE product_components ADD COLUMN packageSize REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE product_components ADD COLUMN packageUnit TEXT NOT NULL DEFAULT 'kg'")
+                db.execSQL("ALTER TABLE product_components ADD COLUMN packageType TEXT NOT NULL DEFAULT 'bag'")
+                db.execSQL("ALTER TABLE product_components ADD COLUMN densityKgPerL REAL NOT NULL DEFAULT 0")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                // No shipped users/data to preserve yet — destructive migration is the
-                // pragmatic choice over hand-writing Migration objects for pre-release schema
-                // changes (schema export is also unconfigured, so there's no history to diff).
+                .addMigrations(MIGRATION_2_3)
+                // Last resort only: with a migration in place this shouldn't fire, but it keeps
+                // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {

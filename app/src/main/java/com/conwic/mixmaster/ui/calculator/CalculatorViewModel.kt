@@ -5,8 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.dao.ProductWithComponents
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.repository.ProductRepository
+import com.conwic.mixmaster.domain.BatchBasis
+import com.conwic.mixmaster.domain.BatchPlan
 import com.conwic.mixmaster.domain.MixCalculator
 import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.domain.PackNeed
+import com.conwic.mixmaster.domain.packNeeds
+import com.conwic.mixmaster.domain.planBatches
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +33,11 @@ data class CalculatorUiState(
     /** Average of what's actually been logged on site for this product, if anything has. */
     val siteAverageDose: Double? = null,
     val loggedJobCount: Int = 0,
+    val packNeeds: List<PackNeed> = emptyList(),
+    val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
+    val mixerLitres: Double = 65.0,
+    val maxBatchKg: Double = 25.0,
+    val batchPlan: BatchPlan? = null,
 )
 
 private data class CalculatorInputs(
@@ -35,6 +45,10 @@ private data class CalculatorInputs(
     val quantityText: String = "1",
     /** null = not yet overridden by the user; falls back to the product's typical dose. */
     val coverageOverride: Double? = null,
+    val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
+    /** Mixer or bucket capacity, chosen in 5 L steps. */
+    val mixerLitres: Double = 65.0,
+    val maxBatchKg: Double = 25.0,
 )
 
 class CalculatorViewModel(private val productRepository: ProductRepository) : ViewModel() {
@@ -64,6 +78,7 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
             } else {
                 null
             }
+            val components = productWithComponents?.components.orEmpty()
             CalculatorUiState(
                 selectedProduct = productWithComponents,
                 areaInput = input.areaText,
@@ -72,6 +87,13 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
                 result = result,
                 siteAverageDose = if (logs.isEmpty()) null else logs.map { it.doseGramsPerM2 }.average(),
                 loggedJobCount = logs.size,
+                packNeeds = result?.let { packNeeds(it, components) }.orEmpty(),
+                batchBasis = input.batchBasis,
+                mixerLitres = input.mixerLitres,
+                maxBatchKg = input.maxBatchKg,
+                batchPlan = result?.let {
+                    planBatches(it, components, input.batchBasis, input.mixerLitres, input.maxBatchKg)
+                },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
 
@@ -90,6 +112,18 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
 
     fun setCoverage(value: Double) {
         inputs.update { it.copy(coverageOverride = value) }
+    }
+
+    fun setBatchBasis(basis: BatchBasis) {
+        inputs.update { it.copy(batchBasis = basis) }
+    }
+
+    fun setMixerLitres(litres: Double) {
+        inputs.update { it.copy(mixerLitres = litres) }
+    }
+
+    fun setMaxBatchKg(kg: Double) {
+        inputs.update { it.copy(maxBatchKg = kg) }
     }
 
     /** Logs the current coverage value as a real site reading — feeds Product Detail's

@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -152,9 +153,10 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 )
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FormTextField(
-                        value = row.density,
-                        onValueChange = { viewModel.setComponentDensity(index, it) },
-                        label = "Density (optional)",
+                        value = row.densityKgPerLText,
+                        onValueChange = { viewModel.setComponentDensityKgPerL(index, it) },
+                        label = "Density (kg/L)",
+                        keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.weight(1f),
                     )
                     FormTextField(
@@ -164,6 +166,36 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         modifier = Modifier.weight(1f),
                     )
                 }
+
+                Text(
+                    text = "How it's delivered — used to count bags and canisters, and to fit a batch in the mixer.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FormTextField(
+                        value = row.packSizeText,
+                        onValueChange = { viewModel.setComponentPackSize(index, it) },
+                        label = "Pack size",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1.2f),
+                    )
+                    DropdownField(
+                        label = "Unit",
+                        selected = row.packUnit,
+                        options = listOf("kg", "L"),
+                        onSelect = { unit -> viewModel.setComponentPackUnit(index, unit) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                DropdownField(
+                    label = "Container",
+                    selected = row.packType,
+                    options = listOf("bag", "bucket", "canister", "bottle", "drum", "tub"),
+                    onSelect = { type -> viewModel.setComponentPackType(index, type) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
                 FormTextField(
                     value = row.notes,
                     onValueChange = { viewModel.setComponentNotes(index, it) },

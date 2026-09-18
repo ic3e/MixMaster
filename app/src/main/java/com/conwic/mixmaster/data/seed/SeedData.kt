@@ -236,6 +236,10 @@ object SeedData {
                         potLife = part.potLife,
                         notes = part.notes,
                         sortOrder = index,
+                        // Water is the one density that needs no datasheet. Pack sizes are left
+                        // unset rather than guessed — they vary by supplier and market, so the
+                        // office fills in the ones they actually buy.
+                        densityKgPerL = if (part.label.equals("Water", ignoreCase = true)) 1.0 else 0.0,
                     )
                 },
             )

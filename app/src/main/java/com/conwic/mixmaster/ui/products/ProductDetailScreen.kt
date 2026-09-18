@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
@@ -177,6 +178,15 @@ private fun ExpandableComponentCard(component: ProductComponentEntity) {
             Column {
                 Text(text = component.label, style = MaterialTheme.typography.titleMedium)
                 Text(text = "${component.basis} · ${component.ratioParts.toInt()} parts", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = if (component.packageSize > 0.0) {
+                        "Sold in ${formatDecimal(component.packageSize, 2)} ${component.packageUnit} ${component.packageType}s"
+                    } else {
+                        "No pack size set"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (component.packageSize > 0.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         if (expanded && hasDetails) {

@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.DosingMode
+import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatKg
@@ -244,6 +245,7 @@ fun CalculatorScreen(navController: NavHostController) {
             result.components.forEachIndexed { index, amount ->
                 item {
                     val parts = data.components.getOrNull(index)?.ratioParts
+                    val pack = state.packNeeds.getOrNull(index)
                     CardFlat {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
@@ -265,6 +267,27 @@ fun CalculatorScreen(navController: NavHostController) {
                                     modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
                                 )
                             }
+                        }
+                        if (pack != null) {
+                            Text(
+                                text = when {
+                                    pack.packs != null ->
+                                        "${pack.packs} × ${pack.packLabel}" +
+                                            (pack.amountInPackUnit?.takeIf { pack.packUnit == "L" }
+                                                ?.let { " · ${formatDecimal(it, 1)} L" } ?: "")
+                                    pack.packSize > 0.0 && pack.packUnit == "L" ->
+                                        "Add a density (kg/L) to count ${pack.packType}s"
+                                    else -> "Set a pack size to count ${pack.packType}s"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (pack.packs != null) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                fontWeight = if (pack.packs != null) FontWeight.Bold else FontWeight.Normal,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
                         }
                     }
                 }
@@ -298,6 +321,118 @@ fun CalculatorScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
                         )
+                    }
+                }
+            }
+
+            item { SectionLabel(text = "Mixing", modifier = Modifier.padding(top = 4.dp)) }
+
+            item {
+                CardFlat {
+                    ChipRow(
+                        options = listOf(
+                            BatchBasis.MIXER_VOLUME to "Mixer size",
+                            BatchBasis.MAX_WEIGHT to "Max kg",
+                            BatchBasis.ONE_PACKAGE to "By the bag",
+                        ).map { (basis, label) ->
+                            ChipOption(
+                                label = label,
+                                selected = state.batchBasis == basis,
+                                onClick = { viewModel.setBatchBasis(basis) },
+                            )
+                        },
+                    )
+
+                    when (state.batchBasis) {
+                        BatchBasis.MIXER_VOLUME -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(text = "Mixer / bucket", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = "${formatDecimal(state.mixerLitres, 0)} L", style = MaterialTheme.typography.titleMedium)
+                            }
+                            Stepper(
+                                value = formatDecimal(state.mixerLitres, 0),
+                                onValueChange = { viewModel.setMixerLitres(it.toDoubleOrNull() ?: 0.0) },
+                                step = 5.0,
+                                minValue = 5.0,
+                                decimals = 0,
+                                suffix = "L",
+                            )
+                        }
+                        BatchBasis.MAX_WEIGHT -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(text = "Max per batch", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = "${formatDecimal(state.maxBatchKg, 1)} kg", style = MaterialTheme.typography.titleMedium)
+                            }
+                            Stepper(
+                                value = formatDecimal(state.maxBatchKg, 1),
+                                onValueChange = { viewModel.setMaxBatchKg(it.toDoubleOrNull() ?: 0.0) },
+                                step = 5.0,
+                                minValue = 1.0,
+                                decimals = 1,
+                                suffix = "kg",
+                            )
+                        }
+                        BatchBasis.ONE_PACKAGE -> {
+                            Text(
+                                text = "One full bag per batch, with the liquid scaled to match.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                        }
+                    }
+
+                    val plan = state.batchPlan
+                    if (plan?.problem != null) {
+                        Text(
+                            text = plan.problem,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 12.dp),
+                        )
+                    } else if (plan != null) {
+                        Text(
+                            text = "${plan.batches} × batch",
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(top = 14.dp),
+                        )
+                        Text(
+                            text = plan.batchSizeLabel,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        plan.perBatch.forEach { part ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
+                        plan.remainderBatch?.let { remainder ->
+                            Text(
+                                text = "Then one part batch:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                            remainder.forEach { part ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                                }
+                            }
+                        }
                     }
                 }
             }

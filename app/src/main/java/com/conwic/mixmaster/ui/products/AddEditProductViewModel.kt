@@ -6,6 +6,7 @@ import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.data.repository.ProductRepository
+import com.conwic.mixmaster.domain.formatDecimal
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,10 @@ data class ComponentFormRow(
     val density: String = "",
     val potLife: String = "",
     val notes: String = "",
+    val packSizeText: String = "",
+    val packUnit: String = "kg",
+    val packType: String = "bag",
+    val densityKgPerLText: String = "",
 )
 
 data class ProductFormState(
@@ -85,6 +90,10 @@ class AddEditProductViewModel(
                                     density = it.density,
                                     potLife = it.potLife,
                                     notes = it.notes,
+                                    packSizeText = if (it.packageSize > 0.0) formatDecimal(it.packageSize, 2) else "",
+                                    packUnit = it.packageUnit,
+                                    packType = it.packageType,
+                                    densityKgPerLText = if (it.densityKgPerL > 0.0) formatDecimal(it.densityKgPerL, 3) else "",
                                 )
                             },
                             isLoaded = true,
@@ -109,9 +118,12 @@ class AddEditProductViewModel(
     fun setComponentLabel(index: Int, value: String) = updateComponent(index) { it.copy(label = value) }
     fun setComponentRatio(index: Int, value: String) = updateComponent(index) { it.copy(ratioText = value) }
     fun setComponentBasis(index: Int, basis: String) = updateComponent(index) { it.copy(basis = basis) }
-    fun setComponentDensity(index: Int, value: String) = updateComponent(index) { it.copy(density = value) }
     fun setComponentPotLife(index: Int, value: String) = updateComponent(index) { it.copy(potLife = value) }
     fun setComponentNotes(index: Int, value: String) = updateComponent(index) { it.copy(notes = value) }
+    fun setComponentPackSize(index: Int, value: String) = updateComponent(index) { it.copy(packSizeText = value) }
+    fun setComponentPackUnit(index: Int, unit: String) = updateComponent(index) { it.copy(packUnit = unit) }
+    fun setComponentPackType(index: Int, type: String) = updateComponent(index) { it.copy(packType = type) }
+    fun setComponentDensityKgPerL(index: Int, value: String) = updateComponent(index) { it.copy(densityKgPerLText = value) }
 
     private fun updateComponent(index: Int, transform: (ComponentFormRow) -> ComponentFormRow) = _formState.update { state ->
         state.copy(components = state.components.mapIndexed { i, row -> if (i == index) transform(row) else row })
@@ -147,15 +159,22 @@ class AddEditProductViewModel(
             val components = state.components
                 .filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
                 .mapIndexed { index, row ->
+                    val densityValue = row.densityKgPerLText.toDoubleOrNull() ?: 0.0
                     ProductComponentEntity(
                         productId = 0,
                         label = row.label.trim(),
                         ratioParts = row.ratioText.toDouble(),
                         basis = row.basis,
-                        density = row.density.trim(),
+                        // Kept in step with the numeric density so the detail screen's note and
+                        // the maths can never disagree.
+                        density = if (densityValue > 0.0) "${formatDecimal(densityValue, 3)} kg/L" else row.density.trim(),
                         potLife = row.potLife.trim(),
                         notes = row.notes.trim(),
                         sortOrder = index,
+                        packageSize = row.packSizeText.toDoubleOrNull() ?: 0.0,
+                        packageUnit = row.packUnit,
+                        packageType = row.packType,
+                        densityKgPerL = densityValue,
                     )
                 }
             productRepository.save(product, components)
