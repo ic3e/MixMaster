@@ -152,7 +152,7 @@ fun planBatches(
             label = "${formatDecimal(litres / batches, 1)} L per batch · ${formatDecimal(usable, 1)} L usable"
         }
         BatchBasis.MAX_WEIGHT -> {
-            if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, "—", "Set a maximum batch weight.")
+            if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, "—", problem = "Set a maximum batch weight.")
             batches = ceil(totalKg / maxBatchKg).toInt().coerceAtLeast(1)
             label = "${formatKg(result.totalGrams / batches)} kg per batch"
         }
