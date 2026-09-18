@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -37,7 +38,7 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
 import com.conwic.mixmaster.ui.navigation.Routes
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -49,7 +50,9 @@ fun HomeScreen(navController: NavHostController) {
         },
     )
     val state by viewModel.uiState.collectAsState()
-    val today = remember(state) { LocalDate.now() }
+    val now = remember(state) { LocalDateTime.now() }
+    val today = now.toLocalDate()
+    val dayPart = dayPartFor(now.toLocalTime())
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -57,20 +60,29 @@ fun HomeScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.conwic_badge),
-                    contentDescription = "ConWiC",
-                    modifier = Modifier.size(38.dp),
-                )
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(text = "Good morning", style = MaterialTheme.typography.headlineMedium)
-                    Text(
-                        text = today.format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = R.drawable.conwic_badge),
+                        contentDescription = "ConWiC",
+                        modifier = Modifier.size(38.dp),
                     )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(text = greetingFor(dayPart), style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            text = today.format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
+                Text(
+                    text = quipFor(today, dayPart),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
         }
 
