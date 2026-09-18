@@ -173,12 +173,16 @@ fun SettingsScreen(navController: NavHostController) {
                             },
                         )
                     }
-                    CardFlat {
+                    // 12 + 4 = the usual 16: the rows inset themselves so their text isn't
+                    // flush against the rounded clip below, which was slicing the left edge off
+                    // a leading T or j.
+                    CardFlat(contentPadding = 12.dp) {
                         if (state.team.isEmpty()) {
                             Text(
                                 text = "Nobody on the list yet.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 4.dp),
                             )
                         }
                         state.team.forEachIndexed { index, member ->
@@ -187,7 +191,7 @@ fun SettingsScreen(navController: NavHostController) {
                                     .fillMaxWidth()
                                     .clip(CardShape)
                                     .clickable { editingMember = member }
-                                    .padding(vertical = 6.dp),
+                                    .padding(horizontal = 4.dp, vertical = 6.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Charcoal
@@ -19,13 +20,18 @@ import com.conwic.mixmaster.ui.theme.TextOnDark
 
 /** The flat, warm-surface card used throughout the design for grouped rows of info. */
 @Composable
-fun CardFlat(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun CardFlat(
+    modifier: Modifier = Modifier,
+    /** Drop this when the rows inside do their own insetting, so everything still lines up. */
+    contentPadding: Dp = 16.dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface, CardShape)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CardShape)
-            .padding(16.dp),
+            .padding(contentPadding),
         content = content,
     )
 }
