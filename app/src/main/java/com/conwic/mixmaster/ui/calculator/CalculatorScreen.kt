@@ -428,12 +428,16 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                     } else if (plan != null) {
                         Text(
-                            text = "${plan.batches} × batch",
+                            text = if (plan.totalMixes == 1) "1 mixing" else "${plan.totalMixes} mixings",
                             style = MaterialTheme.typography.headlineMedium,
                             modifier = Modifier.padding(top = 14.dp),
                         )
                         Text(
-                            text = plan.batchSizeLabel,
+                            text = if (plan.remainderBatch != null && plan.batches > 0) {
+                                "${plan.batches} full + 1 part · ${plan.batchSizeLabel}"
+                            } else {
+                                plan.batchSizeLabel
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -456,18 +460,28 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.padding(top = 4.dp),
                             )
                         }
-                        plan.perBatch.forEach { part ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                        if (plan.batches > 0) {
+                            if (plan.remainderBatch != null) {
+                                Text(
+                                    text = "Each full batch:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 10.dp),
+                                )
+                            }
+                            plan.perBatch.forEach { part ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                                }
                             }
                         }
                         plan.remainderBatch?.let { remainder ->
                             Text(
-                                text = "Then one part batch:",
+                                text = if (plan.batches > 0) "Then one part batch:" else "One part batch:",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),

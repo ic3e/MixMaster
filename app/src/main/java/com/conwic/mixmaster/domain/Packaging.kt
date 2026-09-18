@@ -35,7 +35,10 @@ data class BatchPlan(
     val overflows: Boolean = false,
     /** Set when the plan couldn't be worked out, explaining what's missing. */
     val problem: String? = null,
-)
+) {
+    /** Times the mixer actually gets loaded, counting the part batch at the end. */
+    val totalMixes: Int get() = batches + if (remainderBatch != null) 1 else 0
+}
 
 /** What's actually mixable in a drum of [mixerLitres] once [headroomPercent] is left free. */
 fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
