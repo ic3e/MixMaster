@@ -7,6 +7,7 @@ import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.isWaterLabel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -159,7 +160,9 @@ class AddEditProductViewModel(
             val components = state.components
                 .filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
                 .mapIndexed { index, row ->
-                    val densityValue = row.densityKgPerLText.toDoubleOrNull() ?: 0.0
+                    // Water is 1 kg/L whatever was typed, so nobody has to remember to fill it in.
+                    val typedDensity = row.densityKgPerLText.toDoubleOrNull() ?: 0.0
+                    val densityValue = if (isWaterLabel(row.label)) 1.0 else typedDensity
                     ProductComponentEntity(
                         productId = 0,
                         label = row.label.trim(),

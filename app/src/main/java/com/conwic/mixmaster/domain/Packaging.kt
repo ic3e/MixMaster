@@ -44,11 +44,27 @@ data class BatchPlan(
 fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
     mixerLitres * (1.0 - headroomPercent.coerceIn(0.0, 90.0) / 100.0)
 
+/**
+ * Water is 1 kg per litre and always will be, so it never has to be filled in — and is
+ * resolved here rather than stored, which also covers products saved before the field existed.
+ * Matched narrowly enough that a "Waterproofer" additive isn't mistaken for it.
+ */
+fun isWaterLabel(label: String): Boolean {
+    val normalized = label.trim().lowercase()
+    return normalized == "water" ||
+        normalized.startsWith("water ") ||
+        normalized.startsWith("water(") ||
+        normalized.endsWith(" water")
+}
+
+fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
+    if (isWaterLabel(component.label)) 1.0 else component.densityKgPerL
+
 /** Litres this mix occupies, or null if any part is missing a density. */
 fun mixVolumeLitres(result: MixResult, components: List<ProductComponentEntity>): Double? {
     var litres = 0.0
     result.components.forEachIndexed { index, amount ->
-        val density = components.getOrNull(index)?.densityKgPerL ?: 0.0
+        val density = components.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0
         if (density <= 0.0) return null
         litres += (amount.grams / 1000.0) / density
     }
@@ -61,7 +77,7 @@ fun packNeeds(result: MixResult, components: List<ProductComponentEntity>): List
         val kg = amount.grams / 1000.0
         val packSize = component?.packageSize ?: 0.0
         val packUnit = component?.packageUnit ?: "kg"
-        val density = component?.densityKgPerL ?: 0.0
+        val density = component?.let { effectiveDensityKgPerL(it) } ?: 0.0
         // An L-sold pack has to be compared in litres, which needs the density.
         val amountInPackUnit = when {
             packUnit == "kg" -> kg
