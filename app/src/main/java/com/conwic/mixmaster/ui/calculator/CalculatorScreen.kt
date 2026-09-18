@@ -334,9 +334,9 @@ fun CalculatorScreen(navController: NavHostController) {
                 CardFlat {
                     ChipRow(
                         options = listOf(
+                            BatchBasis.ONE_PACKAGE to "By the bag",
                             BatchBasis.MIXER_VOLUME to "Mixer size",
                             BatchBasis.MAX_WEIGHT to "Max kg",
-                            BatchBasis.ONE_PACKAGE to "By the bag",
                         ).map { (basis, label) ->
                             ChipOption(
                                 label = label,
@@ -410,7 +410,7 @@ fun CalculatorScreen(navController: NavHostController) {
                         }
                         BatchBasis.ONE_PACKAGE -> {
                             Text(
-                                text = "One full bag per batch, with the liquid scaled to match.",
+                                text = "A whole bag or bucket per batch — nothing to weigh out on site. The liquid is scaled to match, and any part bag is shown separately.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),
@@ -423,7 +423,8 @@ fun CalculatorScreen(navController: NavHostController) {
                         Text(
                             text = plan.problem,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 12.dp),
                         )
                     } else if (plan != null) {

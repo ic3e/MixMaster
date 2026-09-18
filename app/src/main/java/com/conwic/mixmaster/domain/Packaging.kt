@@ -112,10 +112,17 @@ fun planBatches(
     // Whole packs can't be split on site, so batch by full packs and leave the odd bit over
     // as a smaller final batch instead of pretending every batch is a fraction of a bag.
     if (basis == BatchBasis.ONE_PACKAGE) {
-        val index = components.indexOfFirst { it.packageSize > 0.0 && it.packageUnit == "kg" }
-        if (index < 0) {
-            return BatchPlan(1, result.components, "—", problem = "Set a kg pack size on one part to batch by the bag.")
-        }
+        // Batch on the biggest part by ratio — that's the powder that comes in bags, not an
+        // additive that happens to be listed first.
+        val index = components.indices
+            .filter { components[it].packageSize > 0.0 && components[it].packageUnit == "kg" }
+            .maxByOrNull { components[it].ratioParts }
+            ?: return BatchPlan(
+                1,
+                result.components,
+                "—",
+                problem = "Set the bag or bucket weight on this product's powder to count mixings.",
+            )
         val partKg = (result.components.getOrNull(index)?.grams ?: 0.0) / 1000.0
         val packSize = components[index].packageSize
         if (partKg <= 0.0) return BatchPlan(0, emptyList(), "—")

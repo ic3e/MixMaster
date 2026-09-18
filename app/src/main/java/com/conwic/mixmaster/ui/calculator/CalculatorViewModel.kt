@@ -35,7 +35,7 @@ data class CalculatorUiState(
     val siteAverageDose: Double? = null,
     val loggedJobCount: Int = 0,
     val packNeeds: List<PackNeed> = emptyList(),
-    val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
+    val batchBasis: BatchBasis = BatchBasis.ONE_PACKAGE,
     val mixerLitres: Double = 65.0,
     /** How much of the drum is deliberately left empty so the mix has room to turn over. */
     val headroomPercent: Double = 40.0,
@@ -49,7 +49,7 @@ private data class CalculatorInputs(
     val quantityText: String = "1",
     /** null = not yet overridden by the user; falls back to the product's typical dose. */
     val coverageOverride: Double? = null,
-    val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
+    val batchBasis: BatchBasis = BatchBasis.ONE_PACKAGE,
     /** Mixer or bucket capacity, chosen in 5 L steps. */
     val mixerLitres: Double = 65.0,
     val headroomPercent: Double = 40.0,
