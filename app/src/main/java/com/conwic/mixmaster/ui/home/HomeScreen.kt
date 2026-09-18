@@ -38,6 +38,7 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
 import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -95,7 +96,7 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         item {
-            CardAccent(modifier = Modifier.clickable { navController.navigate(Routes.CALCULATOR) }) {
+            CardAccent(modifier = Modifier.clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "Quick calculate", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary)

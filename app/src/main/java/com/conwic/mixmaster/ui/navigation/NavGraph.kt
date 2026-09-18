@@ -35,11 +35,7 @@ fun MixMasterNavGraph(startDestination: String) {
         bottomBar = {
             if (currentRoute in Routes.bottomNavRoutes) {
                 BottomNavBar(currentRoute = currentRoute) { route ->
-                    navController.navigate(route) {
-                        popUpTo(Routes.HOME) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    if (route != currentRoute) navController.navigateToTopLevel(route)
                 }
             }
         },

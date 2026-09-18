@@ -50,6 +50,7 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
@@ -159,7 +160,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         Text("Edit product")
                     }
                 }
-                Button(onClick = { navController.navigate(Routes.CALCULATOR) }, modifier = Modifier.weight(1f)) {
+                Button(onClick = { navController.navigateToTopLevel(Routes.CALCULATOR) }, modifier = Modifier.weight(1f)) {
                     Text("Use in calculator")
                 }
             }

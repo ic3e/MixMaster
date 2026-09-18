@@ -46,6 +46,7 @@ import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.Stepper
 import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import com.conwic.mixmaster.ui.theme.CardShape
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
@@ -310,7 +311,7 @@ fun CalculatorScreen(navController: NavHostController) {
                     )
                     PrimaryButton(
                         text = "Save to project",
-                        onClick = { navController.navigate(Routes.PROJECTS) },
+                        onClick = { navController.navigateToTopLevel(Routes.PROJECTS) },
                         modifier = Modifier.weight(1f),
                     )
                 }

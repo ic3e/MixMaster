@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 
 @Composable
@@ -51,6 +52,11 @@ fun CalendarScreen(navController: NavHostController) {
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item {
+            // Calendar isn't a bottom-nav destination, so the nav bar is hidden here — without
+            // this there is no way back to Home except the system gesture.
+            MixMasterTopBar(title = "Calendar", onBack = { navController.popBackStack() })
+        }
         item {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = viewModel::previousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month") }
