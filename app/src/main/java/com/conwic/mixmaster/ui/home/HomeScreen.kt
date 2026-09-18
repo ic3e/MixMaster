@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,17 +13,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,19 +40,23 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.domain.formatWeek
+import com.conwic.mixmaster.domain.formatDay
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
+import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
+import com.conwic.mixmaster.ui.tasks.TaskDraft
+import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
+import com.conwic.mixmaster.ui.tasks.TaskRow
+import com.conwic.mixmaster.ui.tasks.toDraft
+import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import androidx.compose.ui.draw.clip
-import com.conwic.mixmaster.ui.theme.CardShape
-import com.conwic.mixmaster.ui.components.tappableText
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -58,6 +70,9 @@ fun HomeScreen(navController: NavHostController) {
     val now = remember(state) { LocalDateTime.now() }
     val today = now.toLocalDate()
     val dayPart = dayPartFor(now.toLocalTime())
+
+    // Non-null while the add/edit sheet is open; holds what the sheet starts from.
+    var editing by remember { mutableStateOf<TaskDraft?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -94,7 +109,7 @@ fun HomeScreen(navController: NavHostController) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatCard(modifier = Modifier.weight(1f), label = "Projects", value = "${state.activeProjectCount} active")
-                StatCard(modifier = Modifier.weight(1f), label = "Tasks today", value = "${state.todayTasks.size}", valueColor = MaterialTheme.colorScheme.secondary)
+                StatCard(modifier = Modifier.weight(1f), label = "Open today", value = "${state.todayTaskCount}", valueColor = MaterialTheme.colorScheme.secondary)
                 StatCard(modifier = Modifier.weight(1f), label = "Products", value = "${state.productCount}")
             }
         }
@@ -116,17 +131,32 @@ fun HomeScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Today")
-                if (state.todayTasks.isEmpty()) {
-                    CardFlat { Text(text = "Nothing due today.", style = MaterialTheme.typography.bodyMedium) }
-                } else {
-                    CardFlat {
-                        state.todayTasks.forEachIndexed { index, task ->
-                            TaskRow(task = task, onToggle = { viewModel.toggleTask(task) })
-                            if (index != state.todayTasks.lastIndex) {
-                                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
-                        }
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { viewModel.shiftWeek(-1) }) {
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous week")
+                    }
+                    Text(
+                        text = "Week ${state.weekLabel.removePrefix("W")}",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    IconButton(onClick = { viewModel.shiftWeek(1) }) {
+                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next week")
+                    }
+                    Box(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "Full calendar",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.tappableText { navController.navigate(Routes.CALENDAR) },
+                    )
+                }
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    state.week.forEach { day ->
+                        WeekDayCell(
+                            day = day,
+                            onClick = { viewModel.selectDate(day.date) },
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
@@ -134,17 +164,96 @@ fun HomeScreen(navController: NavHostController) {
 
         item {
             Column {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    SectionLabel(text = "This week · ${formatWeek(today)}")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SectionLabel(text = state.selectedDayLabel)
                     Text(
-                        text = "Calendar",
+                        text = "+ Add task",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.tappableText { navController.navigate(Routes.CALENDAR) },
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier
+                            .clip(ChipShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .clickable { editing = TaskDraft(dueDate = state.selectedDate) }
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
                     )
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    state.week.forEach { day -> WeekDayCell(day) }
+                if (state.dayTasks.isEmpty()) {
+                    CardFlat {
+                        Text(
+                            text = "Nothing on this day. Tap + Add task.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else {
+                    CardFlat {
+                        state.dayTasks.forEachIndexed { index, item ->
+                            TaskRow(
+                                title = item.task.title,
+                                subtitle = item.subtitle,
+                                done = item.task.isDone,
+                                priority = item.task.priority,
+                                onToggle = { viewModel.toggleTask(item.task) },
+                                onEdit = { editing = item.task.toDraft() },
+                            )
+                            if (index != state.dayTasks.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (state.overdueTasks.isNotEmpty()) {
+            item {
+                Column {
+                    SectionLabel(text = "Late · ${state.overdueTasks.size}")
+                    CardFlat {
+                        state.overdueTasks.forEachIndexed { index, item ->
+                            TaskRow(
+                                title = item.task.title,
+                                subtitle = item.task.dueDate
+                                    ?.let { "${item.subtitle} · was due ${formatDay(it)}" }
+                                    ?: item.subtitle,
+                                done = item.task.isDone,
+                                priority = item.task.priority,
+                                onToggle = { viewModel.toggleTask(item.task) },
+                                onEdit = { editing = item.task.toDraft() },
+                            )
+                            if (index != state.overdueTasks.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (state.undatedTasks.isNotEmpty()) {
+            item {
+                Column {
+                    SectionLabel(text = "Anytime · ${state.undatedTasks.size}")
+                    CardFlat {
+                        state.undatedTasks.forEachIndexed { index, item ->
+                            TaskRow(
+                                title = item.task.title,
+                                subtitle = item.subtitle,
+                                done = item.task.isDone,
+                                priority = item.task.priority,
+                                onToggle = { viewModel.toggleTask(item.task) },
+                                onEdit = { editing = item.task.toDraft() },
+                            )
+                            if (index != state.undatedTasks.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -170,48 +279,60 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
     }
-}
 
-@Composable
-private fun TaskRow(task: HomeTaskUi, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = task.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = if (task.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-            )
-            Text(text = task.projectName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .size(9.dp)
-                .background(Color(android.graphics.Color.parseColor(task.dotColorHex)), CircleShape),
+    editing?.let { draft ->
+        TaskEditorSheet(
+            draft = draft,
+            projects = state.projects,
+            onDismiss = { editing = null },
+            onSave = { saved ->
+                viewModel.saveTask(saved)
+                editing = null
+            },
+            onDelete = draft.id?.let { id ->
+                {
+                    viewModel.deleteTask(id)
+                    editing = null
+                }
+            },
         )
     }
 }
 
 @Composable
-private fun WeekDayCell(day: WeekDayUi) {
-    val bg = if (day.isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val fg = if (day.isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun WeekDayCell(day: WeekDayUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val background = when {
+        day.isSelected -> MaterialTheme.colorScheme.primary
+        day.isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val foreground = if (day.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = day.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Column(
             modifier = Modifier
                 .padding(top = 4.dp)
-                .size(36.dp)
-                .background(bg, CircleShape),
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(background)
+                .clickable(onClick = onClick),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(text = "${day.dayOfMonth}", style = MaterialTheme.typography.bodyMedium, color = fg)
+            Text(text = "${day.dayOfMonth}", style = MaterialTheme.typography.bodyMedium, color = foreground)
+            Box(
+                modifier = Modifier
+                    .padding(top = 2.dp)
+                    .size(4.dp)
+                    .background(
+                        color = if (day.taskCount > 0) {
+                            if (day.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.secondary
+                        } else {
+                            Color.Transparent
+                        },
+                        shape = CircleShape,
+                    ),
+            )
         }
     }
 }

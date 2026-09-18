@@ -65,6 +65,13 @@ android {
     }
 }
 
+// Writes the schema Room expects for each database version to app/schemas.
+// That file is the ground truth a hand-written Migration has to match, and CI commits
+// it back to the repo so the two can be compared after a build.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
     implementation(composeBom)

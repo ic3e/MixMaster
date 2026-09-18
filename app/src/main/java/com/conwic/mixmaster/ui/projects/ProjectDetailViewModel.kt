@@ -10,11 +10,12 @@ import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.Role
-import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.domain.MixCalculator
 import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.ui.tasks.TaskDraft
+import com.conwic.mixmaster.ui.tasks.toEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -97,11 +98,17 @@ class ProjectDetailViewModel(
         viewModelScope.launch { projectRepository.assignProduct(roomId, productId) }
     }
 
-    fun addTask(title: String, dueDate: LocalDate?, priority: TaskPriority) {
-        if (title.isBlank()) return
+    /** Saves a task from the shared editor. New tasks are pinned to this project. */
+    fun saveTask(draft: TaskDraft) {
+        if (draft.title.isBlank()) return
+        val entity = draft.copy(projectId = projectId).toEntity()
         viewModelScope.launch {
-            projectRepository.addTask(TaskEntity(projectId = projectId, title = title.trim(), dueDate = dueDate, priority = priority))
+            if (draft.id == null) projectRepository.addTask(entity) else projectRepository.updateTask(entity)
         }
+    }
+
+    fun deleteTask(taskId: Long) {
+        viewModelScope.launch { projectRepository.deleteTask(taskId) }
     }
 
     fun setTaskDone(taskId: Long, done: Boolean) {

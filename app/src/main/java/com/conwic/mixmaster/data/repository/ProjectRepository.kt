@@ -55,6 +55,10 @@ class ProjectRepository(
 
     suspend fun setTaskDone(taskId: Long, done: Boolean) = taskDao.setDone(taskId, done)
 
+    suspend fun updateTask(task: TaskEntity) = taskDao.update(task)
+
+    suspend fun deleteTask(taskId: Long) = taskDao.deleteById(taskId)
+
     fun observeNotes(projectId: Long): Flow<List<NoteEntity>> = noteDao.observeForProject(projectId)
 
     suspend fun addNote(note: NoteEntity): Long = noteDao.insert(note)

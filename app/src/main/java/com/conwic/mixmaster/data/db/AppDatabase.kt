@@ -46,7 +46,7 @@ const val DATABASE_NAME = "mixmaster.db"
         TeamMemberEntity::class,
         UsageLogEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -92,9 +92,37 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Lets a task exist without a project, so the home screen can hold a plain job list.
+         * SQLite can't relax a NOT NULL column in place, so the table is rebuilt: the new table
+         * is created with the exact shape Room expects for version 4, the rows are copied over,
+         * and the two indices are put back. */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `tasks_new` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`projectId` INTEGER, " +
+                        "`title` TEXT NOT NULL, " +
+                        "`dueDate` INTEGER, " +
+                        "`priority` TEXT NOT NULL, " +
+                        "`isDone` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`projectId`) REFERENCES `projects`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL(
+                    "INSERT INTO `tasks_new` (`id`, `projectId`, `title`, `dueDate`, `priority`, `isDone`) " +
+                        "SELECT `id`, `projectId`, `title`, `dueDate`, `priority`, `isDone` FROM `tasks`",
+                )
+                db.execSQL("DROP TABLE `tasks`")
+                db.execSQL("ALTER TABLE `tasks_new` RENAME TO `tasks`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_tasks_projectId` ON `tasks` (`projectId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_tasks_dueDate` ON `tasks` (`dueDate`)")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()

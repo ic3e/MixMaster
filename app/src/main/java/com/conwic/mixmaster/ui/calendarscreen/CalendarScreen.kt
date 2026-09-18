@@ -39,6 +39,15 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.tasks.TaskDraft
+import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
+import com.conwic.mixmaster.ui.tasks.TaskRow
+import com.conwic.mixmaster.ui.tasks.toDraft
+import com.conwic.mixmaster.ui.theme.ChipShape
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 
 @Composable
@@ -48,6 +57,9 @@ fun CalendarScreen(navController: NavHostController) {
         factory = viewModelFactory { initializer { CalendarViewModel(container.projectRepository) } },
     )
     val state by viewModel.uiState.collectAsState()
+
+    // Non-null while the add/edit sheet is open; holds what the sheet starts from.
+    var editing by remember { mutableStateOf<TaskDraft?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -114,22 +126,66 @@ fun CalendarScreen(navController: NavHostController) {
             }
         }
 
-        item { SectionLabel(text = state.selectedDateLabel) }
-
-        if (state.selectedDayTasks.isEmpty()) {
-            item { Text(text = "No tasks or events scheduled.", style = MaterialTheme.typography.bodyMedium) }
-        }
-        items(state.selectedDayTasks) { task ->
-            CardFlat {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column {
-                        Text(text = task.title, style = MaterialTheme.typography.titleMedium)
-                        Text(text = task.projectName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Text(text = if (task.done) "Done" else "Pending", style = MaterialTheme.typography.labelSmall)
-                }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SectionLabel(text = state.selectedDateLabel)
+                Text(
+                    text = "+ Add task",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .clip(ChipShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable { editing = TaskDraft(dueDate = state.selectedDate) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                )
             }
         }
+
+        if (state.selectedDayTasks.isEmpty()) {
+            item {
+                Text(
+                    text = "Nothing on this day yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        items(state.selectedDayTasks) { item ->
+            CardFlat {
+                TaskRow(
+                    title = item.task.title,
+                    subtitle = item.subtitle,
+                    done = item.task.isDone,
+                    priority = item.task.priority,
+                    onToggle = { viewModel.toggleTask(item.task) },
+                    onEdit = { editing = item.task.toDraft() },
+                )
+            }
+        }
+    }
+
+    editing?.let { draft ->
+        TaskEditorSheet(
+            draft = draft,
+            projects = state.projects,
+            onDismiss = { editing = null },
+            onSave = { saved ->
+                viewModel.saveTask(saved)
+                editing = null
+            },
+            onDelete = draft.id?.let { id ->
+                {
+                    viewModel.deleteTask(id)
+                    editing = null
+                }
+            },
+        )
     }
 }
 

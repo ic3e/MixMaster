@@ -24,6 +24,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dueDate = :epochDay ORDER BY priority")
     suspend fun getForDay(epochDay: Long): List<TaskEntity>
 
+    @Query("SELECT * FROM tasks WHERE id = :taskId")
+    suspend fun getById(taskId: Long): TaskEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task: TaskEntity): Long
 
@@ -32,6 +35,9 @@ interface TaskDao {
 
     @Query("UPDATE tasks SET isDone = :done WHERE id = :taskId")
     suspend fun setDone(taskId: Long, done: Boolean)
+
+    @Query("DELETE FROM tasks WHERE id = :taskId")
+    suspend fun deleteById(taskId: Long)
 
     @Delete
     suspend fun delete(task: TaskEntity)

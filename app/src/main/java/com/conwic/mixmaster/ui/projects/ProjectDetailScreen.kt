@@ -115,7 +115,13 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
         Column(modifier = Modifier.fillMaxSize().padding(insets)) {
             when (selectedTab) {
                 0 -> OverviewTab(data = data, onAddressClick = { addressSheetOpen = true })
-                1 -> TasksTab(data = data, isEmployer = role == Role.EMPLOYER, onToggle = viewModel::setTaskDone, onAdd = viewModel::addTask)
+                1 -> TasksTab(
+                    data = data,
+                    isEmployer = role == Role.EMPLOYER,
+                    onToggle = viewModel::setTaskDone,
+                    onSave = viewModel::saveTask,
+                    onDelete = viewModel::deleteTask,
+                )
                 2 -> LayoutTab(
                     data = data,
                     roomMixes = roomMixes,

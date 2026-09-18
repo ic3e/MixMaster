@@ -21,7 +21,8 @@ import java.time.LocalDate
 )
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val projectId: Long,
+    /** Null for a standalone job-list item ("collect 20 bags") that isn't tied to a project. */
+    val projectId: Long? = null,
     val title: String,
     val dueDate: LocalDate?,
     val priority: TaskPriority = TaskPriority.MEDIUM,

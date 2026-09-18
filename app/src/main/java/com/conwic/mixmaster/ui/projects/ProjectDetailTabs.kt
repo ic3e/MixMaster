@@ -39,29 +39,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.model.Role
-import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDay
 import com.conwic.mixmaster.domain.formatKg
 import com.conwic.mixmaster.domain.formatWeek
-import com.conwic.mixmaster.domain.parseDueDate
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
-import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
-import com.conwic.mixmaster.ui.theme.ChipShape
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalAdjusters
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.GhostButton
+import com.conwic.mixmaster.ui.tasks.TaskDraft
+import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
+import com.conwic.mixmaster.ui.tasks.TaskRow
+import com.conwic.mixmaster.ui.tasks.toDraft
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -121,9 +119,11 @@ fun TasksTab(
     data: ProjectDetailData,
     isEmployer: Boolean,
     onToggle: (Long, Boolean) -> Unit,
-    onAdd: (String, LocalDate?, TaskPriority) -> Unit,
+    onSave: (TaskDraft) -> Unit,
+    onDelete: (Long) -> Unit,
 ) {
-    var addSheetOpen by remember { mutableStateOf(false) }
+    // Non-null while the add/edit sheet is open; holds what the sheet starts from.
+    var editing by remember { mutableStateOf<TaskDraft?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -132,98 +132,45 @@ fun TasksTab(
     ) {
         if (isEmployer) {
             item {
-                GhostButton(text = "+ Add task", onClick = { addSheetOpen = true }, modifier = Modifier.fillMaxWidth())
+                GhostButton(
+                    text = "+ Add task",
+                    onClick = { editing = TaskDraft(dueDate = LocalDate.now()) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
-        items(data.tasks.sortedBy { it.dueDate }) { task ->
+        items(data.tasks.sortedWith(compareBy({ it.isDone }, { it.dueDate }))) { task ->
             CardFlat(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().clip(CardShape).clickable { onToggle(task.id, !task.isDone) },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column {
-                        Text(
-                            text = task.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (task.isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(text = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No due date", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Text(text = if (task.isDone) "Done" else task.priority.name, style = MaterialTheme.typography.labelSmall)
-                }
+                TaskRow(
+                    title = task.title,
+                    subtitle = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No due date",
+                    done = task.isDone,
+                    priority = task.priority,
+                    onToggle = { onToggle(task.id, !task.isDone) },
+                    onEdit = { editing = task.toDraft() },
+                )
             }
         }
     }
 
-    if (addSheetOpen) {
-        AddTaskSheet(onDismiss = { addSheetOpen = false }, onAdd = { title, due, priority -> onAdd(title, due, priority); addSheetOpen = false })
-    }
-}
-
-@Composable
-private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, TaskPriority) -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var dueText by remember { mutableStateOf("") }
-    var priority by remember { mutableStateOf(TaskPriority.MEDIUM) }
-
-    val today = remember { LocalDate.now() }
-    val parsedDue = remember(dueText) { parseDueDate(dueText, today) }
-    val dueIsBroken = dueText.isNotBlank() && parsedDue == null
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Add task", style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
-
-            OutlinedTextField(
-                value = dueText,
-                onValueChange = { dueText = it },
-                label = { Text("Due date (optional)") },
-                isError = dueIsBroken,
-                supportingText = {
-                    Text(
-                        text = when {
-                            dueIsBroken -> "Can't read that date — try 18.09.2026"
-                            parsedDue != null -> "${formatDay(parsedDue)} · ${formatWeek(parsedDue)}"
-                            else -> "e.g. 18.09.2026, 18.09 or 2026-09-18"
-                        },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(
-                    "Today" to today,
-                    "Tomorrow" to today.plusDays(1),
-                    "Next Mon" to today.with(TemporalAdjusters.next(DayOfWeek.MONDAY)),
-                ).forEach { (label, date) ->
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .clip(ChipShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { dueText = date.toString() }
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                    )
+    editing?.let { draft ->
+        TaskEditorSheet(
+            draft = draft,
+            // The project is fixed here — these tasks belong to the project being looked at.
+            projects = emptyList(),
+            showProjectPicker = false,
+            onDismiss = { editing = null },
+            onSave = { saved ->
+                onSave(saved)
+                editing = null
+            },
+            onDelete = draft.id?.let { id ->
+                {
+                    onDelete(id)
+                    editing = null
                 }
-            }
-
-            DropdownField(
-                label = "Priority",
-                selected = priority.name,
-                options = listOf(TaskPriority.HIGH, TaskPriority.MEDIUM, TaskPriority.LOW).map { it.name },
-                onSelect = { name -> priority = TaskPriority.valueOf(name) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            PrimaryButton(
-                text = "Add task",
-                onClick = { onAdd(title, parsedDue, priority) },
-                enabled = title.isNotBlank() && !dueIsBroken,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+            },
+        )
     }
 }
 
