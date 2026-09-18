@@ -49,6 +49,8 @@ import com.conwic.mixmaster.ui.components.Stepper
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import com.conwic.mixmaster.ui.theme.CardShape
+import java.time.LocalDate
+import kotlin.random.Random
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -69,6 +71,7 @@ fun CalculatorScreen(navController: NavHostController) {
     val allProducts by viewModel.products.collectAsState()
     val state by viewModel.uiState.collectAsState()
 
+    val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
     var loggedToast by remember { mutableStateOf(false) }
 
@@ -360,6 +363,33 @@ fun CalculatorScreen(navController: NavHostController) {
                                 decimals = 0,
                                 suffix = "L",
                             )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(text = "Keep empty", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = "${formatDecimal(state.headroomPercent, 0)}% · fill to ${formatDecimal(state.usableLitres, 1)} L",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                            Slider(
+                                value = state.headroomPercent.toFloat(),
+                                onValueChange = { viewModel.setHeadroomPercent(it.toDouble()) },
+                                valueRange = 10f..70f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                ),
+                            )
+                            Text(
+                                text = mixingReminder(today),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
                         BatchBasis.MAX_WEIGHT -> {
                             Row(
@@ -407,6 +437,25 @@ fun CalculatorScreen(navController: NavHostController) {
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (plan.overflows && plan.perBatchLitres != null) {
+                            Text(
+                                text = "Too big for this mixer — ${formatDecimal(plan.perBatchLitres, 1)} L " +
+                                    "in a drum you only want filled to ${formatDecimal(state.usableLitres, 1)} L. " +
+                                    "Use a bigger mixer or split the batch.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                        } else if (plan.perBatchLitres != null) {
+                            Text(
+                                text = "${formatDecimal(plan.perBatchLitres, 1)} L in the drum, " +
+                                    "${formatDecimal(state.usableLitres - plan.perBatchLitres, 1)} L spare",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
                         plan.perBatch.forEach { part ->
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
@@ -466,3 +515,21 @@ fun CalculatorScreen(navController: NavHostController) {
         }
     }
 }
+
+/**
+ * A standing reminder that a drum filled to the brim mixes nothing. Picked from the date so it
+ * stays put while the screen is open but isn't the same line forever.
+ */
+private val mixingReminders = listOf(
+    "Leave room to move — a full bucket mixes nothing but the floor.",
+    "Fill it to the brim and you'll mop the difference.",
+    "The paddle needs air. Give it some.",
+    "Empty space isn't wasted — that's where the mixing happens.",
+    "A bucket filled to the top is a bucket on the floor.",
+    "Room at the top, or dust everywhere.",
+    "If it looks full before you start, it's already too late.",
+    "Mix needs headroom. So do you.",
+)
+
+private fun mixingReminder(date: LocalDate): String =
+    mixingReminders[Random(date.toEpochDay()).nextInt(mixingReminders.size)]

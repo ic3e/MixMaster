@@ -12,6 +12,7 @@ import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
+import com.conwic.mixmaster.domain.usableLitres
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,9 @@ data class CalculatorUiState(
     val packNeeds: List<PackNeed> = emptyList(),
     val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
     val mixerLitres: Double = 65.0,
+    /** How much of the drum is deliberately left empty so the mix has room to turn over. */
+    val headroomPercent: Double = 40.0,
+    val usableLitres: Double = 39.0,
     val maxBatchKg: Double = 25.0,
     val batchPlan: BatchPlan? = null,
 )
@@ -48,6 +52,7 @@ private data class CalculatorInputs(
     val batchBasis: BatchBasis = BatchBasis.MIXER_VOLUME,
     /** Mixer or bucket capacity, chosen in 5 L steps. */
     val mixerLitres: Double = 65.0,
+    val headroomPercent: Double = 40.0,
     val maxBatchKg: Double = 25.0,
 )
 
@@ -90,9 +95,18 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
                 packNeeds = result?.let { packNeeds(it, components) }.orEmpty(),
                 batchBasis = input.batchBasis,
                 mixerLitres = input.mixerLitres,
+                headroomPercent = input.headroomPercent,
+                usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
                 batchPlan = result?.let {
-                    planBatches(it, components, input.batchBasis, input.mixerLitres, input.maxBatchKg)
+                    planBatches(
+                        it,
+                        components,
+                        input.batchBasis,
+                        input.mixerLitres,
+                        input.headroomPercent,
+                        input.maxBatchKg,
+                    )
                 },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
@@ -120,6 +134,10 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
 
     fun setMixerLitres(litres: Double) {
         inputs.update { it.copy(mixerLitres = litres) }
+    }
+
+    fun setHeadroomPercent(percent: Double) {
+        inputs.update { it.copy(headroomPercent = percent.coerceIn(0.0, 80.0)) }
     }
 
     fun setMaxBatchKg(kg: Double) {

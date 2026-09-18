@@ -29,9 +29,17 @@ data class BatchPlan(
     val batchSizeLabel: String,
     /** A smaller final batch, when batching by whole packs leaves a part bag over. */
     val remainderBatch: List<ComponentAmount>? = null,
+    /** Volume one full batch takes up, when every part has a density. */
+    val perBatchLitres: Double? = null,
+    /** True when a batch wouldn't leave the requested mixing room — it would slop over. */
+    val overflows: Boolean = false,
     /** Set when the plan couldn't be worked out, explaining what's missing. */
     val problem: String? = null,
 )
+
+/** What's actually mixable in a drum of [mixerLitres] once [headroomPercent] is left free. */
+fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
+    mixerLitres * (1.0 - headroomPercent.coerceIn(0.0, 90.0) / 100.0)
 
 /** Litres this mix occupies, or null if any part is missing a density. */
 fun mixVolumeLitres(result: MixResult, components: List<ProductComponentEntity>): Double? {
@@ -83,10 +91,20 @@ fun planBatches(
     components: List<ProductComponentEntity>,
     basis: BatchBasis,
     mixerLitres: Double,
+    headroomPercent: Double,
     maxBatchKg: Double,
 ): BatchPlan {
     val totalKg = result.totalGrams / 1000.0
     if (totalKg <= 0.0) return BatchPlan(0, emptyList(), "—")
+
+    val totalLitres = mixVolumeLitres(result, components)
+    val usable = usableLitres(mixerLitres, headroomPercent)
+
+    /** Flags a plan whose batch wouldn't fit the mixing room left in the drum. */
+    fun withFit(plan: BatchPlan): BatchPlan {
+        val batchLitres = totalLitres?.takeIf { plan.batches > 0 }?.div(plan.batches) ?: return plan
+        return plan.copy(perBatchLitres = batchLitres, overflows = batchLitres > usable)
+    }
 
     // Whole packs can't be split on site, so batch by full packs and leave the odd bit over
     // as a smaller final batch instead of pretending every batch is a fraction of a bag.
@@ -103,6 +121,7 @@ fun planBatches(
         val remainderKg = partKg - fullBatches * packSize
         val fullShare = packSize / partKg
         val packType = components[index].packageType
+        val batchLitres = totalLitres?.times(fullShare)
         return BatchPlan(
             batches = fullBatches,
             perBatch = result.components.map { ComponentAmount(it.label, it.grams * fullShare) },
@@ -112,6 +131,8 @@ fun planBatches(
             } else {
                 null
             },
+            perBatchLitres = batchLitres,
+            overflows = batchLitres != null && batchLitres > usable,
         )
     }
 
@@ -119,16 +140,16 @@ fun planBatches(
     val label: String
     when (basis) {
         BatchBasis.MIXER_VOLUME -> {
-            val litres = mixVolumeLitres(result, components)
+            val litres = totalLitres
                 ?: return BatchPlan(
                     batches = 1,
                     perBatch = result.components,
                     batchSizeLabel = "—",
                     problem = "Add a density (kg/L) to every part of this product to work in litres.",
                 )
-            if (mixerLitres <= 0.0) return BatchPlan(1, result.components, "—", "Choose a mixer size.")
-            batches = ceil(litres / mixerLitres).toInt().coerceAtLeast(1)
-            label = "${formatDecimal(litres / batches, 1)} L per batch of ${formatDecimal(mixerLitres, 0)} L"
+            if (usable <= 0.0) return BatchPlan(1, result.components, "—", problem = "Choose a mixer size.")
+            batches = ceil(litres / usable).toInt().coerceAtLeast(1)
+            label = "${formatDecimal(litres / batches, 1)} L per batch · ${formatDecimal(usable, 1)} L usable"
         }
         BatchBasis.MAX_WEIGHT -> {
             if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, "—", "Set a maximum batch weight.")
@@ -139,5 +160,5 @@ fun planBatches(
     }
 
     val perBatch = result.components.map { ComponentAmount(it.label, it.grams / batches) }
-    return BatchPlan(batches = batches, perBatch = perBatch, batchSizeLabel = label)
+    return withFit(BatchPlan(batches = batches, perBatch = perBatch, batchSizeLabel = label))
 }
