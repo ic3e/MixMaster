@@ -1,5 +1,3 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-
 package com.conwic.mixmaster.ui.calculator
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,19 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,7 +27,10 @@ import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.SectionLabel
+
+private fun productLabel(brand: String, name: String) = "$brand — $name"
 
 @Composable
 fun CalculatorScreen(navController: NavHostController) {
@@ -47,8 +41,6 @@ fun CalculatorScreen(navController: NavHostController) {
     val products by viewModel.products.collectAsState()
     val state by viewModel.uiState.collectAsState()
 
-    var dropdownExpanded by remember { mutableStateOf(false) }
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
@@ -57,27 +49,15 @@ fun CalculatorScreen(navController: NavHostController) {
         item { Text(text = "Calculator", style = MaterialTheme.typography.headlineMedium) }
 
         item {
-            ExposedDropdownMenuBox(expanded = dropdownExpanded, onExpandedChange = { dropdownExpanded = it }) {
-                OutlinedTextField(
-                    value = state.selectedProduct?.product?.let { "${it.brand} — ${it.name}" } ?: "Choose a product",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Product") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                )
-                ExposedDropdownMenu(expanded = dropdownExpanded, onDismissRequest = { dropdownExpanded = false }) {
-                    products.forEach { product ->
-                        DropdownMenuItem(
-                            text = { Text("${product.brand} — ${product.name}") },
-                            onClick = {
-                                viewModel.selectProduct(product.id)
-                                dropdownExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
+            DropdownField(
+                label = "Product",
+                selected = state.selectedProduct?.product?.let { productLabel(it.brand, it.name) } ?: "Choose a product",
+                options = products.map { productLabel(it.brand, it.name) },
+                onSelect = { label ->
+                    products.firstOrNull { productLabel(it.brand, it.name) == label }?.let { viewModel.selectProduct(it.id) }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         if (state.selectedProduct != null) {

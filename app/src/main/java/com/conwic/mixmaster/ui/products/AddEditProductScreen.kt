@@ -1,5 +1,3 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-
 package com.conwic.mixmaster.ui.products
 
 import androidx.compose.foundation.layout.Arrangement
@@ -8,17 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -27,9 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +28,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 
@@ -49,8 +40,6 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
     )
     val state by viewModel.formState.collectAsState()
     if (!state.isLoaded) return
-
-    var dosingMenuExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -73,21 +62,13 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             OutlinedTextField(value = state.category, onValueChange = viewModel::setCategory, label = { Text("Category") }, modifier = Modifier.fillMaxWidth())
         }
         item {
-            ExposedDropdownMenuBox(expanded = dosingMenuExpanded, onExpandedChange = { dosingMenuExpanded = it }) {
-                OutlinedTextField(
-                    value = state.dosingMode.name,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Dosing mode") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dosingMenuExpanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                )
-                ExposedDropdownMenu(expanded = dosingMenuExpanded, onDismissRequest = { dosingMenuExpanded = false }) {
-                    DosingMode.entries.forEach { mode ->
-                        DropdownMenuItem(text = { Text(mode.name) }, onClick = { viewModel.setDosingMode(mode); dosingMenuExpanded = false })
-                    }
-                }
-            }
+            DropdownField(
+                label = "Dosing mode",
+                selected = state.dosingMode.name,
+                options = DosingMode.entries.map { it.name },
+                onSelect = { name -> viewModel.setDosingMode(DosingMode.valueOf(name)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
         item {
             OutlinedTextField(

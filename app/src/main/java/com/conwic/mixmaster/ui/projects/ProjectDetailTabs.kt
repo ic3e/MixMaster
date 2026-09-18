@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -21,10 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -47,6 +42,7 @@ import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
+import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
 import java.time.LocalDate
@@ -153,7 +149,6 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
     var title by remember { mutableStateOf("") }
     var dueText by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.MEDIUM) }
-    var priorityMenuOpen by remember { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -165,21 +160,13 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
                 label = { Text("Due date (YYYY-MM-DD, optional)") },
                 modifier = Modifier.fillMaxWidth(),
             )
-            ExposedDropdownMenuBox(expanded = priorityMenuOpen, onExpandedChange = { priorityMenuOpen = it }) {
-                OutlinedTextField(
-                    value = priority.name,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Priority") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityMenuOpen) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                )
-                ExposedDropdownMenu(expanded = priorityMenuOpen, onDismissRequest = { priorityMenuOpen = false }) {
-                    listOf(TaskPriority.HIGH, TaskPriority.MEDIUM, TaskPriority.LOW).forEach { option ->
-                        DropdownMenuItem(text = { Text(option.name) }, onClick = { priority = option; priorityMenuOpen = false })
-                    }
-                }
-            }
+            DropdownField(
+                label = "Priority",
+                selected = priority.name,
+                options = listOf(TaskPriority.HIGH, TaskPriority.MEDIUM, TaskPriority.LOW).map { it.name },
+                onSelect = { name -> priority = TaskPriority.valueOf(name) },
+                modifier = Modifier.fillMaxWidth(),
+            )
             Button(
                 onClick = { onAdd(title, runCatching { LocalDate.parse(dueText) }.getOrNull(), priority) },
                 enabled = title.isNotBlank(),
