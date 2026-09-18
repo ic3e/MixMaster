@@ -1,0 +1,53 @@
+package com.conwic.mixmaster.data.db.entity
+
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import com.conwic.mixmaster.data.model.DosingMode
+
+/**
+ * A sellable product, e.g. "Microtopping® Base Coat" from Ideal Work.
+ * The per-m² dose (typicalDose) always refers to the TOTAL mixed product weight/volume;
+ * [ProductComponentEntity] rows describe how that total splits across parts (A/B, powder/
+ * polymer, cement/water/additive/gravel, ...) by ratio.
+ */
+@Entity(tableName = "products")
+data class ProductEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val brand: String,
+    val name: String,
+    val category: String,
+    val dosingMode: DosingMode,
+    /** Typical total dose in grams per m² (COATS/POUR) or grams per m² per mm (MM). */
+    val typicalDoseGramsPerM2: Double,
+    /** Short human label shown next to the dose, e.g. "per coat", "per pour", "per mm". */
+    val doseUnitLabel: String,
+    /** Free-text note shown on the product card, e.g. "~1.35 kg/m² per coat". */
+    val rangeNote: String,
+    /** Free-text source reference, e.g. "Ideal Work technical datasheet". */
+    val sourceNote: String = "",
+    val isArchived: Boolean = false,
+)
+
+@Entity(
+    tableName = "product_components",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProductEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["productId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("productId")],
+)
+data class ProductComponentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val productId: Long,
+    /** e.g. "Powder", "Polymer", "Part A", "Part B", "Cement", "Water", "Additive", "Gravel". */
+    val label: String,
+    /** Relative ratio part, e.g. 100 and 35 for a 100:35 mix. Units cancel out. */
+    val ratioParts: Double,
+    val sortOrder: Int,
+)
