@@ -13,6 +13,7 @@ import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
+import com.conwic.mixmaster.domain.storedDensityWarning
 import com.conwic.mixmaster.domain.usableLitres
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +44,8 @@ data class CalculatorUiState(
     val usableLitres: Double = 39.0,
     val maxBatchKg: Double = 25.0,
     val batchPlan: BatchPlan? = null,
+    /** Set when a density saved on this product can't be right — see [storedDensityWarning]. */
+    val densityWarning: String? = null,
 )
 
 private data class CalculatorInputs(
@@ -106,6 +109,7 @@ class CalculatorViewModel(
                 headroomPercent = input.headroomPercent,
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
+                densityWarning = storedDensityWarning(components),
                 batchPlan = result?.let {
                     planBatches(
                         it,

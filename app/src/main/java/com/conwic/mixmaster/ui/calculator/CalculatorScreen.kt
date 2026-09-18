@@ -332,6 +332,19 @@ fun CalculatorScreen(navController: NavHostController) {
 
             item { SectionLabel(text = "Mixing", modifier = Modifier.padding(top = 4.dp)) }
 
+            state.densityWarning?.let { warning ->
+                item {
+                    CardFlat {
+                        Text(
+                            text = warning,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+
             item {
                 CardFlat {
                     ChipRow(
