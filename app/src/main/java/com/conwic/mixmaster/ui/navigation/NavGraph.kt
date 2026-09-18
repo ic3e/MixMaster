@@ -2,6 +2,9 @@ package com.conwic.mixmaster.ui.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -52,56 +55,70 @@ fun MixMasterNavGraph(startDestination: String) {
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None },
-            modifier = Modifier.padding(insets),
+            // fillMaxSize, not padding(insets): the bottom bar is only on the top-level screens,
+            // so padding the NavHost made it change size when you opened a product or a project.
+            // Navigation animates that size change with a spring — which is the "new card sliding
+            // in". The inset is applied inside each destination instead, where it costs nothing.
+            modifier = Modifier.fillMaxSize(),
         ) {
             composable(Routes.SIGN_IN) {
-                SignInScreen(
-                    onContinue = {
-                        navController.navigate(Routes.ONBOARDING) {
-                            popUpTo(Routes.SIGN_IN) { inclusive = true }
-                        }
-                    },
-                )
+                Inset(insets) {
+                    SignInScreen(
+                        onContinue = {
+                            navController.navigate(Routes.ONBOARDING) {
+                                popUpTo(Routes.SIGN_IN) { inclusive = true }
+                            }
+                        },
+                    )
+                }
             }
             composable(Routes.ONBOARDING) {
-                OnboardingScreen(
-                    onDone = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.ONBOARDING) { inclusive = true }
-                        }
-                    },
-                )
+                Inset(insets) {
+                    OnboardingScreen(
+                        onDone = {
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.ONBOARDING) { inclusive = true }
+                            }
+                        },
+                    )
+                }
             }
-            composable(Routes.HOME) { HomeScreen(navController = navController) }
-            composable(Routes.CALCULATOR) { CalculatorScreen(navController = navController) }
-            composable(Routes.PRODUCTS) { ProductsScreen(navController = navController) }
+            composable(Routes.HOME) { Inset(insets) { HomeScreen(navController = navController) } }
+            composable(Routes.CALCULATOR) { Inset(insets) { CalculatorScreen(navController = navController) } }
+            composable(Routes.PRODUCTS) { Inset(insets) { ProductsScreen(navController = navController) } }
             composable(
                 route = Routes.PRODUCT_DETAIL,
                 arguments = listOf(navArgument("productId") { type = NavType.LongType }),
             ) { entry ->
                 val productId = entry.arguments?.getLong("productId") ?: 0L
-                ProductDetailScreen(navController = navController, productId = productId)
+                Inset(insets) { ProductDetailScreen(navController = navController, productId = productId) }
             }
             composable(Routes.PRODUCT_ADD) {
-                AddEditProductScreen(navController = navController, productId = null)
+                Inset(insets) { AddEditProductScreen(navController = navController, productId = null) }
             }
             composable(
                 route = Routes.PRODUCT_EDIT,
                 arguments = listOf(navArgument("productId") { type = NavType.LongType }),
             ) { entry ->
                 val productId = entry.arguments?.getLong("productId") ?: 0L
-                AddEditProductScreen(navController = navController, productId = productId)
+                Inset(insets) { AddEditProductScreen(navController = navController, productId = productId) }
             }
-            composable(Routes.PROJECTS) { ProjectsScreen(navController = navController) }
+            composable(Routes.PROJECTS) { Inset(insets) { ProjectsScreen(navController = navController) } }
             composable(
                 route = Routes.PROJECT_DETAIL,
                 arguments = listOf(navArgument("projectId") { type = NavType.LongType }),
             ) { entry ->
                 val projectId = entry.arguments?.getLong("projectId") ?: 0L
-                ProjectDetailScreen(navController = navController, projectId = projectId)
+                Inset(insets) { ProjectDetailScreen(navController = navController, projectId = projectId) }
             }
-            composable(Routes.CALENDAR) { CalendarScreen(navController = navController) }
-            composable(Routes.SETTINGS) { SettingsScreen(navController = navController) }
+            composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
+            composable(Routes.SETTINGS) { Inset(insets) { SettingsScreen(navController = navController) } }
         }
     }
+}
+
+/** Applies the bottom-bar inset inside a destination, so the NavHost itself never changes size. */
+@Composable
+private fun Inset(insets: PaddingValues, content: @Composable () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().padding(insets)) { content() }
 }

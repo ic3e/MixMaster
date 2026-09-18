@@ -3,12 +3,10 @@ package com.conwic.mixmaster.ui.security
 import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,14 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.conwic.mixmaster.R
+import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.components.PrimaryButton
 
 /** How long the app can sit in the background before it asks again. Long enough that picking a
@@ -154,15 +151,11 @@ fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.conwic_badge),
-                contentDescription = "ConWiC",
-                modifier = Modifier.size(64.dp),
-            )
+            ConwicLockup(height = 34.dp)
             Text(
                 text = "MixMaster is locked",
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 28.dp),
             )
             lastMessage?.let { message ->
                 Text(
