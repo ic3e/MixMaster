@@ -1,12 +1,12 @@
 package com.conwic.mixmaster.data.report
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.db.entity.ProductEntity
@@ -118,15 +118,15 @@ object ReportGenerator {
         val bandPaint = Paint().apply { color = Color.parseColor("#8A5A2E") }
         canvas.drawRect(0f, 0f, PAGE_WIDTH.toFloat(), 64f, bandPaint)
 
-        val logoBitmap = runCatching {
-            BitmapFactory.decodeResource(context.resources, R.drawable.conwic_badge)
-        }.getOrNull()
-        if (logoBitmap != null) {
+        // The badge is a vector, so it is drawn straight onto the page rather than decoded
+        // as a bitmap — BitmapFactory returns null for vector resources.
+        val logo = ContextCompat.getDrawable(context, R.drawable.conwic_badge)
+        if (logo != null && logo.intrinsicHeight > 0) {
             val targetHeight = 40
-            val scale = targetHeight / logoBitmap.height.toFloat()
-            val targetWidth = (logoBitmap.width * scale).toInt()
-            val scaled = android.graphics.Bitmap.createScaledBitmap(logoBitmap, targetWidth, targetHeight, true)
-            canvas.drawBitmap(scaled, MARGIN, 12f, null)
+            val targetWidth = targetHeight * logo.intrinsicWidth / logo.intrinsicHeight
+            val left = MARGIN.toInt()
+            logo.setBounds(left, 12, left + targetWidth, 12 + targetHeight)
+            logo.draw(canvas)
         }
 
         val titlePaint = textPaint(size = 16f, bold = true, colorHex = "#FFFFFF")

@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.model.Role
@@ -180,7 +181,7 @@ fun SettingsScreen(navController: NavHostController) {
                     modifier = Modifier.widthIn(max = 160.dp),
                 )
                 Text(
-                    text = "MixMaster by ConWiC · v1.0.0",
+                    text = "MixMaster by ConWiC · v${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp),

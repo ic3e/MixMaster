@@ -42,6 +42,10 @@ jobs:
       - name: Build debug APK
         id: build
         shell: bash
+        env:
+          # Gives every build a distinct versionCode/versionName, so installing a new APK
+          # over an older one registers as an update rather than a same-version reinstall.
+          MIXMASTER_BUILD_NUMBER: ${{ github.run_number }}
         run: |
           set +e
           gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log

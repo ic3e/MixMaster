@@ -13,8 +13,10 @@ android {
         applicationId = "com.conwic.mixmaster"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        // CI passes its run number so each build is a distinct version; without this every
+        // build shipped as version 1 and nothing told one APK apart from the next.
+        versionCode = (System.getenv("MIXMASTER_BUILD_NUMBER") ?: "1").toInt()
+        versionName = "1.0.${System.getenv("MIXMASTER_BUILD_NUMBER") ?: "0"}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
