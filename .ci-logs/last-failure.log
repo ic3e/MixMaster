@@ -4,17 +4,19 @@ Daemon will be stopped at the end of the build
 > Task :app:preDebugBuild UP-TO-DATE
 > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateDebugBuildConfig
 > Task :app:generateDebugResValues
 > Task :app:checkDebugAarMetadata
 > Task :app:mapDebugSourceSetPaths
 > Task :app:generateDebugResources
 > Task :app:packageDebugResources
-> Task :app:mergeDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugResources
 > Task :app:parseDebugLocalResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
@@ -24,12 +26,9 @@ Daemon will be stopped at the end of the build
 > Task :app:desugarDebugFileDependencies
 > Task :app:mergeDebugStartupProfile
 > Task :app:mergeDebugJniLibFolders
-> Task :app:processDebugManifestForPackage
 > Task :app:checkDebugDuplicateClasses
-> Task :app:processDebugResources
-> Task :app:mergeExtDexDebug
-> Task :app:mergeLibDexDebug
 > Task :app:mergeDebugNativeLibs
+> Task :app:mergeLibDexDebug
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
@@ -37,18 +36,16 @@ Daemon will be stopped at the end of the build
 > Task :app:stripDebugDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so.
 
+> Task :app:processDebugResources
+> Task :app:mergeExtDexDebug
+
 > Task :app:kspDebugKotlin
-w: [ksp] /home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/data/db/AppDatabase.kt:48: Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
+w: [ksp] /home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/data/db/AppDatabase.kt:53: Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:15:35 Unresolved reference 'ExposedDropdownMenu'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/products/AddEditProductScreen.kt:11:43 Cannot access 'val RowColumnParentData?.weight: Float': it is internal in file.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/products/AddEditProductScreen.kt:19:35 Unresolved reference 'ExposedDropdownMenu'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/products/ProductsScreen.kt:56:47 Unresolved reference 'dp'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/products/ProductsScreen.kt:57:59 Unresolved reference 'dp'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/projects/ProjectDetailTabs.kt:16:43 Cannot access 'val RowColumnParentData?.weight: Float': it is internal in file.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/projects/ProjectDetailTabs.kt:25:35 Unresolved reference 'ExposedDropdownMenu'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789722103914.json
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/domain/Packaging.kt:129:81 Argument type mismatch: actual type is 'kotlin.String', but 'kotlin.collections.List<com.conwic.mixmaster.domain.ComponentAmount>?' was expected.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/domain/Packaging.kt:134:80 Argument type mismatch: actual type is 'kotlin.String', but 'kotlin.collections.List<com.conwic.mixmaster.domain.ComponentAmount>?' was expected.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789740077601.json
 
 FAILURE: Build failed with an exception.
 
@@ -257,5 +254,5 @@ Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilat
 	... 2 more
 
 
-BUILD FAILED in 1m 37s
-30 actionable tasks: 30 executed
+BUILD FAILED in 44s
+31 actionable tasks: 31 executed
