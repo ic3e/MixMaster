@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,16 +44,22 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.domain.formatDay
 import com.conwic.mixmaster.domain.formatKg
+import com.conwic.mixmaster.domain.formatWeek
+import com.conwic.mixmaster.domain.parseDueDate
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.theme.ChipShape
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -140,7 +147,7 @@ fun TasksTab(
                             style = MaterialTheme.typography.titleMedium,
                             color = if (task.isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                         )
-                        Text(text = task.dueDate?.toString() ?: "No due date", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No due date", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(text = if (task.isDone) "Done" else task.priority.name, style = MaterialTheme.typography.labelSmall)
                 }
@@ -159,16 +166,49 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
     var dueText by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.MEDIUM) }
 
+    val today = remember { LocalDate.now() }
+    val parsedDue = remember(dueText) { parseDueDate(dueText, today) }
+    val dueIsBroken = dueText.isNotBlank() && parsedDue == null
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(text = "Add task", style = MaterialTheme.typography.headlineMedium)
             OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
+
             OutlinedTextField(
                 value = dueText,
                 onValueChange = { dueText = it },
-                label = { Text("Due date (YYYY-MM-DD, optional)") },
+                label = { Text("Due date (optional)") },
+                isError = dueIsBroken,
+                supportingText = {
+                    Text(
+                        text = when {
+                            dueIsBroken -> "Can't read that date — try 18.09.2026"
+                            parsedDue != null -> "${formatDay(parsedDue)} · ${formatWeek(parsedDue)}"
+                            else -> "e.g. 18.09.2026, 18.09 or 2026-09-18"
+                        },
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    "Today" to today,
+                    "Tomorrow" to today.plusDays(1),
+                    "Next Mon" to today.with(TemporalAdjusters.next(DayOfWeek.MONDAY)),
+                ).forEach { (label, date) ->
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.surfaceVariant, ChipShape)
+                            .clickable { dueText = date.toString() }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+            }
+
             DropdownField(
                 label = "Priority",
                 selected = priority.name,
@@ -177,8 +217,8 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
-                onClick = { onAdd(title, runCatching { LocalDate.parse(dueText) }.getOrNull(), priority) },
-                enabled = title.isNotBlank(),
+                onClick = { onAdd(title, parsedDue, priority) },
+                enabled = title.isNotBlank() && !dueIsBroken,
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Add") }
         }
@@ -522,7 +562,7 @@ fun CalendarTab(data: ProjectDetailData) {
         items(sorted) { task ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = task.dueDate?.toString() ?: "No date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = task.priority.name, style = MaterialTheme.typography.labelSmall)
                 }
                 Text(text = task.title, style = MaterialTheme.typography.titleMedium)

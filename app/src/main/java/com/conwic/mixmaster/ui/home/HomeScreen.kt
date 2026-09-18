@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -131,7 +132,7 @@ fun HomeScreen(navController: NavHostController) {
         item {
             Column {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    SectionLabel(text = "This week")
+                    SectionLabel(text = "This week · ${formatWeek(today)}")
                     Text(
                         text = "Calendar",
                         style = MaterialTheme.typography.bodyMedium,
