@@ -198,7 +198,6 @@ fun HomeScreen(navController: NavHostController) {
                                 subtitle = item.subtitle,
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onToggle = { viewModel.toggleTask(item.task) },
                                 onEdit = { editing = item.task.toDraft() },
                             )
                             if (index != state.dayTasks.lastIndex) {
@@ -223,7 +222,6 @@ fun HomeScreen(navController: NavHostController) {
                                     ?: item.subtitle,
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onToggle = { viewModel.toggleTask(item.task) },
                                 onEdit = { editing = item.task.toDraft() },
                             )
                             if (index != state.overdueTasks.lastIndex) {
@@ -246,7 +244,6 @@ fun HomeScreen(navController: NavHostController) {
                                 subtitle = item.subtitle,
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onToggle = { viewModel.toggleTask(item.task) },
                                 onEdit = { editing = item.task.toDraft() },
                             )
                             if (index != state.undatedTasks.lastIndex) {

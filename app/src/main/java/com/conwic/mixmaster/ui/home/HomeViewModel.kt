@@ -129,10 +129,6 @@ class HomeViewModel(
 
     fun shiftWeek(weeks: Long) = selectedDate.update { it.plusWeeks(weeks) }
 
-    fun toggleTask(task: TaskEntity) {
-        viewModelScope.launch { projectRepository.setTaskDone(task.id, !task.isDone) }
-    }
-
     fun saveTask(draft: TaskDraft) {
         val entity = draft.toEntity()
         viewModelScope.launch {

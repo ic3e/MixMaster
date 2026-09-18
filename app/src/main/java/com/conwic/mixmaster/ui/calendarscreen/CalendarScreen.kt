@@ -163,7 +163,6 @@ fun CalendarScreen(navController: NavHostController) {
                     subtitle = item.subtitle,
                     done = item.task.isDone,
                     priority = item.task.priority,
-                    onToggle = { viewModel.toggleTask(item.task) },
                     onEdit = { editing = item.task.toDraft() },
                 )
             }

@@ -1,6 +1,7 @@
 package com.conwic.mixmaster.ui.tasks
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +28,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.Ok
 
 /** Priority colours, matching the dots used elsewhere in the app. */
 fun priorityColor(priority: TaskPriority): Color = when (priority) {
@@ -33,10 +39,12 @@ fun priorityColor(priority: TaskPriority): Color = when (priority) {
 }
 
 /**
- * One task in a list: tick the box to close it off, tap the row to open it for editing.
+ * One task in a list. Tapping the row always opens it for editing.
  *
- * The box and the row are deliberately separate targets — ticking something done is the common
- * action and shouldn't cost a trip through a sheet.
+ * [onToggle] is opt-in, and deliberately left out on the screens you land on rather than go to.
+ * A one-tap "done" is too easy to hit by accident with a wet glove, or with the phone loose in a
+ * pocket — closing a task off there goes through the editor instead, where it takes a switch and
+ * a save.
  */
 @Composable
 fun TaskRow(
@@ -44,9 +52,9 @@ fun TaskRow(
     subtitle: String,
     done: Boolean,
     priority: TaskPriority,
-    onToggle: () -> Unit,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
+    onToggle: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -56,14 +64,21 @@ fun TaskRow(
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            checked = done,
-            onCheckedChange = { onToggle() },
-            colors = CheckboxDefaults.colors(
-                checkedColor = MaterialTheme.colorScheme.primary,
-                uncheckedColor = MaterialTheme.colorScheme.outline,
-            ),
-        )
+        if (onToggle != null) {
+            Checkbox(
+                checked = done,
+                onCheckedChange = { onToggle() },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.outline,
+                ),
+            )
+        } else {
+            // Same footprint as the checkbox, so rows line up whichever screen they're on.
+            Box(modifier = Modifier.width(48.dp), contentAlignment = Alignment.Center) {
+                DoneMark(done = done)
+            }
+        }
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -89,6 +104,25 @@ fun TaskRow(
                 .padding(end = 4.dp)
                 .size(9.dp)
                 .background(priorityColor(priority), CircleShape),
+        )
+    }
+}
+
+/** Shows whether a task is done without offering to change it. */
+@Composable
+private fun DoneMark(done: Boolean) {
+    if (done) {
+        Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = "Done",
+            tint = Ok,
+            modifier = Modifier.size(20.dp),
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape),
         )
     }
 }

@@ -104,10 +104,6 @@ class CalendarViewModel(private val projectRepository: ProjectRepository) : View
 
     fun nextMonth() = month.update { it.plusMonths(1) }
 
-    fun toggleTask(task: TaskEntity) {
-        viewModelScope.launch { projectRepository.setTaskDone(task.id, !task.isDone) }
-    }
-
     fun saveTask(draft: TaskDraft) {
         val entity = draft.toEntity()
         viewModelScope.launch {
