@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ConWiC badge, traced from the supplied logo artwork. The mark is knocked out of the
+     brown block, so the counter shows the block through it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="68dp"
-    android:height="41dp"
-    android:viewportWidth="408"
-    android:viewportHeight="248">
-    <path android:fillColor="#8A5A2E" android:pathData="M0,0L408,0L408,248L0,248Z" />
-    <group android:translateX="41" android:translateY="42">
-        <path android:fillColor="#FFFFFF" android:pathData="M40,0L137,0L137,40L0,40L0,40A40,40 0 0 1 40,0ZM40,0L40,0L40,163L40,163A40,40 0 0 1 0,123L0,40A40,40 0 0 1 40,0ZM0,123L324,123L324,129A34,34 0 0 1 290,163L40,163A40,40 0 0 1 0,123L0,123ZM160,0L199,0L199,98L160,98L160,0ZM222,0L262,0L262,163L222,163L222,0ZM285,0L324,0L324,129A34,34 0 0 1 290,163L285,163L285,0Z" />
-    </group>
+    android:width="66dp"
+    android:height="40dp"
+    android:viewportWidth="406"
+    android:viewportHeight="246">
+    <path
+        android:fillColor="#704727"
+        android:pathData="M0,0H406V246H0Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M79.5,42H178.5L178,81.5L81.5,82L82,165.5H262L263.5,164L264,41.5L302.5,42V164L304,165.5H325L325.5,145L326,41.5L365.5,42V168L364.5,169V174L363.5,175L362.5,181L360.5,183L358.5,188L354.5,192V193L348,198.5L345,199.5L341,202.5L335,203.5L334,204.5H328L327,205.5H80L79,204.5H73L69,202.5H66L59,198.5L56,195.5H55L47.5,187L44.5,181V179L42.5,175V172L41.5,171V75L42.5,74L43.5,68L47.5,60L55,51.5H56L59,48.5L66,44.5H68L72,42.5ZM200.5,42H240.5V140H200.5Z" />
 </vector>

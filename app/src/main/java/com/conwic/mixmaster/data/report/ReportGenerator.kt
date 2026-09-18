@@ -115,27 +115,42 @@ object ReportGenerator {
     }
 
     private fun drawLetterhead(context: Context, canvas: Canvas, project: ProjectEntity): Float {
-        val bandPaint = Paint().apply { color = Color.parseColor("#8A5A2E") }
-        canvas.drawRect(0f, 0f, PAGE_WIDTH.toFloat(), 64f, bandPaint)
-
-        // The badge is a vector, so it is drawn straight onto the page rather than decoded
-        // as a bitmap — BitmapFactory returns null for vector resources.
-        val logo = ContextCompat.getDrawable(context, R.drawable.conwic_badge)
-        if (logo != null && logo.intrinsicHeight > 0) {
-            val targetHeight = 40
-            val targetWidth = targetHeight * logo.intrinsicWidth / logo.intrinsicHeight
-            val left = MARGIN.toInt()
-            logo.setBounds(left, 12, left + targetWidth, 12 + targetHeight)
-            logo.draw(canvas)
+        // The full company lockup at the head of the page — badge, CONWIC, and the line under
+        // it — rather than the badge on its own. Both halves are vectors, so they are drawn
+        // straight onto the page: BitmapFactory returns null for a vector resource.
+        val logoHeight = 34f
+        var cursorX = MARGIN
+        val badge = ContextCompat.getDrawable(context, R.drawable.conwic_badge)
+        if (badge != null && badge.intrinsicHeight > 0) {
+            val width = logoHeight * badge.intrinsicWidth / badge.intrinsicHeight
+            badge.setBounds(cursorX.toInt(), 30, (cursorX + width).toInt(), (30 + logoHeight).toInt())
+            badge.draw(canvas)
+            cursorX += width + logoHeight * 37f / 246f
+        }
+        val wordmark = ContextCompat.getDrawable(context, R.drawable.conwic_wordmark)
+        if (wordmark != null && wordmark.intrinsicHeight > 0) {
+            val width = logoHeight * wordmark.intrinsicWidth / wordmark.intrinsicHeight
+            // The wordmark ships white so it can sit on anything; on paper it wants ink.
+            wordmark.setTint(Color.parseColor("#262322"))
+            wordmark.setBounds(cursorX.toInt(), 30, (cursorX + width).toInt(), (30 + logoHeight).toInt())
+            wordmark.draw(canvas)
         }
 
-        val titlePaint = textPaint(size = 16f, bold = true, colorHex = "#FFFFFF")
-        canvas.drawText(project.name, MARGIN + 90f, 38f, titlePaint)
+        val titlePaint = textPaint(size = 18f, bold = true)
+        canvas.drawText(project.name, MARGIN, 104f, titlePaint)
 
-        val datePaint = textPaint(size = 9f, bold = false, colorHex = "#FFFFFF")
-        canvas.drawText("MixMaster project report · generated ${java.time.LocalDate.now()}", MARGIN + 90f, 54f, datePaint)
+        val datePaint = textPaint(size = 9f, bold = false, colorHex = "#6C6459")
+        canvas.drawText(
+            "MixMaster project report · generated ${java.time.LocalDate.now()}",
+            MARGIN,
+            120f,
+            datePaint,
+        )
 
-        return 90f
+        val rulePaint = Paint().apply { color = Color.parseColor("#8A5A2E") }
+        canvas.drawRect(MARGIN, 132f, PAGE_WIDTH - MARGIN, 134f, rulePaint)
+
+        return 160f
     }
 
     private fun textPaint(size: Float, bold: Boolean, colorHex: String = "#262322"): Paint = Paint().apply {

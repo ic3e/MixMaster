@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,6 +42,7 @@ import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.GhostButton
@@ -112,7 +113,9 @@ fun SettingsScreen(navController: NavHostController) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.padding(end = 12.dp)) {
+                        // Weight, not just padding: without it the label takes the width it
+                        // wants and pushes the switch out past the edge of the card.
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Text(text = "Mixing reminders", style = MaterialTheme.typography.titleMedium)
                             Text(
                                 text = "The nudge about leaving the drum room to turn over.",
@@ -189,12 +192,20 @@ fun SettingsScreen(navController: NavHostController) {
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    Text(text = member.name, style = MaterialTheme.typography.titleMedium)
+                                    // Visible overflow: a glyph whose ink reaches left of its own
+                                    // advance — Manrope's T and j do — was being clipped by the
+                                    // text box, which turned "Tanel" into "Ганel".
+                                    Text(
+                                        text = member.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        overflow = TextOverflow.Visible,
+                                    )
                                     if (member.email.isNotBlank()) {
                                         Text(
                                             text = member.email,
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            overflow = TextOverflow.Visible,
                                         )
                                     }
                                 }
@@ -220,7 +231,9 @@ fun SettingsScreen(navController: NavHostController) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.padding(end = 12.dp)) {
+                        // Weight, not just padding: without it the label takes the width it
+                        // wants and pushes the switch out past the edge of the card.
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Text(text = "Lock the app", style = MaterialTheme.typography.titleMedium)
                             Text(
                                 text = if (lockAvailable) {
@@ -288,25 +301,12 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(
-                    painter = painterResource(id = R.drawable.conwic_badge),
-                    contentDescription = "ConWiC",
-                    modifier = Modifier.size(44.dp),
-                )
-                Text(
-                    text = "CONWIC",
-                    fontFamily = DisplayFontFamily,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                    letterSpacing = 3.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
+                ConwicLockup(height = 32.dp)
                 Text(
                     text = "MixMaster · v${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 12.dp),
                 )
             }
         }

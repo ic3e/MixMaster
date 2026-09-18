@@ -1,6 +1,5 @@
 package com.conwic.mixmaster.ui.signin
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,17 +24,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
 
 @Composable
 fun SignInScreen(onContinue: () -> Unit) {
@@ -49,24 +46,7 @@ fun SignInScreen(onContinue: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            // The badge is a vector and the wordmark is type, so both stay crisp and both follow
-            // the theme — the flat charcoal lockup went invisible on a dark background.
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.conwic_badge),
-                    contentDescription = "ConWiC",
-                    modifier = Modifier.size(44.dp),
-                )
-                Text(
-                    text = "CONWIC",
-                    fontFamily = DisplayFontFamily,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 22.sp,
-                    letterSpacing = 3.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 12.dp),
-                )
-            }
+            ConwicLockup(height = 34.dp, modifier = Modifier.padding(bottom = 4.dp))
         }
         item {
             Column {
