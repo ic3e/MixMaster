@@ -60,6 +60,18 @@ fun isWaterLabel(label: String): Boolean {
 fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
     if (isWaterLabel(component.label)) 1.0 else component.densityKgPerL
 
+/** The parts with no usable density, named, for a message that says what to go and fix. */
+fun missingDensityLabels(result: MixResult, components: List<ProductComponentEntity>): String {
+    val names = result.components.filterIndexed { index, _ ->
+        (components.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0) <= 0.0
+    }.map { it.label }
+    return when (names.size) {
+        0 -> "one of the parts"
+        1 -> names.first()
+        else -> names.dropLast(1).joinToString(", ") + " and " + names.last()
+    }
+}
+
 /** Litres this mix occupies, or null if any part is missing a density. */
 fun mixVolumeLitres(result: MixResult, components: List<ProductComponentEntity>): Double? {
     var litres = 0.0
@@ -171,11 +183,15 @@ fun planBatches(
                     batches = 1,
                     perBatch = result.components,
                     batchSizeLabel = "—",
-                    problem = "Add a density (kg/L) to every part of this product to work in litres.",
+                    problem = "Batching by mixer size needs litres, and ${missingDensityLabels(result, components)} " +
+                        "has no density set. Add it on the product (Products → edit → Density), or batch by " +
+                        "the bag instead.",
                 )
             if (usable <= 0.0) return BatchPlan(1, result.components, "—", problem = "Choose a mixer size.")
             batches = ceil(litres / usable).toInt().coerceAtLeast(1)
-            label = "${formatDecimal(litres / batches, 1)} L per batch · ${formatDecimal(usable, 1)} L usable"
+            // Just the batch size. How it sits in the drum is the next line's job — saying it
+            // twice in two different phrasings only reads as a discrepancy.
+            label = "${formatDecimal(litres / batches, 1)} L per batch"
         }
         BatchBasis.MAX_WEIGHT -> {
             if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, "—", problem = "Set a maximum batch weight.")

@@ -29,8 +29,12 @@ fun FormTextField(
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
+    /** Shown under the field. Red when [problem] is set, otherwise a plain hint. */
+    problem: String? = null,
+    hint: String? = null,
 ) {
     var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+    val supporting = problem ?: hint
     OutlinedTextField(
         value = field,
         onValueChange = {
@@ -39,6 +43,12 @@ fun FormTextField(
         },
         label = { Text(label) },
         singleLine = singleLine,
+        isError = problem != null,
+        supportingText = if (supporting != null) {
+            { Text(supporting) }
+        } else {
+            null
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = modifier,
     )

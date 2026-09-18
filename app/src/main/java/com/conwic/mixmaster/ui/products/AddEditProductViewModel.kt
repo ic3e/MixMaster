@@ -25,7 +25,41 @@ data class ComponentFormRow(
     val packUnit: String = "kg",
     val packType: String = "bag",
     val densityKgPerLText: String = "",
-)
+) {
+    /**
+     * Why this density can't be right, or null.
+     *
+     * Nothing that goes on a floor is far outside 0.2–3 kg/L: water is 1.0, powders and resins
+     * sit around 1.0–1.6, wet mix around 2. A 25 in this field is the bag weight typed into the
+     * wrong box — and it used to be taken at face value, which quietly shrank a 45 L mix to 17 L
+     * and made the mixer look half empty.
+     */
+    val densityProblem: String?
+        get() {
+            val text = densityKgPerLText.trim()
+            if (text.isEmpty()) return null
+            val value = text.replace(',', '.').toDoubleOrNull()
+                ?: return "Needs to be a number, like 1.35"
+            return when {
+                value <= 0.0 -> "Has to be more than zero"
+                // Solid quartz is 2.65 and set concrete about 2.4, so nothing you pour out of a
+                // bag or a can is above 3. A 25 here is the bag weight in the wrong box.
+                value > 3.0 -> "Denser than concrete — is this the pack weight rather than what a litre weighs?"
+                else -> null
+            }
+        }
+
+    /**
+     * Worth a second look, but not blocked — lightweight fillers really are this light, and the
+     * app has no business refusing a number it can't prove is wrong.
+     */
+    val densityWarning: String?
+        get() {
+            if (densityProblem != null) return null
+            val value = densityKgPerLText.trim().replace(',', '.').toDoubleOrNull() ?: return null
+            return if (value < 0.2) "Lighter than most fillers — worth double-checking" else null
+        }
+}
 
 data class ProductFormState(
     val productId: Long = 0L,
@@ -48,7 +82,8 @@ data class ProductFormState(
             val max = maxDoseText.toDoubleOrNull()
             return brand.isNotBlank() && name.isNotBlank() && category.isNotBlank() &&
                 min != null && max != null && min > 0.0 && max >= min &&
-                components.any { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
+                components.any { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null } &&
+                components.none { it.densityProblem != null }
         }
 }
 
@@ -161,7 +196,7 @@ class AddEditProductViewModel(
                 .filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
                 .mapIndexed { index, row ->
                     // Water is 1 kg/L whatever was typed, so nobody has to remember to fill it in.
-                    val typedDensity = row.densityKgPerLText.toDoubleOrNull() ?: 0.0
+                    val typedDensity = row.densityKgPerLText.replace(',', '.').toDoubleOrNull() ?: 0.0
                     val densityValue = if (isWaterLabel(row.label)) 1.0 else typedDensity
                     ProductComponentEntity(
                         productId = 0,

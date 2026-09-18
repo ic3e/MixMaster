@@ -151,12 +151,22 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     onSelect = { basis -> viewModel.setComponentBasis(index, basis) },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
+                Text(
+                    text = "Density is what one litre of this part weighs — water is 1.0, most powders " +
+                        "and resins are 1.0–1.6. It's what lets the calculator work out whether a batch " +
+                        "fits the mixer. Not the pack weight.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FormTextField(
                         value = row.densityKgPerLText,
                         onValueChange = { viewModel.setComponentDensityKgPerL(index, it) },
                         label = "Density (kg/L)",
                         keyboardType = KeyboardType.Decimal,
+                        problem = row.densityProblem,
+                        hint = row.densityWarning ?: "What one litre weighs",
                         modifier = Modifier.weight(1f),
                     )
                     FormTextField(

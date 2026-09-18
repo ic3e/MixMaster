@@ -386,6 +386,14 @@ fun CalculatorScreen(navController: NavHostController) {
                                     inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
                                 ),
                             )
+                            Text(
+                                text = "The mix is split so every batch fits the drum. \"Keep empty\" is the room " +
+                                    "left for it to turn over — around 40% is the usual minimum, less and it " +
+                                    "climbs out. Working in litres needs a density on each part of the product.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
                         }
                         BatchBasis.MAX_WEIGHT -> {
                             Row(
@@ -403,10 +411,19 @@ fun CalculatorScreen(navController: NavHostController) {
                                 decimals = 1,
                                 suffix = "kg",
                             )
+                            Text(
+                                text = "The mix is split so no batch weighs more than this — set it by what the " +
+                                    "mixer is rated for, or by what one person should be lifting.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
                         }
                         BatchBasis.ONE_PACKAGE -> {
                             Text(
-                                text = "A whole bag or bucket per batch — nothing to weigh out on site. The liquid is scaled to match, and any part bag is shown separately.",
+                                text = "One whole bag or bucket per batch — nothing to weigh out on site. " +
+                                    "The liquid is scaled to match it, and whatever is left over at the end " +
+                                    "is shown as its own smaller batch.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),
@@ -430,6 +447,11 @@ fun CalculatorScreen(navController: NavHostController) {
                             modifier = Modifier.padding(top = 14.dp),
                         )
                         Text(
+                            text = "to get through ${formatKg(result.totalGrams)} kg of mixed material",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
                             text = if (plan.remainderBatch != null && plan.batches > 0) {
                                 "${plan.batches} full + 1 part · ${plan.batchSizeLabel}"
                             } else {
@@ -449,9 +471,17 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.padding(top = 8.dp),
                             )
                         } else if (plan.perBatchLitres != null) {
+                            // When the batch size is already given in litres above, repeating it
+                            // here just looks like the app disagreeing with itself.
+                            val spare = formatDecimal(state.usableLitres - plan.perBatchLitres, 1)
                             Text(
-                                text = "${formatDecimal(plan.perBatchLitres, 1)} L in the drum, " +
-                                    "${formatDecimal(state.usableLitres - plan.perBatchLitres, 1)} L spare",
+                                text = if (state.batchBasis == BatchBasis.MIXER_VOLUME) {
+                                    "Leaves $spare L spare — the drum holds ${formatDecimal(state.mixerLitres, 0)} L " +
+                                        "and you're filling it to ${formatDecimal(state.usableLitres, 1)} L."
+                                } else {
+                                    "That's ${formatDecimal(plan.perBatchLitres, 1)} L in the drum, which leaves " +
+                                        "$spare L of the ${formatDecimal(state.usableLitres, 1)} L you can use."
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp),
