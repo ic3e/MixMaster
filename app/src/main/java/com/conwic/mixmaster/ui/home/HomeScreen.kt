@@ -40,7 +40,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.domain.formatDay
+import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -219,7 +219,7 @@ fun HomeScreen(navController: NavHostController) {
                             TaskRow(
                                 title = item.task.title,
                                 subtitle = item.task.dueDate
-                                    ?.let { "${item.subtitle} · was due ${formatDay(it)}" }
+                                    ?.let { "${item.subtitle} · was due ${formatDueDate(it, today)}" }
                                     ?: item.subtitle,
                                 done = item.task.isDone,
                                 priority = item.task.priority,

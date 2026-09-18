@@ -41,9 +41,8 @@ import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
-import com.conwic.mixmaster.domain.formatDay
+import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.formatKg
-import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
@@ -143,7 +142,7 @@ fun TasksTab(
             CardFlat(modifier = Modifier.fillMaxWidth()) {
                 TaskRow(
                     title = task.title,
-                    subtitle = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No due date",
+                    subtitle = task.dueDate?.let { formatDueDate(it) } ?: "No due date",
                     done = task.isDone,
                     priority = task.priority,
                     onToggle = { onToggle(task.id, !task.isDone) },
@@ -516,7 +515,7 @@ fun CalendarTab(data: ProjectDetailData) {
         items(sorted) { task ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = task.dueDate?.let { "${formatDay(it)} · ${formatWeek(it)}" } ?: "No date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = task.dueDate?.let { formatDueDate(it) } ?: "No date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = task.priority.name, style = MaterialTheme.typography.labelSmall)
                 }
                 Text(text = task.title, style = MaterialTheme.typography.titleMedium)

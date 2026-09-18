@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,17 +36,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.TaskPriority
-import com.conwic.mixmaster.domain.formatDay
-import com.conwic.mixmaster.domain.formatWeek
-import com.conwic.mixmaster.domain.parseDueDate
+import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.GhostButton
+import com.conwic.mixmaster.ui.components.PickerField
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.TemporalAdjusters
 
 /** Everything the editor needs to show, and hands back on save. */
@@ -94,14 +101,13 @@ fun TaskEditorSheet(
 ) {
     val isNew = draft.id == null
     var title by remember { mutableStateOf(draft.title) }
-    var dueText by remember { mutableStateOf(draft.dueDate?.toString().orEmpty()) }
+    var dueDate by remember { mutableStateOf(draft.dueDate) }
+    var datePickerOpen by remember { mutableStateOf(false) }
     var priority by remember { mutableStateOf(draft.priority) }
     var projectId by remember { mutableStateOf(draft.projectId) }
     var isDone by remember { mutableStateOf(draft.isDone) }
 
     val today = remember { LocalDate.now() }
-    val parsedDue = remember(dueText) { parseDueDate(dueText, today) }
-    val dueIsBroken = dueText.isNotBlank() && parsedDue == null
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -147,50 +153,41 @@ fun TaskEditorSheet(
                     add(
                         ChipOption(
                             label = "Today",
-                            selected = parsedDue == today,
-                            onClick = { dueText = today.toString() },
+                            selected = dueDate == today,
+                            onClick = { dueDate = today },
                         ),
                     )
                     add(
                         ChipOption(
                             label = "Tomorrow",
-                            selected = parsedDue == today.plusDays(1),
-                            onClick = { dueText = today.plusDays(1).toString() },
+                            selected = dueDate == today.plusDays(1),
+                            onClick = { dueDate = today.plusDays(1) },
                         ),
                     )
                     val nextMonday = today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
                     add(
                         ChipOption(
                             label = "Next Mon",
-                            selected = parsedDue == nextMonday,
-                            onClick = { dueText = nextMonday.toString() },
+                            selected = dueDate == nextMonday,
+                            onClick = { dueDate = nextMonday },
                         ),
                     )
                     add(
                         ChipOption(
                             label = "No date",
-                            selected = dueText.isBlank(),
-                            onClick = { dueText = "" },
+                            selected = dueDate == null,
+                            onClick = { dueDate = null },
                         ),
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
-                value = dueText,
-                onValueChange = { dueText = it },
-                label = { Text("Or type a date") },
-                isError = dueIsBroken,
-                singleLine = true,
-                supportingText = {
-                    Text(
-                        text = when {
-                            dueIsBroken -> "Can't read that date — try 18.09.2026"
-                            parsedDue != null -> "${formatDay(parsedDue)} · ${formatWeek(parsedDue)}"
-                            else -> "e.g. 18.09.2026, 18.09 or 2026-09-18"
-                        },
-                    )
-                },
+            PickerField(
+                label = "Pick a day",
+                value = dueDate?.let { formatDueDate(it, today) } ?: "No date",
+                onClick = { datePickerOpen = true },
+                icon = Icons.Filled.CalendarMonth,
+                trailing = "",
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -235,20 +232,51 @@ fun TaskEditorSheet(
                     onSave(
                         draft.copy(
                             title = title.trim(),
-                            dueDate = parsedDue,
+                            dueDate = dueDate,
                             priority = priority,
                             projectId = projectId,
                             isDone = isDone,
                         ),
                     )
                 },
-                enabled = title.isNotBlank() && !dueIsBroken,
+                enabled = title.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             )
 
             if (onDelete != null) {
                 GhostButton(text = "Delete task", onClick = onDelete, modifier = Modifier.fillMaxWidth())
             }
+        }
+    }
+
+    if (datePickerOpen) {
+        // The picker works in UTC millis, so the date goes in and comes back out at UTC midnight
+        // rather than through the device's zone, where it can land a day either side.
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = (dueDate ?: today).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { datePickerOpen = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { millis ->
+                            dueDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                        }
+                        datePickerOpen = false
+                    },
+                ) { Text("Set date") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        dueDate = null
+                        datePickerOpen = false
+                    },
+                ) { Text("No date") }
+            },
+        ) {
+            DatePicker(state = pickerState)
         }
     }
 }
