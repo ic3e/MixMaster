@@ -51,7 +51,7 @@ debug APK, and attaches it to the run as a downloadable artifact.
    ```
 2. Go to the **Actions** tab on GitHub — the build starts automatically on push (or click
    **Run workflow** to trigger it manually via `workflow_dispatch`).
-3. When the run finishes (a few minutes), open it and download the `mixmaster-debug-apk`
+3. When the run finishes (a few minutes), open it and download the `MixMaster_<version>`
    artifact from the **Artifacts** section — that's your installable `.apk`.
 4. To install: enable "Install unknown apps" for whatever you use to open the file on an
    Android device, then open it.

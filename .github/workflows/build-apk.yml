@@ -55,7 +55,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: mixmaster-debug-apk
+          name: MixMaster_1.0.${{ github.run_number }}
           path: app/build/outputs/apk/debug/*.apk
 
       # This session's network access to GitHub Actions' own artifact
@@ -64,13 +64,18 @@ jobs:
       - name: Commit APK to the repo
         if: success()
         run: |
+          # The file is named for the version it carries, so the APK sitting in someone's
+          # downloads says which build it is. The version name is 1.0.<run number>, set from the
+          # same MIXMASTER_BUILD_NUMBER in app/build.gradle.kts, so the two can't drift apart.
+          VERSION="1.0.${{ github.run_number }}"
           mkdir -p dist
-          cp app/build/outputs/apk/debug/*.apk dist/mixmaster-debug.apk
+          rm -f dist/*.apk
+          cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
           git config user.email "ci-bot@users.noreply.github.com"
           git config user.name "CI Bot"
-          git add dist/mixmaster-debug.apk
+          git add -A dist
           git add -f app/schemas || true
-          git commit -m "ci: publish debug APK" || echo "nothing to commit"
+          git commit -m "ci: publish MixMaster_$VERSION.apk" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}
 
       # This session's network access to GitHub Actions' own log/artifact
