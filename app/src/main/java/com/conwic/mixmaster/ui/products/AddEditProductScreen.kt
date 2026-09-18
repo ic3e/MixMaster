@@ -16,7 +16,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +30,7 @@ import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 
@@ -55,13 +55,13 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             )
         }
         item {
-            OutlinedTextField(value = state.brand, onValueChange = viewModel::setBrand, label = { Text("Brand") }, modifier = Modifier.fillMaxWidth())
+            FormTextField(value = state.brand, onValueChange = viewModel::setBrand, label = "Brand", modifier = Modifier.fillMaxWidth())
         }
         item {
-            OutlinedTextField(value = state.name, onValueChange = viewModel::setName, label = { Text("Product name") }, modifier = Modifier.fillMaxWidth())
+            FormTextField(value = state.name, onValueChange = viewModel::setName, label = "Product name", modifier = Modifier.fillMaxWidth())
         }
         item {
-            OutlinedTextField(value = state.category, onValueChange = viewModel::setCategory, label = { Text("Category") }, modifier = Modifier.fillMaxWidth())
+            FormTextField(value = state.category, onValueChange = viewModel::setCategory, label = "Category", modifier = Modifier.fillMaxWidth())
         }
         item {
             DropdownField(
@@ -77,16 +77,16 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         }
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                FormTextField(
                     value = state.minDoseText,
                     onValueChange = viewModel::setMinDose,
-                    label = { Text("Min") },
+                    label = "Min",
                     modifier = Modifier.weight(1f),
                 )
-                OutlinedTextField(
+                FormTextField(
                     value = state.maxDoseText,
                     onValueChange = viewModel::setMaxDose,
-                    label = { Text("Max") },
+                    label = "Max",
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -99,24 +99,24 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             )
         }
         item {
-            OutlinedTextField(
+            FormTextField(
                 value = state.doseUnitLabel,
                 onValueChange = viewModel::setDoseUnitLabel,
-                label = { Text("Dose unit label (e.g. \"per coat\")") },
+                label = "Dose unit label (e.g. \"per coat\")",
                 modifier = Modifier.fillMaxWidth(),
             )
         }
         item {
-            OutlinedTextField(value = state.rangeNote, onValueChange = viewModel::setRangeNote, label = { Text("Range note (shown on the card)") }, modifier = Modifier.fillMaxWidth())
+            FormTextField(value = state.rangeNote, onValueChange = viewModel::setRangeNote, label = "Range note (shown on the card)", modifier = Modifier.fillMaxWidth())
         }
         item {
-            OutlinedTextField(value = state.sourceNote, onValueChange = viewModel::setSourceNote, label = { Text("Source note") }, modifier = Modifier.fillMaxWidth())
+            FormTextField(value = state.sourceNote, onValueChange = viewModel::setSourceNote, label = "Source note", modifier = Modifier.fillMaxWidth())
         }
         item {
-            OutlinedTextField(
+            FormTextField(
                 value = state.datasheetUrl,
                 onValueChange = viewModel::setDatasheetUrl,
-                label = { Text("Datasheet URL (optional)") },
+                label = "Datasheet URL (optional)",
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -127,16 +127,16 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             val row = state.components[index]
             CardFlat(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
+                    FormTextField(
                         value = row.label,
                         onValueChange = { viewModel.setComponentLabel(index, it) },
-                        label = { Text("Label") },
+                        label = "Label",
                         modifier = Modifier.weight(2f),
                     )
-                    OutlinedTextField(
+                    FormTextField(
                         value = row.ratioText,
                         onValueChange = { viewModel.setComponentRatio(index, it) },
-                        label = { Text("Ratio") },
+                        label = "Ratio",
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = { viewModel.removeComponentRow(index) }) {
@@ -151,23 +151,23 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
+                    FormTextField(
                         value = row.density,
                         onValueChange = { viewModel.setComponentDensity(index, it) },
-                        label = { Text("Density (optional)") },
+                        label = "Density (optional)",
                         modifier = Modifier.weight(1f),
                     )
-                    OutlinedTextField(
+                    FormTextField(
                         value = row.potLife,
                         onValueChange = { viewModel.setComponentPotLife(index, it) },
-                        label = { Text("Pot life (optional)") },
+                        label = "Pot life (optional)",
                         modifier = Modifier.weight(1f),
                     )
                 }
-                OutlinedTextField(
+                FormTextField(
                     value = row.notes,
                     onValueChange = { viewModel.setComponentNotes(index, it) },
-                    label = { Text("Notes (optional)") },
+                    label = "Notes (optional)",
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
             }

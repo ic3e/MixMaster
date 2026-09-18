@@ -31,7 +31,6 @@ data class CalculatorUiState(
 )
 
 private data class CalculatorInputs(
-    val productId: Long? = null,
     val areaText: String = "",
     val quantityText: String = "1",
     /** null = not yet overridden by the user; falls back to the product's typical dose. */
@@ -43,36 +42,42 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
     val products: StateFlow<List<ProductEntity>> =
         productRepository.observeAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // The database flows are keyed on the product alone, kept separate from the typed inputs.
+    // Folding them together would re-subscribe both queries on every keystroke and every pixel
+    // of slider travel, which is what made dragging stutter.
+    private val selectedProductId = MutableStateFlow<Long?>(null)
     private val inputs = MutableStateFlow(CalculatorInputs())
 
-    val uiState: StateFlow<CalculatorUiState> = inputs
-        .flatMapLatest { input ->
-            val productFlow = input.productId?.let { productRepository.observeWithComponents(it) } ?: flowOf(null)
-            val logsFlow = input.productId?.let { productRepository.observeUsageLogs(it) } ?: flowOf(emptyList())
-            combine(productFlow, logsFlow) { productWithComponents, logs ->
-                val area = input.areaText.toDoubleOrNull()
-                val quantity = input.quantityText.toDoubleOrNull() ?: 1.0
-                val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
-                val result = if (productWithComponents != null && area != null && area > 0.0) {
-                    MixCalculator.compute(productWithComponents, area, quantity, doseGramsPerM2 = coverage)
-                } else {
-                    null
-                }
-                CalculatorUiState(
-                    selectedProduct = productWithComponents,
-                    areaInput = input.areaText,
-                    quantityInput = input.quantityText,
-                    coverageValue = coverage,
-                    result = result,
-                    siteAverageDose = if (logs.isEmpty()) null else logs.map { it.doseGramsPerM2 }.average(),
-                    loggedJobCount = logs.size,
-                )
+    private val selectedProductFlow = selectedProductId
+        .flatMapLatest { id -> if (id == null) flowOf(null) else productRepository.observeWithComponents(id) }
+
+    private val usageLogsFlow = selectedProductId
+        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else productRepository.observeUsageLogs(id) }
+
+    val uiState: StateFlow<CalculatorUiState> =
+        combine(selectedProductFlow, usageLogsFlow, inputs) { productWithComponents, logs, input ->
+            val area = input.areaText.toDoubleOrNull()
+            val quantity = input.quantityText.toDoubleOrNull() ?: 1.0
+            val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
+            val result = if (productWithComponents != null && area != null && area > 0.0) {
+                MixCalculator.compute(productWithComponents, area, quantity, doseGramsPerM2 = coverage)
+            } else {
+                null
             }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
+            CalculatorUiState(
+                selectedProduct = productWithComponents,
+                areaInput = input.areaText,
+                quantityInput = input.quantityText,
+                coverageValue = coverage,
+                result = result,
+                siteAverageDose = if (logs.isEmpty()) null else logs.map { it.doseGramsPerM2 }.average(),
+                loggedJobCount = logs.size,
+            )
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
 
     fun selectProduct(productId: Long) {
-        inputs.update { it.copy(productId = productId, coverageOverride = null) }
+        selectedProductId.value = productId
+        inputs.update { it.copy(coverageOverride = null) }
     }
 
     fun setArea(text: String) {

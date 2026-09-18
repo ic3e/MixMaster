@@ -171,11 +171,16 @@ fun CalculatorScreen(navController: NavHostController) {
             }
 
             item {
+                // The drag is tracked locally so the thumb tracks the finger; the mix is only
+                // recomputed when the finger lifts.
+                var dragCoverage by remember(product.id) { mutableStateOf<Float?>(null) }
+                val shownCoverage = dragCoverage?.toDouble() ?: state.coverageValue
+
                 CardFlat {
                     SectionLabel(text = "Coverage rate (${perLabel(product.dosingMode)})")
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = formatDecimal(state.coverageValue, 0),
+                            text = formatDecimal(shownCoverage, 0),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
@@ -188,8 +193,9 @@ fun CalculatorScreen(navController: NavHostController) {
 
                     if (product.maxDoseGramsPerM2 > product.minDoseGramsPerM2) {
                         Slider(
-                            value = state.coverageValue.toFloat(),
-                            onValueChange = { viewModel.setCoverage(it.toDouble()) },
+                            value = shownCoverage.toFloat(),
+                            onValueChange = { dragCoverage = it },
+                            onValueChangeFinished = { dragCoverage?.let { viewModel.setCoverage(it.toDouble()) } },
                             valueRange = product.minDoseGramsPerM2.toFloat()..product.maxDoseGramsPerM2.toFloat(),
                             colors = SliderDefaults.colors(
                                 thumbColor = MaterialTheme.colorScheme.primary,

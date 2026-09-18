@@ -13,11 +13,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +33,10 @@ import com.conwic.mixmaster.ui.theme.StepperShape
 /**
  * The design's − / + stepper. The value stays typeable as well as steppable, because real
  * areas are in the thousands of m² and nobody is tapping "+" that many times.
+ *
+ * The caret lives here rather than being derived from [value]: the screen's state round-trips
+ * through a StateFlow and so comes back a frame later, which would otherwise reset the caret
+ * to the start on every keystroke and type "12" as "21".
  */
 @Composable
 fun Stepper(
@@ -38,9 +48,13 @@ fun Stepper(
     decimals: Int = 2,
     suffix: String = "",
 ) {
+    var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+
     fun nudge(delta: Double) {
-        val current = value.toDoubleOrNull() ?: 0.0
-        onValueChange(formatDecimal((current + delta).coerceAtLeast(minValue), decimals))
+        val current = field.text.toDoubleOrNull() ?: 0.0
+        val next = formatDecimal((current + delta).coerceAtLeast(minValue), decimals)
+        field = TextFieldValue(next, TextRange(next.length))
+        onValueChange(next)
     }
 
     Row(
@@ -52,8 +66,11 @@ fun Stepper(
     ) {
         StepButton(symbol = "−", onClick = { nudge(-step) })
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = field,
+            onValueChange = {
+                field = it
+                onValueChange(it.text)
+            },
             singleLine = true,
             textStyle = MaterialTheme.typography.titleLarge.copy(
                 color = MaterialTheme.colorScheme.onSurface,

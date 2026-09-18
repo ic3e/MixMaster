@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,12 +44,16 @@ private val NavInactive = Color(0xFF8E9095)
 
 @Composable
 fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
-    Surface(color = Charcoal, shadowElevation = 8.dp) {
+    // fillMaxWidth on both: without it the Surface shrinks to the width of its items and the
+    // dark bar stops short of the right edge of the screen.
+    Surface(color = Charcoal, shadowElevation = 8.dp, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
                 .height(64.dp)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             navItems.forEach { item ->
