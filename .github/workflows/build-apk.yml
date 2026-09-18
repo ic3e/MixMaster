@@ -3,7 +3,12 @@ name: Build APK
 on:
   push:
     branches: [ main, master ]
+    paths-ignore:
+      - '.ci-logs/**'
   workflow_dispatch: {}
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -34,7 +39,12 @@ jobs:
           gradle-version: 8.7
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        id: build
+        shell: bash
+        run: |
+          set +e
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log
+          exit "${PIPESTATUS[0]}"
 
       - name: Upload APK
         if: success()
@@ -43,12 +53,17 @@ jobs:
           name: mixmaster-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Upload build log on failure
+      # This session's network access to GitHub Actions' own log/artifact
+      # storage (Azure blob storage) is blocked, so on failure we commit
+      # the log straight into the repo instead — that's readable via a
+      # normal git pull / the Contents API.
+      - name: Save failure log to the repo
         if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-failure-info
-          path: |
-            app/build/outputs/
-            **/build/reports/
-          if-no-files-found: ignore
+        run: |
+          mkdir -p .ci-logs
+          cp /tmp/gradle.log .ci-logs/last-failure.log
+          git config user.email "ci-bot@users.noreply.github.com"
+          git config user.name "CI Bot"
+          git add .ci-logs/last-failure.log
+          git commit -m "ci: save build failure log" || echo "nothing to commit"
+          git push origin HEAD:${{ github.ref_name }}
