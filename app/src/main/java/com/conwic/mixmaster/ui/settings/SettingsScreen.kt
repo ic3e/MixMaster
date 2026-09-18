@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -21,8 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -33,15 +36,18 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
+import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
-import com.conwic.mixmaster.ui.components.GhostButton
-import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
+import com.conwic.mixmaster.ui.components.GhostButton
+import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.security.canLockApp
+import com.conwic.mixmaster.ui.theme.CardShape
 
 @Composable
 fun SettingsScreen(navController: NavHostController) {
@@ -52,6 +58,12 @@ fun SettingsScreen(navController: NavHostController) {
         factory = viewModelFactory { initializer { SettingsViewModel(container.userPrefs, container.teamRepository) } },
     )
     val state by viewModel.uiState.collectAsState()
+
+    // Whether this phone has a fingerprint, face or screen lock to check against at all.
+    val lockAvailable = remember { canLockApp(context) }
+
+    // Non-null while the crew sheet is open; holds what it starts from.
+    var editingMember by remember { mutableStateOf<TeamMemberEntity?>(null) }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         uri?.let { BackupManager.export(context, it) }
@@ -71,42 +83,15 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = "Appearance")
                 CardFlat {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Theme")
-                        ChipRow(
-                            options = listOf("Light", "Dark", "Auto").map { option ->
-                                ChipOption(label = option, selected = option == state.theme, onClick = { viewModel.setTheme(option) })
-                            },
-                        )
-                    }
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Units")
-                        ChipRow(
-                            options = listOf("Metric", "Imperial").map { option ->
-                                ChipOption(label = option, selected = option == state.units, onClick = { viewModel.setUnits(option) })
-                            },
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            Column {
-                SectionLabel(text = "Data & backup")
-                CardFlat {
-                    PrimaryButton(
-                        text = "Export database",
-                        onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    GhostButton(
-                        text = "Import database",
-                        onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    Text(text = "Theme", style = MaterialTheme.typography.titleMedium)
+                    ChipRow(
+                        options = listOf("Light", "Dark", "Auto").map { option ->
+                            ChipOption(label = option, selected = option == state.theme, onClick = { viewModel.setTheme(option) })
+                        },
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                     Text(
-                        text = "Importing replaces everything on this device with the backup file and restarts the app.",
+                        text = "Auto follows the phone's own light/dark setting.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -117,16 +102,49 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Account")
+                SectionLabel(text = "On site")
                 CardFlat {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Signed in as")
-                        ChipRow(
-                            options = listOf(Role.EMPLOYER, Role.WORKER).map { r ->
-                                ChipOption(label = r.name, selected = r == state.role, onClick = { viewModel.setRole(r) })
-                            },
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.padding(end = 12.dp)) {
+                            Text(text = "Mixing reminders", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = "The nudge about leaving the drum room to turn over.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.mixingRemindersEnabled,
+                            onCheckedChange = viewModel::setMixingRemindersEnabled,
                         )
                     }
+                }
+            }
+        }
+
+        item {
+            Column {
+                SectionLabel(text = "Using the app as")
+                CardFlat {
+                    ChipRow(
+                        options = listOf(Role.EMPLOYER to "Set up work", Role.WORKER to "Do the work").map { (option, label) ->
+                            ChipOption(label = label, selected = option == state.role, onClick = { viewModel.setRole(option) })
+                        },
+                    )
+                    Text(
+                        text = if (state.role == Role.EMPLOYER) {
+                            "Products, projects and the crew list can be edited."
+                        } else {
+                            "Run the calculator, close tasks off, add photos and notes. Setup data is read-only."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
             }
         }
@@ -134,17 +152,56 @@ fun SettingsScreen(navController: NavHostController) {
         if (state.role == Role.EMPLOYER) {
             item {
                 Column {
-                    SectionLabel(text = "Team")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        SectionLabel(text = "Crew · ${state.team.size}")
+                        Text(
+                            text = "+ Add member",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.tappableText {
+                                editingMember = TeamMemberEntity(name = "", email = "", role = Role.WORKER)
+                            },
+                        )
+                    }
                     CardFlat {
+                        if (state.team.isEmpty()) {
+                            Text(
+                                text = "Nobody on the list yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         state.team.forEachIndexed { index, member ->
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(CardShape)
+                                    .clickable { editingMember = member }
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.padding(end = 12.dp)) {
                                     Text(text = member.name, style = MaterialTheme.typography.titleMedium)
-                                    Text(text = member.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    if (member.email.isNotBlank()) {
+                                        Text(
+                                            text = member.email,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
-                                Text(text = member.role.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(
+                                    text = if (member.role == Role.EMPLOYER) "Sets up work" else "Does the work",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
                             }
-                            if (index != state.team.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+                            if (index != state.team.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
                         }
                     }
                 }
@@ -153,22 +210,68 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Security & guidance")
+                SectionLabel(text = "Security")
                 CardFlat {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "App lock (biometric)")
-                        Switch(checked = state.appLockEnabled, onCheckedChange = viewModel::setAppLockEnabled)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.padding(end = 12.dp)) {
+                            Text(text = "Lock the app", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = if (lockAvailable) {
+                                    "Asks for the phone's fingerprint, face or screen lock on opening, and after a couple of minutes away."
+                                } else {
+                                    "This phone has no fingerprint, face or screen lock set up, so there is nothing to check against."
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.appLockEnabled && lockAvailable,
+                            onCheckedChange = viewModel::setAppLockEnabled,
+                            enabled = lockAvailable,
+                        )
                     }
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "Contextual tips after inactivity")
-                        Switch(checked = state.tipsEnabled, onCheckedChange = viewModel::setTipsEnabled)
-                    }
+                }
+            }
+        }
+
+        item {
+            Column {
+                SectionLabel(text = "Backup")
+                CardFlat {
+                    PrimaryButton(
+                        text = "Export everything",
+                        onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    GhostButton(
+                        text = "Restore from a backup",
+                        onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
                     Text(
-                        text = "Replay app tour",
+                        text = "Restoring replaces everything on this phone with the backup file and restarts the app.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        }
+
+        item {
+            Column {
+                SectionLabel(text = "Help")
+                CardFlat {
+                    Text(
+                        text = "Replay the app tour",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp)
                             .tappableText { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
                     )
                 }
@@ -190,5 +293,24 @@ fun SettingsScreen(navController: NavHostController) {
                 )
             }
         }
+    }
+
+    editingMember?.let { member ->
+        TeamMemberSheet(
+            member = member,
+            onDismiss = { editingMember = null },
+            onSave = { saved ->
+                viewModel.saveTeamMember(saved)
+                editingMember = null
+            },
+            onRemove = if (member.id != 0L) {
+                {
+                    viewModel.removeTeamMember(member)
+                    editingMember = null
+                }
+            } else {
+                null
+            },
+        )
     }
 }

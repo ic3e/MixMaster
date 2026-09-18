@@ -67,10 +67,11 @@ fun CalculatorScreen(navController: NavHostController) {
     val container = LocalAppContainer.current
     val uriHandler = LocalUriHandler.current
     val viewModel: CalculatorViewModel = viewModel(
-        factory = viewModelFactory { initializer { CalculatorViewModel(container.productRepository) } },
+        factory = viewModelFactory { initializer { CalculatorViewModel(container.productRepository, container.userPrefs) } },
     )
     val allProducts by viewModel.products.collectAsState()
     val state by viewModel.uiState.collectAsState()
+    val showMixingReminders by viewModel.showMixingReminders.collectAsState()
 
     val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
@@ -385,12 +386,6 @@ fun CalculatorScreen(navController: NavHostController) {
                                     inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
                                 ),
                             )
-                            Text(
-                                text = mixingReminder(today),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontWeight = FontWeight.Bold,
-                            )
                         }
                         BatchBasis.MAX_WEIGHT -> {
                             Row(
@@ -498,6 +493,16 @@ fun CalculatorScreen(navController: NavHostController) {
                                 }
                             }
                         }
+                    }
+
+                    if (showMixingReminders) {
+                        Text(
+                            text = mixingReminder(today),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 14.dp),
+                        )
                     }
                 }
             }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.dao.ProductWithComponents
 import com.conwic.mixmaster.data.db.entity.ProductEntity
+import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.BatchPlan
@@ -56,7 +57,14 @@ private data class CalculatorInputs(
     val maxBatchKg: Double = 25.0,
 )
 
-class CalculatorViewModel(private val productRepository: ProductRepository) : ViewModel() {
+class CalculatorViewModel(
+    private val productRepository: ProductRepository,
+    userPrefs: UserPrefs,
+) : ViewModel() {
+
+    /** Settings can turn the "leave the drum room" nudge off for people who've heard it. */
+    val showMixingReminders: StateFlow<Boolean> = userPrefs.mixingRemindersEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val products: StateFlow<List<ProductEntity>> =
         productRepository.observeAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

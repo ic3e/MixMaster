@@ -13,11 +13,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val theme: String = "Light",
-    val units: String = "Metric",
+    val theme: String = "Auto",
     val role: Role = Role.EMPLOYER,
     val appLockEnabled: Boolean = false,
-    val tipsEnabled: Boolean = true,
+    val mixingRemindersEnabled: Boolean = true,
     val team: List<TeamMemberEntity> = emptyList(),
 )
 
@@ -28,19 +27,32 @@ class SettingsViewModel(
 
     val uiState: StateFlow<SettingsUiState> = combine(
         userPrefs.theme,
-        userPrefs.units,
         userPrefs.role,
         userPrefs.appLockEnabled,
-        userPrefs.tipsEnabled,
-    ) { theme, units, role, appLock, tips ->
-        SettingsUiState(theme = theme, units = units, role = role, appLockEnabled = appLock, tipsEnabled = tips)
-    }.combine(teamRepository.observeAll()) { partial, team ->
-        partial.copy(team = team)
+        userPrefs.mixingRemindersEnabled,
+        teamRepository.observeAll(),
+    ) { theme, role, appLock, reminders, team ->
+        SettingsUiState(
+            theme = theme,
+            role = role,
+            appLockEnabled = appLock,
+            mixingRemindersEnabled = reminders,
+            team = team,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     fun setTheme(value: String) = viewModelScope.launch { userPrefs.setTheme(value) }
-    fun setUnits(value: String) = viewModelScope.launch { userPrefs.setUnits(value) }
     fun setRole(value: Role) = viewModelScope.launch { userPrefs.setRole(value) }
     fun setAppLockEnabled(value: Boolean) = viewModelScope.launch { userPrefs.setAppLockEnabled(value) }
-    fun setTipsEnabled(value: Boolean) = viewModelScope.launch { userPrefs.setTipsEnabled(value) }
+    fun setMixingRemindersEnabled(value: Boolean) = viewModelScope.launch { userPrefs.setMixingRemindersEnabled(value) }
+
+    /** Adds a member, or replaces one when the draft already has an id. */
+    fun saveTeamMember(member: TeamMemberEntity) {
+        if (member.name.isBlank()) return
+        viewModelScope.launch { teamRepository.add(member) }
+    }
+
+    fun removeTeamMember(member: TeamMemberEntity) {
+        viewModelScope.launch { teamRepository.remove(member) }
+    }
 }

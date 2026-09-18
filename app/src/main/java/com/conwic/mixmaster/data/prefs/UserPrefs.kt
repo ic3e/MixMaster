@@ -19,9 +19,10 @@ class UserPrefs(private val context: Context) {
         val ROLE = stringPreferencesKey("role")
         val ONBOARDING_SEEN = booleanPreferencesKey("onboarding_seen")
         val THEME = stringPreferencesKey("theme") // "Light" | "Dark" | "Auto"
-        val UNITS = stringPreferencesKey("units") // "Metric" | "Imperial"
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
-        val TIPS_ENABLED = booleanPreferencesKey("tips_enabled")
+        // Was labelled "contextual tips"; it now drives the mixing reminders in the calculator.
+        // The key is left alone so anyone who already turned it off stays turned off.
+        val MIXING_REMINDERS = booleanPreferencesKey("tips_enabled")
     }
 
     val role: Flow<Role> = context.dataStore.data.map { prefs ->
@@ -38,16 +39,11 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { it[Keys.ONBOARDING_SEEN] = seen }
     }
 
-    val theme: Flow<String> = context.dataStore.data.map { it[Keys.THEME] ?: "Light" }
+    /** "Light", "Dark" or "Auto" — read by the activity to pick the colour scheme. */
+    val theme: Flow<String> = context.dataStore.data.map { it[Keys.THEME] ?: "Auto" }
 
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { it[Keys.THEME] = theme }
-    }
-
-    val units: Flow<String> = context.dataStore.data.map { it[Keys.UNITS] ?: "Metric" }
-
-    suspend fun setUnits(units: String) {
-        context.dataStore.edit { it[Keys.UNITS] = units }
     }
 
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.APP_LOCK_ENABLED] ?: false }
@@ -56,9 +52,9 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { it[Keys.APP_LOCK_ENABLED] = enabled }
     }
 
-    val tipsEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.TIPS_ENABLED] ?: true }
+    val mixingRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.MIXING_REMINDERS] ?: true }
 
-    suspend fun setTipsEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[Keys.TIPS_ENABLED] = enabled }
+    suspend fun setMixingRemindersEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.MIXING_REMINDERS] = enabled }
     }
 }

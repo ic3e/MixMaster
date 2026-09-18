@@ -95,11 +95,14 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    // Preferences DataStore (role, theme, units, onboarding state)
+    // Preferences DataStore (role, theme, app lock, onboarding state)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Biometric app-lock
+    // Biometric app-lock. BiometricPrompt needs a FragmentActivity, and the fragment version
+    // biometric drags in on its own is far older than this project's activity/lifecycle
+    // versions — so fragment is pinned to something that matches them.
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.3")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
