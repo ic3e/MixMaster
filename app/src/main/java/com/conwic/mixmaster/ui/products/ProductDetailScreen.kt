@@ -21,11 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,6 +50,11 @@ import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.GhostButton
 
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
@@ -113,7 +116,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(top = 8.dp)
-                            .clickable { uriHandler.openUri(product.datasheetUrl) },
+                            .tappableText { uriHandler.openUri(product.datasheetUrl) },
                     )
                 }
             }
@@ -157,13 +160,17 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (role == Role.EMPLOYER) {
-                    OutlinedButton(onClick = { navController.navigate(Routes.productEdit(product.id)) }, modifier = Modifier.weight(1f)) {
-                        Text("Edit product")
-                    }
+                    GhostButton(
+                        text = "Edit product",
+                        onClick = { navController.navigate(Routes.productEdit(product.id)) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
-                Button(onClick = { navController.navigateToTopLevel(Routes.CALCULATOR) }, modifier = Modifier.weight(1f)) {
-                    Text("Use in calculator")
-                }
+                PrimaryButton(
+                    text = "Use in calculator",
+                    onClick = { navController.navigateToTopLevel(Routes.CALCULATOR) },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -173,7 +180,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 private fun ExpandableComponentCard(component: ProductComponentEntity) {
     var expanded by remember { mutableStateOf(false) }
     val hasDetails = component.density.isNotBlank() || component.potLife.isNotBlank() || component.notes.isNotBlank()
-    CardFlat(modifier = Modifier.fillMaxWidth().clickable(enabled = hasDetails) { expanded = !expanded }) {
+    CardFlat(modifier = Modifier.fillMaxWidth().clip(CardShape).clickable(enabled = hasDetails) { expanded = !expanded }) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(text = component.label, style = MaterialTheme.typography.titleMedium)

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.Charcoal
+import androidx.compose.ui.draw.clip
 
 private data class NavItem(val route: String, val label: String, val icon: ImageVector)
 
@@ -46,7 +47,8 @@ private val NavInactive = Color(0xFF8E9095)
 fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     // fillMaxWidth on both: without it the Surface shrinks to the width of its items and the
     // dark bar stops short of the right edge of the screen.
-    Surface(color = Charcoal, shadowElevation = 8.dp, modifier = Modifier.fillMaxWidth()) {
+    // Flat, like the design: the charcoal bar reads as its own layer without a drop shadow.
+    Surface(color = Charcoal, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,9 +63,9 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
                 val color = if (selected) Color.White else NavInactive
                 Column(
                     modifier = Modifier
+                        .clip(RoundedCornerShape(14.dp))
                         .background(
                             color = if (selected) Color.White.copy(alpha = 0.12f) else Color.Transparent,
-                            shape = RoundedCornerShape(14.dp),
                         )
                         .clickable { onNavigate(item.route) }
                         .padding(horizontal = 10.dp, vertical = 6.dp),

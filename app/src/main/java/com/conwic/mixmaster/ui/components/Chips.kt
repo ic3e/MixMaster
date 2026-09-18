@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
+import androidx.compose.ui.draw.clip
 
 data class ChipOption(val label: String, val selected: Boolean, val onClick: () -> Unit)
 
@@ -36,7 +37,8 @@ fun ChipRow(options: List<ChipOption>, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .background(bg, ChipShape)
+                    .clip(ChipShape)
+                    .background(bg)
                     .then(if (!option.selected) Modifier.border(1.dp, MaterialTheme.colorScheme.outline, ChipShape) else Modifier)
                     .clickable { option.onClick() }
                     .padding(horizontal = 14.dp, vertical = 8.dp),

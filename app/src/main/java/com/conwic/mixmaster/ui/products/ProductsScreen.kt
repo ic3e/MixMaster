@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,6 +35,8 @@ import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.navigation.Routes
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.theme.CardShape
 
 @Composable
 fun ProductsScreen(navController: NavHostController) {
@@ -49,6 +52,13 @@ fun ProductsScreen(navController: NavHostController) {
             if (role == Role.EMPLOYER) {
                 FloatingActionButton(
                     onClick = { navController.navigate(Routes.PRODUCT_ADD) },
+                    // Flat like the rest of the design — the default FAB shadow reads as a smudge here.
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        focusedElevation = 0.dp,
+                        hoveredElevation = 0.dp,
+                    ),
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
@@ -94,6 +104,7 @@ fun ProductsScreen(navController: NavHostController) {
                 CardFlat(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(CardShape)
                         .clickable { navController.navigate(Routes.productDetail(product.id)) },
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

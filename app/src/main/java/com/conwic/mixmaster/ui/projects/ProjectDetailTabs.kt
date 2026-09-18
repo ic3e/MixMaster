@@ -22,11 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +58,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.GhostButton
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -130,15 +132,13 @@ fun TasksTab(
     ) {
         if (isEmployer) {
             item {
-                OutlinedButton(onClick = { addSheetOpen = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("+ Add task")
-                }
+                GhostButton(text = "+ Add task", onClick = { addSheetOpen = true }, modifier = Modifier.fillMaxWidth())
             }
         }
         items(data.tasks.sortedBy { it.dueDate }) { task ->
             CardFlat(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { onToggle(task.id, !task.isDone) },
+                    modifier = Modifier.fillMaxWidth().clip(CardShape).clickable { onToggle(task.id, !task.isDone) },
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column {
@@ -202,7 +202,8 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.surfaceVariant, ChipShape)
+                            .clip(ChipShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { dueText = date.toString() }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                     )
@@ -216,11 +217,12 @@ private fun AddTaskSheet(onDismiss: () -> Unit, onAdd: (String, LocalDate?, Task
                 onSelect = { name -> priority = TaskPriority.valueOf(name) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            Button(
+            PrimaryButton(
+                text = "Add task",
                 onClick = { onAdd(title, parsedDue, priority) },
                 enabled = title.isNotBlank() && !dueIsBroken,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Add") }
+            )
         }
     }
 }
@@ -285,7 +287,7 @@ fun LayoutTab(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 SectionLabel(text = "Floors & rooms")
                 if (isEmployer) {
-                    Text(text = "+ Add floor", color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { addFloorOpen = true })
+                    Text(text = "+ Add floor", color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addFloorOpen = true })
                 }
             }
         }
@@ -295,7 +297,7 @@ fun LayoutTab(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = floor.name, style = MaterialTheme.typography.titleMedium)
                     if (isEmployer) {
-                        Text(text = "+ Add room", color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { addRoomForFloor = floor.id })
+                        Text(text = "+ Add room", color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
                     }
                 }
                 data.rooms.filter { it.floorId == floor.id }.forEach { room ->
@@ -332,7 +334,7 @@ fun LayoutTab(
                 Text(
                     text = "+ Add photo",
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickable {
+                    modifier = Modifier.tappableText {
                         photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                 )
@@ -357,11 +359,15 @@ fun LayoutTab(
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = noteText, onValueChange = { noteText = it }, label = { Text("Add a note") }, modifier = Modifier.weight(1f))
-                Button(onClick = {
-                    val authorName = if (role == Role.EMPLOYER) "You (Employer)" else "You (Worker)"
-                    onAddNote(noteText, authorName, role)
-                    noteText = ""
-                }, enabled = noteText.isNotBlank()) { Text("Post") }
+                PrimaryButton(
+                    text = "Post",
+                    onClick = {
+                        val authorName = if (role == Role.EMPLOYER) "You (Employer)" else "You (Worker)"
+                        onAddNote(noteText, authorName, role)
+                        noteText = ""
+                    },
+                    enabled = noteText.isNotBlank(),
+                )
             }
         }
         items(data.notes) { note ->
@@ -414,13 +420,13 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
                 Text(
                     text = if (blueprintUri == null) "+ Attach" else "Replace",
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickable { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
+                    modifier = Modifier.tappableText { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
                 )
             }
         }
         if (blueprintUri != null) {
             CardFlat(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).clickable {
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).clip(CardShape).clickable {
                     val uri = Uri.parse(blueprintUri)
                     val mimeType = context.contentResolver.getType(uri) ?: "*/*"
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -459,7 +465,7 @@ private fun AddFloorSheet(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(text = "Add floor", style = MaterialTheme.typography.headlineMedium)
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Floor name") }, modifier = Modifier.fillMaxWidth())
-            Button(onClick = { onAdd(name) }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Add") }
+            PrimaryButton(text = "Add floor", onClick = { onAdd(name) }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -473,11 +479,12 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
             Text(text = "Add room", style = MaterialTheme.typography.headlineMedium)
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Room name") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text("Area (m²)") }, modifier = Modifier.fillMaxWidth())
-            Button(
+            PrimaryButton(
+                text = "Add room",
                 onClick = { onAdd(name, area.toDoubleOrNull() ?: 0.0) },
                 enabled = name.isNotBlank() && area.toDoubleOrNull() != null,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Add") }
+            )
         }
     }
 }

@@ -51,6 +51,7 @@ import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import com.conwic.mixmaster.ui.theme.CardShape
 import java.time.LocalDate
 import kotlin.random.Random
+import com.conwic.mixmaster.ui.components.tappableText
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -133,7 +134,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .padding(top = 8.dp)
-                                .clickable { uriHandler.openUri(product.datasheetUrl) },
+                                .tappableText { uriHandler.openUri(product.datasheetUrl) },
                         )
                     }
                 }

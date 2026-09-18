@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.ui.components.PrimaryButton
 
 @Composable
 fun SignInScreen(onContinue: () -> Unit) {
@@ -91,7 +91,8 @@ fun SignInScreen(onContinue: () -> Unit) {
             )
         }
         item {
-            Button(
+            PrimaryButton(
+                text = "Continue as ${selectedRole.name.lowercase()}",
                 onClick = {
                     scope.launch {
                         container.userPrefs.setRole(selectedRole)
@@ -99,9 +100,7 @@ fun SignInScreen(onContinue: () -> Unit) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "Continue as ${selectedRole.name.lowercase().replaceFirstChar { it.uppercase() }}")
-            }
+            )
         }
     }
 }

@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,9 +36,12 @@ import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.GhostButton
+import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.components.tappableText
 
 @Composable
 fun SettingsScreen(navController: NavHostController) {
@@ -94,15 +95,16 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = "Data & backup")
                 CardFlat {
-                    Button(onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Export database (.mmbackup)")
-                    }
-                    OutlinedButton(
+                    PrimaryButton(
+                        text = "Export database",
+                        onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    GhostButton(
+                        text = "Import database",
                         onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    ) {
-                        Text("Import database")
-                    }
+                    )
                     Text(
                         text = "Importing replaces everything on this device with the backup file and restarts the app.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -167,7 +169,7 @@ fun SettingsScreen(navController: NavHostController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)
-                            .clickable { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
+                            .tappableText { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
                     )
                 }
             }

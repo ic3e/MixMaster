@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.theme.StepperShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 /**
  * The design's − / + stepper. The value stays typeable as well as steppable, because real
@@ -95,7 +97,7 @@ fun Stepper(
 @Composable
 private fun StepButton(symbol: String, onClick: () -> Unit) {
     Box(
-        modifier = Modifier.size(44.dp).clickable(onClick = onClick),
+        modifier = Modifier.size(44.dp).clip(CircleShape).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(

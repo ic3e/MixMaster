@@ -42,6 +42,9 @@ import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.components.tappableText
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -97,7 +100,7 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         item {
-            CardAccent(modifier = Modifier.clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
+            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "Quick calculate", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary)
@@ -137,7 +140,7 @@ fun HomeScreen(navController: NavHostController) {
                         text = "Calendar",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { navController.navigate(Routes.CALENDAR) },
+                        modifier = Modifier.tappableText { navController.navigate(Routes.CALENDAR) },
                     )
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -156,7 +159,8 @@ fun HomeScreen(navController: NavHostController) {
                                 text = product.name,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.large)
+                                    .clip(MaterialTheme.shapes.large)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable { navController.navigate(Routes.productDetail(product.id)) }
                                     .padding(horizontal = 14.dp, vertical = 8.dp),
                             )

@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
+import androidx.compose.ui.draw.clip
 
 /** The rounded, pill-segmented tab bar used throughout the design (e.g. Project Detail's 5 tabs). */
 @Composable
@@ -33,7 +34,8 @@ fun SegmentedTabs(titles: List<String>, selectedIndex: Int, onSelect: (Int) -> U
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .background(if (selected) Charcoal else Color.Transparent, ChipShape)
+                    .clip(ChipShape)
+                    .background(if (selected) Charcoal else Color.Transparent)
                     .clickable { onSelect(index) }
                     .padding(vertical = 9.dp),
                 contentAlignment = Alignment.Center,

@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.ui.components.PrimaryButton
 
 private data class OnboardingStep(val icon: ImageVector, val title: String, val body: String)
 
@@ -70,7 +70,8 @@ fun OnboardingScreen(onDone: () -> Unit) {
             }
         }
         item {
-            Button(
+            PrimaryButton(
+                text = "Get started",
                 onClick = {
                     scope.launch {
                         container.userPrefs.setOnboardingSeen(true)
@@ -78,9 +79,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "Get started")
-            }
+            )
         }
     }
 }

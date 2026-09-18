@@ -11,11 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +32,8 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.GhostButton
 
 @Composable
 fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
@@ -206,20 +206,20 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         }
 
         item {
-            OutlinedButton(onClick = { viewModel.addComponentRow() }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Text(text = "Add another part", modifier = Modifier.padding(start = 8.dp))
-            }
+            GhostButton(
+                text = "+ Add another part",
+                onClick = { viewModel.addComponentRow() },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         item {
-            Button(
+            PrimaryButton(
+                text = "Save product",
                 onClick = { viewModel.save { navController.popBackStack() } },
                 enabled = state.isValid,
                 modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "Save product")
-            }
+            )
         }
     }
 }

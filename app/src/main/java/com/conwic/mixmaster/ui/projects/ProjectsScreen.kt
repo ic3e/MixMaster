@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +33,8 @@ import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.navigation.Routes
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.theme.CardShape
 
 @Composable
 fun ProjectsScreen(navController: NavHostController) {
@@ -45,6 +48,13 @@ fun ProjectsScreen(navController: NavHostController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.createDraftProject { id -> navController.navigate(Routes.projectDetail(id)) } },
+                // Flat like the rest of the design — the default FAB shadow reads as a smudge here.
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 0.dp,
+                    focusedElevation = 0.dp,
+                    hoveredElevation = 0.dp,
+                ),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
@@ -70,7 +80,7 @@ fun ProjectsScreen(navController: NavHostController) {
             items(state.visibleProjects) { item ->
                 val project = item.project
                 CardFlat(
-                    modifier = Modifier.fillMaxWidth().clickable { navController.navigate(Routes.projectDetail(project.id)) },
+                    modifier = Modifier.fillMaxWidth().clip(CardShape).clickable { navController.navigate(Routes.projectDetail(project.id)) },
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(text = project.name, style = MaterialTheme.typography.titleMedium)

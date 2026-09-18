@@ -39,6 +39,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun CalendarScreen(navController: NavHostController) {
@@ -144,7 +145,8 @@ private fun DayCell(cell: CalendarCell, onClick: () -> Unit, modifier: Modifier 
         modifier = modifier
             .height(40.dp)
             .padding(2.dp)
-            .background(background, CircleShape)
+            .clip(CircleShape)
+            .background(background)
             .clickable(enabled = cell.date != null, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

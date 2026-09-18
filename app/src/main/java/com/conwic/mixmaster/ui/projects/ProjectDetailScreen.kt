@@ -47,6 +47,7 @@ import com.conwic.mixmaster.data.report.ReportGenerator
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
+import com.conwic.mixmaster.ui.components.PrimaryButton
 
 private val tabTitles = listOf("Overview", "Tasks", "Layout", "Materials", "Calendar")
 
@@ -225,9 +226,11 @@ private fun EditProjectSheet(
             OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text("Client") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Site address") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = scope, onValueChange = { scope = it }, label = { Text("Scope") }, modifier = Modifier.fillMaxWidth())
-            TextButton(onClick = { onSave(name, client, address, scope) }, modifier = Modifier.fillMaxWidth()) {
-                Text("Save")
-            }
+            PrimaryButton(
+                text = "Save project",
+                onClick = { onSave(name, client, address, scope) },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
