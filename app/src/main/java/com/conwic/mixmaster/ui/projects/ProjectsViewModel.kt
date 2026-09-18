@@ -43,13 +43,20 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
 
     fun setFilter(value: String) = filter.update { value }
 
-    fun createDraftProject(onCreated: (Long) -> Unit) {
+    /**
+     * Writes the project only once it has a name.
+     *
+     * This used to insert a blank "New project" the moment the + was tapped and then open it, so
+     * every stray tap — and every time someone backed out again — left an empty project behind.
+     */
+    fun createProject(name: String, clientName: String, address: String, onCreated: (Long) -> Unit) {
+        if (name.isBlank()) return
         viewModelScope.launch {
             val id = projectRepository.save(
                 ProjectEntity(
-                    name = "New project",
-                    clientName = "",
-                    address = "",
+                    name = name.trim(),
+                    clientName = clientName.trim(),
+                    address = address.trim(),
                     status = ProjectStatus.PLANNING,
                     startDate = null,
                     targetFinishDate = null,

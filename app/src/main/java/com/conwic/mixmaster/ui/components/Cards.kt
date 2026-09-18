@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Charcoal
+import com.conwic.mixmaster.ui.theme.TextOnDark
 
 /** The flat, warm-surface card used throughout the design for grouped rows of info. */
 @Composable
@@ -28,6 +29,15 @@ fun CardFlat(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
         content = content,
     )
 }
+
+/**
+ * Text colour for anything inside [CardAccent].
+ *
+ * The card's background is always charcoal, so its content colour has to be fixed too.
+ * colorScheme.onPrimary flips to a dark tone in the dark theme, which turned every one of these
+ * cards into dark-on-dark.
+ */
+val OnAccentCard: Color = TextOnDark
 
 /** The solid dark "hero" card (quick actions, rollup stats) — matches the design's charcoal card-accent. */
 @Composable

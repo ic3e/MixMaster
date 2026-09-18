@@ -43,6 +43,7 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
+import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
@@ -118,11 +119,11 @@ fun HomeScreen(navController: NavHostController) {
             CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Quick calculate", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary)
+                        Text(text = "Quick calculate", style = MaterialTheme.typography.titleLarge, color = OnAccentCard)
                         Text(
                             text = "Get an exact mix split in seconds",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                            color = OnAccentCard.copy(alpha = 0.85f),
                         )
                     }
                 }
@@ -165,7 +166,7 @@ fun HomeScreen(navController: NavHostController) {
         item {
             Column {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

@@ -37,7 +37,13 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
         onClick = onClick,
         enabled = enabled,
         shape = ChipShape,
-        colors = ButtonDefaults.buttonColors(containerColor = Charcoal, contentColor = Color.White),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Charcoal,
+            contentColor = Color.White,
+            // Material's defaults derive from the scheme and vanish against a dark background.
+            disabledContainerColor = Charcoal.copy(alpha = 0.35f),
+            disabledContentColor = Color.White.copy(alpha = 0.7f),
+        ),
         // The design's buttons are flat: no drop shadow, resting or pressed.
         elevation = null,
         contentPadding = ButtonPadding,
@@ -57,6 +63,8 @@ fun GhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
         elevation = null,

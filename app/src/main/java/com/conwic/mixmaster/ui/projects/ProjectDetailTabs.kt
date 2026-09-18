@@ -44,6 +44,7 @@ import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.formatKg
 import com.conwic.mixmaster.ui.components.CardAccent
+import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
 import com.conwic.mixmaster.ui.components.ProgressBarRow
@@ -58,6 +59,9 @@ import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
 import com.conwic.mixmaster.ui.tasks.TaskRow
+import com.conwic.mixmaster.ui.tasks.priorityColor
+import com.conwic.mixmaster.ui.theme.Ok
+import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
@@ -399,8 +403,8 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
 @Composable
 private fun AccentStat(label: String, value: String) {
     Column {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
-        Text(text = value, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = OnAccentCard.copy(alpha = 0.85f))
+        Text(text = value, style = MaterialTheme.typography.titleMedium, color = OnAccentCard, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -474,8 +478,8 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
         item {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = "Total material used", color = MaterialTheme.colorScheme.onPrimary)
-                    Text(text = "${formatKg(totalGrams)} kg", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.ExtraBold)
+                    Text(text = "Total material used", color = OnAccentCard)
+                    Text(text = "${formatKg(totalGrams)} kg", style = MaterialTheme.typography.headlineMedium, color = OnAccentCard, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -515,10 +519,26 @@ fun CalendarTab(data: ProjectDetailData) {
         items(sorted) { task ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = task.dueDate?.let { formatDueDate(it) } ?: "No date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = task.priority.name, style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = task.dueDate?.let { formatDueDate(it) } ?: "No date",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    // This used to print the priority whatever had happened to the task, so a
+                    // task closed off in the Tasks tab still read "LOW" here.
+                    Text(
+                        text = if (task.isDone) "Done" else task.priority.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (task.isDone) Ok else priorityColor(task.priority),
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
-                Text(text = task.title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (task.isDone) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (task.isDone) TextDecoration.LineThrough else TextDecoration.None,
+                )
             }
         }
     }

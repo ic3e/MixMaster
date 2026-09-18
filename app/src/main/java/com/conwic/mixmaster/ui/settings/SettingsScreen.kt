@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -48,6 +50,7 @@ import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.security.canLockApp
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.DisplayFontFamily
 
 @Composable
 fun SettingsScreen(navController: NavHostController) {
@@ -185,7 +188,7 @@ fun SettingsScreen(navController: NavHostController) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(modifier = Modifier.padding(end = 12.dp)) {
+                                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                                     Text(text = member.name, style = MaterialTheme.typography.titleMedium)
                                     if (member.email.isNotBlank()) {
                                         Text(
@@ -243,16 +246,21 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = "Backup")
                 CardFlat {
-                    PrimaryButton(
-                        text = "Export everything",
-                        onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                    )
-                    GhostButton(
-                        text = "Restore from a backup",
-                        onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    )
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        PrimaryButton(
+                            text = "Export",
+                            onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
+                            modifier = Modifier.weight(1f),
+                        )
+                        GhostButton(
+                            text = "Restore",
+                            onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                     Text(
                         text = "Restoring replaces everything on this phone with the backup file and restarts the app.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -281,15 +289,24 @@ fun SettingsScreen(navController: NavHostController) {
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
-                    painter = painterResource(id = R.drawable.conwic_lockup),
+                    painter = painterResource(id = R.drawable.conwic_badge),
                     contentDescription = "ConWiC",
-                    modifier = Modifier.widthIn(max = 160.dp),
+                    modifier = Modifier.size(44.dp),
                 )
                 Text(
-                    text = "MixMaster by ConWiC · v${BuildConfig.VERSION_NAME}",
+                    text = "CONWIC",
+                    fontFamily = DisplayFontFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    letterSpacing = 3.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                Text(
+                    text = "MixMaster · v${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }

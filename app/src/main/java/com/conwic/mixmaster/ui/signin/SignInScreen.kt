@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,6 +33,9 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.conwic.mixmaster.ui.theme.DisplayFontFamily
 
 @Composable
 fun SignInScreen(onContinue: () -> Unit) {
@@ -47,11 +49,24 @@ fun SignInScreen(onContinue: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Image(
-                painter = painterResource(id = R.drawable.conwic_lockup),
-                contentDescription = "ConWiC",
-                modifier = Modifier.widthIn(max = 190.dp),
-            )
+            // The badge is a vector and the wordmark is type, so both stay crisp and both follow
+            // the theme — the flat charcoal lockup went invisible on a dark background.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.conwic_badge),
+                    contentDescription = "ConWiC",
+                    modifier = Modifier.size(44.dp),
+                )
+                Text(
+                    text = "CONWIC",
+                    fontFamily = DisplayFontFamily,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    letterSpacing = 3.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = 12.dp),
+                )
+            }
         }
         item {
             Column {

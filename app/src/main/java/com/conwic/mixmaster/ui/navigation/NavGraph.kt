@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -43,6 +45,13 @@ fun MixMasterNavGraph(startDestination: String) {
         NavHost(
             navController = navController,
             startDestination = startDestination,
+            // No transitions. The default cross-fade draws the old and new screen on top of each
+            // other for a few frames, which on site reads as the app glitching, and the slide
+            // shoves the page sideways under your thumb.
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             modifier = Modifier.padding(insets),
         ) {
             composable(Routes.SIGN_IN) {
