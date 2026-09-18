@@ -1,6 +1,5 @@
 package com.conwic.mixmaster.ui.products
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -24,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -35,6 +32,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
+import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.navigation.Routes
 
 @Composable
@@ -49,7 +47,11 @@ fun ProductsScreen(navController: NavHostController) {
     Scaffold(
         floatingActionButton = {
             if (role == Role.EMPLOYER) {
-                FloatingActionButton(onClick = { navController.navigate(Routes.PRODUCT_ADD) }) {
+                FloatingActionButton(
+                    onClick = { navController.navigate(Routes.PRODUCT_ADD) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
                     Icon(Icons.Filled.Add, contentDescription = "Add product")
                 }
             }
@@ -101,16 +103,7 @@ fun ProductsScreen(navController: NavHostController) {
                             Text(text = product.rangeNote, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (product.ratioLabel.isNotBlank()) {
-                            Text(
-                                text = product.ratioLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier
-                                    .align(Alignment.Top)
-                                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(999.dp))
-                                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                            )
+                            RatioBadge(text = product.ratioLabel, modifier = Modifier.align(Alignment.Top))
                         }
                     }
                 }

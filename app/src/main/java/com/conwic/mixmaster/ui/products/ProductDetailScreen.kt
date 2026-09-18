@@ -47,6 +47,7 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
+import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
 
@@ -91,7 +92,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                     Column {
                         Text(text = "${product.brand} · ${product.category}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                         Text(text = "Mix ratio", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
-                        Text(text = product.ratioLabel, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+                        RatioBadge(text = product.ratioLabel, modifier = Modifier.padding(top = 4.dp))
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(text = "Coverage", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

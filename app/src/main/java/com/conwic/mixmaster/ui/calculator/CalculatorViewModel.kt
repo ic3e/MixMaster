@@ -10,9 +10,9 @@ import com.conwic.mixmaster.domain.MixResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +25,9 @@ data class CalculatorUiState(
      * moved, then whatever the slider is set to. */
     val coverageValue: Double = 0.0,
     val result: MixResult? = null,
+    /** Average of what's actually been logged on site for this product, if anything has. */
+    val siteAverageDose: Double? = null,
+    val loggedJobCount: Int = 0,
 )
 
 private data class CalculatorInputs(
@@ -45,7 +48,8 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
     val uiState: StateFlow<CalculatorUiState> = inputs
         .flatMapLatest { input ->
             val productFlow = input.productId?.let { productRepository.observeWithComponents(it) } ?: flowOf(null)
-            productFlow.map { productWithComponents ->
+            val logsFlow = input.productId?.let { productRepository.observeUsageLogs(it) } ?: flowOf(emptyList())
+            combine(productFlow, logsFlow) { productWithComponents, logs ->
                 val area = input.areaText.toDoubleOrNull()
                 val quantity = input.quantityText.toDoubleOrNull() ?: 1.0
                 val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
@@ -60,6 +64,8 @@ class CalculatorViewModel(private val productRepository: ProductRepository) : Vi
                     quantityInput = input.quantityText,
                     coverageValue = coverage,
                     result = result,
+                    siteAverageDose = if (logs.isEmpty()) null else logs.map { it.doseGramsPerM2 }.average(),
+                    loggedJobCount = logs.size,
                 )
             }
         }

@@ -43,7 +43,11 @@ fun ProjectsScreen(navController: NavHostController) {
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.createDraftProject { id -> navController.navigate(Routes.projectDetail(id)) } }) {
+            FloatingActionButton(
+                onClick = { viewModel.createDraftProject { id -> navController.navigate(Routes.projectDetail(id)) } },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = "New project")
             }
         },

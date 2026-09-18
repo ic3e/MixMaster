@@ -9,14 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.conwic.mixmaster.ui.theme.TextFaint
 
 @Composable
 fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Bold,
+        color = TextFaint,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = 1.sp,
         modifier = modifier.padding(bottom = 8.dp),
     )
 }

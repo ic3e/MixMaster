@@ -14,6 +14,8 @@ import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.domain.formatKg
 import java.io.File
 import java.io.FileOutputStream
 
@@ -72,15 +74,15 @@ object ReportGenerator {
         newPageIfNeeded(24f)
         canvas.drawText("Rooms & materials", MARGIN, y, titlePaint)
         y += 18f
-        val totalKg = roomMixes.values.filterNotNull().sumOf { it.totalKg }
+        val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
         for (room in rooms) {
             newPageIfNeeded(30f)
             val mix = roomMixes[room.id]
             val productName = products.firstOrNull { it.id == room.assignedProductId }?.name ?: "Unassigned"
-            canvas.drawText("${room.name} — ${room.areaM2} m²", MARGIN, y, bodyPaint)
+            canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
             y += 13f
             val detail = if (mix != null) {
-                "$productName · ${mix.totalKg} kg (" + mix.components.joinToString(" / ") { "${it.grams / 1000.0} kg ${it.label}" } + ")"
+                "$productName · ${formatKg(mix.totalGrams)} kg (" + mix.components.joinToString(" / ") { "${formatKg(it.grams)} kg ${it.label}" } + ")"
             } else {
                 productName
             }
@@ -88,7 +90,7 @@ object ReportGenerator {
             y += 18f
         }
         newPageIfNeeded(20f)
-        canvas.drawText("Total material across all rooms: $totalKg kg", MARGIN, y, textPaint(size = 10f, bold = true))
+        canvas.drawText("Total material across all rooms: ${formatKg(totalGrams)} kg", MARGIN, y, textPaint(size = 10f, bold = true))
         y += 26f
 
         newPageIfNeeded(24f)

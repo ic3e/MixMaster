@@ -42,6 +42,8 @@ import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.domain.formatKg
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
@@ -229,11 +231,11 @@ fun LayoutTab(
         item {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    AccentStat(label = "Total area", value = "${data.totalAreaM2} m²")
+                    AccentStat(label = "Total area", value = "${formatArea(data.totalAreaM2)} m²")
                     AccentStat(label = "Rooms · floors", value = "${data.rooms.size} · ${data.floors.size}")
                     AccentStat(
                         label = "Est. material",
-                        value = "${roomMixes.values.filterNotNull().sumOf { it.totalKg }} kg",
+                        value = "${formatKg(roomMixes.values.filterNotNull().sumOf { it.totalGrams })} kg",
                     )
                 }
             }
@@ -269,7 +271,7 @@ fun LayoutTab(
                         Column {
                             Text(text = room.name, style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                text = "${room.areaM2} m²" + if (mix != null) " · ${mix.totalKg} kg" else "",
+                                text = "${formatArea(room.areaM2)} m²" + if (mix != null) " · ${formatKg(mix.totalGrams)} kg" else "",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -468,7 +470,7 @@ private fun ProductPickerSheet(
 
 @Composable
 fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
-    val totalKg = roomMixes.values.filterNotNull().sumOf { it.totalKg }
+    val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
     val loggedRooms = data.rooms.filter { roomMixes[it.id] != null }
 
     LazyColumn(
@@ -480,7 +482,7 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = "Total material used", color = MaterialTheme.colorScheme.onPrimary)
-                    Text(text = "$totalKg kg", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.ExtraBold)
+                    Text(text = "${formatKg(totalGrams)} kg", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -494,10 +496,10 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = productName, style = MaterialTheme.typography.titleMedium)
-                    Text(text = "${mix.totalKg} kg", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "${formatKg(mix.totalGrams)} kg", style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
-                    text = "${room.name} · ${room.areaM2} m² · " + mix.components.joinToString(" / ") { "${it.grams / 1000.0} kg ${it.label}" },
+                    text = "${room.name} · ${formatArea(room.areaM2)} m² · " + mix.components.joinToString(" / ") { "${formatKg(it.grams)} kg ${it.label}" },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

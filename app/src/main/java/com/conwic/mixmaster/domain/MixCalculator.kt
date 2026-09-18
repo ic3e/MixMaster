@@ -12,9 +12,7 @@ data class ComponentAmount(
 data class MixResult(
     val totalGrams: Double,
     val components: List<ComponentAmount>,
-) {
-    val totalKg: Double get() = totalGrams / 1000.0
-}
+)
 
 /**
  * The core "solve the guessing game" calculation: given a product's typical total dose per m²
@@ -37,17 +35,18 @@ object MixCalculator {
         quantity: Double,
         doseGramsPerM2: Double = productWithComponents.product.typicalDoseGramsPerM2,
     ): MixResult {
-        val totalGrams = doseGramsPerM2 * areaM2 * quantity
+        val rawTotalGrams = doseGramsPerM2 * areaM2 * quantity
         val components = productWithComponents.components
         val ratioSum = components.sumOf { it.ratioParts }.takeIf { it > 0.0 } ?: 1.0
         val amounts = components.map { component ->
             ComponentAmount(
                 label = component.label,
-                grams = roundTo1Decimal(totalGrams * (component.ratioParts / ratioSum)),
+                grams = round(rawTotalGrams * (component.ratioParts / ratioSum)),
             )
         }
-        return MixResult(totalGrams = roundTo1Decimal(totalGrams), components = amounts)
+        // Total is the sum of the rounded parts, so what's weighed out always adds up to the
+        // total shown rather than drifting from it by a gram.
+        val totalGrams = if (amounts.isEmpty()) round(rawTotalGrams) else amounts.sumOf { it.grams }
+        return MixResult(totalGrams = totalGrams, components = amounts)
     }
-
-    private fun roundTo1Decimal(value: Double): Double = round(value * 10.0) / 10.0
 }
