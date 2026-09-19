@@ -1,8 +1,8 @@
 {
-  "versionCode": 49,
-  "versionName": "1.0.49",
-  "apk": "MixMaster_1.0.49.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.49.apk",
-  "sizeBytes": 19794784,
-  "notes": "Translate Settings, the crew sheet and the task editor"
+  "versionCode": 50,
+  "versionName": "1.0.50",
+  "apk": "MixMaster_1.0.50.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.50.apk",
+  "sizeBytes": 19826120,
+  "notes": "Translate the calculator"
 }
