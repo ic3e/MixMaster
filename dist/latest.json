@@ -1,8 +1,8 @@
 {
-  "versionCode": 46,
-  "versionName": "1.0.46",
-  "apk": "MixMaster_1.0.46.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.46.apk",
-  "sizeBytes": 19745204,
-  "notes": "Drop the duplicate R import"
+  "versionCode": 47,
+  "versionName": "1.0.47",
+  "apk": "MixMaster_1.0.47.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.47.apk",
+  "sizeBytes": 19754012,
+  "notes": "Greeting and quips in all three languages"
 }
