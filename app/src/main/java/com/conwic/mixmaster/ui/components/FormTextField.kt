@@ -83,3 +83,15 @@ fun FormTextField(
         modifier = modifier,
     )
 }
+
+/**
+ * The one split every "value + its unit" row in the app uses — a wide field and the short one
+ * that qualifies it.
+ *
+ * A form had three of these stacked in a single card at 2:1, 1:1 and 1.2:1, so the break moved
+ * by a few percent on every line. Near-misses read as sloppier than an obviously different
+ * layout would, so the split is named once and shared. Rows of two equal fields (Min/Max,
+ * Brand/Type) stay 1f/1f — those are genuinely symmetric and belong on the centre line.
+ */
+const val FieldWeightWide = 1.6f
+const val FieldWeightNarrow = 1f

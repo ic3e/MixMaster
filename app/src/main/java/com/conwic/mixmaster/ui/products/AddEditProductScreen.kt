@@ -30,6 +30,8 @@ import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.ui.components.FieldWeightNarrow
+import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -112,7 +114,11 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
                 )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
                     FormTextField(
                         value = state.minDoseText,
                         onValueChange = viewModel::setMinDose,
@@ -190,20 +196,24 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 12.dp, bottom = 10.dp),
                     )
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
                         FormTextField(
                             value = state.addOnAmountText,
                             onValueChange = viewModel::setAddOnAmount,
                             label = "Amount",
                             keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.weight(1.2f),
+                            modifier = Modifier.weight(FieldWeightWide),
                         )
                         DropdownField(
                             label = "Unit",
                             selected = state.addOnUnitChoice,
                             options = listOf("g", "kg", "ml", "L"),
                             onSelect = viewModel::setAddOnUnitChoice,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(FieldWeightNarrow),
                         )
                     }
                     FormTextField(
@@ -347,21 +357,21 @@ private fun ComponentCard(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             SuggestField(
                 value = row.label,
                 onValueChange = onLabel,
                 label = "What it is",
                 suggestions = labelSuggestions,
-                modifier = Modifier.weight(2f),
+                modifier = Modifier.weight(FieldWeightWide),
             )
             FormTextField(
                 value = row.ratioText,
                 onValueChange = onRatio,
                 label = "Parts",
                 keyboardType = KeyboardType.Decimal,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(FieldWeightNarrow),
             )
         }
 
@@ -398,7 +408,11 @@ private fun ComponentCard(
         }
 
         if (expanded) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
                 FormTextField(
                     value = row.densityKgPerLText,
                     onValueChange = onDensity,
@@ -406,32 +420,33 @@ private fun ComponentCard(
                     keyboardType = KeyboardType.Decimal,
                     problem = row.densityProblem,
                     hint = row.densityWarning ?: "What one litre weighs",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(FieldWeightWide),
                 )
                 FormTextField(
                     value = row.potLife,
                     onValueChange = onPotLife,
                     label = "Pot life",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(FieldWeightNarrow),
                 )
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top,
             ) {
                 FormTextField(
                     value = row.packSizeText,
                     onValueChange = onPackSize,
                     label = "Pack size",
                     keyboardType = KeyboardType.Decimal,
-                    modifier = Modifier.weight(1.2f),
+                    modifier = Modifier.weight(FieldWeightWide),
                 )
                 DropdownField(
                     label = "Unit",
                     selected = row.packUnit,
                     options = listOf("kg", "L"),
                     onSelect = onPackUnit,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(FieldWeightNarrow),
                 )
             }
             DropdownField(
