@@ -12,10 +12,11 @@ Daemon will be stopped at the end of the build
 > Task :app:packageDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
-> Task :app:mergeDebugResources
 > Task :app:parseDebugLocalResources
+> Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
@@ -27,7 +28,6 @@ Daemon will be stopped at the end of the build
 > Task :app:mergeDebugJniLibFolders
 > Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugNativeLibs
-> Task :app:processDebugManifestForPackage
 > Task :app:mergeLibDexDebug
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
@@ -37,14 +37,41 @@ Daemon will be stopped at the end of the build
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so.
 
 > Task :app:processDebugResources
-> Task :app:mergeExtDexDebug
 
 > Task :app:kspDebugKotlin
-w: [ksp] /home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/data/db/AppDatabase.kt:53: Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
+e: The daemon has terminated unexpectedly on startup attempt #1 with error code: 0. The daemon process output:
+    1. Kotlin compile daemon is ready
+
+> Task :app:mergeExtDexDebug
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/domain/Packaging.kt:155:80 Argument type mismatch: actual type is 'kotlin.String', but 'kotlin.collections.List<com.conwic.mixmaster.domain.ComponentAmount>?' was expected.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789740220915.json
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:372:23 Argument type mismatch: actual type is 'kotlin.collections.List<com.conwic.mixmaster.domain.AddOnNeed>', but 'kotlin.Int' was expected.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:372:52 Unresolved reference 'productId'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:373:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:380:50 Unresolved reference 'brand'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:381:50 Unresolved reference 'name'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:385:53 Unresolved reference 'unit'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:386:60 Unresolved reference 'amount'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:388:55 Unresolved reference 'amount'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:392:50 Unresolved reference 'unit'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:397:45 Unresolved reference 'againstLabel'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:401:77 Unresolved reference 'productId'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:406:44 Unresolved reference 'rateLabel'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:406:73 Unresolved reference 'againstKg'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:30 Unresolved reference 'packs'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:37 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:43 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:412:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:413:57 Unresolved reference 'packLabel'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:414:55 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:415:55 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:30 Unresolved reference 'problem'.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:39 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:45 Cannot infer type for this parameter. Please specify it explicitly.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:422:55 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:423:55 @Composable invocations can only happen from the context of a @Composable function
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:434:76 Unresolved reference 'productId'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789799168400.json
 
 FAILURE: Build failed with an exception.
 
@@ -90,36 +117,6 @@ org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:com
 	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:463)
 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:380)
-	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:116)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:138)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:123)
-	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:35)
-	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:200)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:195)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
-	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$10(DefaultBuildLifecycleController.java:313)
-	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
-	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:177)
-	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:44)
-	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:177)
-	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:304)
-	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:220)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:264)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
-	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:181)
-	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:50)
-	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.lambda$run$0(DefaultBuildController.java:198)
-	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:80)
-	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:198)
 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
 Caused by: org.gradle.workers.internal.DefaultWorkerExecutor$WorkExecutionException: A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
@@ -247,36 +244,6 @@ Caused by: org.gradle.workers.internal.DefaultWorkerExecutor$WorkExecutionExcept
 	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:303)
 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:463)
 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:380)
-	at org.gradle.execution.plan.DefaultPlanExecutor.process(DefaultPlanExecutor.java:116)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.executeWithServices(DefaultTaskExecutionGraph.java:138)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph.execute(DefaultTaskExecutionGraph.java:123)
-	at org.gradle.execution.SelectedTaskExecutionAction.execute(SelectedTaskExecutionAction.java:35)
-	at org.gradle.execution.DryRunBuildExecutionAction.execute(DryRunBuildExecutionAction.java:51)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:54)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor$ExecuteTasks.call(BuildOperationFiringBuildWorkerExecutor.java:43)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:200)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:195)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.execution.BuildOperationFiringBuildWorkerExecutor.execute(BuildOperationFiringBuildWorkerExecutor.java:40)
-	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$executeTasks$10(DefaultBuildLifecycleController.java:313)
-	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
-	at org.gradle.internal.model.StateTransitionController.lambda$tryTransition$8(StateTransitionController.java:177)
-	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:44)
-	at org.gradle.internal.model.StateTransitionController.tryTransition(StateTransitionController.java:177)
-	at org.gradle.internal.build.DefaultBuildLifecycleController.executeTasks(DefaultBuildLifecycleController.java:304)
-	at org.gradle.internal.build.DefaultBuildWorkGraphController$DefaultBuildWorkGraph.runWork(DefaultBuildWorkGraphController.java:220)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:264)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
-	at org.gradle.composite.internal.DefaultBuildController.doRun(DefaultBuildController.java:181)
-	at org.gradle.composite.internal.DefaultBuildController.access$000(DefaultBuildController.java:50)
-	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.lambda$run$0(DefaultBuildController.java:198)
-	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:80)
-	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:198)
 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
 Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilation error. See log for more details
@@ -313,5 +280,5 @@ Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilat
 	... 2 more
 
 
-BUILD FAILED in 42s
+BUILD FAILED in 43s
 31 actionable tasks: 31 executed
