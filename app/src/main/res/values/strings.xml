@@ -15,4 +15,67 @@
     <string name="date_today">Today</string>
     <!-- "Today · W38" — %1$s is the week, already formatted. -->
     <string name="date_today_with_week">Today · %1$s</string>
+
+    <!-- Home screen greeting and the line under it -->
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_night">Still up</string>
+
+    <string-array name="quips_morning">
+        <item>Let\'s get those hands dusty.</item>
+        <item>The floor isn\'t going to pour itself.</item>
+        <item>Coffee first. Then chemistry.</item>
+        <item>Somewhere out there, a slab is waiting.</item>
+        <item>Measure twice, mix once.</item>
+        <item>Today\'s forecast: dust, with a chance of overtime.</item>
+        <item>Concrete doesn\'t care that you\'re tired.</item>
+        <item>New day, same ratios.</item>
+        <item>Boots on, brain on.</item>
+        <item>Let\'s make something flat and permanent.</item>
+        <item>The bags won\'t lift themselves — but the maths is done.</item>
+        <item>Straight lines, strong coffee.</item>
+    </string-array>
+    <string-array name="quips_afternoon">
+        <item>Half the day gone, half the floor to go.</item>
+        <item>Keep moving — pot life is shorter than your patience.</item>
+        <item>Second wind, second coat.</item>
+        <item>The client will change their mind at half four. Plan accordingly.</item>
+        <item>Nothing cures faster just because you\'re in a hurry.</item>
+        <item>Afternoon: where the words \"quick job\" go to die.</item>
+        <item>Closer to done than you were this morning.</item>
+        <item>Mix it right and you only do it once.</item>
+        <item>Dust now, satisfaction later.</item>
+        <item>That slab won\'t level itself.</item>
+        <item>Still standing? Good. Keep going.</item>
+        <item>Push on — the kettle isn\'t going anywhere.</item>
+    </string-array>
+    <string-array name="quips_evening">
+        <item>Tools down soon. Numbers first.</item>
+        <item>Log it now, or forget it forever.</item>
+        <item>Long day. Straight lines anyway.</item>
+        <item>Nearly there — resist the urge to eyeball it.</item>
+        <item>Tomorrow\'s you would love it if today\'s you wrote it down.</item>
+        <item>The floor stays. The ache fades.</item>
+        <item>Wrapping up? Get the usage logged.</item>
+        <item>Last mix of the day — make it count.</item>
+        <item>Good work. Now go clean the mixer.</item>
+        <item>Evening maths beats morning guesswork.</item>
+        <item>One more coat, or call it a day?</item>
+        <item>Finish strong, finish flat.</item>
+    </string-array>
+    <string-array name="quips_night">
+        <item>Still up? So is the concrete.</item>
+        <item>Night shift maths, same as day shift maths.</item>
+        <item>Nobody pours at this hour by choice.</item>
+        <item>Quiet site, clean mix.</item>
+        <item>Overtime: sets faster than the sealer.</item>
+        <item>Go home. The slab will still be there tomorrow.</item>
+        <item>Late one. Get the ratios right anyway.</item>
+        <item>The only thing curing right now is you, slowly.</item>
+        <item>Sleep is a consumable. Budget accordingly.</item>
+        <item>Mixing at this hour? Double-check that pot life.</item>
+        <item>Tomorrow starts in a worryingly small number of hours.</item>
+        <item>Dark outside, level inside.</item>
+    </string-array>
 </resources>

@@ -40,6 +40,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatShortWeekday
@@ -76,6 +77,7 @@ fun HomeScreen(navController: NavHostController) {
     val now = remember(state) { LocalDateTime.now() }
     val today = now.toLocalDate()
     val dayPart = dayPartFor(now.toLocalTime())
+    val quips = stringArrayResource(quipArrayRes(dayPart))
 
     // Non-null while the add/edit sheet is open; holds what the sheet starts from.
     var editing by remember { mutableStateOf<TaskDraft?>(null) }
@@ -94,7 +96,7 @@ fun HomeScreen(navController: NavHostController) {
                         modifier = Modifier.size(38.dp),
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(text = greetingFor(dayPart), style = MaterialTheme.typography.headlineMedium)
+                        Text(text = stringResource(greetingRes(dayPart)), style = MaterialTheme.typography.headlineMedium)
                         Text(
                             text = today.format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
                             style = MaterialTheme.typography.bodyMedium,
@@ -103,7 +105,7 @@ fun HomeScreen(navController: NavHostController) {
                     }
                 }
                 Text(
-                    text = quipFor(today, dayPart),
+                    text = quips[quipIndex(today, dayPart, quips.size)],
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary,

@@ -5,4 +5,51 @@
 
     <string name="date_today">Tänään</string>
     <string name="date_today_with_week">Tänään · %1$s</string>
+
+    <!-- Home screen greeting and the line under it -->
+    <string name="greeting_morning">Huomenta</string>
+    <string name="greeting_afternoon">Hyvää päivää</string>
+    <string name="greeting_evening">Hyvää iltaa</string>
+    <string name="greeting_night">Vielä hereillä</string>
+
+    <string-array name="quips_morning">
+        <item>Kädet pölyisiksi.</item>
+        <item>Lattia ei vala itseään.</item>
+        <item>Ensin kahvi. Sitten kemia.</item>
+        <item>Mittaa kahdesti, sekoita kerran.</item>
+        <item>Uusi päivä, samat suhteet.</item>
+        <item>Saappaat jalkaan, pää käyntiin.</item>
+        <item>Säkit eivät nouse itsestään — mutta laskut on tehty.</item>
+        <item>Suorat linjat, vahva kahvi.</item>
+    </string-array>
+    <string-array name="quips_afternoon">
+        <item>Puoli päivää menty, puoli lattiaa jäljellä.</item>
+        <item>Pidä vauhtia — käyttöaika loppuu ennen kärsivällisyyttä.</item>
+        <item>Mikään ei kovetu nopeammin siksi, että sinulla on kiire.</item>
+        <item>Sekoita kerralla oikein, niin teet sen vain kerran.</item>
+        <item>Lähempänä valmista kuin aamulla.</item>
+        <item>Pölyä nyt, tyytyväisyyttä myöhemmin.</item>
+        <item>Laatta ei tasoita itseään.</item>
+        <item>Vieläkö pystyssä? Hyvä. Jatka.</item>
+    </string-array>
+    <string-array name="quips_evening">
+        <item>Työkalut pian pois. Ensin numerot.</item>
+        <item>Kirjaa nyt, tai unohdat kokonaan.</item>
+        <item>Pitkä päivä. Silti suorat linjat.</item>
+        <item>Huominen sinä kiittää, jos tämän päivän sinä kirjaa sen ylös.</item>
+        <item>Päivän viimeinen sekoitus — tee se kunnolla.</item>
+        <item>Hyvää työtä. Pese vielä sekoitin.</item>
+        <item>Lattia jää. Särky menee ohi.</item>
+        <item>Illan laskut voittaa aamun arvailun.</item>
+    </string-array>
+    <string-array name="quips_night">
+        <item>Vielä hereillä? Niin on betonikin.</item>
+        <item>Yövuoron laskut, samat kuin päivävuoron.</item>
+        <item>Kukaan ei vala tähän aikaan huvikseen.</item>
+        <item>Hiljainen työmaa, puhdas massa.</item>
+        <item>Mene kotiin. Laatta on huomennakin siinä.</item>
+        <item>Sekoitatko tähän aikaan? Tarkista käyttöaika.</item>
+        <item>Ainoa mikä tässä kovettuu olet sinä, hitaasti.</item>
+        <item>Ulkona pimeää, sisällä tasaista.</item>
+    </string-array>
 </resources>

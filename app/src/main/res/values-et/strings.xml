@@ -5,4 +5,51 @@
 
     <string name="date_today">Täna</string>
     <string name="date_today_with_week">Täna · %1$s</string>
+
+    <!-- Home screen greeting and the line under it -->
+    <string name="greeting_morning">Tere hommikust</string>
+    <string name="greeting_afternoon">Tere päevast</string>
+    <string name="greeting_evening">Tere õhtust</string>
+    <string name="greeting_night">Veel üleval</string>
+
+    <string-array name="quips_morning">
+        <item>Paneme käed tolmuseks.</item>
+        <item>Põrand ise ennast ei vala.</item>
+        <item>Enne kohv. Siis keemia.</item>
+        <item>Mõõda kaks korda, sega üks kord.</item>
+        <item>Uus päev, samad suhtarvud.</item>
+        <item>Saapad jalga, pea tööle.</item>
+        <item>Kotid ise ennast ei tõsta — aga arvutus on tehtud.</item>
+        <item>Sirged jooned, kange kohv.</item>
+    </string-array>
+    <string-array name="quips_afternoon">
+        <item>Pool päeva läbi, pool põrandat ees.</item>
+        <item>Liigu edasi — kasutusaeg on lühem kui kannatus.</item>
+        <item>Miski ei kõvastu kiiremini sellepärast, et sul on kiire.</item>
+        <item>Sega korralikult ja teed seda ainult korra.</item>
+        <item>Lähemal lõpule kui hommikul.</item>
+        <item>Tolm praegu, rahulolu hiljem.</item>
+        <item>Plaat ise ennast tasaseks ei tõmba.</item>
+        <item>Veel püsti? Hästi. Jätka.</item>
+    </string-array>
+    <string-array name="quips_evening">
+        <item>Tööriistad varsti käest. Enne numbrid.</item>
+        <item>Märgi kohe üles, muidu ununeb.</item>
+        <item>Pikk päev. Sirged jooned ikkagi.</item>
+        <item>Homne sina tänaks, kui tänane sina kirja paneks.</item>
+        <item>Viimane segu — tee see korralikult.</item>
+        <item>Hea töö. Nüüd pese segumasin ära.</item>
+        <item>Põrand jääb. Valu läheb üle.</item>
+        <item>Õhtune arvutus on parem kui hommikune oletus.</item>
+    </string-array>
+    <string-array name="quips_night">
+        <item>Veel üleval? Betoon ka.</item>
+        <item>Öine arvutus, sama mis päevane.</item>
+        <item>Keegi ei vala sel kellaajal hea meelega.</item>
+        <item>Vaikne objekt, puhas segu.</item>
+        <item>Mine koju. Plaat on homme ka alles.</item>
+        <item>Sel kellaajal segad? Kontrolli kasutusaeg üle.</item>
+        <item>Praegu kõvastub siin ainult sina, aeglaselt.</item>
+        <item>Väljas pime, sees tasane.</item>
+    </string-array>
 </resources>
