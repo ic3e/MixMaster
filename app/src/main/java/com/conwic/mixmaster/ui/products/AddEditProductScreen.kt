@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -127,7 +128,12 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         items(state.components.size) { index ->
             val row = state.components[index]
             CardFlat(modifier = Modifier.fillMaxWidth()) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    // The remove button is half the height of the fields beside it.
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     FormTextField(
                         value = row.label,
                         onValueChange = { viewModel.setComponentLabel(index, it) },

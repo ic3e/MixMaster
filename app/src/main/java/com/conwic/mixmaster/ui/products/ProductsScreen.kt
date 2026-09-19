@@ -31,8 +31,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
-import com.conwic.mixmaster.ui.components.ChipOption
-import com.conwic.mixmaster.ui.components.ChipRow
+import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.draw.clip
@@ -69,7 +68,8 @@ fun ProductsScreen(navController: NavHostController) {
     ) { insets ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
-            contentPadding = PaddingValues(20.dp),
+            // Extra room at the bottom so the floating + doesn't sit on top of the last card.
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = "Products", style = MaterialTheme.typography.headlineMedium) }
@@ -86,17 +86,38 @@ fun ProductsScreen(navController: NavHostController) {
             }
 
             item {
-                ChipRow(
-                    options = state.brands.map { brand ->
-                        ChipOption(label = brand, selected = brand == state.brandFilter, onClick = { viewModel.setBrandFilter(brand) })
-                    },
-                )
+                // Dropdowns rather than chip rows: the brand and category lists grow with the
+                // catalogue, and a scrolling row of chips hides whatever is off the right edge.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    DropdownField(
+                        label = "Brand",
+                        selected = state.brandFilter,
+                        options = state.brands,
+                        onSelect = viewModel::setBrandFilter,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DropdownField(
+                        label = "Type",
+                        selected = state.categoryFilter,
+                        options = state.categories,
+                        onSelect = viewModel::setCategoryFilter,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
+
             item {
-                ChipRow(
-                    options = state.categories.map { category ->
-                        ChipOption(label = category, selected = category == state.categoryFilter, onClick = { viewModel.setCategoryFilter(category) })
+                Text(
+                    text = if (state.visibleProducts.size == 1) {
+                        "1 product"
+                    } else {
+                        "${state.visibleProducts.size} products"
                     },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 

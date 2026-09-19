@@ -39,6 +39,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.GhostButton
@@ -88,10 +89,14 @@ fun CalculatorScreen(navController: NavHostController) {
         item { Text(text = "Calculator", style = MaterialTheme.typography.headlineLarge) }
 
         item {
-            ChipRow(
-                options = brands.map { brand ->
-                    ChipOption(label = brand, selected = brand == brandFilter, onClick = { brandFilter = brand })
-                },
+            // Same reason as the Products screen: a row of brand chips runs out of room as the
+            // catalogue grows, and whatever is off the right edge may as well not exist.
+            DropdownField(
+                label = "Brand",
+                selected = brandFilter,
+                options = brands,
+                onSelect = { brandFilter = it },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 

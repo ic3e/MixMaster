@@ -31,7 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDueDate
@@ -63,6 +66,7 @@ import com.conwic.mixmaster.ui.tasks.priorityColor
 import com.conwic.mixmaster.ui.theme.Ok
 import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
+import kotlinx.coroutines.launch
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -196,8 +200,24 @@ fun LayoutTab(
     var addRoomForFloor by remember { mutableStateOf<Long?>(null) }
     var noteText by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var photoProblem by remember { mutableStateOf<String?>(null) }
+
+    // The picker's permission on this URI dies with the process, so the bytes are copied into the
+    // app before the photo is recorded — otherwise it loads today and never again.
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let { onAddPhoto(it.toString()) }
+        if (uri != null) {
+            scope.launch {
+                val stored = PhotoStore.keep(context, uri)
+                if (stored != null) {
+                    photoProblem = null
+                    onAddPhoto(stored)
+                } else {
+                    photoProblem = "Couldn't copy that photo in — try again, or pick a different one."
+                }
+            }
+        }
     }
 
     LazyColumn(
@@ -290,12 +310,22 @@ fun LayoutTab(
                 )
             }
         }
+        photoProblem?.let { problem ->
+            item {
+                Text(
+                    text = problem,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
         if (data.photos.isNotEmpty()) {
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(data.photos) { photo ->
                         ContentImage(
                             uri = photo.uri,
+                            targetSize = 84.dp,
                             modifier = Modifier.size(84.dp).clip(RoundedCornerShape(12.dp)),
                         )
                     }
@@ -307,7 +337,13 @@ fun LayoutTab(
             SectionLabel(text = "Notes · ${data.notes.size}")
         }
         item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                // A text field is taller than a button; without this they hang off the top edge
+                // together and read as misaligned.
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 OutlinedTextField(value = noteText, onValueChange = { noteText = it }, label = { Text("Add a note") }, modifier = Modifier.weight(1f))
                 PrimaryButton(
                     text = "Post",

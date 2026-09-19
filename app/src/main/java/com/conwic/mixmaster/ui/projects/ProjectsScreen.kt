@@ -76,7 +76,8 @@ fun ProjectsScreen(navController: NavHostController) {
     ) { insets ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
-            contentPadding = PaddingValues(20.dp),
+            // Extra room at the bottom so the floating + doesn't sit on top of the last card.
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = "Projects", style = MaterialTheme.typography.headlineMedium) }
