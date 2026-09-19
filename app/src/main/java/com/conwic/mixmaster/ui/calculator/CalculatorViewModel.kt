@@ -6,6 +6,10 @@ import com.conwic.mixmaster.data.db.dao.ProductWithComponents
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.ProductRepository
+import com.conwic.mixmaster.domain.AddOnChoice
+import com.conwic.mixmaster.domain.AddOnNeed
+import com.conwic.mixmaster.domain.addOnNeeds
+import com.conwic.mixmaster.domain.isWaterLabel
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.BatchPlan
 import com.conwic.mixmaster.domain.MixCalculator
@@ -46,6 +50,9 @@ data class CalculatorUiState(
     val batchPlan: BatchPlan? = null,
     /** Set when a density saved on this product can't be right — see [storedDensityWarning]. */
     val densityWarning: String? = null,
+    /** Colours and admixtures available to add to this job. */
+    val availableAddOns: List<ProductEntity> = emptyList(),
+    val addOnNeeds: List<AddOnNeed> = emptyList(),
 )
 
 private data class CalculatorInputs(
@@ -58,6 +65,7 @@ private data class CalculatorInputs(
     val mixerLitres: Double = 65.0,
     val headroomPercent: Double = 40.0,
     val maxBatchKg: Double = 25.0,
+    val addOns: List<AddOnChoice> = emptyList(),
 )
 
 class CalculatorViewModel(
@@ -78,6 +86,21 @@ class CalculatorViewModel(
     private val selectedProductId = MutableStateFlow<Long?>(null)
     private val inputs = MutableStateFlow(CalculatorInputs())
 
+    /** The add-ons and the pack sizes to count their containers with. */
+    private val addOnsFlow = combine(
+        productRepository.observeAddOns(),
+        productRepository.observeAllComponents(),
+    ) { addOns, components ->
+        val packs = components
+            .groupBy { it.productId }
+            .mapNotNull { (productId, rows) ->
+                val first = rows.firstOrNull { it.packageSize > 0.0 } ?: return@mapNotNull null
+                productId to (first.packageSize to first.packageUnit)
+            }
+            .toMap()
+        addOns to packs
+    }
+
     private val selectedProductFlow = selectedProductId
         .flatMapLatest { id -> if (id == null) flowOf(null) else productRepository.observeWithComponents(id) }
 
@@ -85,7 +108,8 @@ class CalculatorViewModel(
         .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else productRepository.observeUsageLogs(id) }
 
     val uiState: StateFlow<CalculatorUiState> =
-        combine(selectedProductFlow, usageLogsFlow, inputs) { productWithComponents, logs, input ->
+        combine(selectedProductFlow, usageLogsFlow, inputs, addOnsFlow) { productWithComponents, logs, input, addOnData ->
+            val (availableAddOns, addOnPacks) = addOnData
             val area = input.areaText.toDoubleOrNull()
             val quantity = input.quantityText.toDoubleOrNull() ?: 1.0
             val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
@@ -110,6 +134,10 @@ class CalculatorViewModel(
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
                 densityWarning = storedDensityWarning(components),
+                availableAddOns = availableAddOns,
+                addOnNeeds = result?.let {
+                    addOnNeeds(it, input.addOns, availableAddOns) { id -> addOnPacks[id] }
+                }.orEmpty(),
                 batchPlan = result?.let {
                     planBatches(
                         it,
@@ -150,6 +178,35 @@ class CalculatorViewModel(
 
     fun setHeadroomPercent(percent: Double) {
         inputs.update { it.copy(headroomPercent = percent.coerceIn(0.0, 80.0)) }
+    }
+
+    fun addAddOn(productId: Long) = inputs.update { current ->
+        if (current.addOns.any { it.productId == productId }) {
+            current
+        } else {
+            // Defaults to the liquid if the base mix has one — that's what a colour is measured
+            // against nine times out of ten — and to the first part otherwise.
+            current.copy(addOns = current.addOns + AddOnChoice(productId, defaultPartIndex()))
+        }
+    }
+
+    fun setAddOnPart(productId: Long, partIndex: Int) = inputs.update { current ->
+        current.copy(
+            addOns = current.addOns.map {
+                if (it.productId == productId) it.copy(partIndex = partIndex) else it
+            },
+        )
+    }
+
+    fun removeAddOn(productId: Long) = inputs.update { current ->
+        current.copy(addOns = current.addOns.filterNot { it.productId == productId })
+    }
+
+    /** The liquid part of the current mix, if it has one. */
+    private fun defaultPartIndex(): Int {
+        val components = uiState.value.selectedProduct?.components.orEmpty()
+        val liquid = components.indexOfFirst { it.basis.equals("Volume", ignoreCase = true) || isWaterLabel(it.label) }
+        return if (liquid >= 0) liquid else 0
     }
 
     fun setMaxBatchKg(kg: Double) {

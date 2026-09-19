@@ -40,6 +40,17 @@ data class ProductEntity(
     /** Denormalized display label, e.g. "100:35" — computed from components on save so product
      * list cards can show it without a join. */
     val ratioLabel: String = "",
+    /**
+     * A product that goes into another product's mix rather than being mixed on its own — a
+     * colour pack, an admixture. Dosed off one named part of the base mix, not off the total:
+     * a pigment is "28 g per 1 kg of polymer", and how much powder is in the batch doesn't
+     * come into it.
+     */
+    @ColumnInfo(defaultValue = "0") val isAddOn: Boolean = false,
+    /** How much of this add-on per 1 kg of the part it doses off, in [addOnUnit]. */
+    @ColumnInfo(defaultValue = "0") val addOnAmountPerKg: Double = 0.0,
+    /** "kg" or "L" — what [addOnAmountPerKg] counts. */
+    @ColumnInfo(defaultValue = "kg") val addOnUnit: String = "kg",
     val isArchived: Boolean = false,
 )
 

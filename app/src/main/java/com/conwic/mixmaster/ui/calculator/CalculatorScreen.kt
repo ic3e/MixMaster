@@ -335,6 +335,108 @@ fun CalculatorScreen(navController: NavHostController) {
                 }
             }
 
+            if (state.availableAddOns.isNotEmpty()) {
+                item { SectionLabel(text = "Colour & additives", modifier = Modifier.padding(top = 4.dp)) }
+                item {
+                    val unchosen = state.availableAddOns.filter { addOn ->
+                        state.addOnNeeds.none { it.productId == addOn.id }
+                    }
+                    CardFlat {
+                        if (unchosen.isEmpty()) {
+                            Text(
+                                text = "Everything set up as an add-on is already on this job.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            DropdownField(
+                                label = "Add to this mix",
+                                selected = "Choose a colour or additive",
+                                options = unchosen.map { "${it.brand} — ${it.name}" },
+                                onSelect = { chosen ->
+                                    unchosen.firstOrNull { "${it.brand} — ${it.name}" == chosen }
+                                        ?.let { viewModel.addAddOn(it.id) }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                text = "Any brand — what matters is which part of this mix it's " +
+                                    "measured against.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                        }
+                    }
+                }
+                items(state.addOnNeeds, key = { it.productId }) { need ->
+                    CardFlat {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
+                                Text(text = need.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                Text(text = need.name, style = MaterialTheme.typography.titleLarge)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = if (need.unit == "L") {
+                                        formatDecimal(need.amount, 2)
+                                    } else {
+                                        formatKg(need.amount * 1000)
+                                    },
+                                    style = MaterialTheme.typography.headlineMedium,
+                                )
+                                Text(text = need.unit, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        DropdownField(
+                            label = "Measured against",
+                            selected = need.againstLabel,
+                            options = data.components.map { it.label },
+                            onSelect = { label ->
+                                val index = data.components.indexOfFirst { it.label == label }
+                                if (index >= 0) viewModel.setAddOnPart(need.productId, index)
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        )
+                        Text(
+                            text = "${need.rateLabel} · ${formatKg(need.againstKg * 1000)} kg in this job",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        need.packs?.let { packs ->
+                            Text(
+                                text = "$packs × ${need.packLabel}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                        need.problem?.let { problem ->
+                            Text(
+                                text = problem,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
+                        Text(
+                            text = "Remove",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .tappableText { viewModel.removeAddOn(need.productId) },
+                        )
+                    }
+                }
+            }
+
             item { SectionLabel(text = "Mixing", modifier = Modifier.padding(top = 4.dp)) }
 
             state.densityWarning?.let { warning ->

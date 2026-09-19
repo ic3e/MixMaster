@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.ui.components.SuggestField
 import com.conwic.mixmaster.ui.theme.CardShape
+import androidx.compose.material3.Switch
+import com.conwic.mixmaster.domain.formatDecimal
 
 @Composable
 fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
@@ -158,6 +160,66 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     label = "Datasheet link (optional)",
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
+            }
+        }
+
+        item { SectionLabel(text = "Added to another mix") }
+        item {
+            CardFlat {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                        Text(text = "A colour or additive", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = "Goes into another product's mix rather than being mixed on its own.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = state.isAddOn, onCheckedChange = viewModel::setIsAddOn)
+                }
+                if (state.isAddOn) {
+                    Text(
+                        text = "How much goes in, and per how much of the part it's measured " +
+                            "against — colour is normally dosed off the liquid, not the whole batch. " +
+                            "Off the datasheet: 28 g per 1 kg, or 1 L per 25 kg.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp, bottom = 10.dp),
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FormTextField(
+                            value = state.addOnAmountText,
+                            onValueChange = viewModel::setAddOnAmount,
+                            label = "Amount",
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1.2f),
+                        )
+                        DropdownField(
+                            label = "Unit",
+                            selected = state.addOnUnitChoice,
+                            options = listOf("g", "kg", "ml", "L"),
+                            onSelect = viewModel::setAddOnUnitChoice,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    FormTextField(
+                        value = state.addOnPerKgText,
+                        onValueChange = viewModel::setAddOnPerKg,
+                        label = "Per this many kg",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    )
+                    Text(
+                        text = addOnDoseSummary(state),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
             }
         }
 
@@ -387,4 +449,15 @@ private fun ComponentCard(
             )
         }
     }
+}
+
+/** Reads the add-on dose back in the form the datasheet states it. */
+private fun addOnDoseSummary(state: ProductFormState): String {
+    val amount = state.addOnAmountText.trim().replace(',', '.').toDoubleOrNull()
+    val per = state.addOnPerKgText.trim().replace(',', '.').toDoubleOrNull()
+    if (amount == null || amount <= 0.0 || per == null || per <= 0.0) {
+        return "Set an amount to use this as an add-on."
+    }
+    val perLabel = if (per == 1.0) "1 kg" else "${formatDecimal(per, 2)} kg"
+    return "${formatDecimal(amount, 2)} ${state.addOnUnitChoice} per $perLabel of whatever it goes into"
 }

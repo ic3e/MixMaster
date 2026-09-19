@@ -18,6 +18,11 @@ class ProductRepository(
 
     fun observeAll(): Flow<List<ProductEntity>> = productDao.observeAll()
 
+    /** Colours, admixtures — anything added to another product's mix. */
+    fun observeAddOns(): Flow<List<ProductEntity>> = productDao.observeAddOns()
+
+    fun observeAllComponents(): Flow<List<ProductComponentEntity>> = productDao.observeAllComponents()
+
     fun observeBrands(): Flow<List<String>> = productDao.observeBrands()
 
     fun observeCategories(): Flow<List<String>> = productDao.observeCategories()

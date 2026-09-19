@@ -46,7 +46,7 @@ const val DATABASE_NAME = "mixmaster.db"
         TeamMemberEntity::class,
         UsageLogEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -120,9 +120,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the three columns that let a product be used as an add-on to another's mix. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE products ADD COLUMN isAddOn INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE products ADD COLUMN addOnAmountPerKg REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE products ADD COLUMN addOnUnit TEXT NOT NULL DEFAULT 'kg'")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()

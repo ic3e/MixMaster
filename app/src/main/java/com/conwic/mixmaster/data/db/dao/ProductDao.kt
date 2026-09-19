@@ -22,11 +22,18 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE isArchived = 0 ORDER BY brand, name")
     fun observeAll(): Flow<List<ProductEntity>>
 
+    @Query("SELECT * FROM products WHERE isArchived = 0 AND isAddOn = 1 ORDER BY brand, name")
+    fun observeAddOns(): Flow<List<ProductEntity>>
+
     @Query("SELECT * FROM products WHERE id = :id")
     fun observeById(id: Long): Flow<ProductEntity?>
 
     @Query("SELECT * FROM product_components WHERE productId = :productId ORDER BY sortOrder")
     fun observeComponents(productId: Long): Flow<List<ProductComponentEntity>>
+
+    /** Every component row, so an add-on's pack size can be found without a query each. */
+    @Query("SELECT * FROM product_components ORDER BY productId, sortOrder")
+    fun observeAllComponents(): Flow<List<ProductComponentEntity>>
 
     @Query("SELECT * FROM product_components WHERE productId = :productId ORDER BY sortOrder")
     suspend fun getComponents(productId: Long): List<ProductComponentEntity>

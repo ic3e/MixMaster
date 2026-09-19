@@ -60,6 +60,13 @@ data class ProductFormState(
     val rangeNote: String = "",
     val sourceNote: String = "",
     val datasheetUrl: String = "",
+    /** Marks this as a colour or admixture that goes into another product's mix. */
+    val isAddOn: Boolean = false,
+    val addOnAmountText: String = "",
+    /** g, kg, ml or L — what [addOnAmountText] counts. */
+    val addOnUnitChoice: String = "g",
+    /** …per this many kg of the part it's measured against. */
+    val addOnPerKgText: String = "1",
     val components: List<ComponentFormRow> = listOf(ComponentFormRow(label = "Part A", ratioText = "100"), ComponentFormRow(label = "Part B", ratioText = "")),
     val isLoaded: Boolean = false,
 ) {
@@ -72,6 +79,32 @@ data class ProductFormState(
                 components.any { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null } &&
                 components.none { it.densityProblem != null }
         }
+}
+
+/** "28 g per 1 kg" becomes 0.028 kg per kg; "1 L per 25 kg" becomes 0.04 L per kg. */
+internal fun normaliseAddOnDose(amountText: String, unitChoice: String, perKgText: String): Pair<Double, String> {
+    val amount = amountText.trim().replace(',', '.').toDoubleOrNull() ?: 0.0
+    val perKg = perKgText.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 } ?: 1.0
+    val inBaseUnit = when (unitChoice) {
+        "g", "ml" -> amount / 1000.0
+        else -> amount
+    }
+    val unit = if (unitChoice == "ml" || unitChoice == "L") "L" else "kg"
+    return (inBaseUnit / perKg) to unit
+}
+
+/** The inverse, for showing a stored dose in whatever unit reads best. */
+internal fun describeAddOnDose(amountPerKg: Double, unit: String): Triple<String, String, String> {
+    if (amountPerKg <= 0.0) return Triple("", if (unit == "L") "ml" else "g", "1")
+    val small = amountPerKg < 1.0
+    val shown = if (small) amountPerKg * 1000.0 else amountPerKg
+    val shownUnit = when {
+        unit == "L" && small -> "ml"
+        unit == "L" -> "L"
+        small -> "g"
+        else -> "kg"
+    }
+    return Triple(formatDecimal(shown, 3), shownUnit, "1")
 }
 
 private fun computeRatioLabel(components: List<ComponentFormRow>): String {
@@ -122,6 +155,10 @@ class AddEditProductViewModel(
                             rangeNote = data.product.rangeNote,
                             sourceNote = data.product.sourceNote,
                             datasheetUrl = data.product.datasheetUrl,
+                            isAddOn = data.product.isAddOn,
+                            addOnAmountText = describeAddOnDose(data.product.addOnAmountPerKg, data.product.addOnUnit).first,
+                            addOnUnitChoice = describeAddOnDose(data.product.addOnAmountPerKg, data.product.addOnUnit).second,
+                            addOnPerKgText = "1",
                             components = data.components.map {
                                 ComponentFormRow(
                                     label = it.label,
@@ -169,6 +206,11 @@ class AddEditProductViewModel(
         state.copy(components = state.components.mapIndexed { i, row -> if (i == index) transform(row) else row })
     }
 
+    fun setIsAddOn(value: Boolean) = _formState.update { it.copy(isAddOn = value) }
+    fun setAddOnAmount(value: String) = _formState.update { it.copy(addOnAmountText = value) }
+    fun setAddOnUnitChoice(value: String) = _formState.update { it.copy(addOnUnitChoice = value) }
+    fun setAddOnPerKg(value: String) = _formState.update { it.copy(addOnPerKgText = value) }
+
     fun addComponentRow() = _formState.update { it.copy(components = it.components + ComponentFormRow(label = "", ratioText = "")) }
 
     fun removeComponentRow(index: Int) = _formState.update { state ->
@@ -195,6 +237,13 @@ class AddEditProductViewModel(
                 sourceNote = state.sourceNote.trim(),
                 datasheetUrl = state.datasheetUrl.trim(),
                 ratioLabel = computeRatioLabel(state.components),
+                isAddOn = state.isAddOn,
+                addOnAmountPerKg = if (state.isAddOn) {
+                    normaliseAddOnDose(state.addOnAmountText, state.addOnUnitChoice, state.addOnPerKgText).first
+                } else {
+                    0.0
+                },
+                addOnUnit = normaliseAddOnDose(state.addOnAmountText, state.addOnUnitChoice, state.addOnPerKgText).second,
             )
             val components = state.components
                 .filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
