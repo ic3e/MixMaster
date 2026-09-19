@@ -6,7 +6,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
-import androidx.core.content.ContextCompat
+import android.graphics.Matrix
+import android.graphics.Path
+import androidx.core.graphics.PathParser
 import androidx.core.content.FileProvider
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.db.entity.ProductEntity
@@ -114,27 +116,74 @@ object ReportGenerator {
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
 
+    /**
+     * Scales one path from its drawable viewport into place on the page and fills it.
+     *
+     * [left] and [top] are the lockup's own origin, so every piece of the badge is scaled and
+     * placed identically and the knockout stays registered with the block behind it.
+     */
+    private fun drawVectorPath(
+        canvas: Canvas,
+        pathData: String,
+        viewportHeight: Float,
+        left: Float,
+        top: Float,
+        height: Float,
+        color: Int,
+        evenOdd: Boolean,
+    ) {
+        // Throws rather than returning null if the data is malformed; a letterhead is
+        // not worth losing the whole report over.
+        val path = runCatching { PathParser.createPathFromPathData(pathData) }.getOrNull() ?: return
+        if (evenOdd) path.fillType = Path.FillType.EVEN_ODD
+        val scale = height / viewportHeight
+        path.transform(
+            Matrix().apply {
+                setScale(scale, scale)
+                postTranslate(left, top)
+            },
+        )
+        canvas.drawPath(
+            path,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                this.color = color
+                style = Paint.Style.FILL
+            },
+        )
+    }
+
     private fun drawLetterhead(context: Context, canvas: Canvas, project: ProjectEntity): Float {
-        // The full company lockup at the head of the page — badge, CONWIC, and the line under
-        // it — rather than the badge on its own. Both halves are vectors, so they are drawn
-        // straight onto the page: BitmapFactory returns null for a vector resource.
+        // The full company lockup at the head of the page — badge, CONWIC, and the line under it.
+        //
+        // Drawn as paths, not as the drawables. VectorDrawable.draw() renders into a bitmap the
+        // size of its bounds, so asking for it at 34pt put a 34px image in the PDF: the logo
+        // came out visibly chewed while the text next to it, which PdfDocument records as real
+        // text, stayed sharp. drawPath is recorded as vector art and stays sharp at any zoom.
         val logoHeight = 34f
+        val logoTop = 30f
         var cursorX = MARGIN
-        val badge = ContextCompat.getDrawable(context, R.drawable.conwic_badge)
-        if (badge != null && badge.intrinsicHeight > 0) {
-            val width = logoHeight * badge.intrinsicWidth / badge.intrinsicHeight
-            badge.setBounds(cursorX.toInt(), 30, (cursorX + width).toInt(), (30 + logoHeight).toInt())
-            badge.draw(canvas)
-            cursorX += width + logoHeight * 37f / 246f
-        }
-        val wordmark = ContextCompat.getDrawable(context, R.drawable.conwic_wordmark)
-        if (wordmark != null && wordmark.intrinsicHeight > 0) {
-            val width = logoHeight * wordmark.intrinsicWidth / wordmark.intrinsicHeight
-            // The wordmark ships white so it can sit on anything; on paper it wants ink.
-            wordmark.setTint(Color.parseColor("#262322"))
-            wordmark.setBounds(cursorX.toInt(), 30, (cursorX + width).toInt(), (30 + logoHeight).toInt())
-            wordmark.draw(canvas)
-        }
+
+        val badgeW = context.resources.getInteger(R.integer.conwic_badge_viewport_w).toFloat()
+        val badgeH = context.resources.getInteger(R.integer.conwic_badge_viewport_h).toFloat()
+        drawVectorPath(
+            canvas, context.getString(R.string.conwic_badge_block_path),
+            badgeH, cursorX, logoTop, logoHeight,
+            Color.parseColor("#704727"), evenOdd = false,
+        )
+        drawVectorPath(
+            canvas, context.getString(R.string.conwic_badge_mark_path),
+            badgeH, cursorX, logoTop, logoHeight,
+            Color.WHITE, evenOdd = true,
+        )
+        cursorX += logoHeight * badgeW / badgeH + logoHeight * 37f / 246f
+
+        val wordH = context.resources.getInteger(R.integer.conwic_wordmark_viewport_h).toFloat()
+        // The wordmark ships white so it can sit on anything; on paper it wants ink.
+        drawVectorPath(
+            canvas, context.getString(R.string.conwic_wordmark_path),
+            wordH, cursorX, logoTop, logoHeight,
+            Color.parseColor("#262322"), evenOdd = true,
+        )
 
         val titlePaint = textPaint(size = 18f, bold = true)
         canvas.drawText(project.name, MARGIN, 104f, titlePaint)
