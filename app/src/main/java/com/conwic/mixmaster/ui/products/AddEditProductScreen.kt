@@ -35,6 +35,14 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.GhostButton
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.components.SuggestField
+import com.conwic.mixmaster.ui.theme.CardShape
 
 @Composable
 fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
@@ -45,9 +53,11 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
     val state by viewModel.formState.collectAsState()
     if (!state.isLoaded) return
 
+    val suggestions by viewModel.suggestions.collectAsState()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
@@ -56,169 +66,131 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 onBack = { navController.popBackStack() },
             )
         }
+
+        item { SectionLabel(text = "What it is") }
         item {
-            FormTextField(value = state.brand, onValueChange = viewModel::setBrand, label = "Brand", modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            FormTextField(value = state.name, onValueChange = viewModel::setName, label = "Product name", modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            FormTextField(value = state.category, onValueChange = viewModel::setCategory, label = "Category", modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            DropdownField(
-                label = "Dosing mode",
-                selected = state.dosingMode.name,
-                options = DosingMode.entries.map { it.name },
-                onSelect = { name -> viewModel.setDosingMode(DosingMode.valueOf(name)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        item {
-            Text(text = "Coverage range (grams per m²)", style = MaterialTheme.typography.labelLarge)
-        }
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FormTextField(
-                    value = state.minDoseText,
-                    onValueChange = viewModel::setMinDose,
-                    label = "Min",
-                    modifier = Modifier.weight(1f),
+            CardFlat {
+                SuggestField(
+                    value = state.brand,
+                    onValueChange = viewModel::setBrand,
+                    label = "Brand",
+                    suggestions = suggestions.brands,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 FormTextField(
-                    value = state.maxDoseText,
-                    onValueChange = viewModel::setMaxDose,
-                    label = "Max",
-                    modifier = Modifier.weight(1f),
+                    value = state.name,
+                    onValueChange = viewModel::setName,
+                    label = "Product name",
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+                SuggestField(
+                    value = state.category,
+                    onValueChange = viewModel::setCategory,
+                    label = "Type",
+                    suggestions = suggestions.categories,
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             }
         }
+
+        item { SectionLabel(text = "How much it covers") }
         item {
+            CardFlat {
+                DropdownField(
+                    label = "Measured per",
+                    selected = state.dosingMode.name,
+                    options = DosingMode.entries.map { it.name },
+                    onSelect = { name -> viewModel.setDosingMode(DosingMode.valueOf(name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = "Grams per m². If the datasheet gives one figure rather than a range, " +
+                        "put it in both boxes.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FormTextField(
+                        value = state.minDoseText,
+                        onValueChange = viewModel::setMinDose,
+                        label = "Min",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1f),
+                    )
+                    FormTextField(
+                        value = state.maxDoseText,
+                        onValueChange = viewModel::setMaxDose,
+                        label = "Max",
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                SuggestField(
+                    value = state.doseUnitLabel,
+                    onValueChange = viewModel::setDoseUnitLabel,
+                    label = "Per what",
+                    suggestions = suggestions.doseUnitLabels,
+                    hint = "e.g. per coat, per mm",
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+            }
+        }
+
+        item { SectionLabel(text = "Notes") }
+        item {
+            CardFlat {
+                FormTextField(
+                    value = state.rangeNote,
+                    onValueChange = viewModel::setRangeNote,
+                    label = "Shown on the product card",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FormTextField(
+                    value = state.sourceNote,
+                    onValueChange = viewModel::setSourceNote,
+                    label = "Where these figures came from",
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+                FormTextField(
+                    value = state.datasheetUrl,
+                    onValueChange = viewModel::setDatasheetUrl,
+                    label = "Datasheet link (optional)",
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+            }
+        }
+
+        item { SectionLabel(text = "What goes in the mix") }
+        item {
+            // Said once here rather than repeated inside every part, which is what turned this
+            // screen into a wall of identical grey paragraphs.
             Text(
-                text = "If you only have one figure from the datasheet, put it in both fields.",
+                text = "Parts are mixed by ratio — 100 powder to 21 water means exactly that, in " +
+                    "whatever unit you weigh in. Density and pack size are optional, but they're " +
+                    "what let the calculator count bags and check a batch fits the mixer.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        item {
-            FormTextField(
-                value = state.doseUnitLabel,
-                onValueChange = viewModel::setDoseUnitLabel,
-                label = "Dose unit label (e.g. \"per coat\")",
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        item {
-            FormTextField(value = state.rangeNote, onValueChange = viewModel::setRangeNote, label = "Range note (shown on the card)", modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            FormTextField(value = state.sourceNote, onValueChange = viewModel::setSourceNote, label = "Source note", modifier = Modifier.fillMaxWidth())
-        }
-        item {
-            FormTextField(
-                value = state.datasheetUrl,
-                onValueChange = viewModel::setDatasheetUrl,
-                label = "Datasheet URL (optional)",
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
 
-        item { SectionLabel(text = "Mix components (by ratio)") }
-
-        items(state.components.size) { index ->
+        items(state.components.size, key = { state.components[it].uid }) { index ->
             val row = state.components[index]
-            CardFlat(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    // The remove button is half the height of the fields beside it.
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    FormTextField(
-                        value = row.label,
-                        onValueChange = { viewModel.setComponentLabel(index, it) },
-                        label = "Label",
-                        modifier = Modifier.weight(2f),
-                    )
-                    FormTextField(
-                        value = row.ratioText,
-                        onValueChange = { viewModel.setComponentRatio(index, it) },
-                        label = "Ratio",
-                        modifier = Modifier.weight(1f),
-                    )
-                    IconButton(onClick = { viewModel.removeComponentRow(index) }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Remove")
-                    }
-                }
-                DropdownField(
-                    label = "Basis",
-                    selected = row.basis,
-                    options = listOf("Weight", "Volume"),
-                    onSelect = { basis -> viewModel.setComponentBasis(index, basis) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                )
-                Text(
-                    text = "Density is what one litre of this part weighs — water is 1.0, most powders " +
-                        "and resins are 1.0–1.6. It's what lets the calculator work out whether a batch " +
-                        "fits the mixer. Not the pack weight.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FormTextField(
-                        value = row.densityKgPerLText,
-                        onValueChange = { viewModel.setComponentDensityKgPerL(index, it) },
-                        label = "Density (kg/L)",
-                        keyboardType = KeyboardType.Decimal,
-                        problem = row.densityProblem,
-                        hint = row.densityWarning ?: "What one litre weighs",
-                        modifier = Modifier.weight(1f),
-                    )
-                    FormTextField(
-                        value = row.potLife,
-                        onValueChange = { viewModel.setComponentPotLife(index, it) },
-                        label = "Pot life (optional)",
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-
-                Text(
-                    text = "How it's delivered — used to count bags and canisters, and to fit a batch in the mixer.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 10.dp),
-                )
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FormTextField(
-                        value = row.packSizeText,
-                        onValueChange = { viewModel.setComponentPackSize(index, it) },
-                        label = "Pack size",
-                        keyboardType = KeyboardType.Decimal,
-                        modifier = Modifier.weight(1.2f),
-                    )
-                    DropdownField(
-                        label = "Unit",
-                        selected = row.packUnit,
-                        options = listOf("kg", "L"),
-                        onSelect = { unit -> viewModel.setComponentPackUnit(index, unit) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                DropdownField(
-                    label = "Container",
-                    selected = row.packType,
-                    options = listOf("bag", "bucket", "canister", "bottle", "drum", "tub"),
-                    onSelect = { type -> viewModel.setComponentPackType(index, type) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                )
-                FormTextField(
-                    value = row.notes,
-                    onValueChange = { viewModel.setComponentNotes(index, it) },
-                    label = "Notes (optional)",
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                )
-            }
+            ComponentCard(
+                row = row,
+                number = index + 1,
+                labelSuggestions = suggestions.componentLabels,
+                onLabel = { viewModel.setComponentLabel(index, it) },
+                onRatio = { viewModel.setComponentRatio(index, it) },
+                onBasis = { viewModel.setComponentBasis(index, it) },
+                onDensity = { viewModel.setComponentDensityKgPerL(index, it) },
+                onPotLife = { viewModel.setComponentPotLife(index, it) },
+                onPackSize = { viewModel.setComponentPackSize(index, it) },
+                onPackUnit = { viewModel.setComponentPackUnit(index, it) },
+                onPackType = { viewModel.setComponentPackType(index, it) },
+                onNotes = { viewModel.setComponentNotes(index, it) },
+                onRemove = { viewModel.removeComponentRow(index) },
+            )
         }
 
         item {
@@ -234,7 +206,161 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 text = "Save product",
                 onClick = { viewModel.save { navController.popBackStack() } },
                 enabled = state.isValid,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            )
+        }
+    }
+}
+
+/**
+ * One part of the mix.
+ *
+ * The ratio is the part that matters and is always visible; density, pack size and notes are
+ * folded away behind a summary. Nine text fields per part, three parts deep, was both slow to
+ * draw and impossible to read.
+ */
+@Composable
+private fun ComponentCard(
+    row: ComponentFormRow,
+    number: Int,
+    labelSuggestions: List<String>,
+    onLabel: (String) -> Unit,
+    onRatio: (String) -> Unit,
+    onBasis: (String) -> Unit,
+    onDensity: (String) -> Unit,
+    onPotLife: (String) -> Unit,
+    onPackSize: (String) -> Unit,
+    onPackUnit: (String) -> Unit,
+    onPackType: (String) -> Unit,
+    onNotes: (String) -> Unit,
+    onRemove: () -> Unit,
+) {
+    var expanded by rememberSaveable(row.uid) { mutableStateOf(false) }
+
+    val summary = buildList {
+        if (row.densityKgPerLText.isNotBlank()) add("${row.densityKgPerLText} kg/L")
+        if (row.packSizeText.isNotBlank()) add("${row.packSizeText} ${row.packUnit} ${row.packType}")
+        if (row.potLife.isNotBlank()) add(row.potLife)
+    }.joinToString(" · ").ifBlank { "No density or pack size yet" }
+
+    CardFlat(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Part $number",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Filled.Close, contentDescription = "Remove part $number")
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SuggestField(
+                value = row.label,
+                onValueChange = onLabel,
+                label = "What it is",
+                suggestions = labelSuggestions,
+                modifier = Modifier.weight(2f),
+            )
+            FormTextField(
+                value = row.ratioText,
+                onValueChange = onRatio,
+                label = "Parts",
+                keyboardType = KeyboardType.Decimal,
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        DropdownField(
+            label = "Measured by",
+            selected = row.basis,
+            options = listOf("Weight", "Volume"),
+            onSelect = onBasis,
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(CardShape)
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 4.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(text = "Density & packaging", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = if (expanded) "▴" else "▾",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        if (expanded) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FormTextField(
+                    value = row.densityKgPerLText,
+                    onValueChange = onDensity,
+                    label = "Density (kg/L)",
+                    keyboardType = KeyboardType.Decimal,
+                    problem = row.densityProblem,
+                    hint = row.densityWarning ?: "What one litre weighs",
+                    modifier = Modifier.weight(1f),
+                )
+                FormTextField(
+                    value = row.potLife,
+                    onValueChange = onPotLife,
+                    label = "Pot life",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FormTextField(
+                    value = row.packSizeText,
+                    onValueChange = onPackSize,
+                    label = "Pack size",
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.weight(1.2f),
+                )
+                DropdownField(
+                    label = "Unit",
+                    selected = row.packUnit,
+                    options = listOf("kg", "L"),
+                    onSelect = onPackUnit,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            DropdownField(
+                label = "Container",
+                selected = row.packType,
+                options = listOf("bag", "bucket", "canister", "bottle", "drum", "tub"),
+                onSelect = onPackType,
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            )
+            FormTextField(
+                value = row.notes,
+                onValueChange = onNotes,
+                label = "Notes",
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
             )
         }
     }

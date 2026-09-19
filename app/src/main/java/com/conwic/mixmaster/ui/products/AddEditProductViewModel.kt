@@ -11,12 +11,20 @@ import com.conwic.mixmaster.domain.densityWarning as domainDensityWarning
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.isWaterLabel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Stable ids so the list of parts can be keyed — without them every keystroke re-lays out
+ * every card on the form, which is a good part of why it dragged. */
+private var componentUidCounter = 0L
+
 data class ComponentFormRow(
+    val uid: Long = ++componentUidCounter,
     val label: String,
     val ratioText: String,
     val basis: String = "Weight",
@@ -52,7 +60,7 @@ data class ProductFormState(
     val rangeNote: String = "",
     val sourceNote: String = "",
     val datasheetUrl: String = "",
-    val components: List<ComponentFormRow> = listOf(ComponentFormRow("Part A", "100"), ComponentFormRow("Part B", "")),
+    val components: List<ComponentFormRow> = listOf(ComponentFormRow(label = "Part A", ratioText = "100"), ComponentFormRow(label = "Part B", ratioText = "")),
     val isLoaded: Boolean = false,
 ) {
     val isValid: Boolean
@@ -72,6 +80,14 @@ private fun computeRatioLabel(components: List<ComponentFormRow>): String {
     return valid.joinToString(":") { (it.ratioText.toDoubleOrNull() ?: 0.0).toInt().toString() }
 }
 
+/** Everything already in the catalogue, offered back so the same thing isn't typed two ways. */
+data class ProductSuggestions(
+    val brands: List<String> = emptyList(),
+    val categories: List<String> = emptyList(),
+    val doseUnitLabels: List<String> = emptyList(),
+    val componentLabels: List<String> = emptyList(),
+)
+
 class AddEditProductViewModel(
     private val productRepository: ProductRepository,
     private val productId: Long?,
@@ -79,6 +95,15 @@ class AddEditProductViewModel(
 
     private val _formState = MutableStateFlow(ProductFormState(isLoaded = productId == null))
     val formState: StateFlow<ProductFormState> = _formState.asStateFlow()
+
+    val suggestions: StateFlow<ProductSuggestions> = combine(
+        productRepository.observeBrands(),
+        productRepository.observeCategories(),
+        productRepository.observeDoseUnitLabels(),
+        productRepository.observeComponentLabels(),
+    ) { brands, categories, doseUnits, labels ->
+        ProductSuggestions(brands, categories, doseUnits, labels)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProductSuggestions())
 
     init {
         if (productId != null) {
@@ -144,7 +169,7 @@ class AddEditProductViewModel(
         state.copy(components = state.components.mapIndexed { i, row -> if (i == index) transform(row) else row })
     }
 
-    fun addComponentRow() = _formState.update { it.copy(components = it.components + ComponentFormRow("", "")) }
+    fun addComponentRow() = _formState.update { it.copy(components = it.components + ComponentFormRow(label = "", ratioText = "")) }
 
     fun removeComponentRow(index: Int) = _formState.update { state ->
         state.copy(components = state.components.filterIndexed { i, _ -> i != index })

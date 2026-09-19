@@ -22,6 +22,10 @@ class ProductRepository(
 
     fun observeCategories(): Flow<List<String>> = productDao.observeCategories()
 
+    fun observeDoseUnitLabels(): Flow<List<String>> = productDao.observeDoseUnitLabels()
+
+    fun observeComponentLabels(): Flow<List<String>> = productDao.observeComponentLabels()
+
     fun observeCount(): Flow<Int> = productDao.observeCount()
 
     fun observeWithComponents(productId: Long): Flow<ProductWithComponents?> =

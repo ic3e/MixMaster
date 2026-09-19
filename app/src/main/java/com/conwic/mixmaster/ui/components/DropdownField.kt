@@ -1,6 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
@@ -12,7 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
 /**
@@ -30,17 +31,21 @@ fun DropdownField(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    // BoxWithConstraints so the menu can be told how wide the field is — a dropdown that opens
-    // a third of the width of the thing it belongs to reads as a different control entirely.
-    BoxWithConstraints(modifier = modifier) {
-        // Unbounded width would mean an infinite menu; nothing in the app does that, but a
-        // crash would be a poor way to find out.
-        val fieldWidth = if (maxWidth == Dp.Infinity) 260.dp else maxWidth
+    // The menu is as wide as the field. Measured with onSizeChanged rather than
+    // BoxWithConstraints: that subcomposes, and with nine of these on the product form it was a
+    // noticeable part of why the screen dragged.
+    var fieldWidth by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+    Box(
+        modifier = modifier.onSizeChanged { size ->
+            with(density) { fieldWidth = size.width.toDp() }
+        },
+    ) {
         PickerField(label = label, value = selected, onClick = { expanded = true })
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.width(fieldWidth),
+            modifier = if (fieldWidth > 0.dp) Modifier.width(fieldWidth) else Modifier,
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

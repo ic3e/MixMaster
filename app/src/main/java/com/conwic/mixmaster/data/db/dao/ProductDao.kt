@@ -40,6 +40,13 @@ interface ProductDao {
     @Query("SELECT DISTINCT category FROM products WHERE isArchived = 0 ORDER BY category")
     fun observeCategories(): Flow<List<String>>
 
+    // Offered back when adding a product, so the same thing doesn't get typed three ways.
+    @Query("SELECT DISTINCT doseUnitLabel FROM products WHERE isArchived = 0 AND doseUnitLabel != '' ORDER BY doseUnitLabel")
+    fun observeDoseUnitLabels(): Flow<List<String>>
+
+    @Query("SELECT DISTINCT label FROM product_components WHERE label != '' ORDER BY label")
+    fun observeComponentLabels(): Flow<List<String>>
+
     @Query("SELECT COUNT(*) FROM products WHERE isArchived = 0")
     fun observeCount(): Flow<Int>
 

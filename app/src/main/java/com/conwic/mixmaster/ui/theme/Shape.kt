@@ -17,3 +17,6 @@ val ChipShape = RoundedCornerShape(999.dp)
 val SheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
 val BadgeShape = RoundedCornerShape(9.dp)
 val StepperShape = RoundedCornerShape(11.dp)
+
+/** Text fields and other form controls. */
+val FieldShape = RoundedCornerShape(12.dp)
