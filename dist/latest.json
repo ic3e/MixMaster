@@ -1,8 +1,8 @@
 {
-  "versionCode": 57,
-  "versionName": "1.0.57",
-  "apk": "MixMaster_1.0.57.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.57.apk",
-  "sizeBytes": 19964520,
-  "notes": "Recognise water in all three languages"
+  "versionCode": 58,
+  "versionName": "1.0.58",
+  "apk": "MixMaster_1.0.58.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.58.apk",
+  "sizeBytes": 19966192,
+  "notes": "Record crashes, and stop two system calls taking the app down"
 }
