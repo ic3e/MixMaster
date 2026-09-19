@@ -45,33 +45,9 @@ e: The daemon has terminated unexpectedly on startup attempt #1 with error code:
 > Task :app:mergeExtDexDebug
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:372:23 Argument type mismatch: actual type is 'kotlin.collections.List<com.conwic.mixmaster.domain.AddOnNeed>', but 'kotlin.Int' was expected.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:372:52 Unresolved reference 'productId'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:373:21 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:380:50 Unresolved reference 'brand'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:381:50 Unresolved reference 'name'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:385:53 Unresolved reference 'unit'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:386:60 Unresolved reference 'amount'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:388:55 Unresolved reference 'amount'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:392:50 Unresolved reference 'unit'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:397:45 Unresolved reference 'againstLabel'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:401:77 Unresolved reference 'productId'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:406:44 Unresolved reference 'rateLabel'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:406:73 Unresolved reference 'againstKg'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:30 Unresolved reference 'packs'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:37 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:411:43 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:412:29 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:413:57 Unresolved reference 'packLabel'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:414:55 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:415:55 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:30 Unresolved reference 'problem'.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:39 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:419:45 Cannot infer type for this parameter. Please specify it explicitly.
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:422:55 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:423:55 @Composable invocations can only happen from the context of a @Composable function
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/calculator/CalculatorScreen.kt:434:76 Unresolved reference 'productId'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789799168400.json
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/home/HomeScreen.kt:42:29 Conflicting import: imported name 'R' is ambiguous.
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/home/HomeScreen.kt:43:29 Conflicting import: imported name 'R' is ambiguous.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1789804596515.json
 
 FAILURE: Build failed with an exception.
 
