@@ -1,8 +1,8 @@
 {
-  "versionCode": 43,
-  "versionName": "1.0.43",
-  "apk": "MixMaster_1.0.43.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.43.apk",
+  "versionCode": 44,
+  "versionName": "1.0.44",
+  "apk": "MixMaster_1.0.44.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.44.apk",
   "sizeBytes": 19726672,
-  "notes": "Draw the report logo as vector paths, not a 34px bitmap"
+  "notes": "Notice when the install permission is granted, and carry on"
 }
