@@ -1,8 +1,8 @@
 {
-  "versionCode": 55,
-  "versionName": "1.0.55",
-  "apk": "MixMaster_1.0.55.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.55.apk",
+  "versionCode": 56,
+  "versionName": "1.0.56",
+  "apk": "MixMaster_1.0.56.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.56.apk",
   "sizeBytes": 19964520,
-  "notes": "Translate batching and the PDF report"
+  "notes": "Last three: the week heading and the no-project fallback"
 }
