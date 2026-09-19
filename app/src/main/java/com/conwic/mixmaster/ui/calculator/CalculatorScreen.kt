@@ -31,6 +31,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.pluralStringResource
+import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
@@ -57,12 +62,18 @@ import com.conwic.mixmaster.domain.toNumberOrNull
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
-private fun perLabel(mode: DosingMode?): String = when (mode) {
-    DosingMode.COATS -> "per coat"
-    DosingMode.POUR -> "per pour"
-    DosingMode.MM -> "per mm"
-    null -> ""
+@StringRes
+private fun perLabelRes(mode: DosingMode?): Int? = when (mode) {
+    DosingMode.COATS -> R.string.calc_per_coat
+    DosingMode.POUR -> R.string.calc_per_pour
+    DosingMode.MM -> R.string.calc_per_mm
+    null -> null
 }
+
+/** The "per coat" / "per pour" wording, empty when the product has no mode yet. */
+@Composable
+private fun perLabel(mode: DosingMode?): String =
+    perLabelRes(mode)?.let { stringResource(it) } ?: ""
 
 @Composable
 fun CalculatorScreen(navController: NavHostController) {
@@ -87,13 +98,13 @@ fun CalculatorScreen(navController: NavHostController) {
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item { Text(text = "Calculator", style = MaterialTheme.typography.headlineLarge) }
+        item { Text(text = stringResource(R.string.calc_title), style = MaterialTheme.typography.headlineLarge) }
 
         item {
             // Same reason as the Products screen: a row of brand chips runs out of room as the
             // catalogue grows, and whatever is off the right edge may as well not exist.
             DropdownField(
-                label = "Brand",
+                label = stringResource(R.string.filter_brand),
                 selected = brandFilter,
                 options = brands,
                 onSelect = { brandFilter = it },
@@ -103,8 +114,8 @@ fun CalculatorScreen(navController: NavHostController) {
 
         item {
             DropdownField(
-                label = "Product",
-                selected = state.selectedProduct?.product?.let { productLabel(it.brand, it.name) } ?: "Choose a product",
+                label = stringResource(R.string.calc_product),
+                selected = state.selectedProduct?.product?.let { productLabel(it.brand, it.name) } ?: stringResource(R.string.calc_choose_product),
                 options = visibleProducts.map { productLabel(it.brand, it.name) },
                 onSelect = { label ->
                     visibleProducts.firstOrNull { productLabel(it.brand, it.name) == label }?.let { viewModel.selectProduct(it.id) }
@@ -128,14 +139,14 @@ fun CalculatorScreen(navController: NavHostController) {
                         RatioBadge(text = product.ratioLabel)
                     }
                     Text(
-                        text = "Datasheet typical: ${formatDecimal(product.typicalDoseGramsPerM2, 0)} g/m² ${perLabel(product.dosingMode)}.",
+                        text = stringResource(R.string.calc_datasheet_typical_full, formatDecimal(product.typicalDoseGramsPerM2, 0), perLabel(product.dosingMode)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 10.dp),
                     )
                     if (product.datasheetUrl.isNotBlank()) {
                         Text(
-                            text = "View official datasheet ↗",
+                            text = stringResource(R.string.calc_view_datasheet),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -150,7 +161,7 @@ fun CalculatorScreen(navController: NavHostController) {
             item {
                 CardFlat {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        SectionLabel(text = "Area to cover")
+                        SectionLabel(text = stringResource(R.string.calc_area))
                         Text(
                             text = state.areaInput.toNumberOrNull()?.let { "${formatArea(it)} m²" } ?: "—",
                             style = MaterialTheme.typography.titleMedium,
@@ -168,7 +179,7 @@ fun CalculatorScreen(navController: NavHostController) {
                     if (product.dosingMode != DosingMode.POUR) {
                         val isThickness = product.dosingMode == DosingMode.MM
                         SectionLabel(
-                            text = if (isThickness) "Thickness (mm)" else "Coats",
+                            text = stringResource(if (isThickness) R.string.calc_thickness else R.string.calc_coats),
                             modifier = Modifier.padding(top = 14.dp),
                         )
                         Stepper(
@@ -190,7 +201,7 @@ fun CalculatorScreen(navController: NavHostController) {
                 val shownCoverage = dragCoverage?.toDouble() ?: state.coverageValue
 
                 CardFlat {
-                    SectionLabel(text = "Coverage rate (${perLabel(product.dosingMode)})")
+                    SectionLabel(text = stringResource(R.string.calc_coverage_rate, perLabel(product.dosingMode)))
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
                             text = formatDecimal(shownCoverage, 0),
@@ -218,28 +229,28 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
-                                text = "Datasheet typical: ${formatDecimal(product.typicalDoseGramsPerM2, 0)}",
+                                text = stringResource(R.string.calc_datasheet_typical, formatDecimal(product.typicalDoseGramsPerM2, 0)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = state.siteAverageDose
-                                    ?.let { "Your average: ${formatDecimal(it, 0)}" }
-                                    ?: "No logged jobs yet",
+                                    ?.let { stringResource(R.string.calc_your_average, formatDecimal(it, 0)) }
+                                    ?: stringResource(R.string.calc_no_logged),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.secondary,
                                 fontWeight = FontWeight.Bold,
                             )
                         }
                         Text(
-                            text = "The datasheet gives a range — nudge it for porous, textured or uneven substrates on the day.",
+                            text = stringResource(R.string.calc_range_note),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
                         )
                     } else {
                         Text(
-                            text = "No published range for this product — using the datasheet figure as-is.",
+                            text = stringResource(R.string.calc_no_range_note),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp),
@@ -251,7 +262,7 @@ fun CalculatorScreen(navController: NavHostController) {
 
         val result = state.result
         if (result != null && data != null) {
-            item { SectionLabel(text = "You'll need") }
+            item { SectionLabel(text = stringResource(R.string.calc_youll_need)) }
 
             result.components.forEachIndexed { index, amount ->
                 item {
@@ -263,7 +274,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                 Text(text = amount.label, style = MaterialTheme.typography.titleLarge)
                                 if (parts != null) {
                                     Text(
-                                        text = "ratio ${formatDecimal(parts, 2)} parts",
+                                        text = stringResource(R.string.calc_ratio_parts, formatDecimal(parts, 2)),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -283,12 +294,12 @@ fun CalculatorScreen(navController: NavHostController) {
                             Text(
                                 text = when {
                                     pack.packs != null ->
-                                        "${pack.packs} × ${pack.packLabel}" +
+                                        stringResource(R.string.calc_packs, pack.packs, pack.packLabel) +
                                             (pack.amountInPackUnit?.takeIf { pack.packUnit == "L" }
                                                 ?.let { " · ${formatDecimal(it, 1)} L" } ?: "")
                                     pack.packSize > 0.0 && pack.packUnit == "L" ->
-                                        "Add a density (kg/L) to count ${pack.packType}s"
-                                    else -> "Set a pack size to count ${pack.packType}s"
+                                        stringResource(R.string.calc_add_density_to_count)
+                                    else -> stringResource(R.string.calc_set_pack_to_count)
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (pack.packs != null) {
@@ -315,7 +326,7 @@ fun CalculatorScreen(navController: NavHostController) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Total mix",
+                        text = stringResource(R.string.calc_total_mix),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -337,7 +348,7 @@ fun CalculatorScreen(navController: NavHostController) {
             }
 
             if (state.availableAddOns.isNotEmpty()) {
-                item { SectionLabel(text = "Colour & additives", modifier = Modifier.padding(top = 4.dp)) }
+                item { SectionLabel(text = stringResource(R.string.calc_colour_additives), modifier = Modifier.padding(top = 4.dp)) }
                 item {
                     val unchosen = state.availableAddOns.filter { addOn ->
                         state.addOnNeeds.none { it.productId == addOn.id }
@@ -345,14 +356,14 @@ fun CalculatorScreen(navController: NavHostController) {
                     CardFlat {
                         if (unchosen.isEmpty()) {
                             Text(
-                                text = "Everything set up as an add-on is already on this job.",
+                                text = stringResource(R.string.calc_addons_all_used),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         } else {
                             DropdownField(
-                                label = "Add to this mix",
-                                selected = "Choose a colour or additive",
+                                label = stringResource(R.string.calc_add_to_mix),
+                                selected = stringResource(R.string.calc_choose_addon),
                                 options = unchosen.map { "${it.brand} — ${it.name}" },
                                 onSelect = { chosen ->
                                     unchosen.firstOrNull { "${it.brand} — ${it.name}" == chosen }
@@ -361,8 +372,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                text = "Any brand — what matters is which part of this mix it's " +
-                                    "measured against.",
+                                text = stringResource(R.string.calc_addon_brand_note),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 8.dp),
@@ -394,7 +404,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             }
                         }
                         DropdownField(
-                            label = "Measured against",
+                            label = stringResource(R.string.calc_measured_against),
                             selected = need.againstLabel,
                             options = data.components.map { it.label },
                             onSelect = { label ->
@@ -404,14 +414,14 @@ fun CalculatorScreen(navController: NavHostController) {
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         )
                         Text(
-                            text = "${need.rateLabel} · ${formatKg(need.againstKg * 1000)} kg in this job",
+                            text = stringResource(R.string.calc_addon_rate, need.rateLabel, formatKg(need.againstKg * 1000)),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
                         )
                         need.packs?.let { packs ->
                             Text(
-                                text = "$packs × ${need.packLabel}",
+                                text = stringResource(R.string.calc_packs, packs, need.packLabel ?: ""),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(top = 4.dp),
@@ -427,7 +437,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             )
                         }
                         Text(
-                            text = "Remove",
+                            text = stringResource(R.string.action_remove),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
@@ -438,7 +448,7 @@ fun CalculatorScreen(navController: NavHostController) {
                 }
             }
 
-            item { SectionLabel(text = "Mixing", modifier = Modifier.padding(top = 4.dp)) }
+            item { SectionLabel(text = stringResource(R.string.calc_mixing), modifier = Modifier.padding(top = 4.dp)) }
 
             state.densityWarning?.let { warning ->
                 item {
@@ -457,12 +467,12 @@ fun CalculatorScreen(navController: NavHostController) {
                 CardFlat {
                     ChipRow(
                         options = listOf(
-                            BatchBasis.ONE_PACKAGE to "By the bag",
-                            BatchBasis.MIXER_VOLUME to "Mixer size",
-                            BatchBasis.MAX_WEIGHT to "Max kg",
-                        ).map { (basis, label) ->
+                            BatchBasis.ONE_PACKAGE to R.string.calc_by_the_bag,
+                            BatchBasis.MIXER_VOLUME to R.string.calc_mixer_size,
+                            BatchBasis.MAX_WEIGHT to R.string.calc_max_kg,
+                        ).map { (basis, labelRes) ->
                             ChipOption(
-                                label = label,
+                                label = stringResource(labelRes),
                                 selected = state.batchBasis == basis,
                                 onClick = { viewModel.setBatchBasis(basis) },
                             )
@@ -475,7 +485,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = "Mixer / bucket", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = stringResource(R.string.calc_mixer_bucket), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${formatDecimal(state.mixerLitres, 0)} L", style = MaterialTheme.typography.titleMedium)
                             }
                             Stepper(
@@ -491,9 +501,9 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = "Keep empty", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = stringResource(R.string.calc_keep_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
-                                    text = "${formatDecimal(state.headroomPercent, 0)}% · fill to ${formatDecimal(state.usableLitres, 1)} L",
+                                    text = stringResource(R.string.calc_headroom_value, formatDecimal(state.headroomPercent, 0), formatDecimal(state.usableLitres, 1)),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             }
@@ -508,9 +518,12 @@ fun CalculatorScreen(navController: NavHostController) {
                                 ),
                             )
                             Text(
-                                text = "The mix is split so every batch fits the drum. \"Keep empty\" is the room " +
-                                    "left for it to turn over — around 40% is the usual minimum, less and it " +
-                                    "climbs out. Working in litres needs a density on each part of the product.",
+                                // The quoted bit is the control's own label, so it stays in step
+                                // with the chip above it in whichever language is on.
+                                text = stringResource(
+                                    R.string.calc_headroom_note,
+                                    "\"" + stringResource(R.string.calc_keep_empty) + "\"",
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp),
@@ -521,7 +534,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = "Max per batch", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = stringResource(R.string.calc_max_per_batch), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${formatDecimal(state.maxBatchKg, 1)} kg", style = MaterialTheme.typography.titleMedium)
                             }
                             Stepper(
@@ -533,8 +546,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                 suffix = "kg",
                             )
                             Text(
-                                text = "The mix is split so no batch weighs more than this — set it by what the " +
-                                    "mixer is rated for, or by what one person should be lifting.",
+                                text = stringResource(R.string.calc_max_batch_note),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 8.dp),
@@ -542,9 +554,7 @@ fun CalculatorScreen(navController: NavHostController) {
                         }
                         BatchBasis.ONE_PACKAGE -> {
                             Text(
-                                text = "One whole bag or bucket per batch — nothing to weigh out on site. " +
-                                    "The liquid is scaled to match it, and whatever is left over at the end " +
-                                    "is shown as its own smaller batch.",
+                                text = stringResource(R.string.calc_by_bag_note),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),
@@ -563,18 +573,18 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                     } else if (plan != null) {
                         Text(
-                            text = if (plan.totalMixes == 1) "1 mixing" else "${plan.totalMixes} mixings",
+                            text = pluralStringResource(R.plurals.calc_mixings, plan.totalMixes, plan.totalMixes),
                             style = MaterialTheme.typography.headlineMedium,
                             modifier = Modifier.padding(top = 14.dp),
                         )
                         Text(
-                            text = "to get through ${formatKg(result.totalGrams)} kg of mixed material",
+                            text = stringResource(R.string.calc_to_get_through, formatKg(result.totalGrams)),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = if (plan.remainderBatch != null && plan.batches > 0) {
-                                "${plan.batches} full + 1 part · ${plan.batchSizeLabel}"
+                                stringResource(R.string.calc_batches_split, plan.batches, plan.batchSizeLabel)
                             } else {
                                 plan.batchSizeLabel
                             },
@@ -583,9 +593,7 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                         if (plan.overflows && plan.perBatchLitres != null) {
                             Text(
-                                text = "Too big for this mixer — ${formatDecimal(plan.perBatchLitres, 1)} L " +
-                                    "in a drum you only want filled to ${formatDecimal(state.usableLitres, 1)} L. " +
-                                    "Use a bigger mixer or split the batch.",
+                                text = stringResource(R.string.calc_too_big, formatDecimal(plan.perBatchLitres, 1), formatDecimal(state.usableLitres, 1)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Bold,
@@ -597,11 +605,19 @@ fun CalculatorScreen(navController: NavHostController) {
                             val spare = formatDecimal(state.usableLitres - plan.perBatchLitres, 1)
                             Text(
                                 text = if (state.batchBasis == BatchBasis.MIXER_VOLUME) {
-                                    "Leaves $spare L spare — the drum holds ${formatDecimal(state.mixerLitres, 0)} L " +
-                                        "and you're filling it to ${formatDecimal(state.usableLitres, 1)} L."
+                                    stringResource(
+                                        R.string.calc_spare,
+                                        spare,
+                                        formatDecimal(state.mixerLitres, 0),
+                                        formatDecimal(state.usableLitres, 1),
+                                    )
                                 } else {
-                                    "That's ${formatDecimal(plan.perBatchLitres, 1)} L in the drum, which leaves " +
-                                        "$spare L of the ${formatDecimal(state.usableLitres, 1)} L you can use."
+                                    stringResource(
+                                        R.string.calc_in_drum,
+                                        formatDecimal(plan.perBatchLitres, 1),
+                                        spare,
+                                        formatDecimal(state.usableLitres, 1),
+                                    )
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -611,7 +627,7 @@ fun CalculatorScreen(navController: NavHostController) {
                         if (plan.batches > 0) {
                             if (plan.remainderBatch != null) {
                                 Text(
-                                    text = "Each full batch:",
+                                    text = stringResource(R.string.calc_each_full_batch),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 10.dp),
@@ -629,7 +645,7 @@ fun CalculatorScreen(navController: NavHostController) {
                         }
                         plan.remainderBatch?.let { remainder ->
                             Text(
-                                text = if (plan.batches > 0) "Then one part batch:" else "One part batch:",
+                                text = stringResource(if (plan.batches > 0) R.string.calc_then_part_batch else R.string.calc_one_part_batch),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),
@@ -661,12 +677,12 @@ fun CalculatorScreen(navController: NavHostController) {
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     GhostButton(
-                        text = "Log actual usage",
+                        text = stringResource(R.string.calc_log_usage),
                         onClick = { viewModel.logUsage { loggedToast = true } },
                         modifier = Modifier.weight(1f),
                     )
                     PrimaryButton(
-                        text = "Save to project",
+                        text = stringResource(R.string.calc_save_to_project),
                         onClick = { navController.navigateToTopLevel(Routes.PROJECTS) },
                         modifier = Modifier.weight(1f),
                     )
@@ -677,7 +693,7 @@ fun CalculatorScreen(navController: NavHostController) {
                 item {
                     CardFlat {
                         Text(
-                            text = "Logged — this will feed the product's site average.",
+                            text = stringResource(R.string.calc_logged),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -690,18 +706,12 @@ fun CalculatorScreen(navController: NavHostController) {
 
 /**
  * A standing reminder that a drum filled to the brim mixes nothing. Picked from the date so it
- * stays put while the screen is open but isn't the same line forever.
+ * stays put while the screen is open but isn't the same line forever. The lines live in
+ * resources so each language gets its own, and the pools need not be the same length.
  */
-private val mixingReminders = listOf(
-    "Leave room to move — a full bucket mixes nothing but the floor.",
-    "Fill it to the brim and you'll mop the difference.",
-    "The whisk needs room to turn. Give it some.",
-    "Empty space isn't wasted — that's where the mixing happens.",
-    "A bucket filled to the top is a bucket on the floor.",
-    "Room at the top, or dust everywhere.",
-    "If it looks full before you start, it's already too late.",
-    "Mix needs headroom. So do you.",
-)
-
-private fun mixingReminder(date: LocalDate): String =
-    mixingReminders[Random(date.toEpochDay()).nextInt(mixingReminders.size)]
+@Composable
+private fun mixingReminder(date: LocalDate): String {
+    val pool = stringArrayResource(R.array.mixing_reminders)
+    if (pool.isEmpty()) return ""
+    return pool[Random(date.toEpochDay()).nextInt(pool.size)]
+}

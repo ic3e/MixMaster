@@ -178,4 +178,74 @@
     <string name="priority_medium">Medium</string>
     <string name="priority_low">Low</string>
     <string name="crew_roles_note">\"Set up work\" can add products and projects. \"Do the work\" runs the calculator and closes tasks off.</string>
+
+    <!-- Calculator -->
+    <string name="calc_title">Calculator</string>
+    <string name="calc_product">Product</string>
+    <string name="calc_choose_product">Choose a product</string>
+    <string name="calc_per_coat">per coat</string>
+    <string name="calc_per_pour">per pour</string>
+    <string name="calc_per_mm">per mm</string>
+    <string name="calc_datasheet_typical_full">Datasheet typical: %1$s g/m² %2$s.</string>
+    <string name="calc_view_datasheet">View official datasheet ↗</string>
+    <string name="calc_area">Area to cover</string>
+    <string name="calc_thickness">Thickness (mm)</string>
+    <string name="calc_coats">Coats</string>
+    <string name="calc_coverage_rate">Coverage rate (%1$s)</string>
+    <string name="calc_datasheet_typical">Datasheet typical: %1$s</string>
+    <string name="calc_your_average">Your average: %1$s</string>
+    <string name="calc_no_logged">No logged jobs yet</string>
+    <string name="calc_range_note">The datasheet gives a range — nudge it for porous, textured or uneven substrates on the day.</string>
+    <string name="calc_no_range_note">No published range for this product — using the datasheet figure as-is.</string>
+    <string name="calc_youll_need">You\'ll need</string>
+    <string name="calc_ratio_parts">ratio %1$s parts</string>
+    <string name="calc_packs">%1$d × %2$s</string>
+    <string name="calc_add_density_to_count">Add a density (kg/L) to count containers</string>
+    <string name="calc_set_pack_to_count">Set a pack size to count containers</string>
+    <string name="calc_total_mix">Total mix</string>
+    <string name="calc_colour_additives">Colour &amp; additives</string>
+    <string name="calc_addons_all_used">Everything set up as an add-on is already on this job.</string>
+    <string name="calc_add_to_mix">Add to this mix</string>
+    <string name="calc_choose_addon">Choose a colour or additive</string>
+    <string name="calc_addon_brand_note">Any brand — what matters is which part of this mix it\'s measured against.</string>
+    <string name="calc_measured_against">Measured against</string>
+    <string name="calc_addon_rate">%1$s · %2$s kg in this job</string>
+    <string name="action_remove">Remove</string>
+    <string name="calc_mixing">Mixing</string>
+    <string name="calc_by_the_bag">By the bag</string>
+    <string name="calc_mixer_size">Mixer size</string>
+    <string name="calc_max_kg">Max kg</string>
+    <string name="calc_mixer_bucket">Mixer / bucket</string>
+    <string name="calc_keep_empty">Keep empty</string>
+    <string name="calc_headroom_value">%1$s%% · fill to %2$s L</string>
+    <string name="calc_headroom_note">The mix is split so every batch fits the drum. %1$s is the room left for it to turn over — around 40%% is the usual minimum, less and it climbs out. Working in litres needs a density on each part of the product.</string>
+    <string name="calc_max_per_batch">Max per batch</string>
+    <string name="calc_max_batch_note">The mix is split so no batch weighs more than this — set it by what the mixer is rated for, or by what one person should be lifting.</string>
+    <string name="calc_by_bag_note">One whole bag or bucket per batch — nothing to weigh out on site. The liquid is scaled to match it, and whatever is left over at the end is shown as its own smaller batch.</string>
+    <plurals name="calc_mixings">
+        <item quantity="one">1 mixing</item>
+        <item quantity="other">%1$d mixings</item>
+    </plurals>
+    <string name="calc_to_get_through">to get through %1$s kg of mixed material</string>
+    <string name="calc_batches_split">%1$d full + 1 part · %2$s</string>
+    <string name="calc_too_big">Too big for this mixer — %1$s L in a drum you only want filled to %2$s L. Use a bigger mixer or split the batch.</string>
+    <string name="calc_spare">Leaves %1$s L spare — the drum holds %2$s L and you\'re filling it to %3$s L.</string>
+    <string name="calc_in_drum">That\'s %1$s L in the drum, which leaves %2$s L of the %3$s L you can use.</string>
+    <string name="calc_each_full_batch">Each full batch:</string>
+    <string name="calc_then_part_batch">Then one part batch:</string>
+    <string name="calc_one_part_batch">One part batch:</string>
+    <string name="calc_log_usage">Log actual usage</string>
+    <string name="calc_save_to_project">Save to project</string>
+    <string name="calc_logged">Logged — this will feed the product\'s site average.</string>
+
+    <string-array name="mixing_reminders">
+        <item>Leave room to move — a full bucket mixes nothing but the floor.</item>
+        <item>Fill it to the brim and you\'ll mop the difference.</item>
+        <item>The whisk needs room to turn. Give it some.</item>
+        <item>Empty space isn\'t wasted — that\'s where the mixing happens.</item>
+        <item>A bucket filled to the top is a bucket on the floor.</item>
+        <item>Room at the top, or dust everywhere.</item>
+        <item>If it looks full before you start, it\'s already too late.</item>
+        <item>Mix needs headroom. So do you.</item>
+    </string-array>
 </resources>

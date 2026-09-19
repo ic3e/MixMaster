@@ -145,4 +145,73 @@
     <string name="priority_medium">Keskitaso</string>
     <string name="priority_low">Matala</string>
     <string name="crew_roles_note">\"Järjestän työt\" voi lisätä tuotteita ja projekteja. \"Teen työt\" käyttää laskuria ja kuittaa tehtäviä.</string>
+
+    <string name="calc_title">Laskuri</string>
+    <string name="calc_product">Tuote</string>
+    <string name="calc_choose_product">Valitse tuote</string>
+    <string name="calc_per_coat">kerrosta kohti</string>
+    <string name="calc_per_pour">valua kohti</string>
+    <string name="calc_per_mm">millimetriä kohti</string>
+    <string name="calc_datasheet_typical_full">Tuotetiedon tyypillinen: %1$s g/m² %2$s.</string>
+    <string name="calc_view_datasheet">Katso virallinen tuotetieto ↗</string>
+    <string name="calc_area">Peitettävä ala</string>
+    <string name="calc_thickness">Paksuus (mm)</string>
+    <string name="calc_coats">Kerroksia</string>
+    <string name="calc_coverage_rate">Menekki (%1$s)</string>
+    <string name="calc_datasheet_typical">Tuotetiedon tyypillinen: %1$s</string>
+    <string name="calc_your_average">Oma keskiarvo: %1$s</string>
+    <string name="calc_no_logged">Ei vielä kirjattuja töitä</string>
+    <string name="calc_range_note">Tuotetieto antaa vaihteluvälin — säädä sitä huokoisen, karkean tai epätasaisen alustan mukaan.</string>
+    <string name="calc_no_range_note">Tälle tuotteelle ei ole julkaistua vaihteluväliä — käytetään tuotetiedon lukua sellaisenaan.</string>
+    <string name="calc_youll_need">Tarvitset</string>
+    <string name="calc_ratio_parts">suhde %1$s osaa</string>
+    <string name="calc_packs">%1$d × %2$s</string>
+    <string name="calc_add_density_to_count">Lisää tiheys (kg/L), jotta pakkaukset voidaan laskea</string>
+    <string name="calc_set_pack_to_count">Aseta pakkauskoko, jotta pakkaukset voidaan laskea</string>
+    <string name="calc_total_mix">Massaa yhteensä</string>
+    <string name="calc_colour_additives">Väri ja lisäaineet</string>
+    <string name="calc_addons_all_used">Kaikki lisäaineeksi merkityt ovat jo tässä työssä.</string>
+    <string name="calc_add_to_mix">Lisää tähän massaan</string>
+    <string name="calc_choose_addon">Valitse väri tai lisäaine</string>
+    <string name="calc_addon_brand_note">Merkillä ei ole väliä — ratkaisevaa on, mitä massan osaa vasten se mitataan.</string>
+    <string name="calc_measured_against">Mitataan tätä vasten</string>
+    <string name="calc_addon_rate">%1$s · %2$s kg tässä työssä</string>
+    <string name="action_remove">Poista</string>
+    <string name="calc_mixing">Sekoitus</string>
+    <string name="calc_by_the_bag">Säkeittäin</string>
+    <string name="calc_mixer_size">Sekoitusastian koko</string>
+    <string name="calc_max_kg">Maks. kg</string>
+    <string name="calc_mixer_bucket">Sekoitin / ämpäri</string>
+    <string name="calc_keep_empty">Jätä tyhjäksi</string>
+    <string name="calc_headroom_value">%1$s%% · täytä %2$s litraan</string>
+    <string name="calc_headroom_note">Massa jaetaan niin, että jokainen erä mahtuu astiaan. %1$s on tila, joka jää massan kiertämiselle — noin 40%% on tavallinen vähimmäismäärä, sitä vähemmällä massa nousee yli. Litroina laskeminen vaatii tiheyden jokaiselle osalle.</string>
+    <string name="calc_max_per_batch">Maks. erää kohti</string>
+    <string name="calc_max_batch_note">Massa jaetaan niin, ettei yksikään erä paina tätä enempää — aseta se sekoittimen sallitun kuorman mukaan tai sen mukaan, mitä yhden ihmisen kuuluisi nostaa.</string>
+    <string name="calc_by_bag_note">Yksi kokonainen säkki tai ämpäri kerrallaan — työmaalla ei tarvitse punnita mitään. Neste mitoitetaan sen mukaan, ja lopuksi yli jäävä osa näytetään omana pienempänä eränään.</string>
+    <plurals name="calc_mixings">
+        <item quantity="one">1 sekoitus</item>
+        <item quantity="other">%1$d sekoitusta</item>
+    </plurals>
+    <string name="calc_to_get_through">jotta saadaan %1$s kg valmista massaa</string>
+    <string name="calc_batches_split">%1$d täyttä + 1 osittainen · %2$s</string>
+    <string name="calc_too_big">Liian suuri tälle sekoittimelle — %1$s L astiassa, jonka haluat täyttää vain %2$s litraan. Ota isompi sekoitin tai jaa erä.</string>
+    <string name="calc_spare">Jää %1$s L varaa — astiaan mahtuu %2$s L ja täytät sen %3$s litraan.</string>
+    <string name="calc_in_drum">Se on %1$s L astiassa, jolloin jää %2$s L niistä %3$s litrasta, jotka voit käyttää.</string>
+    <string name="calc_each_full_batch">Jokainen täysi erä:</string>
+    <string name="calc_then_part_batch">Sitten yksi osittainen erä:</string>
+    <string name="calc_one_part_batch">Yksi osittainen erä:</string>
+    <string name="calc_log_usage">Kirjaa todellinen menekki</string>
+    <string name="calc_save_to_project">Tallenna projektiin</string>
+    <string name="calc_logged">Kirjattu — tämä menee tuotteen työmaakeskiarvoon.</string>
+
+    <string-array name="mixing_reminders">
+        <item>Jätä tilaa liikkua — täysi ämpäri ei sekoita muuta kuin lattian.</item>
+        <item>Täytä reunoja myöten, niin pyyhit erotuksen lattialta.</item>
+        <item>Vispilä tarvitsee tilaa pyöriä. Anna sitä.</item>
+        <item>Tyhjä tila ei ole hukkaan heitettyä — juuri siellä sekoittuminen tapahtuu.</item>
+        <item>Reunoja myöten täytetty ämpäri on ämpäri lattialla.</item>
+        <item>Tilaa ylhäällä, tai pölyä kaikkialla.</item>
+        <item>Jos se näyttää täydeltä jo ennen aloitusta, on jo myöhäistä.</item>
+        <item>Massa tarvitsee tilaa. Niin tarvitset sinäkin.</item>
+    </string-array>
 </resources>

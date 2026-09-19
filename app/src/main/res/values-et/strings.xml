@@ -145,4 +145,73 @@
     <string name="priority_medium">Keskmine</string>
     <string name="priority_low">Madal</string>
     <string name="crew_roles_note">\"Panen töö paika\" saab lisada tooteid ja projekte. \"Teen tööd\" kasutab kalkulaatorit ja märgib ülesandeid tehtuks.</string>
+
+    <string name="calc_title">Kalkulaator</string>
+    <string name="calc_product">Toode</string>
+    <string name="calc_choose_product">Vali toode</string>
+    <string name="calc_per_coat">kihi kohta</string>
+    <string name="calc_per_pour">valu kohta</string>
+    <string name="calc_per_mm">mm kohta</string>
+    <string name="calc_datasheet_typical_full">Tehnilise lehe tüüpiline: %1$s g/m² %2$s.</string>
+    <string name="calc_view_datasheet">Vaata ametlikku tehnilist lehte ↗</string>
+    <string name="calc_area">Kaetav pind</string>
+    <string name="calc_thickness">Paksus (mm)</string>
+    <string name="calc_coats">Kihte</string>
+    <string name="calc_coverage_rate">Kulu (%1$s)</string>
+    <string name="calc_datasheet_typical">Tehnilise lehe tüüpiline: %1$s</string>
+    <string name="calc_your_average">Sinu keskmine: %1$s</string>
+    <string name="calc_no_logged">Salvestatud töid veel pole</string>
+    <string name="calc_range_note">Tehniline leht annab vahemiku — kohanda seda poorse, tekstuurse või ebaühtlase aluspinna järgi.</string>
+    <string name="calc_no_range_note">Sellel tootel avaldatud vahemikku pole — kasutame tehnilise lehe numbrit nii nagu on.</string>
+    <string name="calc_youll_need">Sul on vaja</string>
+    <string name="calc_ratio_parts">suhe %1$s osa</string>
+    <string name="calc_packs">%1$d × %2$s</string>
+    <string name="calc_add_density_to_count">Lisa tihedus (kg/L), et pakendeid kokku lugeda</string>
+    <string name="calc_set_pack_to_count">Määra pakendi suurus, et pakendeid kokku lugeda</string>
+    <string name="calc_total_mix">Segu kokku</string>
+    <string name="calc_colour_additives">Värv ja lisandid</string>
+    <string name="calc_addons_all_used">Kõik lisandiks märgitud on juba sellel tööl.</string>
+    <string name="calc_add_to_mix">Lisa sellesse segusse</string>
+    <string name="calc_choose_addon">Vali värv või lisand</string>
+    <string name="calc_addon_brand_note">Bränd pole oluline — oluline on, millise segu osa järgi seda mõõdetakse.</string>
+    <string name="calc_measured_against">Mõõdetakse millegi järgi</string>
+    <string name="calc_addon_rate">%1$s · %2$s kg sellel tööl</string>
+    <string name="action_remove">Eemalda</string>
+    <string name="calc_mixing">Segamine</string>
+    <string name="calc_by_the_bag">Koti kaupa</string>
+    <string name="calc_mixer_size">Segumasina maht</string>
+    <string name="calc_max_kg">Max kg</string>
+    <string name="calc_mixer_bucket">Segumasin / ämber</string>
+    <string name="calc_keep_empty">Jäta tühjaks</string>
+    <string name="calc_headroom_value">%1$s%% · täida kuni %2$s L</string>
+    <string name="calc_headroom_note">Segu jagatakse nii, et iga kogus mahub nõusse. %1$s on ruum, mis jääb segu ringikäimiseks — umbes 40%% on tavaline miinimum, vähemaga ajab üle ääre. Liitrites arvutamiseks on vaja iga osa tihedust.</string>
+    <string name="calc_max_per_batch">Max ühe koguse kohta</string>
+    <string name="calc_max_batch_note">Segu jagatakse nii, et ükski kogus ei kaalu sellest rohkem — määra see segumasina lubatud koguse järgi või selle järgi, mida üks inimene peaks tõstma.</string>
+    <string name="calc_by_bag_note">Üks terve kott või ämber korraga — objektil pole vaja midagi kaaluda. Vedelik arvutatakse sellele vastavaks ja see, mis lõpuks üle jääb, näidatakse omaette väiksema kogusena.</string>
+    <plurals name="calc_mixings">
+        <item quantity="one">1 segamine</item>
+        <item quantity="other">%1$d segamist</item>
+    </plurals>
+    <string name="calc_to_get_through">et katta %1$s kg valmis segu</string>
+    <string name="calc_batches_split">%1$d täis + 1 osaline · %2$s</string>
+    <string name="calc_too_big">Selle segumasina jaoks liiga suur — %1$s L nõus, mida tahad täita ainult %2$s L-ni. Võta suurem segumasin või jaga kogus pooleks.</string>
+    <string name="calc_spare">Jääb %1$s L varu — nõusse mahub %2$s L ja sa täidad selle %3$s L-ni.</string>
+    <string name="calc_in_drum">See on %1$s L nõus, millest jääb %2$s L neist %3$s L-st, mida saad kasutada.</string>
+    <string name="calc_each_full_batch">Iga täiskogus:</string>
+    <string name="calc_then_part_batch">Seejärel üks osaline kogus:</string>
+    <string name="calc_one_part_batch">Üks osaline kogus:</string>
+    <string name="calc_log_usage">Salvesta tegelik kulu</string>
+    <string name="calc_save_to_project">Salvesta projekti</string>
+    <string name="calc_logged">Salvestatud — see läheb toote objektikeskmisesse.</string>
+
+    <string-array name="mixing_reminders">
+        <item>Jäta ruumi liikuda — täis ämber ei sega midagi peale põranda.</item>
+        <item>Täida ääreni ja pühid vahe põrandalt kokku.</item>
+        <item>Vispel vajab ruumi pöörelda. Anna talle seda.</item>
+        <item>Tühi ruum pole raisatud — just seal segunemine toimubki.</item>
+        <item>Ääreni täis ämber on ämber põrandal.</item>
+        <item>Ruumi ülevalt, või tolmu kõikjal.</item>
+        <item>Kui see näeb juba enne algust täis välja, on juba hilja.</item>
+        <item>Segu vajab ruumi. Sina ka.</item>
+    </string-array>
 </resources>
