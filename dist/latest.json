@@ -1,8 +1,8 @@
 {
-  "versionCode": 58,
-  "versionName": "1.0.58",
-  "apk": "MixMaster_1.0.58.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.58.apk",
+  "versionCode": 59,
+  "versionName": "1.0.59",
+  "apk": "MixMaster_1.0.59.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.59.apk",
   "sizeBytes": 19966192,
-  "notes": "Record crashes, and stop two system calls taking the app down"
+  "notes": "Wrap the activity for the language, don't replace it"
 }
