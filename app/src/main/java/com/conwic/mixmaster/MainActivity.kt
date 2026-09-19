@@ -1,5 +1,8 @@
 package com.conwic.mixmaster
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Resources
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -24,6 +27,22 @@ import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
 import java.util.Locale
+
+/**
+ * The activity, serving resources in the chosen language.
+ *
+ * A wrapper *around the activity* rather than the context createConfigurationContext hands
+ * back: that one is a fresh ContextImpl with no link to the activity, and several Compose APIs
+ * find what they need by walking the ContextWrapper chain up from LocalContext.
+ * rememberLauncherForActivityResult is one — given a context with no activity in its chain it
+ * throws "No ActivityResultRegistryOwner was provided", which is what closed the app on
+ * opening Settings. Wrapping keeps the chain intact and still answers getResources() in the
+ * right language, which is all stringResource asks for.
+ */
+private class LocalizedContext(base: Context, configuration: Configuration) : ContextWrapper(base) {
+    private val localized: Resources = base.createConfigurationContext(configuration).resources
+    override fun getResources(): Resources = localized
+}
 
 /**
  * A FragmentActivity rather than a plain ComponentActivity: BiometricPrompt, which backs the
@@ -69,7 +88,7 @@ class MainActivity : FragmentActivity() {
                 }
             }
             val localizedContext = remember(localeConfig) {
-                localeConfig?.let { baseContext.createConfigurationContext(it) }
+                localeConfig?.let { LocalizedContext(this@MainActivity, it) }
             }
 
             MixMasterTheme(darkTheme = dark) {
