@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.products
 
+import androidx.annotation.StringRes
+import com.conwic.mixmaster.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
@@ -41,12 +43,20 @@ data class ComponentFormRow(
         get() = densityKgPerLText.toNumberOrNull()
 
     /** Blocks the save. The rule itself lives in the domain, so the calculator agrees with it. */
-    val densityProblem: String?
+    @get:StringRes
+    val densityProblem: Int?
         get() = if (densityKgPerLText.isBlank()) null else domainDensityProblem(densityValue)
 
     /** Doesn't block — see the domain rule. */
-    val densityWarning: String?
+    @get:StringRes
+    val densityWarning: Int?
         get() = if (densityKgPerLText.isBlank()) null else domainDensityWarning(densityValue)
+}
+
+/** One reason the form won't save, as the screen needs to word it. */
+sealed interface SaveBlocker {
+    data class Simple(@StringRes val messageRes: Int) : SaveBlocker
+    data class PartDensity(val partNumber: Int, @StringRes val problemRes: Int) : SaveBlocker
 }
 
 data class ProductFormState(
@@ -75,29 +85,31 @@ data class ProductFormState(
      * Everything standing between this form and a saved product, in the order it appears on
      * screen. The screen shows this list; a disabled Save button with nothing to explain it is
      * how a mistyped decimal turned into "it just won't save".
+     *
+     * Resource ids, not sentences — this runs where no language is known.
      */
-    val saveBlockers: List<String>
+    val saveBlockers: List<SaveBlocker>
         get() = buildList {
-            if (brand.isBlank()) add("Brand is empty")
-            if (name.isBlank()) add("Product name is empty")
-            if (category.isBlank()) add("Type is empty")
+            if (brand.isBlank()) add(SaveBlocker.Simple(R.string.blocker_brand))
+            if (name.isBlank()) add(SaveBlocker.Simple(R.string.blocker_name))
+            if (category.isBlank()) add(SaveBlocker.Simple(R.string.blocker_type))
 
             val min = minDoseText.toNumberOrNull()
             val max = maxDoseText.toNumberOrNull()
             when {
                 minDoseText.isBlank() || maxDoseText.isBlank() ->
-                    add("Min and max cover both need a figure — put the same one in both if the datasheet gives one")
-                min == null -> add("Min cover isn't a number")
-                max == null -> add("Max cover isn't a number")
-                min <= 0.0 -> add("Min cover has to be more than zero")
-                max < min -> add("Max cover is smaller than min cover")
+                    add(SaveBlocker.Simple(R.string.blocker_minmax_blank))
+                min == null -> add(SaveBlocker.Simple(R.string.blocker_min_nan))
+                max == null -> add(SaveBlocker.Simple(R.string.blocker_max_nan))
+                min <= 0.0 -> add(SaveBlocker.Simple(R.string.blocker_min_zero))
+                max < min -> add(SaveBlocker.Simple(R.string.blocker_max_lt_min))
             }
 
             if (components.none { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }) {
-                add("At least one part needs a name and a number of parts")
+                add(SaveBlocker.Simple(R.string.blocker_no_part))
             }
             components.forEachIndexed { index, row ->
-                row.densityProblem?.let { add("Part ${index + 1} density — $it") }
+                row.densityProblem?.let { add(SaveBlocker.PartDensity(index + 1, it)) }
             }
         }
 

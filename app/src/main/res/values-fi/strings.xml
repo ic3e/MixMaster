@@ -214,4 +214,81 @@
         <item>Jos se näyttää täydeltä jo ennen aloitusta, on jo myöhäistä.</item>
         <item>Massa tarvitsee tilaa. Niin tarvitset sinäkin.</item>
     </string-array>
+
+    <string name="product_add">Lisää tuote</string>
+    <string name="product_edit">Muokkaa tuotetta</string>
+    <string name="product_what_it_is">Mikä se on</string>
+    <string name="product_brand">Merkki</string>
+    <string name="product_name">Tuotteen nimi</string>
+    <string name="product_type">Tyyppi</string>
+    <string name="product_coverage">Paljonko riittää</string>
+    <string name="product_measured_per">Mitataan</string>
+    <string name="product_range_hint">Jos tuotetieto antaa vaihteluvälin sijasta yhden luvun, laita se molempiin kenttiin.</string>
+    <string name="product_min">Min</string>
+    <string name="product_max">Maks</string>
+    <string name="product_per_what">Mitä kohti</string>
+    <string name="product_per_what_hint">esim. kerrosta kohti, millimetriä kohti</string>
+    <string name="product_notes">Muistiinpanot</string>
+    <string name="product_card_note">Näkyy tuotekortilla</string>
+    <string name="product_source_note">Mistä nämä luvut ovat peräisin</string>
+    <string name="product_datasheet_link">Tuotetiedon linkki (valinnainen)</string>
+    <string name="product_addon_section">Lisätään toiseen massaan</string>
+    <string name="product_addon_toggle">Väri tai lisäaine</string>
+    <string name="product_addon_toggle_note">Menee toisen tuotteen massaan, ei sekoiteta omanaan.</string>
+    <string name="product_addon_explain">Paljonko menee sisään ja kuinka suurta osaa kohti se mitataan — väri annostellaan yleensä nesteen mukaan, ei koko massan. Tuotetiedosta: 28 g / 1 kg tai 1 L / 25 kg.</string>
+    <string name="product_amount">Määrä</string>
+    <string name="product_unit">Yksikkö</string>
+    <string name="product_per_this_many_kg">Näin monta kiloa kohti</string>
+    <string name="product_mix_section">Mitä massaan tulee</string>
+    <string name="product_mix_explain">Lisää alle jokainen osa ja montako osaa sitä menee. 100 jauhetta 21 veteen tarkoittaa juuri sitä, millä yksiköllä tahansa punnitset.</string>
+    <string name="product_mixed_at">Sekoitussuhde</string>
+    <string name="product_mix_optional_note">Tiheys ja pakkauskoko ovat valinnaisia, mutta juuri ne antavat laskurin laskea säkit ja tarkistaa, mahtuuko erä sekoittimeen.</string>
+    <string name="product_add_part">+ Lisää toinen osa</string>
+    <string name="product_save">Tallenna tuote</string>
+    <string name="product_no_density_yet">Ei vielä tiheyttä eikä pakkauskokoa</string>
+    <string name="product_part_n">Osa %1$d</string>
+    <string name="product_remove_part_n">Poista osa %1$d</string>
+    <string name="product_parts">Osia</string>
+    <string name="product_measured_by">Mitataan</string>
+    <string name="product_density_packaging">Tiheys ja pakkaus</string>
+    <string name="product_density">Tiheys (kg/L)</string>
+    <string name="product_density_hint">Paljonko yksi litra painaa</string>
+    <string name="product_pot_life">Käyttöaika</string>
+    <string name="product_pack_size">Pakkauskoko</string>
+    <string name="product_container">Pakkaus</string>
+    <string name="product_addon_summary_unset">Aseta määrä, jotta tätä voi käyttää lisäaineena.</string>
+    <string name="product_addon_summary">%1$s %2$s jokaista %3$s kohti, mihin se menee</string>
+    <string name="product_kg_amount">%1$s kg</string>
+    <string name="dosing_per_coat">Kerrosta kohti</string>
+    <string name="dosing_per_pour">Valua kohti</string>
+    <string name="dosing_per_mm">Paksuusmillimetriä kohti</string>
+    <string name="dosing_explain_coats">Grammaa neliötä kohti jokaiselle kerrokselle — kaksi kerrosta kuluttaa näistä luvuista kaksinkertaisesti.</string>
+    <string name="dosing_explain_pour">Grammaa neliötä kohti koko valulle, yhdellä kertaa.</string>
+    <string name="dosing_explain_mm">Grammaa neliötä kohti jokaista paksuusmillimetriä kohden — 10 mm kuluttaa näistä luvuista kymmenkertaisesti.</string>
+
+    <plurals name="save_blockers_heading">
+        <item quantity="one">Ennen tallennusta puuttuu yksi asia</item>
+        <item quantity="other">Ennen tallennusta puuttuu %1$d asiaa</item>
+    </plurals>
+    <string name="blocker_brand">Merkki on tyhjä</string>
+    <string name="blocker_name">Tuotteen nimi on tyhjä</string>
+    <string name="blocker_type">Tyyppi on tyhjä</string>
+    <string name="blocker_minmax_blank">Sekä min- että maks-menekki tarvitsevat luvun — jos tuotetieto antaa yhden, laita se molempiin</string>
+    <string name="blocker_min_nan">Min-menekki ei ole luku</string>
+    <string name="blocker_max_nan">Maks-menekki ei ole luku</string>
+    <string name="blocker_min_zero">Min-menekin on oltava suurempi kuin nolla</string>
+    <string name="blocker_max_lt_min">Maks-menekki on pienempi kuin min-menekki</string>
+    <string name="blocker_no_part">Vähintään yhdellä osalla on oltava nimi ja osien määrä</string>
+    <string name="blocker_part_density">Osan %1$d tiheys — %2$s</string>
+
+    <string name="density_problem_nan">Pitää olla luku, esimerkiksi 1.35</string>
+    <string name="density_problem_zero">Pitää olla suurempi kuin nolla</string>
+    <string name="density_problem_too_dense">Tiheämpi kuin betoni — onko tämä pakkauksen paino eikä litran paino?</string>
+    <string name="density_warning_light">Kevyempi kuin useimmat täyteaineet — kannattaa tarkistaa</string>
+    <plurals name="stored_density_subject">
+        <item quantity="one">Tämä tiheys ei voi pitää paikkaansa</item>
+        <item quantity="other">Nämä tiheydet eivät voi pitää paikkaansa</item>
+    </plurals>
+    <string name="stored_density_warning">%1$s — %2$s. Mikään lattialle menevä ei ole betonia tiheämpää, joten kyseessä on todennäköisesti pakkauksen paino. Alla olevat kilot ovat edelleen oikein; litrat ja sekoittimeen mahtuminen eivät, ennen kuin tämä korjataan kohdassa Tuotteet → muokkaa.</string>
+    <string name="stored_density_item">%1$s tiheydellä %2$s kg/L</string>
 </resources>

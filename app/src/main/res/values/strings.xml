@@ -248,4 +248,84 @@
         <item>If it looks full before you start, it\'s already too late.</item>
         <item>Mix needs headroom. So do you.</item>
     </string-array>
+
+    <!-- Add / edit product -->
+    <string name="product_add">Add product</string>
+    <string name="product_edit">Edit product</string>
+    <string name="product_what_it_is">What it is</string>
+    <string name="product_brand">Brand</string>
+    <string name="product_name">Product name</string>
+    <string name="product_type">Type</string>
+    <string name="product_coverage">How much it covers</string>
+    <string name="product_measured_per">Measured per</string>
+    <string name="product_range_hint">If the datasheet gives one figure rather than a range, put it in both boxes.</string>
+    <string name="product_min">Min</string>
+    <string name="product_max">Max</string>
+    <string name="product_per_what">Per what</string>
+    <string name="product_per_what_hint">e.g. per coat, per mm</string>
+    <string name="product_notes">Notes</string>
+    <string name="product_card_note">Shown on the product card</string>
+    <string name="product_source_note">Where these figures came from</string>
+    <string name="product_datasheet_link">Datasheet link (optional)</string>
+    <string name="product_addon_section">Added to another mix</string>
+    <string name="product_addon_toggle">A colour or additive</string>
+    <string name="product_addon_toggle_note">Goes into another product\'s mix rather than being mixed on its own.</string>
+    <string name="product_addon_explain">How much goes in, and per how much of the part it\'s measured against — colour is normally dosed off the liquid, not the whole batch. Off the datasheet: 28 g per 1 kg, or 1 L per 25 kg.</string>
+    <string name="product_amount">Amount</string>
+    <string name="product_unit">Unit</string>
+    <string name="product_per_this_many_kg">Per this many kg</string>
+    <string name="product_mix_section">What goes in the mix</string>
+    <string name="product_mix_explain">Add each part below and how many parts of it go in. 100 powder to 21 water means exactly that, in whatever you weigh in.</string>
+    <string name="product_mixed_at">Mixed at</string>
+    <string name="product_mix_optional_note">Density and pack size are optional, but they\'re what let the calculator count bags and check a batch fits the mixer.</string>
+    <string name="product_add_part">+ Add another part</string>
+    <string name="product_save">Save product</string>
+    <string name="product_no_density_yet">No density or pack size yet</string>
+    <string name="product_part_n">Part %1$d</string>
+    <string name="product_remove_part_n">Remove part %1$d</string>
+    <string name="product_parts">Parts</string>
+    <string name="product_measured_by">Measured by</string>
+    <string name="product_density_packaging">Density &amp; packaging</string>
+    <string name="product_density">Density (kg/L)</string>
+    <string name="product_density_hint">What one litre weighs</string>
+    <string name="product_pot_life">Pot life</string>
+    <string name="product_pack_size">Pack size</string>
+    <string name="product_container">Container</string>
+    <string name="product_addon_summary_unset">Set an amount to use this as an add-on.</string>
+    <string name="product_addon_summary">%1$s %2$s per %3$s of whatever it goes into</string>
+    <string name="product_kg_amount">%1$s kg</string>
+    <string name="dosing_per_coat">Per coat</string>
+    <string name="dosing_per_pour">Per pour</string>
+    <string name="dosing_per_mm">Per mm of thickness</string>
+    <string name="dosing_explain_coats">Grams per m² for each coat — two coats uses twice these figures.</string>
+    <string name="dosing_explain_pour">Grams per m² for the whole pour, laid in one go.</string>
+    <string name="dosing_explain_mm">Grams per m² for every millimetre of thickness — 10 mm uses ten times these figures.</string>
+
+    <!-- Why a product won\'t save -->
+    <plurals name="save_blockers_heading">
+        <item quantity="one">One thing left before this saves</item>
+        <item quantity="other">%1$d things left before this saves</item>
+    </plurals>
+    <string name="blocker_brand">Brand is empty</string>
+    <string name="blocker_name">Product name is empty</string>
+    <string name="blocker_type">Type is empty</string>
+    <string name="blocker_minmax_blank">Min and max cover both need a figure — put the same one in both if the datasheet gives one</string>
+    <string name="blocker_min_nan">Min cover isn\'t a number</string>
+    <string name="blocker_max_nan">Max cover isn\'t a number</string>
+    <string name="blocker_min_zero">Min cover has to be more than zero</string>
+    <string name="blocker_max_lt_min">Max cover is smaller than min cover</string>
+    <string name="blocker_no_part">At least one part needs a name and a number of parts</string>
+    <string name="blocker_part_density">Part %1$d density — %2$s</string>
+
+    <!-- Density checks -->
+    <string name="density_problem_nan">Needs to be a number, like 1.35</string>
+    <string name="density_problem_zero">Has to be more than zero</string>
+    <string name="density_problem_too_dense">Denser than concrete — is this the pack weight rather than what a litre weighs?</string>
+    <string name="density_warning_light">Lighter than most fillers — worth double-checking</string>
+    <plurals name="stored_density_subject">
+        <item quantity="one">This density can\'t be right</item>
+        <item quantity="other">These densities can\'t be right</item>
+    </plurals>
+    <string name="stored_density_warning">%1$s — %2$s. Nothing that goes on a floor is denser than concrete, so it\'s probably the pack weight. The kilos below are still right; the litres and the mixer fit aren\'t, until it\'s corrected in Products → edit.</string>
+    <string name="stored_density_item">%1$s at %2$s kg/L</string>
 </resources>

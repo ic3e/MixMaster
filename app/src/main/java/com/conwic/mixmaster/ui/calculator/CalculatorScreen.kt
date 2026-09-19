@@ -450,11 +450,20 @@ fun CalculatorScreen(navController: NavHostController) {
 
             item { SectionLabel(text = stringResource(R.string.calc_mixing), modifier = Modifier.padding(top = 4.dp)) }
 
-            state.densityWarning?.let { warning ->
+            if (state.implausibleDensities.isNotEmpty()) {
                 item {
                     CardFlat {
+                        // Worded here rather than in the view model: the subject inflects with
+                        // how many there are, and neither is known where the check runs.
+                        val named = state.implausibleDensities.joinToString(", ") {
+                            stringResource(R.string.stored_density_item, it.label, it.densityKgPerL)
+                        }
+                        val subject = pluralStringResource(
+                            R.plurals.stored_density_subject,
+                            state.implausibleDensities.size,
+                        )
                         Text(
-                            text = warning,
+                            text = stringResource(R.string.stored_density_warning, subject, named),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold,

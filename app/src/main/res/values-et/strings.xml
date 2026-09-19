@@ -214,4 +214,81 @@
         <item>Kui see näeb juba enne algust täis välja, on juba hilja.</item>
         <item>Segu vajab ruumi. Sina ka.</item>
     </string-array>
+
+    <string name="product_add">Lisa toode</string>
+    <string name="product_edit">Muuda toodet</string>
+    <string name="product_what_it_is">Mis see on</string>
+    <string name="product_brand">Bränd</string>
+    <string name="product_name">Toote nimi</string>
+    <string name="product_type">Tüüp</string>
+    <string name="product_coverage">Kui palju katab</string>
+    <string name="product_measured_per">Mõõdetakse</string>
+    <string name="product_range_hint">Kui tehniline leht annab vahemiku asemel ühe numbri, pane see mõlemasse lahtrisse.</string>
+    <string name="product_min">Min</string>
+    <string name="product_max">Max</string>
+    <string name="product_per_what">Mille kohta</string>
+    <string name="product_per_what_hint">nt kihi kohta, mm kohta</string>
+    <string name="product_notes">Märkmed</string>
+    <string name="product_card_note">Näidatakse toote kaardil</string>
+    <string name="product_source_note">Kust need numbrid pärinevad</string>
+    <string name="product_datasheet_link">Tehnilise lehe link (valikuline)</string>
+    <string name="product_addon_section">Lisatakse teise segusse</string>
+    <string name="product_addon_toggle">Värv või lisand</string>
+    <string name="product_addon_toggle_note">Läheb teise toote segusse, mitte omaette segamiseks.</string>
+    <string name="product_addon_explain">Kui palju läheb sisse ja kui suure osa kohta seda mõõdetakse — värvi doseeritakse tavaliselt vedeliku, mitte kogu segu järgi. Tehniliselt lehelt: 28 g 1 kg kohta või 1 L 25 kg kohta.</string>
+    <string name="product_amount">Kogus</string>
+    <string name="product_unit">Ühik</string>
+    <string name="product_per_this_many_kg">Nii mitme kg kohta</string>
+    <string name="product_mix_section">Mis segusse läheb</string>
+    <string name="product_mix_explain">Lisa allpool iga osa ja mitu osa seda sisse läheb. 100 pulbrit 21 vee kohta tähendabki täpselt seda, mis ühikus sa ka ei kaaluks.</string>
+    <string name="product_mixed_at">Segatakse</string>
+    <string name="product_mix_optional_note">Tihedus ja pakendi suurus on valikulised, aga just need lasevad kalkulaatoril kotte kokku lugeda ja kontrollida, kas kogus mahub segumasinasse.</string>
+    <string name="product_add_part">+ Lisa veel üks osa</string>
+    <string name="product_save">Salvesta toode</string>
+    <string name="product_no_density_yet">Tihedust ega pakendi suurust veel pole</string>
+    <string name="product_part_n">Osa %1$d</string>
+    <string name="product_remove_part_n">Eemalda osa %1$d</string>
+    <string name="product_parts">Osi</string>
+    <string name="product_measured_by">Mõõdetakse</string>
+    <string name="product_density_packaging">Tihedus ja pakend</string>
+    <string name="product_density">Tihedus (kg/L)</string>
+    <string name="product_density_hint">Kui palju kaalub üks liiter</string>
+    <string name="product_pot_life">Kasutusaeg</string>
+    <string name="product_pack_size">Pakendi suurus</string>
+    <string name="product_container">Pakend</string>
+    <string name="product_addon_summary_unset">Määra kogus, et seda lisandina kasutada.</string>
+    <string name="product_addon_summary">%1$s %2$s iga %3$s kohta, millesse see läheb</string>
+    <string name="product_kg_amount">%1$s kg</string>
+    <string name="dosing_per_coat">Kihi kohta</string>
+    <string name="dosing_per_pour">Valu kohta</string>
+    <string name="dosing_per_mm">Paksuse mm kohta</string>
+    <string name="dosing_explain_coats">Grammi m² kohta iga kihi jaoks — kaks kihti kulutab neist numbritest kaks korda rohkem.</string>
+    <string name="dosing_explain_pour">Grammi m² kohta kogu valu jaoks, ühe korraga.</string>
+    <string name="dosing_explain_mm">Grammi m² kohta iga paksuse millimeetri jaoks — 10 mm kulutab neist numbritest kümme korda rohkem.</string>
+
+    <plurals name="save_blockers_heading">
+        <item quantity="one">Enne salvestamist on jäänud üks asi</item>
+        <item quantity="other">Enne salvestamist on jäänud %1$d asja</item>
+    </plurals>
+    <string name="blocker_brand">Bränd on täitmata</string>
+    <string name="blocker_name">Toote nimi on täitmata</string>
+    <string name="blocker_type">Tüüp on täitmata</string>
+    <string name="blocker_minmax_blank">Nii min kui max kulu vajavad numbrit — kui tehniline leht annab ühe, pane see mõlemasse</string>
+    <string name="blocker_min_nan">Min kulu pole number</string>
+    <string name="blocker_max_nan">Max kulu pole number</string>
+    <string name="blocker_min_zero">Min kulu peab olema nullist suurem</string>
+    <string name="blocker_max_lt_min">Max kulu on min kulust väiksem</string>
+    <string name="blocker_no_part">Vähemalt ühel osal peab olema nimi ja osade arv</string>
+    <string name="blocker_part_density">Osa %1$d tihedus — %2$s</string>
+
+    <string name="density_problem_nan">Peab olema number, näiteks 1.35</string>
+    <string name="density_problem_zero">Peab olema nullist suurem</string>
+    <string name="density_problem_too_dense">Tihedam kui betoon — kas see on pakendi kaal, mitte ühe liitri kaal?</string>
+    <string name="density_warning_light">Kergem kui enamik täiteaineid — tasub üle kontrollida</string>
+    <plurals name="stored_density_subject">
+        <item quantity="one">See tihedus ei saa õige olla</item>
+        <item quantity="other">Need tihedused ei saa õiged olla</item>
+    </plurals>
+    <string name="stored_density_warning">%1$s — %2$s. Miski, mis põrandale läheb, pole betoonist tihedam, nii et tõenäoliselt on see pakendi kaal. Allolevad kilod on ikka õiged; liitrid ja segumasinasse mahtumine mitte, kuni see on Tooted → muuda all parandatud.</string>
+    <string name="stored_density_item">%1$s tihedusega %2$s kg/L</string>
 </resources>

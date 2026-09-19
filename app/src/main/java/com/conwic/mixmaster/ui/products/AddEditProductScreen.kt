@@ -26,6 +26,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -67,42 +70,42 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
     ) {
         item {
             MixMasterTopBar(
-                title = if (productId == null) "Add product" else "Edit product",
+                title = stringResource(if (productId == null) R.string.product_add else R.string.product_edit),
                 onBack = { navController.popBackStack() },
             )
         }
 
-        item { SectionLabel(text = "What it is") }
+        item { SectionLabel(text = stringResource(R.string.product_what_it_is)) }
         item {
             CardFlat {
                 SuggestField(
                     value = state.brand,
                     onValueChange = viewModel::setBrand,
-                    label = "Brand",
+                    label = stringResource(R.string.product_brand),
                     suggestions = suggestions.brands,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 FormTextField(
                     value = state.name,
                     onValueChange = viewModel::setName,
-                    label = "Product name",
+                    label = stringResource(R.string.product_name),
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
                 SuggestField(
                     value = state.category,
                     onValueChange = viewModel::setCategory,
-                    label = "Type",
+                    label = stringResource(R.string.product_type),
                     suggestions = suggestions.categories,
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             }
         }
 
-        item { SectionLabel(text = "How much it covers") }
+        item { SectionLabel(text = stringResource(R.string.product_coverage)) }
         item {
             CardFlat {
                 DropdownField(
-                    label = "Measured per",
+                    label = stringResource(R.string.product_measured_per),
                     selected = state.dosingMode.pickerLabel,
                     options = DosingMode.entries.map { it.pickerLabel },
                     onSelect = { chosen ->
@@ -112,8 +115,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    text = state.dosingMode.explanation +
-                        " If the datasheet gives one figure rather than a range, put it in both boxes.",
+                    text = state.dosingMode.explanation + " " + stringResource(R.string.product_range_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
@@ -126,14 +128,14 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     FormTextField(
                         value = state.minDoseText,
                         onValueChange = viewModel::setMinDose,
-                        label = "Min",
+                        label = stringResource(R.string.product_min),
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.weight(1f),
                     )
                     FormTextField(
                         value = state.maxDoseText,
                         onValueChange = viewModel::setMaxDose,
-                        label = "Max",
+                        label = stringResource(R.string.product_max),
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.weight(1f),
                     )
@@ -141,39 +143,39 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 SuggestField(
                     value = state.doseUnitLabel,
                     onValueChange = viewModel::setDoseUnitLabel,
-                    label = "Per what",
+                    label = stringResource(R.string.product_per_what),
                     suggestions = suggestions.doseUnitLabels,
-                    hint = "e.g. per coat, per mm",
+                    hint = stringResource(R.string.product_per_what_hint),
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             }
         }
 
-        item { SectionLabel(text = "Notes") }
+        item { SectionLabel(text = stringResource(R.string.product_notes)) }
         item {
             CardFlat {
                 FormTextField(
                     value = state.rangeNote,
                     onValueChange = viewModel::setRangeNote,
-                    label = "Shown on the product card",
+                    label = stringResource(R.string.product_card_note),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 FormTextField(
                     value = state.sourceNote,
                     onValueChange = viewModel::setSourceNote,
-                    label = "Where these figures came from",
+                    label = stringResource(R.string.product_source_note),
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
                 FormTextField(
                     value = state.datasheetUrl,
                     onValueChange = viewModel::setDatasheetUrl,
-                    label = "Datasheet link (optional)",
+                    label = stringResource(R.string.product_datasheet_link),
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
             }
         }
 
-        item { SectionLabel(text = "Added to another mix") }
+        item { SectionLabel(text = stringResource(R.string.product_addon_section)) }
         item {
             CardFlat {
                 Row(
@@ -182,9 +184,9 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                        Text(text = "A colour or additive", style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(R.string.product_addon_toggle), style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = "Goes into another product's mix rather than being mixed on its own.",
+                            text = stringResource(R.string.product_addon_toggle_note),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -193,9 +195,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 }
                 if (state.isAddOn) {
                     Text(
-                        text = "How much goes in, and per how much of the part it's measured " +
-                            "against — colour is normally dosed off the liquid, not the whole batch. " +
-                            "Off the datasheet: 28 g per 1 kg, or 1 L per 25 kg.",
+                        text = stringResource(R.string.product_addon_explain),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 12.dp, bottom = 10.dp),
@@ -208,12 +208,12 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         FormTextField(
                             value = state.addOnAmountText,
                             onValueChange = viewModel::setAddOnAmount,
-                            label = "Amount",
+                            label = stringResource(R.string.product_amount),
                             keyboardType = KeyboardType.Decimal,
                             modifier = Modifier.weight(FieldWeightWide),
                         )
                         DropdownField(
-                            label = "Unit",
+                            label = stringResource(R.string.product_unit),
                             selected = state.addOnUnitChoice,
                             options = listOf("g", "kg", "ml", "L"),
                             onSelect = viewModel::setAddOnUnitChoice,
@@ -223,7 +223,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     FormTextField(
                         value = state.addOnPerKgText,
                         onValueChange = viewModel::setAddOnPerKg,
-                        label = "Per this many kg",
+                        label = stringResource(R.string.product_per_this_many_kg),
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
@@ -237,7 +237,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             }
         }
 
-        item { SectionLabel(text = "What goes in the mix") }
+        item { SectionLabel(text = stringResource(R.string.product_mix_section)) }
         item {
             // Reads back the ratio as it's typed, rather than explaining ratios in the abstract.
             val named = state.components.filter {
@@ -246,14 +246,13 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             CardFlat {
                 if (named.isEmpty()) {
                     Text(
-                        text = "Add each part below and how many parts of it go in. " +
-                            "100 powder to 21 water means exactly that, in whatever you weigh in.",
+                        text = stringResource(R.string.product_mix_explain),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
                     Text(
-                        text = "Mixed at",
+                        text = stringResource(R.string.product_mixed_at),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -263,8 +262,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         modifier = Modifier.padding(top = 2.dp),
                     )
                     Text(
-                        text = "Density and pack size are optional, but they're what let the " +
-                            "calculator count bags and check a batch fits the mixer.",
+                        text = stringResource(R.string.product_mix_optional_note),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -294,7 +292,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
 
         item {
             GhostButton(
-                text = "+ Add another part",
+                text = stringResource(R.string.product_add_part),
                 onClick = { viewModel.addComponentRow() },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -304,16 +302,24 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             if (state.saveBlockers.isNotEmpty()) {
                 CardFlat(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
                     Text(
-                        text = if (state.saveBlockers.size == 1) {
-                            "One thing left before this saves"
-                        } else {
-                            "${state.saveBlockers.size} things left before this saves"
-                        },
+                        text = pluralStringResource(
+                            R.plurals.save_blockers_heading,
+                            state.saveBlockers.size,
+                            state.saveBlockers.size,
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     state.saveBlockers.forEach { blocker ->
+                        val message = when (blocker) {
+                            is SaveBlocker.Simple -> stringResource(blocker.messageRes)
+                            is SaveBlocker.PartDensity -> stringResource(
+                                R.string.blocker_part_density,
+                                blocker.partNumber,
+                                stringResource(blocker.problemRes),
+                            )
+                        }
                         Text(
-                            text = "· $blocker",
+                            text = "· $message",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp),
@@ -322,7 +328,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 }
             }
             PrimaryButton(
-                text = "Save product",
+                text = stringResource(R.string.product_save),
                 onClick = { viewModel.save { navController.popBackStack() } },
                 enabled = state.isValid,
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
@@ -360,7 +366,7 @@ private fun ComponentCard(
         if (row.densityKgPerLText.isNotBlank()) add("${row.densityKgPerLText} kg/L")
         if (row.packSizeText.isNotBlank()) add("${row.packSizeText} ${row.packUnit} ${row.packType}")
         if (row.potLife.isNotBlank()) add(row.potLife)
-    }.joinToString(" · ").ifBlank { "No density or pack size yet" }
+    }.joinToString(" · ").ifBlank { stringResource(R.string.product_no_density_yet) }
 
     CardFlat(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -369,12 +375,12 @@ private fun ComponentCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Part $number",
+                text = stringResource(R.string.product_part_n, number),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
             IconButton(onClick = onRemove) {
-                Icon(Icons.Filled.Close, contentDescription = "Remove part $number")
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.product_remove_part_n, number))
             }
         }
 
@@ -386,21 +392,21 @@ private fun ComponentCard(
             SuggestField(
                 value = row.label,
                 onValueChange = onLabel,
-                label = "What it is",
+                label = stringResource(R.string.product_what_it_is),
                 suggestions = labelSuggestions,
                 modifier = Modifier.weight(FieldWeightWide),
             )
             FormTextField(
                 value = row.ratioText,
                 onValueChange = onRatio,
-                label = "Parts",
+                label = stringResource(R.string.product_parts),
                 keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.weight(FieldWeightNarrow),
             )
         }
 
         DropdownField(
-            label = "Measured by",
+            label = stringResource(R.string.product_measured_by),
             selected = row.basis,
             options = listOf("Weight", "Volume"),
             onSelect = onBasis,
@@ -417,7 +423,7 @@ private fun ComponentCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                Text(text = "Density & packaging", style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.product_density_packaging), style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,
@@ -440,16 +446,16 @@ private fun ComponentCard(
                 FormTextField(
                     value = row.densityKgPerLText,
                     onValueChange = onDensity,
-                    label = "Density (kg/L)",
+                    label = stringResource(R.string.product_density),
                     keyboardType = KeyboardType.Decimal,
-                    problem = row.densityProblem,
-                    hint = row.densityWarning ?: "What one litre weighs",
+                    problem = row.densityProblem?.let { stringResource(it) },
+                    hint = stringResource(row.densityWarning ?: R.string.product_density_hint),
                     modifier = Modifier.weight(FieldWeightWide),
                 )
                 FormTextField(
                     value = row.potLife,
                     onValueChange = onPotLife,
-                    label = "Pot life",
+                    label = stringResource(R.string.product_pot_life),
                     modifier = Modifier.weight(FieldWeightNarrow),
                 )
             }
@@ -461,12 +467,12 @@ private fun ComponentCard(
                 FormTextField(
                     value = row.packSizeText,
                     onValueChange = onPackSize,
-                    label = "Pack size",
+                    label = stringResource(R.string.product_pack_size),
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.weight(FieldWeightWide),
                 )
                 DropdownField(
-                    label = "Unit",
+                    label = stringResource(R.string.product_unit),
                     selected = row.packUnit,
                     options = listOf("kg", "L"),
                     onSelect = onPackUnit,
@@ -474,7 +480,7 @@ private fun ComponentCard(
                 )
             }
             DropdownField(
-                label = "Container",
+                label = stringResource(R.string.product_container),
                 selected = row.packType,
                 options = listOf("bag", "bucket", "canister", "bottle", "drum", "tub"),
                 onSelect = onPackType,
@@ -483,7 +489,7 @@ private fun ComponentCard(
             FormTextField(
                 value = row.notes,
                 onValueChange = onNotes,
-                label = "Notes",
+                label = stringResource(R.string.product_notes),
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
             )
         }
@@ -491,34 +497,42 @@ private fun ComponentCard(
 }
 
 /** Reads the add-on dose back in the form the datasheet states it. */
+@Composable
 private fun addOnDoseSummary(state: ProductFormState): String {
     val amount = state.addOnAmountText.toNumberOrNull()
     val per = state.addOnPerKgText.toNumberOrNull()
     if (amount == null || amount <= 0.0 || per == null || per <= 0.0) {
-        return "Set an amount to use this as an add-on."
+        return stringResource(R.string.product_addon_summary_unset)
     }
-    val perLabel = if (per == 1.0) "1 kg" else "${formatDecimal(per, 2)} kg"
-    return "${formatDecimal(amount, 2)} ${state.addOnUnitChoice} per $perLabel of whatever it goes into"
+    val perLabel = stringResource(R.string.product_kg_amount, if (per == 1.0) "1" else formatDecimal(per, 2))
+    return stringResource(
+        R.string.product_addon_summary,
+        formatDecimal(amount, 2),
+        state.addOnUnitChoice,
+        perLabel,
+    )
 }
 
 /**
  * What each dosing mode is called on screen. The picker used to show the enum constant, so the
  * choice read as "MM" — which says nothing to whoever is holding the datasheet.
  */
-private val DosingMode.pickerLabel: String
+private val DosingMode.pickerLabelRes: Int
     get() = when (this) {
-        DosingMode.COATS -> "Per coat"
-        DosingMode.POUR -> "Per pour"
-        DosingMode.MM -> "Per mm of thickness"
+        DosingMode.COATS -> R.string.dosing_per_coat
+        DosingMode.POUR -> R.string.dosing_per_pour
+        DosingMode.MM -> R.string.dosing_per_mm
     }
+
+private val DosingMode.pickerLabel: String
+    @Composable get() = stringResource(pickerLabelRes)
 
 /** What the figures below the picker actually mean in that mode. */
 private val DosingMode.explanation: String
-    get() = when (this) {
-        DosingMode.COATS ->
-            "Grams per m² for each coat — two coats uses twice these figures."
-        DosingMode.POUR ->
-            "Grams per m² for the whole pour, laid in one go."
-        DosingMode.MM ->
-            "Grams per m² for every millimetre of thickness — 10 mm uses ten times these figures."
-    }
+    @Composable get() = stringResource(
+        when (this) {
+            DosingMode.COATS -> R.string.dosing_explain_coats
+            DosingMode.POUR -> R.string.dosing_explain_pour
+            DosingMode.MM -> R.string.dosing_explain_mm
+        },
+    )

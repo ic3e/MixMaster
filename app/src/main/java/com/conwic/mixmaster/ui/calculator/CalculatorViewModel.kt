@@ -17,7 +17,8 @@ import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
-import com.conwic.mixmaster.domain.storedDensityWarning
+import com.conwic.mixmaster.domain.ImplausibleDensity
+import com.conwic.mixmaster.domain.implausibleStoredDensities
 import com.conwic.mixmaster.domain.usableLitres
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,8 +50,8 @@ data class CalculatorUiState(
     val usableLitres: Double = 39.0,
     val maxBatchKg: Double = 25.0,
     val batchPlan: BatchPlan? = null,
-    /** Set when a density saved on this product can't be right — see [storedDensityWarning]. */
-    val densityWarning: String? = null,
+    /** Densities saved on this product that can't be right; the screen words the warning. */
+    val implausibleDensities: List<ImplausibleDensity> = emptyList(),
     /** Colours and admixtures available to add to this job. */
     val availableAddOns: List<ProductEntity> = emptyList(),
     val addOnNeeds: List<AddOnNeed> = emptyList(),
@@ -134,7 +135,7 @@ class CalculatorViewModel(
                 headroomPercent = input.headroomPercent,
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
-                densityWarning = storedDensityWarning(components),
+                implausibleDensities = implausibleStoredDensities(components),
                 availableAddOns = availableAddOns,
                 addOnNeeds = result?.let {
                     addOnNeeds(it, input.addOns, availableAddOns) { id -> addOnPacks[id] }
