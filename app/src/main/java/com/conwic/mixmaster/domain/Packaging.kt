@@ -61,17 +61,30 @@ fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
     mixerLitres * (1.0 - headroomPercent.coerceIn(0.0, 90.0) / 100.0)
 
 /**
+ * The word for water in each language the app is written in, so a part typed as "Vesi" is
+ * recognised the same way "Water" is. Estonian and Finnish share the nominative; the rest are
+ * the cases a part actually gets labelled in.
+ */
+private val WATER_WORDS = setOf("water", "vesi", "vett", "vee", "vettä", "veden")
+
+/**
+ * Splits a label into words on whitespace and punctuation, but *not* on hyphens — those bind a
+ * compound together, and "Water-proofer" is a waterproofer.
+ */
+private val WORD_SEPARATORS = Regex("""[\s()\[\]{}/,;:+&.]+""")
+
+/**
  * Water is 1 kg per litre and always will be, so it never has to be filled in — and is
  * resolved here rather than stored, which also covers products saved before the field existed.
- * Matched narrowly enough that a "Waterproofer" additive isn't mistaken for it.
+ *
+ * Matched a whole word at a time, so "Waterproofer", "Veekindel" and "Vesiohenteinen" — all
+ * additives, none of them water — are left alone. Getting this wrong is expensive in one
+ * direction only: a false match silently assumes a density of 1.0 and throws off every litre
+ * the calculator works out.
  */
-fun isWaterLabel(label: String): Boolean {
-    val normalized = label.trim().lowercase()
-    return normalized == "water" ||
-        normalized.startsWith("water ") ||
-        normalized.startsWith("water(") ||
-        normalized.endsWith(" water")
-}
+fun isWaterLabel(label: String): Boolean =
+    WORD_SEPARATORS.split(label.lowercase(java.util.Locale.ROOT))
+        .any { it.isNotEmpty() && it in WATER_WORDS }
 
 fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
     if (isWaterLabel(component.label)) 1.0 else component.densityKgPerL
