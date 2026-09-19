@@ -78,4 +78,40 @@
         <item>Tomorrow starts in a worryingly small number of hours.</item>
         <item>Dark outside, level inside.</item>
     </string-array>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_calculate">Calculate</string>
+    <string name="nav_products">Products</string>
+    <string name="nav_projects">Projects</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_add_task">+ Add task</string>
+
+    <!-- Products -->
+    <string name="products_title">Products</string>
+    <string name="products_add">Add product</string>
+    <string name="products_worker_note">Viewing as Worker — this library is set up by your office. You can use these products in the calculator, but can\'t add, edit or remove them.</string>
+    <string name="filter_brand">Brand</string>
+    <string name="filter_type">Type</string>
+    <plurals name="products_count">
+        <item quantity="one">1 product</item>
+        <item quantity="other">%1$d products</item>
+    </plurals>
+
+    <!-- Projects -->
+    <string name="projects_title">Projects</string>
+    <string name="projects_new">New project</string>
+    <string name="project_name">Project name</string>
+    <string name="project_client_optional">Client (optional)</string>
+    <string name="project_site_optional">Site address (optional)</string>
+    <string name="project_create">Create project</string>
+
+    <!-- Calendar -->
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_prev_month">Previous month</string>
+    <string name="calendar_next_month">Next month</string>
+    <string name="calendar_week_abbrev">Wk</string>
+    <string name="calendar_empty_day">Nothing on this day yet.</string>
 </resources>

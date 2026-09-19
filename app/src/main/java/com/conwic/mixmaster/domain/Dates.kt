@@ -48,3 +48,15 @@ fun formatShortWeekday(date: LocalDate, locale: Locale = Locale.getDefault()): S
 /** "September 2026", for the month heading. */
 fun formatMonthYear(date: LocalDate, locale: Locale = Locale.getDefault()): String =
     date.formatIn("LLLL yyyy", locale).replaceFirstChar { it.uppercase(locale) }
+
+/**
+ * Mon–Sun in the chosen language, for a calendar header.
+ *
+ * Taken from the locale rather than kept as a translated list: these are the same seven names
+ * java.time already knows, and a hand-kept copy is one more thing to get out of step.
+ */
+fun shortWeekdayNames(locale: Locale = Locale.getDefault()): List<String> =
+    java.time.DayOfWeek.entries.map { day ->
+        day.getDisplayName(java.time.format.TextStyle.SHORT, locale)
+            .replaceFirstChar { it.uppercase(locale) }
+    }

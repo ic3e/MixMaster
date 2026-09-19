@@ -52,4 +52,36 @@
         <item>Praegu kõvastub siin ainult sina, aeglaselt.</item>
         <item>Väljas pime, sees tasane.</item>
     </string-array>
+
+    <string name="nav_home">Avaleht</string>
+    <string name="nav_calculate">Arvuta</string>
+    <string name="nav_products">Tooted</string>
+    <string name="nav_projects">Projektid</string>
+    <string name="nav_settings">Seaded</string>
+
+    <string name="action_back">Tagasi</string>
+    <string name="action_add_task">+ Lisa ülesanne</string>
+
+    <string name="products_title">Tooted</string>
+    <string name="products_add">Lisa toode</string>
+    <string name="products_worker_note">Vaatad töötajana — selle nimekirja seab üles kontor. Saad neid tooteid kalkulaatoris kasutada, aga mitte lisada, muuta ega eemaldada.</string>
+    <string name="filter_brand">Bränd</string>
+    <string name="filter_type">Tüüp</string>
+    <plurals name="products_count">
+        <item quantity="one">1 toode</item>
+        <item quantity="other">%1$d toodet</item>
+    </plurals>
+
+    <string name="projects_title">Projektid</string>
+    <string name="projects_new">Uus projekt</string>
+    <string name="project_name">Projekti nimi</string>
+    <string name="project_client_optional">Klient (valikuline)</string>
+    <string name="project_site_optional">Objekti aadress (valikuline)</string>
+    <string name="project_create">Loo projekt</string>
+
+    <string name="calendar_title">Kalender</string>
+    <string name="calendar_prev_month">Eelmine kuu</string>
+    <string name="calendar_next_month">Järgmine kuu</string>
+    <string name="calendar_week_abbrev">Näd</string>
+    <string name="calendar_empty_day">Sel päeval pole veel midagi.</string>
 </resources>

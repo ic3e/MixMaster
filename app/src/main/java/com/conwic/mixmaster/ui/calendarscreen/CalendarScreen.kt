@@ -51,6 +51,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatMonthYear
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
+import com.conwic.mixmaster.domain.shortWeekdayNames
 
 @Composable
 fun CalendarScreen(navController: NavHostController) {
@@ -71,13 +74,13 @@ fun CalendarScreen(navController: NavHostController) {
         item {
             // Calendar isn't a bottom-nav destination, so the nav bar is hidden here — without
             // this there is no way back to Home except the system gesture.
-            MixMasterTopBar(title = "Calendar", onBack = { navController.popBackStack() })
+            MixMasterTopBar(title = stringResource(R.string.calendar_title), onBack = { navController.popBackStack() })
         }
         item {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = viewModel::previousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month") }
+                IconButton(onClick = viewModel::previousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.calendar_prev_month)) }
                 Text(text = formatMonthYear(state.currentMonth), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 8.dp))
-                IconButton(onClick = viewModel::nextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = "Next month") }
+                IconButton(onClick = viewModel::nextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.calendar_next_month)) }
             }
         }
 
@@ -88,13 +91,13 @@ fun CalendarScreen(navController: NavHostController) {
                 // longer months off the bottom.
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Wk",
+                        text = stringResource(R.string.calendar_week_abbrev),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(30.dp),
                     )
-                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { label ->
+                    shortWeekdayNames().forEach { label ->
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelSmall,
@@ -136,7 +139,7 @@ fun CalendarScreen(navController: NavHostController) {
             ) {
                 SectionLabel(text = formatDayWithWeek(state.selectedDate))
                 Text(
-                    text = "+ Add task",
+                    text = stringResource(R.string.action_add_task),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimary,
@@ -152,7 +155,7 @@ fun CalendarScreen(navController: NavHostController) {
         if (state.selectedDayTasks.isEmpty()) {
             item {
                 Text(
-                    text = "Nothing on this day yet.",
+                    text = stringResource(R.string.calendar_empty_day),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

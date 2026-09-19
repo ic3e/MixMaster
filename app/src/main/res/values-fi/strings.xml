@@ -52,4 +52,36 @@
         <item>Ainoa mikä tässä kovettuu olet sinä, hitaasti.</item>
         <item>Ulkona pimeää, sisällä tasaista.</item>
     </string-array>
+
+    <string name="nav_home">Etusivu</string>
+    <string name="nav_calculate">Laske</string>
+    <string name="nav_products">Tuotteet</string>
+    <string name="nav_projects">Projektit</string>
+    <string name="nav_settings">Asetukset</string>
+
+    <string name="action_back">Takaisin</string>
+    <string name="action_add_task">+ Lisää tehtävä</string>
+
+    <string name="products_title">Tuotteet</string>
+    <string name="products_add">Lisää tuote</string>
+    <string name="products_worker_note">Katselet työntekijänä — tämän listan ylläpitää toimisto. Voit käyttää näitä tuotteita laskurissa, mutta et lisätä, muokata tai poistaa niitä.</string>
+    <string name="filter_brand">Merkki</string>
+    <string name="filter_type">Tyyppi</string>
+    <plurals name="products_count">
+        <item quantity="one">1 tuote</item>
+        <item quantity="other">%1$d tuotetta</item>
+    </plurals>
+
+    <string name="projects_title">Projektit</string>
+    <string name="projects_new">Uusi projekti</string>
+    <string name="project_name">Projektin nimi</string>
+    <string name="project_client_optional">Asiakas (valinnainen)</string>
+    <string name="project_site_optional">Kohteen osoite (valinnainen)</string>
+    <string name="project_create">Luo projekti</string>
+
+    <string name="calendar_title">Kalenteri</string>
+    <string name="calendar_prev_month">Edellinen kuukausi</string>
+    <string name="calendar_next_month">Seuraava kuukausi</string>
+    <string name="calendar_week_abbrev">Vk</string>
+    <string name="calendar_empty_day">Tälle päivälle ei ole vielä mitään.</string>
 </resources>

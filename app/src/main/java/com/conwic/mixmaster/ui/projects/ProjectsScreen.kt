@@ -46,6 +46,8 @@ import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.ui.theme.CardShape
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 @Composable
 fun ProjectsScreen(navController: NavHostController) {
@@ -70,7 +72,7 @@ fun ProjectsScreen(navController: NavHostController) {
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "New project")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.projects_new))
             }
         },
     ) { insets ->
@@ -80,7 +82,7 @@ fun ProjectsScreen(navController: NavHostController) {
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item { Text(text = "Projects", style = MaterialTheme.typography.headlineMedium) }
+            item { Text(text = stringResource(R.string.projects_title), style = MaterialTheme.typography.headlineMedium) }
 
             item {
                 ChipRow(
@@ -155,30 +157,30 @@ private fun NewProjectSheet(onDismiss: () -> Unit, onCreate: (String, String, St
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = "New project", style = MaterialTheme.typography.headlineMedium)
+            Text(text = stringResource(R.string.projects_new), style = MaterialTheme.typography.headlineMedium)
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Project name") },
+                label = { Text(stringResource(R.string.project_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = client,
                 onValueChange = { client = it },
-                label = { Text("Client (optional)") },
+                label = { Text(stringResource(R.string.project_client_optional)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = { Text("Site address (optional)") },
+                label = { Text(stringResource(R.string.project_site_optional)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             PrimaryButton(
-                text = "Create project",
+                text = stringResource(R.string.project_create),
                 onClick = { onCreate(name, client, address) },
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),

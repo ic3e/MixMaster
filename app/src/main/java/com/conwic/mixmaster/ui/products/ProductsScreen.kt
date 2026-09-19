@@ -36,6 +36,9 @@ import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.ui.theme.CardShape
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 @Composable
 fun ProductsScreen(navController: NavHostController) {
@@ -61,7 +64,7 @@ fun ProductsScreen(navController: NavHostController) {
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add product")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.products_add))
                 }
             }
         },
@@ -72,13 +75,13 @@ fun ProductsScreen(navController: NavHostController) {
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item { Text(text = "Products", style = MaterialTheme.typography.headlineMedium) }
+            item { Text(text = stringResource(R.string.products_title), style = MaterialTheme.typography.headlineMedium) }
 
             if (role == Role.WORKER) {
                 item {
                     CardFlat {
                         Text(
-                            text = "Viewing as Worker — this library is set up by your office. You can use these products in the calculator, but can't add, edit or remove them.",
+                            text = stringResource(R.string.products_worker_note),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -93,14 +96,14 @@ fun ProductsScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     DropdownField(
-                        label = "Brand",
+                        label = stringResource(R.string.filter_brand),
                         selected = state.brandFilter,
                         options = state.brands,
                         onSelect = viewModel::setBrandFilter,
                         modifier = Modifier.weight(1f),
                     )
                     DropdownField(
-                        label = "Type",
+                        label = stringResource(R.string.filter_type),
                         selected = state.categoryFilter,
                         options = state.categories,
                         onSelect = viewModel::setCategoryFilter,
@@ -111,11 +114,11 @@ fun ProductsScreen(navController: NavHostController) {
 
             item {
                 Text(
-                    text = if (state.visibleProducts.size == 1) {
-                        "1 product"
-                    } else {
-                        "${state.visibleProducts.size} products"
-                    },
+                    text = pluralStringResource(
+                        R.plurals.products_count,
+                        state.visibleProducts.size,
+                        state.visibleProducts.size,
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

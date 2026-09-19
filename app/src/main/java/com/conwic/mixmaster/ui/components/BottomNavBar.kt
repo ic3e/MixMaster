@@ -27,18 +27,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.Charcoal
 import androidx.compose.ui.draw.clip
 
-private data class NavItem(val route: String, val label: String, val icon: ImageVector)
+// The label is a resource id rather than text: this list is built once at class load,
+// long before any language is known.
+private data class NavItem(val route: String, @StringRes val labelRes: Int, val icon: ImageVector)
 
 private val navItems = listOf(
-    NavItem(Routes.HOME, "Home", Icons.Filled.Home),
-    NavItem(Routes.CALCULATOR, "Calculate", Icons.Filled.Science),
-    NavItem(Routes.PRODUCTS, "Products", Icons.Filled.Inventory2),
-    NavItem(Routes.PROJECTS, "Projects", Icons.Filled.CalendarMonth),
-    NavItem(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+    NavItem(Routes.HOME, R.string.nav_home, Icons.Filled.Home),
+    NavItem(Routes.CALCULATOR, R.string.nav_calculate, Icons.Filled.Science),
+    NavItem(Routes.PRODUCTS, R.string.nav_products, Icons.Filled.Inventory2),
+    NavItem(Routes.PROJECTS, R.string.nav_projects, Icons.Filled.CalendarMonth),
+    NavItem(Routes.SETTINGS, R.string.nav_settings, Icons.Filled.Settings),
 )
 
 private val NavInactive = Color(0xFF8E9095)
@@ -71,8 +76,9 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Icon(imageVector = item.icon, contentDescription = item.label, tint = color, modifier = Modifier.height(20.dp))
-                    Text(text = item.label, style = MaterialTheme.typography.labelSmall, color = color)
+                    val label = stringResource(item.labelRes)
+                    Icon(imageVector = item.icon, contentDescription = label, tint = color, modifier = Modifier.height(20.dp))
+                    Text(text = label, style = MaterialTheme.typography.labelSmall, color = color)
                 }
             }
         }
