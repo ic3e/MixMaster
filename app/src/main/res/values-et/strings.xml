@@ -446,4 +446,28 @@
 
     <string name="image_cant_open">Ei saa avada</string>
     <string name="home_quick_calculate_sub">Saa täpne segu jaotus sekunditega</string>
+
+    <string name="batch_none">—</string>
+    <string name="batch_one_of_the_parts">üks osadest</string>
+    <string name="batch_and">%1$s ja %2$s</string>
+    <string name="batch_whole_pack">1 × %1$s kg %2$s korraga</string>
+    <string name="batch_litres">%1$s L korraga</string>
+    <string name="batch_kilos">%1$s kg korraga</string>
+    <string name="batch_problem_no_pack_weight">Määra selle toote pulbri koti või ämbri kaal, et segamiskordi lugeda.</string>
+    <string name="batch_problem_needs_density">Segumasina mahu järgi jagamiseks on vaja liitreid ja %1$s tihedus on määramata. Lisa see tootele (Tooted → muuda → Tihedus) või jaga koti kaupa.</string>
+    <string name="batch_problem_no_mixer">Vali segumasina maht.</string>
+    <string name="batch_problem_no_max_weight">Määra ühe koguse maksimaalne kaal.</string>
+
+    <string name="report_subtitle">MixMasteri projektiraport · koostatud %1$s</string>
+    <string name="report_client">Klient: %1$s</string>
+    <string name="report_site">Objekti aadress: %1$s</string>
+    <string name="report_dates">Algus: %1$s    Plaanitud lõpp: %2$s</string>
+    <string name="report_scope">Töö maht</string>
+    <string name="report_no_scope">Töö mahu märkmeid pole.</string>
+    <string name="report_rooms">Ruumid ja materjalid</string>
+    <string name="report_total_material">Materjali kõigi ruumide peale kokku: %1$s kg</string>
+    <string name="report_tasks">Ülesanded</string>
+    <string name="report_task_done">[tehtud] </string>
+    <string name="report_task_line">%1$s%2$s — %3$s</string>
+    <string name="report_no_due">tähtajata</string>
 </resources>

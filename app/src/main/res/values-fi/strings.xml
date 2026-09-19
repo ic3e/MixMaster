@@ -446,4 +446,28 @@
 
     <string name="image_cant_open">Ei voi avata</string>
     <string name="home_quick_calculate_sub">Saat tarkan massajaon sekunneissa</string>
+
+    <string name="batch_none">—</string>
+    <string name="batch_one_of_the_parts">yksi osista</string>
+    <string name="batch_and">%1$s ja %2$s</string>
+    <string name="batch_whole_pack">1 × %1$s kg %2$s erää kohti</string>
+    <string name="batch_litres">%1$s L erää kohti</string>
+    <string name="batch_kilos">%1$s kg erää kohti</string>
+    <string name="batch_problem_no_pack_weight">Aseta tämän tuotteen jauheen säkin tai ämpärin paino, jotta sekoituskerrat voidaan laskea.</string>
+    <string name="batch_problem_needs_density">Sekoitusastian koon mukaan jakaminen vaatii litrat, eikä %1$s tiheyttä ole asetettu. Lisää se tuotteelle (Tuotteet → muokkaa → Tiheys) tai jaa säkeittäin.</string>
+    <string name="batch_problem_no_mixer">Valitse sekoitusastian koko.</string>
+    <string name="batch_problem_no_max_weight">Aseta erän enimmäispaino.</string>
+
+    <string name="report_subtitle">MixMaster-projektiraportti · luotu %1$s</string>
+    <string name="report_client">Asiakas: %1$s</string>
+    <string name="report_site">Kohteen osoite: %1$s</string>
+    <string name="report_dates">Aloitus: %1$s    Tavoite: %2$s</string>
+    <string name="report_scope">Työn laajuus</string>
+    <string name="report_no_scope">Laajuudesta ei ole muistiinpanoja.</string>
+    <string name="report_rooms">Tilat ja materiaalit</string>
+    <string name="report_total_material">Materiaalia kaikissa tiloissa yhteensä: %1$s kg</string>
+    <string name="report_tasks">Tehtävät</string>
+    <string name="report_task_done">[tehty] </string>
+    <string name="report_task_line">%1$s%2$s — %3$s</string>
+    <string name="report_no_due">ei määräpäivää</string>
 </resources>

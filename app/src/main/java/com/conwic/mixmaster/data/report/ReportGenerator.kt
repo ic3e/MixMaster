@@ -61,26 +61,35 @@ object ReportGenerator {
         val dimPaint = textPaint(size = 9f, bold = false, colorHex = "#6B6259")
 
         y += 12f
-        canvas.drawText("Client: ${project.clientName}", MARGIN, y, bodyPaint)
+        canvas.drawText(context.getString(R.string.report_client, project.clientName), MARGIN, y, bodyPaint)
         y += 16f
-        canvas.drawText("Site address: ${project.address}", MARGIN, y, bodyPaint)
+        canvas.drawText(context.getString(R.string.report_site, project.address), MARGIN, y, bodyPaint)
         y += 16f
-        canvas.drawText("Start: ${project.startDate ?: "—"}    Target finish: ${project.targetFinishDate ?: "—"}", MARGIN, y, bodyPaint)
+        canvas.drawText(
+            context.getString(
+                R.string.report_dates,
+                project.startDate?.toString() ?: "—",
+                project.targetFinishDate?.toString() ?: "—",
+            ),
+            MARGIN,
+            y,
+            bodyPaint,
+        )
         y += 24f
 
-        canvas.drawText("Scope", MARGIN, y, titlePaint)
+        canvas.drawText(context.getString(R.string.report_scope), MARGIN, y, titlePaint)
         y += 16f
-        y = drawWrapped(canvas, project.scopeNotes.ifBlank { "No scope notes recorded." }, MARGIN, y, PAGE_WIDTH - 2 * MARGIN, bodyPaint)
+        y = drawWrapped(canvas, project.scopeNotes.ifBlank { context.getString(R.string.report_no_scope) }, MARGIN, y, PAGE_WIDTH - 2 * MARGIN, bodyPaint)
         y += 20f
 
         newPageIfNeeded(24f)
-        canvas.drawText("Rooms & materials", MARGIN, y, titlePaint)
+        canvas.drawText(context.getString(R.string.report_rooms), MARGIN, y, titlePaint)
         y += 18f
         val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
         for (room in rooms) {
             newPageIfNeeded(30f)
             val mix = roomMixes[room.id]
-            val productName = products.firstOrNull { it.id == room.assignedProductId }?.name ?: "Unassigned"
+            val productName = products.firstOrNull { it.id == room.assignedProductId }?.name ?: context.getString(R.string.prj_unassigned)
             canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
             y += 13f
             val detail = if (mix != null) {
@@ -92,16 +101,26 @@ object ReportGenerator {
             y += 18f
         }
         newPageIfNeeded(20f)
-        canvas.drawText("Total material across all rooms: ${formatKg(totalGrams)} kg", MARGIN, y, textPaint(size = 10f, bold = true))
+        canvas.drawText(context.getString(R.string.report_total_material, formatKg(totalGrams)), MARGIN, y, textPaint(size = 10f, bold = true))
         y += 26f
 
         newPageIfNeeded(24f)
-        canvas.drawText("Tasks", MARGIN, y, titlePaint)
+        canvas.drawText(context.getString(R.string.report_tasks), MARGIN, y, titlePaint)
         y += 18f
         for (task in tasks.sortedBy { it.dueDate }) {
             newPageIfNeeded(16f)
-            val status = if (task.isDone) "[done] " else ""
-            canvas.drawText("$status${task.title} — ${task.dueDate ?: "no due date"}", MARGIN, y, bodyPaint)
+            val status = if (task.isDone) context.getString(R.string.report_task_done) else ""
+            canvas.drawText(
+                context.getString(
+                    R.string.report_task_line,
+                    status,
+                    task.title,
+                    task.dueDate?.toString() ?: context.getString(R.string.report_no_due),
+                ),
+                MARGIN,
+                y,
+                bodyPaint,
+            )
             y += 15f
         }
 
@@ -190,7 +209,7 @@ object ReportGenerator {
 
         val datePaint = textPaint(size = 9f, bold = false, colorHex = "#6C6459")
         canvas.drawText(
-            "MixMaster project report · generated ${java.time.LocalDate.now()}",
+            context.getString(R.string.report_subtitle, java.time.LocalDate.now().toString()),
             MARGIN,
             120f,
             datePaint,

@@ -21,12 +21,28 @@ data class PackNeed(
     val packLabel: String get() = "${formatDecimal(packSize, 2)} $packUnit $packType"
 }
 
+/** Why a batch plan couldn't be worked out. Worded by the screen, which knows the language. */
+sealed interface BatchProblem {
+    data object NoPackWeight : BatchProblem
+    data class NeedsDensity(val missingLabels: List<String>) : BatchProblem
+    data object NoMixerSize : BatchProblem
+    data object NoMaxWeight : BatchProblem
+}
+
+/** How big one batch is, in the terms the chosen basis works in. */
+sealed interface BatchSize {
+    data object Unknown : BatchSize
+    data class WholePack(val packSizeKg: String, val packType: String) : BatchSize
+    data class Litres(val litres: String) : BatchSize
+    data class Kilos(val kilos: String) : BatchSize
+}
+
 data class BatchPlan(
     /** Number of identical full batches. */
     val batches: Int,
     /** Per-batch component amounts in grams — what actually goes in the mixer each time. */
     val perBatch: List<ComponentAmount>,
-    val batchSizeLabel: String,
+    val batchSize: BatchSize,
     /** A smaller final batch, when batching by whole packs leaves a part bag over. */
     val remainderBatch: List<ComponentAmount>? = null,
     /** Volume one full batch takes up, when every part has a density. */
@@ -34,7 +50,7 @@ data class BatchPlan(
     /** True when a batch wouldn't leave the requested mixing room — it would slop over. */
     val overflows: Boolean = false,
     /** Set when the plan couldn't be worked out, explaining what's missing. */
-    val problem: String? = null,
+    val problem: BatchProblem? = null,
 ) {
     /** Times the mixer actually gets loaded, counting the part batch at the end. */
     val totalMixes: Int get() = batches + if (remainderBatch != null) 1 else 0
@@ -60,17 +76,16 @@ fun isWaterLabel(label: String): Boolean {
 fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
     if (isWaterLabel(component.label)) 1.0 else component.densityKgPerL
 
-/** The parts with no usable density, named, for a message that says what to go and fix. */
-fun missingDensityLabels(result: MixResult, components: List<ProductComponentEntity>): String {
-    val names = result.components.filterIndexed { index, _ ->
+/**
+ * The parts with no usable density, for a message that says what to go and fix.
+ *
+ * Returns the names rather than a phrase: joining them with "and" is a decision that belongs
+ * in whichever language the app is set to.
+ */
+fun missingDensityLabels(result: MixResult, components: List<ProductComponentEntity>): List<String> =
+    result.components.filterIndexed { index, _ ->
         (components.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0) <= 0.0
     }.map { it.label }
-    return when (names.size) {
-        0 -> "one of the parts"
-        1 -> names.first()
-        else -> names.dropLast(1).joinToString(", ") + " and " + names.last()
-    }
-}
 
 /** Litres this mix occupies, or null if any part is missing a density. */
 fun mixVolumeLitres(result: MixResult, components: List<ProductComponentEntity>): Double? {
@@ -126,7 +141,7 @@ fun planBatches(
     maxBatchKg: Double,
 ): BatchPlan {
     val totalKg = result.totalGrams / 1000.0
-    if (totalKg <= 0.0) return BatchPlan(0, emptyList(), "—")
+    if (totalKg <= 0.0) return BatchPlan(0, emptyList(), BatchSize.Unknown)
 
     val totalLitres = mixVolumeLitres(result, components)
     val usable = usableLitres(mixerLitres, headroomPercent)
@@ -148,12 +163,12 @@ fun planBatches(
             ?: return BatchPlan(
                 1,
                 result.components,
-                "—",
-                problem = "Set the bag or bucket weight on this product's powder to count mixings.",
+                BatchSize.Unknown,
+                problem = BatchProblem.NoPackWeight,
             )
         val partKg = (result.components.getOrNull(index)?.grams ?: 0.0) / 1000.0
         val packSize = components[index].packageSize
-        if (partKg <= 0.0) return BatchPlan(0, emptyList(), "—")
+        if (partKg <= 0.0) return BatchPlan(0, emptyList(), BatchSize.Unknown)
 
         val fullBatches = kotlin.math.floor(partKg / packSize).toInt()
         val remainderKg = partKg - fullBatches * packSize
@@ -163,7 +178,7 @@ fun planBatches(
         return BatchPlan(
             batches = fullBatches,
             perBatch = result.components.map { ComponentAmount(it.label, it.grams * fullShare) },
-            batchSizeLabel = "1 × ${formatDecimal(packSize, 2)} kg $packType per batch",
+            batchSize = BatchSize.WholePack(formatDecimal(packSize, 2), packType),
             remainderBatch = if (remainderKg > 0.001) {
                 result.components.map { ComponentAmount(it.label, it.grams * (remainderKg / partKg)) }
             } else {
@@ -175,32 +190,30 @@ fun planBatches(
     }
 
     val batches: Int
-    val label: String
+    val size: BatchSize
     when (basis) {
         BatchBasis.MIXER_VOLUME -> {
             val litres = totalLitres
                 ?: return BatchPlan(
                     batches = 1,
                     perBatch = result.components,
-                    batchSizeLabel = "—",
-                    problem = "Batching by mixer size needs litres, and ${missingDensityLabels(result, components)} " +
-                        "has no density set. Add it on the product (Products → edit → Density), or batch by " +
-                        "the bag instead.",
+                    batchSize = BatchSize.Unknown,
+                    problem = BatchProblem.NeedsDensity(missingDensityLabels(result, components)),
                 )
-            if (usable <= 0.0) return BatchPlan(1, result.components, "—", problem = "Choose a mixer size.")
+            if (usable <= 0.0) return BatchPlan(1, result.components, BatchSize.Unknown, problem = BatchProblem.NoMixerSize)
             batches = ceil(litres / usable).toInt().coerceAtLeast(1)
             // Just the batch size. How it sits in the drum is the next line's job — saying it
             // twice in two different phrasings only reads as a discrepancy.
-            label = "${formatDecimal(litres / batches, 1)} L per batch"
+            size = BatchSize.Litres(formatDecimal(litres / batches, 1))
         }
         BatchBasis.MAX_WEIGHT -> {
-            if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, "—", problem = "Set a maximum batch weight.")
+            if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, BatchSize.Unknown, problem = BatchProblem.NoMaxWeight)
             batches = ceil(totalKg / maxBatchKg).toInt().coerceAtLeast(1)
-            label = "${formatKg(result.totalGrams / batches)} kg per batch"
+            size = BatchSize.Kilos(formatKg(result.totalGrams / batches))
         }
         BatchBasis.ONE_PACKAGE -> error("handled above")
     }
 
     val perBatch = result.components.map { ComponentAmount(it.label, it.grams / batches) }
-    return withFit(BatchPlan(batches = batches, perBatch = perBatch, batchSizeLabel = label))
+    return withFit(BatchPlan(batches = batches, perBatch = perBatch, batchSize = size))
 }

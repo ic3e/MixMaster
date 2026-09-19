@@ -492,4 +492,30 @@
 
     <string name="image_cant_open">Can\'t open</string>
     <string name="home_quick_calculate_sub">Get an exact mix split in seconds</string>
+
+    <!-- Batching -->
+    <string name="batch_none">—</string>
+    <string name="batch_one_of_the_parts">one of the parts</string>
+    <string name="batch_and">%1$s and %2$s</string>
+    <string name="batch_whole_pack">1 × %1$s kg %2$s per batch</string>
+    <string name="batch_litres">%1$s L per batch</string>
+    <string name="batch_kilos">%1$s kg per batch</string>
+    <string name="batch_problem_no_pack_weight">Set the bag or bucket weight on this product\'s powder to count mixings.</string>
+    <string name="batch_problem_needs_density">Batching by mixer size needs litres, and %1$s has no density set. Add it on the product (Products → edit → Density), or batch by the bag instead.</string>
+    <string name="batch_problem_no_mixer">Choose a mixer size.</string>
+    <string name="batch_problem_no_max_weight">Set a maximum batch weight.</string>
+
+    <!-- PDF report -->
+    <string name="report_subtitle">MixMaster project report · generated %1$s</string>
+    <string name="report_client">Client: %1$s</string>
+    <string name="report_site">Site address: %1$s</string>
+    <string name="report_dates">Start: %1$s    Target finish: %2$s</string>
+    <string name="report_scope">Scope</string>
+    <string name="report_no_scope">No scope notes recorded.</string>
+    <string name="report_rooms">Rooms &amp; materials</string>
+    <string name="report_total_material">Total material across all rooms: %1$s kg</string>
+    <string name="report_tasks">Tasks</string>
+    <string name="report_task_done">[done] </string>
+    <string name="report_task_line">%1$s%2$s — %3$s</string>
+    <string name="report_no_due">no due date</string>
 </resources>

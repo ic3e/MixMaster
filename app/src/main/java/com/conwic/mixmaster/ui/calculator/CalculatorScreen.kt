@@ -38,6 +38,8 @@ import androidx.compose.ui.res.pluralStringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.domain.AddOnProblem
+import com.conwic.mixmaster.domain.BatchProblem
+import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
@@ -590,7 +592,7 @@ fun CalculatorScreen(navController: NavHostController) {
                     val plan = state.batchPlan
                     if (plan?.problem != null) {
                         Text(
-                            text = plan.problem,
+                            text = batchProblemText(plan.problem),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.Bold,
@@ -609,9 +611,9 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                         Text(
                             text = if (plan.remainderBatch != null && plan.batches > 0) {
-                                stringResource(R.string.calc_batches_split, plan.batches, plan.batchSizeLabel)
+                                stringResource(R.string.calc_batches_split, plan.batches, batchSizeText(plan.batchSize))
                             } else {
-                                plan.batchSizeLabel
+                                batchSizeText(plan.batchSize)
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -739,4 +741,39 @@ private fun mixingReminder(date: LocalDate): String {
     val pool = stringArrayResource(R.array.mixing_reminders)
     if (pool.isEmpty()) return ""
     return pool[Random(date.toEpochDay()).nextInt(pool.size)]
+}
+
+/** The batch size in words. Built here because only the screen knows the language. */
+@Composable
+private fun batchSizeText(size: BatchSize): String = when (size) {
+    is BatchSize.Unknown -> stringResource(R.string.batch_none)
+    is BatchSize.WholePack -> stringResource(R.string.batch_whole_pack, size.packSizeKg, size.packType)
+    is BatchSize.Litres -> stringResource(R.string.batch_litres, size.litres)
+    is BatchSize.Kilos -> stringResource(R.string.batch_kilos, size.kilos)
+}
+
+/**
+ * Why a batch plan couldn't be worked out.
+ *
+ * The list of parts missing a density is joined here rather than in the domain: where the
+ * "and" goes, and whether there is one at all, is a question about the language.
+ */
+@Composable
+private fun batchProblemText(problem: BatchProblem): String = when (problem) {
+    is BatchProblem.NoPackWeight -> stringResource(R.string.batch_problem_no_pack_weight)
+    is BatchProblem.NoMixerSize -> stringResource(R.string.batch_problem_no_mixer)
+    is BatchProblem.NoMaxWeight -> stringResource(R.string.batch_problem_no_max_weight)
+    is BatchProblem.NeedsDensity -> {
+        val names = problem.missingLabels
+        val named = when (names.size) {
+            0 -> stringResource(R.string.batch_one_of_the_parts)
+            1 -> names.first()
+            else -> stringResource(
+                R.string.batch_and,
+                names.dropLast(1).joinToString(", "),
+                names.last(),
+            )
+        }
+        stringResource(R.string.batch_problem_needs_density, named)
+    }
 }
