@@ -1,8 +1,8 @@
 {
-  "versionCode": 52,
-  "versionName": "1.0.52",
-  "apk": "MixMaster_1.0.52.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.52.apk",
-  "sizeBytes": 19862672,
-  "notes": "Resolve those two strings before the lambda, not inside it"
+  "versionCode": 54,
+  "versionName": "1.0.54",
+  "apk": "MixMaster_1.0.54.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.54.apk",
+  "sizeBytes": 19936744,
+  "notes": "Translate sign-in, onboarding, the lock, updates and the rest of home"
 }
