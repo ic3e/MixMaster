@@ -40,7 +40,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.R
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatShortWeekday

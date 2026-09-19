@@ -42,7 +42,6 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ChipRow
-import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.RatioBadge
