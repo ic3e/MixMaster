@@ -191,6 +191,7 @@ private fun AddressActionSheet(address: String, onDismiss: () -> Unit, context: 
             Row(
                 modifier = Modifier.fillMaxWidth().clickable {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(address)))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     runCatching { context.startActivity(intent) }
                     onDismiss()
                 }.padding(vertical = 12.dp),

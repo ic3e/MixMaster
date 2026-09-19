@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.domain.AppLanguage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,6 +20,9 @@ class UserPrefs(private val context: Context) {
         val ROLE = stringPreferencesKey("role")
         val ONBOARDING_SEEN = booleanPreferencesKey("onboarding_seen")
         val THEME = stringPreferencesKey("theme") // "Light" | "Dark" | "Auto"
+        // Absent means nobody has chosen yet, which is what makes the phone's own language the
+        // starting point without it later overriding a choice that was made.
+        val LANGUAGE = stringPreferencesKey("language")
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         // Was labelled "contextual tips"; it now drives the mixing reminders in the calculator.
         // The key is left alone so anyone who already turned it off stays turned off.
@@ -44,6 +48,15 @@ class UserPrefs(private val context: Context) {
 
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { it[Keys.THEME] = theme }
+    }
+
+    /** The chosen language, or the phone's if it's one of ours, or English. */
+    val language: Flow<AppLanguage> = context.dataStore.data.map { prefs ->
+        AppLanguage.fromTag(prefs[Keys.LANGUAGE]) ?: AppLanguage.fromDevice()
+    }
+
+    suspend fun setLanguage(language: AppLanguage) {
+        context.dataStore.edit { it[Keys.LANGUAGE] = language.tag }
     }
 
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.APP_LOCK_ENABLED] ?: false }

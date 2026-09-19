@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_language">Keel</string>
+    <string name="settings_language_note">Menüüd, nupud ja kuupäevad järgivad seda. Alguses on telefoni keel ja edasi jääb see, mille ise valid.</string>
+
+    <string name="date_today">Täna</string>
+    <string name="date_today_with_week">Täna · %1$s</string>
+</resources>

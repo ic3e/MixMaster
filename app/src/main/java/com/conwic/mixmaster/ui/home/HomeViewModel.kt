@@ -7,7 +7,6 @@ import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.ProjectStatus
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
-import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.ui.tasks.ProjectOption
 import com.conwic.mixmaster.ui.tasks.TaskDraft
@@ -30,7 +29,6 @@ data class HomeTaskUi(val task: TaskEntity, val projectName: String) {
 
 data class WeekDayUi(
     val date: LocalDate,
-    val label: String,
     val dayOfMonth: Int,
     val isToday: Boolean,
     val isSelected: Boolean,
@@ -42,7 +40,6 @@ data class HomeUiState(
     val productCount: Int = 0,
     val todayTaskCount: Int = 0,
     val selectedDate: LocalDate = LocalDate.now(),
-    val selectedDayLabel: String = "",
     val weekLabel: String = "",
     val dayTasks: List<HomeTaskUi> = emptyList(),
     val overdueTasks: List<HomeTaskUi> = emptyList(),
@@ -101,7 +98,6 @@ class HomeViewModel(
             val date = monday.plusDays(offset.toLong())
             WeekDayUi(
                 date = date,
-                label = date.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() },
                 dayOfMonth = date.dayOfMonth,
                 isToday = date == today,
                 isSelected = date == selected,
@@ -114,7 +110,6 @@ class HomeViewModel(
             productCount = products.size,
             todayTaskCount = tasks.count { it.dueDate == today && !it.isDone },
             selectedDate = selected,
-            selectedDayLabel = if (selected == today) "Today · ${formatWeek(today)}" else formatDayWithWeek(selected),
             weekLabel = formatWeek(monday),
             dayTasks = dayTasks,
             overdueTasks = overdue,

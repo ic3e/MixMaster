@@ -1,5 +1,6 @@
 package com.conwic.mixmaster
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -14,10 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import com.conwic.mixmaster.data.update.AppUpdates
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
+import java.util.Locale
 
 /**
  * A FragmentActivity rather than a plain ComponentActivity: BiometricPrompt, which backs the
@@ -51,9 +57,37 @@ class MainActivity : FragmentActivity() {
                     .isAppearanceLightStatusBars = !dark
             }
 
+            // The chosen language, applied by handing every reader a context configured for it.
+            // That is what makes stringResource resolve in the right language and, just as
+            // importantly, what makes java.time format dates in it — the two used to disagree,
+            // so "TODAY" sat above an Estonian weekday on the same screen.
+            val language by container.userPrefs.language.collectAsState(initial = null)
+            val baseContext = LocalContext.current
+            val localeConfig = remember(language, baseContext) {
+                language?.let {
+                    Configuration(baseContext.resources.configuration).apply { setLocale(it.locale) }
+                }
+            }
+            val localizedContext = remember(localeConfig) {
+                localeConfig?.let { baseContext.createConfigurationContext(it) }
+            }
+
             MixMasterTheme(darkTheme = dark) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    CompositionLocalProvider(LocalAppContainer provides container) {
+                    if (language == null || localizedContext == null || localeConfig == null) {
+                        return@Surface
+                    }
+                    // java.time reads the JVM default, so the setting has to reach it too or
+                    // the dates go on following the phone while the words follow the setting.
+                    // A SideEffect, because composition is not the place to mutate globals.
+                    val chosen = language!!.locale
+                    SideEffect { Locale.setDefault(chosen) }
+                    CompositionLocalProvider(
+                        LocalAppContainer provides container,
+                        LocalAppActivity provides this@MainActivity,
+                        LocalContext provides localizedContext,
+                        LocalConfiguration provides localeConfig,
+                    ) {
                         val appLockEnabled by container.userPrefs.appLockEnabled.collectAsState(initial = null)
                         // Onboarding hasn't been seen yet on a fresh install -> start at Sign in;
                         // otherwise jump straight to Home. Resolved once before the NavHost mounts.

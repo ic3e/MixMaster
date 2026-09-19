@@ -40,6 +40,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.R
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.domain.formatDayWithWeek
+import com.conwic.mixmaster.domain.formatShortWeekday
+import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
@@ -173,7 +178,13 @@ fun HomeScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    SectionLabel(text = state.selectedDayLabel)
+                    SectionLabel(
+                        text = if (state.selectedDate == today) {
+                            stringResource(R.string.date_today_with_week, formatWeek(today))
+                        } else {
+                            formatDayWithWeek(state.selectedDate)
+                        },
+                    )
                     Text(
                         text = "+ Add task",
                         style = MaterialTheme.typography.bodyMedium,
@@ -309,7 +320,11 @@ private fun WeekDayCell(day: WeekDayUi, onClick: () -> Unit, modifier: Modifier 
     }
     val foreground = if (day.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = day.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = formatShortWeekday(day.date),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Column(
             modifier = Modifier
                 .padding(top = 4.dp)

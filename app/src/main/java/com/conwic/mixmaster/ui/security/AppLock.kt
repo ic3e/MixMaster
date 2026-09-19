@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.conwic.mixmaster.ui.LocalAppActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.conwic.mixmaster.ui.components.ConwicLockup
@@ -58,7 +59,9 @@ fun canLockApp(context: Context): Boolean = allowedAuthenticators(context) != nu
 @Composable
 fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity
+    // Handed down rather than cast out of LocalContext: that is a locale wrapper, not the
+    // activity, and a null here silently means "never lock".
+    val activity = LocalAppActivity.current ?: (context as? FragmentActivity)
     val authenticators = remember { allowedAuthenticators(context) }
     val guarding = enabled && activity != null && authenticators != null
 

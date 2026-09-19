@@ -49,6 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.domain.formatDayWithWeek
+import com.conwic.mixmaster.domain.formatMonthYear
 
 @Composable
 fun CalendarScreen(navController: NavHostController) {
@@ -74,7 +76,7 @@ fun CalendarScreen(navController: NavHostController) {
         item {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = viewModel::previousMonth) { Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month") }
-                Text(text = state.monthLabel, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 8.dp))
+                Text(text = formatMonthYear(state.currentMonth), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 8.dp))
                 IconButton(onClick = viewModel::nextMonth) { Icon(Icons.Filled.ChevronRight, contentDescription = "Next month") }
             }
         }
@@ -132,7 +134,7 @@ fun CalendarScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SectionLabel(text = state.selectedDateLabel)
+                SectionLabel(text = formatDayWithWeek(state.selectedDate))
                 Text(
                     text = "+ Add task",
                     style = MaterialTheme.typography.bodyMedium,

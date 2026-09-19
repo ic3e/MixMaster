@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  English is the source language: every string is written here first, and values-et / values-fi
+  carry the same keys. A key with no translation falls back to this file, so a missed one shows
+  in English rather than crashing or showing a key name.
+-->
 <resources>
-    <string name="app_name">MixMaster</string>
+    <string name="app_name" translatable="false">MixMaster</string>
+
+    <!-- Language setting -->
+    <string name="settings_language">Language</string>
+    <string name="settings_language_note">Menus, buttons and dates all follow this. It starts on your phone\'s language and stays on whatever you pick.</string>
+
+    <!-- Dates -->
+    <string name="date_today">Today</string>
+    <!-- "Today · W38" — %1$s is the week, already formatted. -->
+    <string name="date_today_with_week">Today · %1$s</string>
 </resources>

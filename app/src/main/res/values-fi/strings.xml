@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_language">Kieli</string>
+    <string name="settings_language_note">Valikot, painikkeet ja päivämäärät noudattavat tätä. Aluksi käytössä on puhelimen kieli, sen jälkeen valitsemasi.</string>
+
+    <string name="date_today">Tänään</string>
+    <string name="date_today_with_week">Tänään · %1$s</string>
+</resources>

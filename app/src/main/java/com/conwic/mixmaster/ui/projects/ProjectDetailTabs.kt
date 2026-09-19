@@ -418,7 +418,9 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
                     val mimeType = context.contentResolver.getType(uri) ?: "*/*"
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(uri, mimeType)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        // NEW_TASK because the context here is the locale wrapper, not the
+                        // activity, and startActivity throws without it.
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     runCatching { context.startActivity(intent) }
                 },

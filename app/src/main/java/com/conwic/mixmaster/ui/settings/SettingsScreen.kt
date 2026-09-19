@@ -35,6 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import com.conwic.mixmaster.domain.AppLanguage
+import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
@@ -82,6 +84,29 @@ fun SettingsScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { Text(text = "Settings", style = MaterialTheme.typography.headlineMedium) }
+
+        item {
+            Column {
+                SectionLabel(text = stringResource(R.string.settings_language))
+                CardFlat {
+                    ChipRow(
+                        options = AppLanguage.entries.map { option ->
+                            ChipOption(
+                                label = option.label,
+                                selected = option == state.language,
+                                onClick = { viewModel.setLanguage(option) },
+                            )
+                        },
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_language_note),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        }
 
         item {
             Column {

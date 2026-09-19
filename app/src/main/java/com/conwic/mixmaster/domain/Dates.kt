@@ -3,23 +3,48 @@ package com.conwic.mixmaster.domain
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
+import java.util.Locale
 
 /** ISO-8601 week number — the "week 38" that gets said out loud on site. */
 fun isoWeek(date: LocalDate): Int = date.get(WeekFields.ISO.weekOfWeekBasedYear())
 
 fun formatWeek(date: LocalDate): String = "W${isoWeek(date)}"
 
-private val dayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d MMM")
-private val dayWithYearFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d MMM yyyy")
-private val longDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM")
+// Patterns only. A DateTimeFormatter captures a locale when it is built, so a formatter held in
+// a top-level val is stuck with whatever the language was at class load — which is how the app
+// ended up printing an Estonian weekday under an English "TODAY". The locale is applied at
+// format time instead, from whatever the language setting last put in place.
+private const val DAY_PATTERN = "EEE d MMM"
+private const val DAY_WITH_YEAR_PATTERN = "EEE d MMM yyyy"
+private const val LONG_DAY_PATTERN = "EEEE, d MMMM"
 
-/** "Thursday, 18 September · W38" */
-fun formatDayWithWeek(date: LocalDate): String = "${date.format(longDayFormatter)} · ${formatWeek(date)}"
+private fun LocalDate.formatIn(pattern: String, locale: Locale): String =
+    format(DateTimeFormatter.ofPattern(pattern, locale))
+
+/** "Thursday, 18 September · W38", in whichever language is set. */
+fun formatDayWithWeek(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+    "${date.formatIn(LONG_DAY_PATTERN, locale)} · ${formatWeek(date)}"
+
+/** Just the day, for a heading that already says which week it is. */
+fun formatLongDay(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+    date.formatIn(LONG_DAY_PATTERN, locale)
 
 /**
  * "Fri 18 Sep · W38", or "Fri 18 Sep 2027 · W3" once the year stops being obvious.
  */
-fun formatDueDate(date: LocalDate, today: LocalDate = LocalDate.now()): String {
-    val day = if (date.year == today.year) date.format(dayFormatter) else date.format(dayWithYearFormatter)
-    return "$day · ${formatWeek(date)}"
+fun formatDueDate(
+    date: LocalDate,
+    today: LocalDate = LocalDate.now(),
+    locale: Locale = Locale.getDefault(),
+): String {
+    val pattern = if (date.year == today.year) DAY_PATTERN else DAY_WITH_YEAR_PATTERN
+    return "${date.formatIn(pattern, locale)} · ${formatWeek(date)}"
 }
+
+/** The weekday's own short name — "Mon" / "esmasp." / "ma" — rather than the enum constant. */
+fun formatShortWeekday(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+    date.formatIn("EEE", locale).replaceFirstChar { it.uppercase(locale) }
+
+/** "September 2026", for the month heading. */
+fun formatMonthYear(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+    date.formatIn("LLLL yyyy", locale).replaceFirstChar { it.uppercase(locale) }

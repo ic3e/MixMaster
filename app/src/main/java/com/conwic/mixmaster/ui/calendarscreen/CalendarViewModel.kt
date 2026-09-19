@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.repository.ProjectRepository
-import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.isoWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,11 +18,8 @@ import com.conwic.mixmaster.ui.tasks.toEntity
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
-
-private val monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
 
 data class CalendarCell(
     val date: LocalDate?,
@@ -40,10 +36,10 @@ data class CalendarTaskUi(val task: TaskEntity, val projectName: String) {
 }
 
 data class CalendarUiState(
-    val monthLabel: String = "",
+    /** The month on show. The heading is built in the UI, where the language is known. */
+    val currentMonth: LocalDate = LocalDate.now().withDayOfMonth(1),
     val weeks: List<CalendarWeek> = emptyList(),
     val selectedDate: LocalDate = LocalDate.now(),
-    val selectedDateLabel: String = "",
     val selectedDayTasks: List<CalendarTaskUi> = emptyList(),
     val projects: List<ProjectOption> = emptyList(),
 )
@@ -89,10 +85,9 @@ class CalendarViewModel(private val projectRepository: ProjectRepository) : View
             .sortedWith(compareBy({ it.isDone }, { it.priority.ordinal }))
             .map { task -> CalendarTaskUi(task, task.projectId?.let { projectNameById[it] }.orEmpty()) }
         CalendarUiState(
-            monthLabel = currentMonth.format(monthFormatter),
+            currentMonth = currentMonth.atDay(1),
             weeks = weeks,
             selectedDate = selected,
-            selectedDateLabel = formatDayWithWeek(selected),
             selectedDayTasks = dayTasks,
             projects = projects.map { ProjectOption(it.id, it.name) },
         )
