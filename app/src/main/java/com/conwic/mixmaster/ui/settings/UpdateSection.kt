@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -7,10 +9,17 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.data.update.AppUpdates
@@ -32,6 +41,32 @@ fun UpdateSection(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val state by AppUpdates.state.collectAsState()
 
+    // Whether the phone lets this app install another is a live system setting, not something
+    // Compose watches. Reading it once during composition meant that granting the permission
+    // changed nothing on screen: the card stayed on "give permission" and the install button
+    // never arrived, which looked like the update had simply died.
+    var canInstall by remember { mutableStateOf(AppUpdates.canInstall(context)) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) canInstall = AppUpdates.canInstall(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // The settings screen reports nothing back, so the result is ignored and the package
+    // manager is asked again. If permission is now there and the APK is waiting, carry
+    // straight on to the install rather than making them find the button.
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        canInstall = AppUpdates.canInstall(context)
+        val ready = AppUpdates.state.value as? UpdateState.ReadyToInstall
+        if (canInstall && ready != null) AppUpdates.install(context, ready.file)
+    }
+
     Column(modifier = modifier) {
         SectionLabel(text = "App updates")
         CardFlat {
@@ -45,7 +80,7 @@ fun UpdateSection(modifier: Modifier = Modifier) {
                     Hint("Checks on its own each time the app opens.")
                     GhostButton(
                         text = "Check for updates",
-                        onClick = { AppUpdates.check() },
+                        onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }
@@ -56,7 +91,7 @@ fun UpdateSection(modifier: Modifier = Modifier) {
                     Hint("Nothing newer has been published.")
                     GhostButton(
                         text = "Check again",
-                        onClick = { AppUpdates.check() },
+                        onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }
@@ -85,7 +120,7 @@ fun UpdateSection(modifier: Modifier = Modifier) {
                 }
 
                 is UpdateState.ReadyToInstall -> {
-                    if (AppUpdates.canInstall(context)) {
+                    if (canInstall) {
                         Hint("${current.info.versionName} is downloaded. Android will ask you to confirm.")
                         PrimaryButton(
                             text = "Install ${current.info.versionName}",
@@ -101,7 +136,9 @@ fun UpdateSection(modifier: Modifier = Modifier) {
                         )
                         PrimaryButton(
                             text = "Give permission",
-                            onClick = { AppUpdates.openInstallPermissionSettings(context) },
+                            onClick = {
+                                permissionLauncher.launch(AppUpdates.installPermissionIntent(context))
+                            },
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         )
                     }
@@ -116,7 +153,7 @@ fun UpdateSection(modifier: Modifier = Modifier) {
                     )
                     GhostButton(
                         text = "Try again",
-                        onClick = { AppUpdates.check() },
+                        onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }

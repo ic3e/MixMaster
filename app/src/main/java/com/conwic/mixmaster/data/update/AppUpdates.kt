@@ -69,29 +69,30 @@ object AppUpdates {
     private var checkedThisRun = false
 
     /** The quiet check on app start. Failures stay silent — no signal on site is normal. */
-    fun checkOnStart() {
+    fun checkOnStart(context: Context) {
         if (checkedThisRun) return
         checkedThisRun = true
+        val appContext = context.applicationContext
         scope.launch {
             val found = runCatching { fetchManifest() }.getOrNull() ?: return@launch
             if (found.versionCode > BuildConfig.VERSION_CODE) {
-                _state.value = UpdateState.Available(found)
+                _state.value = alreadyFetched(appContext, found) ?: UpdateState.Available(found)
             }
         }
     }
 
     /** The explicit "check for updates" tap, which does report what happened. */
-    fun check() {
+    fun check(context: Context) {
         if (inFlight?.isActive == true) return
         checkedThisRun = true
+        val appContext = context.applicationContext
         inFlight = scope.launch {
             _state.value = UpdateState.Checking
             _state.value = runCatching { fetchManifest() }.fold(
                 onSuccess = { found ->
-                    if (found.versionCode > BuildConfig.VERSION_CODE) {
-                        UpdateState.Available(found)
-                    } else {
-                        UpdateState.UpToDate
+                    when {
+                        found.versionCode <= BuildConfig.VERSION_CODE -> UpdateState.UpToDate
+                        else -> alreadyFetched(appContext, found) ?: UpdateState.Available(found)
                     }
                 },
                 onFailure = { UpdateState.Failed(readableReason(it)) },
@@ -119,13 +120,17 @@ object AppUpdates {
     /** Whether the phone lets this app install another. One-time toggle in system settings. */
     fun canInstall(context: Context): Boolean = context.packageManager.canRequestPackageInstalls()
 
-    fun openInstallPermissionSettings(context: Context) {
-        val intent = Intent(
-            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-            Uri.parse("package:${context.packageName}"),
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(intent) }
-    }
+    /**
+     * The one-time "allow this app to install apps" screen.
+     *
+     * Handed back rather than started here so the caller can launch it for a result and pick
+     * up where it left off: the screen reports nothing back, so whoever launches it has to ask
+     * [canInstall] again on return.
+     */
+    fun installPermissionIntent(context: Context): Intent = Intent(
+        Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+        Uri.parse("package:${context.packageName}"),
+    )
 
     fun install(context: Context, file: File) {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -136,6 +141,19 @@ object AppUpdates {
         runCatching { context.startActivity(intent) }.onFailure {
             _state.value = UpdateState.Failed("Couldn't open the installer.")
         }
+    }
+
+    /**
+     * The APK for [info] if a previous run already downloaded it whole.
+     *
+     * Granting the install permission means a trip out to system settings, and the process can
+     * be killed there. Coming back to a 19 MB download that has to start again is how an
+     * update stops feeling worth doing.
+     */
+    private fun alreadyFetched(context: Context, info: UpdateInfo): UpdateState? {
+        val file = File(File(context.cacheDir, "updates"), "MixMaster_${info.versionName}.apk")
+        val whole = file.isFile && (info.sizeBytes <= 0L || file.length() == info.sizeBytes)
+        return if (whole) UpdateState.ReadyToInstall(info, file) else null
     }
 
     private suspend fun fetchManifest(): UpdateInfo = withContext(Dispatchers.IO) {

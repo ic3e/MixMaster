@@ -31,7 +31,7 @@ class MainActivity : FragmentActivity() {
 
         // Looks once per app start, and stays quiet unless there's something newer — a failed
         // check on a site with no signal isn't news.
-        AppUpdates.checkOnStart()
+        AppUpdates.checkOnStart(this)
 
         setContent {
             // The theme setting used to be saved and then ignored — the app always followed the
