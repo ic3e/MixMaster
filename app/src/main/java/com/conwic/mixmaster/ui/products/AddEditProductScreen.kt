@@ -163,15 +163,38 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
 
         item { SectionLabel(text = "What goes in the mix") }
         item {
-            // Said once here rather than repeated inside every part, which is what turned this
-            // screen into a wall of identical grey paragraphs.
-            Text(
-                text = "Parts are mixed by ratio — 100 powder to 21 water means exactly that, in " +
-                    "whatever unit you weigh in. Density and pack size are optional, but they're " +
-                    "what let the calculator count bags and check a batch fits the mixer.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // Reads back the ratio as it's typed, rather than explaining ratios in the abstract.
+            val named = state.components.filter {
+                it.label.isNotBlank() && (it.ratioText.toDoubleOrNull() ?: 0.0) > 0.0
+            }
+            CardFlat {
+                if (named.isEmpty()) {
+                    Text(
+                        text = "Add each part below and how many parts of it go in. " +
+                            "100 powder to 21 water means exactly that, in whatever you weigh in.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Text(
+                        text = "Mixed at",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = named.joinToString("  ·  ") { "${it.ratioText.trim()} ${it.label.trim()}" },
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    Text(
+                        text = "Density and pack size are optional, but they're what let the " +
+                            "calculator count bags and check a batch fits the mixer.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
         }
 
         items(state.components.size, key = { state.components[it].uid }) { index ->

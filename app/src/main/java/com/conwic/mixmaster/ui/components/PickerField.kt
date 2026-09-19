@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -16,12 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.conwic.mixmaster.ui.theme.ChipShape
+import com.conwic.mixmaster.ui.theme.FieldShape
 
 /**
- * A flat bordered row that reads "label … value" and opens something when tapped — a menu, a
- * date picker, anything. Shared so every "tap to choose" field in the app is the same shape.
+ * A "tap to choose" field, built to the same metrics as [FormTextField] — same height, shape,
+ * fill and label position.
+ *
+ * It used to be a pill-shaped row with the label and value side by side, which next to a text
+ * field in the same row looked like two unrelated controls that happened to be adjacent.
  */
 @Composable
 fun PickerField(
@@ -30,42 +36,46 @@ fun PickerField(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    trailing: String = "▾",
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(ChipShape)
+            .heightIn(min = 56.dp)
+            .clip(FieldShape)
             .background(MaterialTheme.colorScheme.surface)
-            .border(1.5.dp, MaterialTheme.colorScheme.outline, ChipShape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, FieldShape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(end = 8.dp).size(18.dp),
-                )
-            }
-            Text(text = value, style = MaterialTheme.typography.titleMedium)
-            if (trailing.isNotEmpty()) {
+        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 6.dp).size(16.dp),
+                    )
+                }
                 Text(
-                    text = trailing,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp),
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
+        Text(
+            text = "▾",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

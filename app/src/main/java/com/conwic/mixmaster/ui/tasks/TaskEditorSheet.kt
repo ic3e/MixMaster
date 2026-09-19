@@ -187,7 +187,6 @@ fun TaskEditorSheet(
                 value = dueDate?.let { formatDueDate(it, today) } ?: "No date",
                 onClick = { datePickerOpen = true },
                 icon = Icons.Filled.CalendarMonth,
-                trailing = "",
                 modifier = Modifier.fillMaxWidth(),
             )
 
