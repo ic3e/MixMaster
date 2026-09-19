@@ -1,8 +1,8 @@
 {
-  "versionCode": 56,
-  "versionName": "1.0.56",
-  "apk": "MixMaster_1.0.56.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.56.apk",
+  "versionCode": 57,
+  "versionName": "1.0.57",
+  "apk": "MixMaster_1.0.57.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.57.apk",
   "sizeBytes": 19964520,
-  "notes": "Last three: the week heading and the no-project fallback"
+  "notes": "Recognise water in all three languages"
 }
