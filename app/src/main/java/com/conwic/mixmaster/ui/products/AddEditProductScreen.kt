@@ -104,13 +104,18 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         item { SectionLabel(text = stringResource(R.string.product_coverage)) }
         item {
             CardFlat {
+                // The labels are resolved up here: onSelect is an ordinary callback, so it
+                // can't look a resource up, and matching by position avoids needing to.
+                val dosingModes = DosingMode.entries
+                val dosingLabels = dosingModes.map { it.pickerLabel }
                 DropdownField(
                     label = stringResource(R.string.product_measured_per),
                     selected = state.dosingMode.pickerLabel,
-                    options = DosingMode.entries.map { it.pickerLabel },
+                    options = dosingLabels,
                     onSelect = { chosen ->
-                        DosingMode.entries.firstOrNull { it.pickerLabel == chosen }
-                            ?.let(viewModel::setDosingMode)
+                        dosingLabels.indexOf(chosen)
+                            .takeIf { it >= 0 }
+                            ?.let { viewModel.setDosingMode(dosingModes[it]) }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )

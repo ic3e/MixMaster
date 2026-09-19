@@ -455,9 +455,11 @@ fun CalculatorScreen(navController: NavHostController) {
                     CardFlat {
                         // Worded here rather than in the view model: the subject inflects with
                         // how many there are, and neither is known where the check runs.
-                        val named = state.implausibleDensities.joinToString(", ") {
-                            stringResource(R.string.stored_density_item, it.label, it.densityKgPerL)
-                        }
+                        // map is inline so stringResource is still in composable scope here;
+                        // joinToString is not, which is why the wording happens first.
+                        val named = state.implausibleDensities
+                            .map { stringResource(R.string.stored_density_item, it.label, it.densityKgPerL) }
+                            .joinToString(", ")
                         val subject = pluralStringResource(
                             R.plurals.stored_density_subject,
                             state.implausibleDensities.size,
