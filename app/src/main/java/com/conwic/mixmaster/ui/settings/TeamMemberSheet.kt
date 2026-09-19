@@ -30,6 +30,8 @@ import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 /** Add or edit one person on the crew. The team list used to be read-only. */
 @Composable
@@ -59,30 +61,30 @@ fun TeamMemberSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = if (isNew) "Add crew member" else "Edit crew member",
+                text = stringResource(if (isNew) R.string.crew_add else R.string.crew_edit),
                 style = MaterialTheme.typography.headlineMedium,
             )
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Name") },
+                label = { Text(stringResource(R.string.crew_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email or phone") },
+                label = { Text(stringResource(R.string.crew_contact)) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            SectionLabel(text = "Can do")
+            SectionLabel(text = stringResource(R.string.crew_can_do))
             ChipRow(
                 options = listOf(Role.EMPLOYER, Role.WORKER).map { option ->
                     ChipOption(
-                        label = if (option == Role.EMPLOYER) "Set up work" else "Do the work",
+                        label = stringResource(if (option == Role.EMPLOYER) R.string.role_employer else R.string.role_worker),
                         selected = option == role,
                         onClick = { role = option },
                     )
@@ -90,20 +92,19 @@ fun TeamMemberSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                text = "\"Set up work\" can add products and projects. \"Do the work\" runs the " +
-                    "calculator and closes tasks off.",
+                text = stringResource(R.string.crew_roles_note),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             PrimaryButton(
-                text = if (isNew) "Add member" else "Save",
+                text = stringResource(if (isNew) R.string.crew_add_action else R.string.task_save),
                 onClick = { onSave(member.copy(name = name.trim(), email = email.trim(), role = role)) },
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             )
             if (onRemove != null) {
-                GhostButton(text = "Remove from team", onClick = onRemove, modifier = Modifier.fillMaxWidth())
+                GhostButton(text = stringResource(R.string.crew_remove), onClick = onRemove, modifier = Modifier.fillMaxWidth())
             }
         }
     }

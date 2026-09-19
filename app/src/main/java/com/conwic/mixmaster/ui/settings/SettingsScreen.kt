@@ -83,7 +83,7 @@ fun SettingsScreen(navController: NavHostController) {
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { Text(text = "Settings", style = MaterialTheme.typography.headlineMedium) }
+        item { Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium) }
 
         item {
             Column {
@@ -110,17 +110,27 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Appearance")
+                SectionLabel(text = stringResource(R.string.settings_appearance))
                 CardFlat {
-                    Text(text = "Theme", style = MaterialTheme.typography.titleMedium)
+                    Text(text = stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium)
                     ChipRow(
-                        options = listOf("Light", "Dark", "Auto").map { option ->
-                            ChipOption(label = option, selected = option == state.theme, onClick = { viewModel.setTheme(option) })
+                        // The stored value stays English because the activity switches on it;
+                        // only the label shown is translated.
+                        options = listOf(
+                            "Light" to R.string.theme_light,
+                            "Dark" to R.string.theme_dark,
+                            "Auto" to R.string.theme_auto,
+                        ).map { (option, labelRes) ->
+                            ChipOption(
+                                label = stringResource(labelRes),
+                                selected = option == state.theme,
+                                onClick = { viewModel.setTheme(option) },
+                            )
                         },
                         modifier = Modifier.padding(top = 8.dp),
                     )
                     Text(
-                        text = "Auto follows the phone's own light/dark setting.",
+                        text = stringResource(R.string.settings_theme_note),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -131,7 +141,7 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "On site")
+                SectionLabel(text = stringResource(R.string.settings_on_site))
                 CardFlat {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -141,9 +151,9 @@ fun SettingsScreen(navController: NavHostController) {
                         // Weight, not just padding: without it the label takes the width it
                         // wants and pushes the switch out past the edge of the card.
                         Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                            Text(text = "Mixing reminders", style = MaterialTheme.typography.titleMedium)
+                            Text(text = stringResource(R.string.settings_mixing_reminders), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                text = "The nudge about leaving the drum room to turn over.",
+                                text = stringResource(R.string.settings_mixing_reminders_note),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -159,19 +169,24 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Using the app as")
+                SectionLabel(text = stringResource(R.string.settings_using_as))
                 CardFlat {
                     ChipRow(
-                        options = listOf(Role.EMPLOYER to "Set up work", Role.WORKER to "Do the work").map { (option, label) ->
-                            ChipOption(label = label, selected = option == state.role, onClick = { viewModel.setRole(option) })
+                        options = listOf(
+                            Role.EMPLOYER to R.string.role_employer,
+                            Role.WORKER to R.string.role_worker,
+                        ).map { (option, labelRes) ->
+                            ChipOption(
+                                label = stringResource(labelRes),
+                                selected = option == state.role,
+                                onClick = { viewModel.setRole(option) },
+                            )
                         },
                     )
                     Text(
-                        text = if (state.role == Role.EMPLOYER) {
-                            "Products, projects and the crew list can be edited."
-                        } else {
-                            "Run the calculator, close tasks off, add photos and notes. Setup data is read-only."
-                        },
+                        text = stringResource(
+                            if (state.role == Role.EMPLOYER) R.string.role_employer_note else R.string.role_worker_note,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -188,9 +203,9 @@ fun SettingsScreen(navController: NavHostController) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SectionLabel(text = "Crew · ${state.team.size}")
+                        SectionLabel(text = stringResource(R.string.settings_crew, state.team.size))
                         Text(
-                            text = "+ Add member",
+                            text = stringResource(R.string.settings_add_member),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.tappableText {
@@ -204,7 +219,7 @@ fun SettingsScreen(navController: NavHostController) {
                     CardFlat(contentPadding = 12.dp) {
                         if (state.team.isEmpty()) {
                             Text(
-                                text = "Nobody on the list yet.",
+                                text = stringResource(R.string.settings_crew_empty),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -239,7 +254,7 @@ fun SettingsScreen(navController: NavHostController) {
                                     }
                                 }
                                 Text(
-                                    text = if (member.role == Role.EMPLOYER) "Sets up work" else "Does the work",
+                                    text = stringResource(if (member.role == Role.EMPLOYER) R.string.role_employer_short else R.string.role_worker_short),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
@@ -253,7 +268,7 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Security")
+                SectionLabel(text = stringResource(R.string.settings_security))
                 CardFlat {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -263,13 +278,15 @@ fun SettingsScreen(navController: NavHostController) {
                         // Weight, not just padding: without it the label takes the width it
                         // wants and pushes the switch out past the edge of the card.
                         Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                            Text(text = "Lock the app", style = MaterialTheme.typography.titleMedium)
+                            Text(text = stringResource(R.string.settings_lock), style = MaterialTheme.typography.titleMedium)
                             Text(
-                                text = if (lockAvailable) {
-                                    "Asks for the phone's fingerprint, face or screen lock on opening, and after a couple of minutes away."
-                                } else {
-                                    "This phone has no fingerprint, face or screen lock set up, so there is nothing to check against."
-                                },
+                                text = stringResource(
+                                    if (lockAvailable) {
+                                        R.string.settings_lock_note
+                                    } else {
+                                        R.string.settings_lock_unavailable
+                                    },
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -286,25 +303,25 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Backup")
+                SectionLabel(text = stringResource(R.string.settings_backup))
                 CardFlat {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         PrimaryButton(
-                            text = "Export",
+                            text = stringResource(R.string.settings_export),
                             onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
                             modifier = Modifier.weight(1f),
                         )
                         GhostButton(
-                            text = "Restore",
+                            text = stringResource(R.string.settings_restore),
                             onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
                             modifier = Modifier.weight(1f),
                         )
                     }
                     Text(
-                        text = "Restoring replaces everything on this phone with the backup file and restarts the app.",
+                        text = stringResource(R.string.settings_restore_note),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -317,10 +334,10 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = "Help")
+                SectionLabel(text = stringResource(R.string.settings_help))
                 CardFlat {
                     Text(
-                        text = "Replay the app tour",
+                        text = stringResource(R.string.settings_replay_tour),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth()

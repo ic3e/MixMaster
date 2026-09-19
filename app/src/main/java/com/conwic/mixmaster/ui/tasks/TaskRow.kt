@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Ok
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 /** Priority colours, matching the dots used elsewhere in the app. */
 fun priorityColor(priority: TaskPriority): Color = when (priority) {
@@ -114,7 +116,7 @@ private fun DoneMark(done: Boolean) {
     if (done) {
         Icon(
             imageVector = Icons.Filled.Check,
-            contentDescription = "Done",
+            contentDescription = stringResource(R.string.task_done),
             tint = Ok,
             modifier = Modifier.size(20.dp),
         )

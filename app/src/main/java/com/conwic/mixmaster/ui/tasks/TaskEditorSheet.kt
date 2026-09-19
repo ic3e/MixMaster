@@ -49,6 +49,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.TemporalAdjusters
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 /** Everything the editor needs to show, and hands back on save. */
 data class TaskDraft(
@@ -81,7 +83,8 @@ fun TaskDraft.toEntity(): TaskEntity = TaskEntity(
     isDone = isDone,
 )
 
-private const val NoProject = "No project"
+// Resolved in the UI so it follows the language.
+private val NoProjectRes = R.string.task_none_project
 
 /**
  * The one sheet used to add and to edit a task, wherever tasks appear.
@@ -135,31 +138,31 @@ fun TaskEditorSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = if (isNew) "New task" else "Edit task",
+                text = stringResource(if (isNew) R.string.task_new else R.string.task_edit),
                 style = MaterialTheme.typography.headlineMedium,
             )
 
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("What needs doing") },
+                label = { Text(stringResource(R.string.task_what)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             )
 
-            SectionLabel(text = "Due")
+            SectionLabel(text = stringResource(R.string.task_due))
             ChipRow(
                 options = buildList {
                     add(
                         ChipOption(
-                            label = "Today",
+                            label = stringResource(R.string.task_today),
                             selected = dueDate == today,
                             onClick = { dueDate = today },
                         ),
                     )
                     add(
                         ChipOption(
-                            label = "Tomorrow",
+                            label = stringResource(R.string.task_tomorrow),
                             selected = dueDate == today.plusDays(1),
                             onClick = { dueDate = today.plusDays(1) },
                         ),
@@ -167,14 +170,14 @@ fun TaskEditorSheet(
                     val nextMonday = today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
                     add(
                         ChipOption(
-                            label = "Next Mon",
+                            label = stringResource(R.string.task_next_monday),
                             selected = dueDate == nextMonday,
                             onClick = { dueDate = nextMonday },
                         ),
                     )
                     add(
                         ChipOption(
-                            label = "No date",
+                            label = stringResource(R.string.task_no_date),
                             selected = dueDate == null,
                             onClick = { dueDate = null },
                         ),
@@ -183,18 +186,22 @@ fun TaskEditorSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             PickerField(
-                label = "Pick a day",
-                value = dueDate?.let { formatDueDate(it, today) } ?: "No date",
+                label = stringResource(R.string.task_pick_day),
+                value = dueDate?.let { formatDueDate(it, today) } ?: stringResource(R.string.task_no_date),
                 onClick = { datePickerOpen = true },
                 icon = Icons.Filled.CalendarMonth,
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            SectionLabel(text = "Priority")
+            SectionLabel(text = stringResource(R.string.task_priority))
             ChipRow(
-                options = listOf(TaskPriority.HIGH, TaskPriority.MEDIUM, TaskPriority.LOW).map { option ->
+                options = listOf(
+                    TaskPriority.HIGH to R.string.priority_high,
+                    TaskPriority.MEDIUM to R.string.priority_medium,
+                    TaskPriority.LOW to R.string.priority_low,
+                ).map { (option, labelRes) ->
                     ChipOption(
-                        label = option.name.lowercase().replaceFirstChar { it.uppercase() },
+                        label = stringResource(labelRes),
                         selected = option == priority,
                         onClick = { priority = option },
                     )
@@ -204,9 +211,9 @@ fun TaskEditorSheet(
 
             if (showProjectPicker) {
                 DropdownField(
-                    label = "Project",
-                    selected = projects.firstOrNull { it.id == projectId }?.name ?: NoProject,
-                    options = listOf(NoProject) + projects.map { it.name },
+                    label = stringResource(R.string.task_project),
+                    selected = projects.firstOrNull { it.id == projectId }?.name ?: stringResource(NoProjectRes),
+                    options = listOf(stringResource(NoProjectRes)) + projects.map { it.name },
                     onSelect = { name ->
                         projectId = projects.firstOrNull { it.name == name }?.id
                     },
@@ -220,13 +227,13 @@ fun TaskEditorSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = "Done", style = MaterialTheme.typography.titleMedium)
+                    Text(text = stringResource(R.string.task_done), style = MaterialTheme.typography.titleMedium)
                     Switch(checked = isDone, onCheckedChange = { isDone = it })
                 }
             }
 
             PrimaryButton(
-                text = if (isNew) "Add task" else "Save",
+                text = stringResource(if (isNew) R.string.task_add else R.string.task_save),
                 onClick = {
                     onSave(
                         draft.copy(
@@ -243,7 +250,7 @@ fun TaskEditorSheet(
             )
 
             if (onDelete != null) {
-                GhostButton(text = "Delete task", onClick = onDelete, modifier = Modifier.fillMaxWidth())
+                GhostButton(text = stringResource(R.string.task_delete), onClick = onDelete, modifier = Modifier.fillMaxWidth())
             }
         }
     }
@@ -264,7 +271,7 @@ fun TaskEditorSheet(
                         }
                         datePickerOpen = false
                     },
-                ) { Text("Set date") }
+                ) { Text(stringResource(R.string.task_set_date)) }
             },
             dismissButton = {
                 TextButton(
@@ -272,7 +279,7 @@ fun TaskEditorSheet(
                         dueDate = null
                         datePickerOpen = false
                     },
-                ) { Text("No date") }
+                ) { Text(stringResource(R.string.task_no_date)) }
             },
         ) {
             DatePicker(state = pickerState)

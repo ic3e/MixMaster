@@ -114,4 +114,68 @@
     <string name="calendar_next_month">Next month</string>
     <string name="calendar_week_abbrev">Wk</string>
     <string name="calendar_empty_day">Nothing on this day yet.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_auto">Auto</string>
+    <string name="settings_theme_note">Auto follows the phone\'s own light/dark setting.</string>
+    <string name="settings_on_site">On site</string>
+    <string name="settings_mixing_reminders">Mixing reminders</string>
+    <string name="settings_mixing_reminders_note">The nudge about leaving the drum room to turn over.</string>
+    <string name="settings_using_as">Using the app as</string>
+    <string name="role_employer">Set up work</string>
+    <string name="role_worker">Do the work</string>
+    <string name="role_employer_note">Products, projects and the crew list can be edited.</string>
+    <string name="role_worker_note">Run the calculator, close tasks off, add photos and notes. Setup data is read-only.</string>
+    <string name="settings_crew">Crew · %1$d</string>
+    <string name="settings_add_member">+ Add member</string>
+    <string name="settings_crew_empty">Nobody on the list yet.</string>
+    <string name="role_employer_short">Sets up work</string>
+    <string name="role_worker_short">Does the work</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_lock">Lock the app</string>
+    <string name="settings_lock_note">Asks for the phone\'s fingerprint, face or screen lock on opening, and after a couple of minutes away.</string>
+    <string name="settings_lock_unavailable">This phone has no fingerprint, face or screen lock set up, so there is nothing to check against.</string>
+    <string name="settings_backup">Backup</string>
+    <string name="settings_export">Export</string>
+    <string name="settings_restore">Restore</string>
+    <string name="settings_restore_note">Restoring replaces everything on this phone with the backup file and restarts the app.</string>
+    <string name="settings_help">Help</string>
+    <string name="settings_replay_tour">Replay the app tour</string>
+
+    <!-- Crew member sheet -->
+    <string name="crew_add">Add crew member</string>
+    <string name="crew_edit">Edit crew member</string>
+    <string name="crew_name">Name</string>
+    <string name="crew_contact">Email or phone</string>
+    <string name="crew_can_do">Can do</string>
+    <string name="crew_add_action">Add member</string>
+    <string name="crew_remove">Remove from team</string>
+
+    <!-- Tasks -->
+    <string name="task_none_project">No project</string>
+    <string name="task_new">New task</string>
+    <string name="task_edit">Edit task</string>
+    <string name="task_what">What needs doing</string>
+    <string name="task_due">Due</string>
+    <string name="task_today">Today</string>
+    <string name="task_tomorrow">Tomorrow</string>
+    <string name="task_next_monday">Next Mon</string>
+    <string name="task_no_date">No date</string>
+    <string name="task_pick_day">Pick a day</string>
+    <string name="task_priority">Priority</string>
+    <string name="task_project">Project</string>
+    <string name="task_done">Done</string>
+    <string name="task_add">Add task</string>
+    <string name="task_save">Save</string>
+    <string name="task_delete">Delete task</string>
+    <string name="task_set_date">Set date</string>
+    <string name="priority_high">High</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_low">Low</string>
+    <string name="crew_roles_note">\"Set up work\" can add products and projects. \"Do the work\" runs the calculator and closes tasks off.</string>
 </resources>
