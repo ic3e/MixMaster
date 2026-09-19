@@ -696,7 +696,7 @@ fun CalculatorScreen(navController: NavHostController) {
 private val mixingReminders = listOf(
     "Leave room to move — a full bucket mixes nothing but the floor.",
     "Fill it to the brim and you'll mop the difference.",
-    "The paddle needs air. Give it some.",
+    "The whisk needs room to turn. Give it some.",
     "Empty space isn't wasted — that's where the mixing happens.",
     "A bucket filled to the top is a bucket on the floor.",
     "Room at the top, or dust everywhere.",
