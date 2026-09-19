@@ -1,8 +1,8 @@
 {
-  "versionCode": 47,
-  "versionName": "1.0.47",
-  "apk": "MixMaster_1.0.47.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.47.apk",
-  "sizeBytes": 19754012,
-  "notes": "Greeting and quips in all three languages"
+  "versionCode": 48,
+  "versionName": "1.0.48",
+  "apk": "MixMaster_1.0.48.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.48.apk",
+  "sizeBytes": 19765740,
+  "notes": "Translate the navigation, products, projects and calendar screens"
 }
