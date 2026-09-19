@@ -33,6 +33,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SignInScreen(onContinue: () -> Unit) {
@@ -50,9 +51,9 @@ fun SignInScreen(onContinue: () -> Unit) {
         }
         item {
             Column {
-                Text(text = "Who's signing in?", style = MaterialTheme.typography.headlineMedium)
+                Text(text = stringResource(R.string.signin_who), style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    text = "MixMaster works differently depending on your role — you can switch anytime from Settings.",
+                    text = stringResource(R.string.signin_note),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -61,12 +62,12 @@ fun SignInScreen(onContinue: () -> Unit) {
         }
         item {
             RoleCard(
-                title = "Employer / Office",
-                subtitle = "Set up projects, products & pricing",
+                title = stringResource(R.string.signin_employer),
+                subtitle = stringResource(R.string.signin_employer_sub),
                 bullets = listOf(
-                    "Create and edit projects, clients & the product library",
-                    "Assign tasks and rooms to the crew",
-                    "Generate reports and manage the team",
+                    stringResource(R.string.signin_employer_b1),
+                    stringResource(R.string.signin_employer_b2),
+                    stringResource(R.string.signin_employer_b3),
                 ),
                 selected = selectedRole == Role.EMPLOYER,
                 onClick = { selectedRole = Role.EMPLOYER },
@@ -74,12 +75,12 @@ fun SignInScreen(onContinue: () -> Unit) {
         }
         item {
             RoleCard(
-                title = "Worker / Field crew",
-                subtitle = "Use what the office has set up",
+                title = stringResource(R.string.signin_worker),
+                subtitle = stringResource(R.string.signin_worker_sub),
                 bullets = listOf(
-                    "Run the calculator with the office's product list",
-                    "Check off tasks and rooms as they're done",
-                    "Add site photos and notes — can't edit setup data",
+                    stringResource(R.string.signin_worker_b1),
+                    stringResource(R.string.signin_worker_b2),
+                    stringResource(R.string.signin_worker_b3),
                 ),
                 selected = selectedRole == Role.WORKER,
                 onClick = { selectedRole = Role.WORKER },
@@ -87,7 +88,7 @@ fun SignInScreen(onContinue: () -> Unit) {
         }
         item {
             PrimaryButton(
-                text = "Continue as ${selectedRole.name.lowercase()}",
+                text = stringResource(R.string.signin_continue, stringResource(if (selectedRole == Role.EMPLOYER) R.string.role_employer else R.string.role_worker).lowercase()),
                 onClick = {
                     scope.launch {
                         container.userPrefs.setRole(selectedRole)

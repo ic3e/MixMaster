@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.projects
 
+import androidx.annotation.StringRes
+import com.conwic.mixmaster.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
@@ -16,14 +18,15 @@ import kotlinx.coroutines.launch
 data class ProjectListItem(val project: ProjectEntity, val progressPercent: Int)
 
 data class ProjectsUiState(
-    val filter: String = "All",
+    /** null means "All". Filtering by the status itself, not by its label — the label is
+     *  translated, and comparing translated text would break the filter in two languages. */
+    val filter: ProjectStatus? = null,
     val visibleProjects: List<ProjectListItem> = emptyList(),
 )
 
 class ProjectsViewModel(private val projectRepository: ProjectRepository) : ViewModel() {
 
-    private val filter = MutableStateFlow("All")
-    val filterOptions = listOf("All", "Active", "Planning", "On hold", "Completed")
+    private val filter = MutableStateFlow<ProjectStatus?>(null)
 
     val uiState: StateFlow<ProjectsUiState> = combine(
         projectRepository.observeAll(),
@@ -32,7 +35,7 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
     ) { projects, tasks, currentFilter ->
         val tasksByProject = tasks.groupBy { it.projectId }
         val items = projects
-            .filter { currentFilter == "All" || it.status.label() == currentFilter }
+            .filter { currentFilter == null || it.status == currentFilter }
             .map { project ->
                 val projectTasks = tasksByProject[project.id].orEmpty()
                 val progress = if (projectTasks.isEmpty()) 0 else (projectTasks.count { it.isDone } * 100) / projectTasks.size
@@ -41,7 +44,7 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
         ProjectsUiState(filter = currentFilter, visibleProjects = items)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProjectsUiState())
 
-    fun setFilter(value: String) = filter.update { value }
+    fun setFilter(value: ProjectStatus?) = filter.update { value }
 
     /**
      * Writes the project only once it has a name.
@@ -67,9 +70,10 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
     }
 }
 
-fun ProjectStatus.label(): String = when (this) {
-    ProjectStatus.ACTIVE -> "Active"
-    ProjectStatus.PLANNING -> "Planning"
-    ProjectStatus.ON_HOLD -> "On hold"
-    ProjectStatus.COMPLETED -> "Completed"
+@StringRes
+fun ProjectStatus.labelRes(): Int = when (this) {
+    ProjectStatus.ACTIVE -> R.string.status_active
+    ProjectStatus.PLANNING -> R.string.status_planning
+    ProjectStatus.ON_HOLD -> R.string.status_on_hold
+    ProjectStatus.COMPLETED -> R.string.status_completed
 }

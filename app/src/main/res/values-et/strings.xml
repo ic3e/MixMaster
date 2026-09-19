@@ -366,4 +366,84 @@
     <string name="prj_no_assigned">Ühelegi ruumile pole veel toodet määratud.</string>
     <string name="tab_layout">Plaan</string>
     <string name="prj_no_scheduled">Plaanitud ülesandeid veel pole.</string>
+
+    <string name="signin_who">Kes sisse logib?</string>
+    <string name="signin_note">MixMaster töötab rolli järgi erinevalt — rolli saad seadetes igal ajal vahetada.</string>
+    <string name="signin_employer">Tööandja / kontor</string>
+    <string name="signin_employer_sub">Seab üles projektid, tooted ja hinnad</string>
+    <string name="signin_employer_b1">Loo ja muuda projekte, kliente ja tootekataloogi</string>
+    <string name="signin_employer_b2">Määra meeskonnale ülesandeid ja ruume</string>
+    <string name="signin_employer_b3">Koosta raporteid ja halda meeskonda</string>
+    <string name="signin_worker">Töötaja / objektimeeskond</string>
+    <string name="signin_worker_sub">Kasutab seda, mille kontor on üles seadnud</string>
+    <string name="signin_worker_b1">Kasuta kalkulaatorit kontori tootenimekirjaga</string>
+    <string name="signin_worker_b2">Märgi ülesanded ja ruumid tehtuks</string>
+    <string name="signin_worker_b3">Lisa objektifotosid ja märkmeid — seadistusandmeid muuta ei saa</string>
+    <string name="signin_continue">Jätka kui %1$s</string>
+
+    <string name="onboarding_welcome">Tere tulemast MixMasterisse</string>
+    <string name="onboarding_start">Alustame</string>
+    <string name="onboarding_1_title">Enam ei pea segu pakkuma</string>
+    <string name="onboarding_1_body">Vali toode, sisesta ruutmeetrid (või paksus) ja MixMaster arvutab täpselt, kui palju iga osa vaja läheb — ei mingit silma järgi koti ja ämbri suhte hindamist objektil.</string>
+    <string name="onboarding_2_title">Kogu tootekataloog ühes kohas</string>
+    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex ja kõik muu, mille ise lisad — päris suhtarvude ja kuluga tehnilistelt lehtedelt, otsitav brändi ja tüübi järgi.</string>
+    <string name="onboarding_3_title">Projektid, ruumid, ülesanded ja kalender</string>
+    <string name="onboarding_3_body">Jaga projekt korrusteks ja ruumideks, määra igale ruumile toode, jälgi ülesandeid tähtaja järgi — kõik koondub ühte ühisesse kalendrisse.</string>
+
+    <string name="lock_unlock_title">Ava MixMaster</string>
+    <string name="lock_unlock_subtitle">Sinu segud, tööd ja klientide andmed on telefoni luku taga.</string>
+    <string name="lock_locked">MixMaster on lukus</string>
+    <string name="lock_unlock">Ava</string>
+    <string name="action_cancel">Loobu</string>
+
+    <string name="upd_section">Rakenduse uuendused</string>
+    <string name="upd_this_phone">Selles telefonis on %1$s</string>
+    <string name="upd_auto_note">Kontrollib ise iga kord, kui rakendus avaneb.</string>
+    <string name="upd_check">Otsi uuendusi</string>
+    <string name="upd_checking">Kontrollin…</string>
+    <string name="upd_up_to_date">Midagi uuemat pole avaldatud.</string>
+    <string name="upd_check_again">Kontrolli uuesti</string>
+    <string name="upd_ready">%1$s on allalaadimiseks valmis.</string>
+    <string name="upd_what_changed">Mis muutus: %1$s</string>
+    <string name="upd_download">Laadi alla %1$s</string>
+    <string name="upd_downloading">Laadin alla %1$s — %2$d%%</string>
+    <string name="upd_downloaded">%1$s on alla laaditud. Android küsib sinult kinnitust.</string>
+    <string name="upd_install">Paigalda %1$s</string>
+    <string name="upd_permission_note">Android vajab sinu luba, et MixMaster saaks uuendusi paigaldada. Seda tuleb teha ainult ühe korra.</string>
+    <string name="upd_give_permission">Anna luba</string>
+    <string name="upd_try_again">Proovi uuesti</string>
+    <string name="upd_available">MixMaster %1$s on saadaval</string>
+    <string name="upd_youre_on">Sul on %1$s.</string>
+    <string name="upd_update">Uuenda</string>
+    <string name="upd_err_no_connection">Ühendust pole.</string>
+    <string name="upd_err_timeout">Server võttis liiga kaua aega.</string>
+    <string name="upd_err_generic">Midagi läks valesti.</string>
+    <string name="upd_err_installer">Paigaldajat ei õnnestunud avada.</string>
+
+    <string name="home_projects">Projektid</string>
+    <string name="home_projects_value">%1$d aktiivset</string>
+    <string name="home_open_today">Täna lahtised</string>
+    <string name="home_products">Tooted</string>
+    <string name="home_quick_calculate">Kiire arvutus</string>
+    <string name="home_prev_week">Eelmine nädal</string>
+    <string name="home_next_week">Järgmine nädal</string>
+    <string name="home_week">Nädal %1$s</string>
+    <string name="home_full_calendar">Kogu kalender</string>
+    <string name="home_nothing_today">Sel päeval pole midagi. Vajuta + Lisa ülesanne.</string>
+    <string name="home_was_due">%1$s · tähtaeg oli %2$s</string>
+    <string name="home_anytime">Millal tahes · %1$d</string>
+    <string name="home_recent_products">Hiljuti lisatud tooted</string>
+
+    <string name="status_all">Kõik</string>
+    <string name="status_active">Aktiivne</string>
+    <string name="status_planning">Planeerimisel</string>
+    <string name="status_on_hold">Ootel</string>
+    <string name="status_completed">Lõpetatud</string>
+
+    <string name="addon_no_dose">Tootel %1$s pole kogust määratud — määra see toote all jaotises "Lisatakse teise segusse".</string>
+    <string name="addon_pick_part">Vali, millise segu osa järgi seda mõõdetakse.</string>
+    <string name="addon_rate_label">%1$s %2$s iga %3$s kg kohta</string>
+
+    <string name="image_cant_open">Ei saa avada</string>
+    <string name="home_quick_calculate_sub">Saa täpne segu jaotus sekunditega</string>
 </resources>

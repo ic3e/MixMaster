@@ -18,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
@@ -124,14 +126,14 @@ fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
         }
 
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock MixMaster")
-            .setSubtitle("Your mixes, jobs and client details are behind the phone's lock.")
+            .setTitle(context.getString(R.string.lock_unlock_title))
+            .setSubtitle(context.getString(R.string.lock_unlock_subtitle))
             .setAllowedAuthenticators(authenticators)
             .apply {
                 // A negative button is required unless the phone's own screen lock is offered as
                 // the fallback, and forbidden when it is.
                 if (authenticators == BiometricManager.Authenticators.BIOMETRIC_WEAK) {
-                    setNegativeButtonText("Cancel")
+                    setNegativeButtonText(context.getString(R.string.action_cancel))
                 }
             }
             .build()
@@ -156,7 +158,7 @@ fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
         ) {
             ConwicLockup(height = 34.dp)
             Text(
-                text = "MixMaster is locked",
+                text = stringResource(R.string.lock_locked),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(top = 28.dp),
             )
@@ -170,7 +172,7 @@ fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
                 )
             }
             PrimaryButton(
-                text = "Unlock",
+                text = stringResource(R.string.lock_unlock),
                 onClick = { prompt() },
                 modifier = Modifier.padding(top = 24.dp),
             )

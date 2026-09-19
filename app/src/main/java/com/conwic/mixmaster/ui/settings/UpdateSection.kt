@@ -17,11 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.BuildConfig
+import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.update.AppUpdates
 import com.conwic.mixmaster.data.update.UpdateState
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -68,52 +70,52 @@ fun UpdateSection(modifier: Modifier = Modifier) {
     }
 
     Column(modifier = modifier) {
-        SectionLabel(text = "App updates")
+        SectionLabel(text = stringResource(R.string.upd_section))
         CardFlat {
             Text(
-                text = "This phone is on ${BuildConfig.VERSION_NAME}",
+                text = stringResource(R.string.upd_this_phone, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.titleMedium,
             )
 
             when (val current = state) {
                 is UpdateState.Idle -> {
-                    Hint("Checks on its own each time the app opens.")
+                    Hint(stringResource(R.string.upd_auto_note))
                     GhostButton(
-                        text = "Check for updates",
+                        text = stringResource(R.string.upd_check),
                         onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }
 
-                is UpdateState.Checking -> Hint("Checking…")
+                is UpdateState.Checking -> Hint(stringResource(R.string.upd_checking))
 
                 is UpdateState.UpToDate -> {
-                    Hint("Nothing newer has been published.")
+                    Hint(stringResource(R.string.upd_up_to_date))
                     GhostButton(
-                        text = "Check again",
+                        text = stringResource(R.string.upd_check_again),
                         onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }
 
                 is UpdateState.Available -> {
-                    Hint("${current.info.versionName} is ready to download.")
-                    if (current.info.notes.isNotBlank()) Hint("What changed: ${current.info.notes}")
+                    Hint(stringResource(R.string.upd_ready, current.info.versionName))
+                    if (current.info.notes.isNotBlank()) Hint(stringResource(R.string.upd_what_changed, current.info.notes))
                     PrimaryButton(
-                        text = "Download ${current.info.versionName}",
+                        text = stringResource(R.string.upd_download, current.info.versionName),
                         onClick = { AppUpdates.download(context, current.info) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }
 
                 is UpdateState.Downloading -> {
-                    Hint("Downloading ${current.info.versionName} — ${current.percent}%")
+                    Hint(stringResource(R.string.upd_downloading, current.info.versionName, current.percent))
                     LinearProgressIndicator(
                         progress = { current.percent / 100f },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                     GhostButton(
-                        text = "Cancel",
+                        text = stringResource(R.string.action_cancel),
                         onClick = { AppUpdates.cancel() },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
@@ -121,21 +123,18 @@ fun UpdateSection(modifier: Modifier = Modifier) {
 
                 is UpdateState.ReadyToInstall -> {
                     if (canInstall) {
-                        Hint("${current.info.versionName} is downloaded. Android will ask you to confirm.")
+                        Hint(stringResource(R.string.upd_downloaded, current.info.versionName))
                         PrimaryButton(
-                            text = "Install ${current.info.versionName}",
+                            text = stringResource(R.string.upd_install, current.info.versionName),
                             onClick = { AppUpdates.install(context, current.file) },
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         )
                     } else {
                         // One-time system toggle. Without it the installer never opens, and the
                         // tap looks like it did nothing at all.
-                        Hint(
-                            "Android needs your permission for MixMaster to install updates. " +
-                                "You only have to do this once.",
-                        )
+                        Hint(stringResource(R.string.upd_permission_note))
                         PrimaryButton(
-                            text = "Give permission",
+                            text = stringResource(R.string.upd_give_permission),
                             onClick = {
                                 permissionLauncher.launch(AppUpdates.installPermissionIntent(context))
                             },
@@ -146,13 +145,13 @@ fun UpdateSection(modifier: Modifier = Modifier) {
 
                 is UpdateState.Failed -> {
                     Text(
-                        text = current.reason,
+                        text = stringResource(current.reasonRes),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 8.dp),
                     )
                     GhostButton(
-                        text = "Try again",
+                        text = stringResource(R.string.upd_try_again),
                         onClick = { AppUpdates.check(context) },
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
@@ -185,10 +184,10 @@ fun UpdateBanner(onOpen: () -> Unit, modifier: Modifier = Modifier) {
         else -> return
     }
     CardFlat(modifier = modifier.fillMaxWidth()) {
-        Text(text = "MixMaster $version is available", style = MaterialTheme.typography.titleMedium)
-        Hint("You're on ${BuildConfig.VERSION_NAME}.")
+        Text(text = stringResource(R.string.upd_available, version), style = MaterialTheme.typography.titleMedium)
+        Hint(stringResource(R.string.upd_youre_on, BuildConfig.VERSION_NAME))
         PrimaryButton(
-            text = "Update",
+            text = stringResource(R.string.upd_update),
             onClick = onOpen,
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
         )

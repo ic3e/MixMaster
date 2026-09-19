@@ -405,4 +405,91 @@
     <string name="prj_no_assigned">No rooms have an assigned product yet.</string>
     <string name="tab_layout">Layout</string>
     <string name="prj_no_scheduled">No scheduled tasks yet.</string>
+
+    <!-- Sign in -->
+    <string name="signin_who">Who\'s signing in?</string>
+    <string name="signin_note">MixMaster works differently depending on your role — you can switch anytime from Settings.</string>
+    <string name="signin_employer">Employer / Office</string>
+    <string name="signin_employer_sub">Set up projects, products &amp; pricing</string>
+    <string name="signin_employer_b1">Create and edit projects, clients &amp; the product library</string>
+    <string name="signin_employer_b2">Assign tasks and rooms to the crew</string>
+    <string name="signin_employer_b3">Generate reports and manage the team</string>
+    <string name="signin_worker">Worker / Field crew</string>
+    <string name="signin_worker_sub">Use what the office has set up</string>
+    <string name="signin_worker_b1">Run the calculator with the office\'s product list</string>
+    <string name="signin_worker_b2">Check off tasks and rooms as they\'re done</string>
+    <string name="signin_worker_b3">Add site photos and notes — can\'t edit setup data</string>
+    <string name="signin_continue">Continue as %1$s</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">Welcome to MixMaster</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_1_title">Never guess a mix again</string>
+    <string name="onboarding_1_body">Pick a product, enter the m² (or thickness), and MixMaster works out exactly how much of each part you need — no more eyeballing bag-to-bucket ratios on site.</string>
+    <string name="onboarding_2_title">Your whole product library, in one place</string>
+    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex and anything else you add — with real ratios and coverage from the datasheets, searchable by brand and category.</string>
+    <string name="onboarding_3_title">Projects, rooms, tasks &amp; the calendar</string>
+    <string name="onboarding_3_body">Break a project into floors and rooms, assign a product per room, track tasks against a due date, and everything shows up on one shared calendar.</string>
+
+    <!-- App lock -->
+    <string name="lock_unlock_title">Unlock MixMaster</string>
+    <string name="lock_unlock_subtitle">Your mixes, jobs and client details are behind the phone\'s lock.</string>
+    <string name="lock_locked">MixMaster is locked</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- App updates -->
+    <string name="upd_section">App updates</string>
+    <string name="upd_this_phone">This phone is on %1$s</string>
+    <string name="upd_auto_note">Checks on its own each time the app opens.</string>
+    <string name="upd_check">Check for updates</string>
+    <string name="upd_checking">Checking…</string>
+    <string name="upd_up_to_date">Nothing newer has been published.</string>
+    <string name="upd_check_again">Check again</string>
+    <string name="upd_ready">%1$s is ready to download.</string>
+    <string name="upd_what_changed">What changed: %1$s</string>
+    <string name="upd_download">Download %1$s</string>
+    <string name="upd_downloading">Downloading %1$s — %2$d%%</string>
+    <string name="upd_downloaded">%1$s is downloaded. Android will ask you to confirm.</string>
+    <string name="upd_install">Install %1$s</string>
+    <string name="upd_permission_note">Android needs your permission for MixMaster to install updates. You only have to do this once.</string>
+    <string name="upd_give_permission">Give permission</string>
+    <string name="upd_try_again">Try again</string>
+    <string name="upd_available">MixMaster %1$s is available</string>
+    <string name="upd_youre_on">You\'re on %1$s.</string>
+    <string name="upd_update">Update</string>
+    <string name="upd_err_no_connection">No connection.</string>
+    <string name="upd_err_timeout">The server took too long.</string>
+    <string name="upd_err_generic">Something went wrong.</string>
+    <string name="upd_err_installer">Couldn\'t open the installer.</string>
+
+    <!-- Home -->
+    <string name="home_projects">Projects</string>
+    <string name="home_projects_value">%1$d active</string>
+    <string name="home_open_today">Open today</string>
+    <string name="home_products">Products</string>
+    <string name="home_quick_calculate">Quick calculate</string>
+    <string name="home_prev_week">Previous week</string>
+    <string name="home_next_week">Next week</string>
+    <string name="home_week">Week %1$s</string>
+    <string name="home_full_calendar">Full calendar</string>
+    <string name="home_nothing_today">Nothing on this day. Tap + Add task.</string>
+    <string name="home_was_due">%1$s · was due %2$s</string>
+    <string name="home_anytime">Anytime · %1$d</string>
+    <string name="home_recent_products">Recently added products</string>
+
+    <!-- Project status -->
+    <string name="status_all">All</string>
+    <string name="status_active">Active</string>
+    <string name="status_planning">Planning</string>
+    <string name="status_on_hold">On hold</string>
+    <string name="status_completed">Completed</string>
+
+    <!-- Add-ons -->
+    <string name="addon_no_dose">No dose set on %1$s — set it on the product under "Added to another mix".</string>
+    <string name="addon_pick_part">Pick which part of the mix this is measured against.</string>
+    <string name="addon_rate_label">%1$s %2$s per kg of %3$s</string>
+
+    <string name="image_cant_open">Can\'t open</string>
+    <string name="home_quick_calculate_sub">Get an exact mix split in seconds</string>
 </resources>

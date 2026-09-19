@@ -207,6 +207,9 @@ fun LayoutTab(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var photoProblem by remember { mutableStateOf<String?>(null) }
+    // Resolved here: the failure is set from inside a coroutine in the picker's callback, which
+    // is not composable.
+    val photoFailedMessage = stringResource(R.string.prj_photo_copy_failed)
 
     // The picker's permission on this URI dies with the process, so the bytes are copied into the
     // app before the photo is recorded — otherwise it loads today and never again.
@@ -218,7 +221,7 @@ fun LayoutTab(
                     photoProblem = null
                     onAddPhoto(stored)
                 } else {
-                    photoProblem = stringResource(R.string.prj_photo_copy_failed)
+                    photoProblem = photoFailedMessage
                 }
             }
         }
@@ -581,6 +584,7 @@ fun CalendarTab(data: ProjectDetailData) {
                                     TaskPriority.HIGH -> R.string.priority_high
                                     TaskPriority.MEDIUM -> R.string.priority_medium
                                     TaskPriority.LOW -> R.string.priority_low
+                                    TaskPriority.DONE -> R.string.task_done
                                 },
                             )
                         },

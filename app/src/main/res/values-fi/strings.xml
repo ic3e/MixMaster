@@ -366,4 +366,84 @@
     <string name="prj_no_assigned">Yhteenkään tilaan ei ole vielä määritetty tuotetta.</string>
     <string name="tab_layout">Pohja</string>
     <string name="prj_no_scheduled">Ei vielä aikataulutettuja tehtäviä.</string>
+
+    <string name="signin_who">Kuka kirjautuu?</string>
+    <string name="signin_note">MixMaster toimii roolin mukaan eri tavoin — voit vaihtaa roolia milloin tahansa asetuksista.</string>
+    <string name="signin_employer">Työnantaja / toimisto</string>
+    <string name="signin_employer_sub">Järjestää projektit, tuotteet ja hinnat</string>
+    <string name="signin_employer_b1">Luo ja muokkaa projekteja, asiakkaita ja tuotekirjastoa</string>
+    <string name="signin_employer_b2">Määritä tehtäviä ja tiloja työryhmälle</string>
+    <string name="signin_employer_b3">Luo raportteja ja hallitse työryhmää</string>
+    <string name="signin_worker">Työntekijä / työmaaryhmä</string>
+    <string name="signin_worker_sub">Käyttää sitä, minkä toimisto on järjestänyt</string>
+    <string name="signin_worker_b1">Käytä laskuria toimiston tuotelistalla</string>
+    <string name="signin_worker_b2">Kuittaa tehtävät ja tilat tehdyiksi</string>
+    <string name="signin_worker_b3">Lisää työmaakuvia ja muistiinpanoja — asetustietoja ei voi muokata</string>
+    <string name="signin_continue">Jatka roolissa %1$s</string>
+
+    <string name="onboarding_welcome">Tervetuloa MixMasteriin</string>
+    <string name="onboarding_start">Aloitetaan</string>
+    <string name="onboarding_1_title">Massaa ei tarvitse enää arvailla</string>
+    <string name="onboarding_1_body">Valitse tuote, syötä neliöt (tai paksuus), ja MixMaster laskee tarkalleen, paljonko kutakin osaa tarvitaan — ei enää säkin ja ämpärin suhteen silmämääräistä arviointia työmaalla.</string>
+    <string name="onboarding_2_title">Koko tuotekirjasto yhdessä paikassa</string>
+    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex ja kaikki muu, minkä itse lisäät — oikeilla suhteilla ja menekeillä tuotetiedoista, haettavissa merkin ja tyypin mukaan.</string>
+    <string name="onboarding_3_title">Projektit, tilat, tehtävät ja kalenteri</string>
+    <string name="onboarding_3_body">Jaa projekti kerroksiin ja tiloihin, määritä kullekin tilalle tuote, seuraa tehtäviä määräpäivän mukaan — kaikki näkyy yhdessä yhteisessä kalenterissa.</string>
+
+    <string name="lock_unlock_title">Avaa MixMaster</string>
+    <string name="lock_unlock_subtitle">Massat, työt ja asiakastiedot ovat puhelimen lukituksen takana.</string>
+    <string name="lock_locked">MixMaster on lukittu</string>
+    <string name="lock_unlock">Avaa</string>
+    <string name="action_cancel">Peruuta</string>
+
+    <string name="upd_section">Sovelluksen päivitykset</string>
+    <string name="upd_this_phone">Tässä puhelimessa on %1$s</string>
+    <string name="upd_auto_note">Tarkistaa itse joka kerta, kun sovellus avataan.</string>
+    <string name="upd_check">Tarkista päivitykset</string>
+    <string name="upd_checking">Tarkistetaan…</string>
+    <string name="upd_up_to_date">Uudempaa ei ole julkaistu.</string>
+    <string name="upd_check_again">Tarkista uudelleen</string>
+    <string name="upd_ready">%1$s on valmiina ladattavaksi.</string>
+    <string name="upd_what_changed">Mikä muuttui: %1$s</string>
+    <string name="upd_download">Lataa %1$s</string>
+    <string name="upd_downloading">Ladataan %1$s — %2$d%%</string>
+    <string name="upd_downloaded">%1$s on ladattu. Android pyytää sinulta vahvistuksen.</string>
+    <string name="upd_install">Asenna %1$s</string>
+    <string name="upd_permission_note">Android tarvitsee luvan, jotta MixMaster voi asentaa päivityksiä. Tämä tehdään vain kerran.</string>
+    <string name="upd_give_permission">Anna lupa</string>
+    <string name="upd_try_again">Yritä uudelleen</string>
+    <string name="upd_available">MixMaster %1$s on saatavilla</string>
+    <string name="upd_youre_on">Sinulla on %1$s.</string>
+    <string name="upd_update">Päivitä</string>
+    <string name="upd_err_no_connection">Ei yhteyttä.</string>
+    <string name="upd_err_timeout">Palvelin kesti liian kauan.</string>
+    <string name="upd_err_generic">Jokin meni pieleen.</string>
+    <string name="upd_err_installer">Asennusohjelmaa ei voitu avata.</string>
+
+    <string name="home_projects">Projektit</string>
+    <string name="home_projects_value">%1$d aktiivista</string>
+    <string name="home_open_today">Tänään auki</string>
+    <string name="home_products">Tuotteet</string>
+    <string name="home_quick_calculate">Pikalaskenta</string>
+    <string name="home_prev_week">Edellinen viikko</string>
+    <string name="home_next_week">Seuraava viikko</string>
+    <string name="home_week">Viikko %1$s</string>
+    <string name="home_full_calendar">Koko kalenteri</string>
+    <string name="home_nothing_today">Tälle päivälle ei ole mitään. Paina + Lisää tehtävä.</string>
+    <string name="home_was_due">%1$s · määräpäivä oli %2$s</string>
+    <string name="home_anytime">Milloin tahansa · %1$d</string>
+    <string name="home_recent_products">Viimeksi lisätyt tuotteet</string>
+
+    <string name="status_all">Kaikki</string>
+    <string name="status_active">Aktiivinen</string>
+    <string name="status_planning">Suunnittelussa</string>
+    <string name="status_on_hold">Odottaa</string>
+    <string name="status_completed">Valmis</string>
+
+    <string name="addon_no_dose">Tuotteelle %1$s ei ole asetettu määrää — aseta se tuotteen kohdasta "Lisätään toiseen massaan".</string>
+    <string name="addon_pick_part">Valitse, mitä massan osaa vasten tämä mitataan.</string>
+    <string name="addon_rate_label">%1$s %2$s jokaista %3$s kiloa kohti</string>
+
+    <string name="image_cant_open">Ei voi avata</string>
+    <string name="home_quick_calculate_sub">Saat tarkan massajaon sekunneissa</string>
 </resources>

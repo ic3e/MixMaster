@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 /**
  * Draws a stored photo, scaled down while it is decoded.
@@ -79,7 +81,7 @@ fun ContentImage(uri: String, modifier: Modifier = Modifier, targetSize: Dp = 96
         ) {
             if (failed) {
                 Text(
-                    text = "Can't open",
+                    text = stringResource(R.string.image_cant_open),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

@@ -14,6 +14,14 @@ import kotlin.math.ceil
  */
 data class AddOnChoice(val productId: Long, val partIndex: Int)
 
+/** What's wrong with an add-on on this job. Worded by the screen, which knows the language. */
+sealed interface AddOnProblem {
+    /** The product has no dose set on it at all. */
+    data object NoDose : AddOnProblem
+    /** Nothing has been chosen for it to be measured against. */
+    data object NoPart : AddOnProblem
+}
+
 data class AddOnNeed(
     val productId: Long,
     val name: String,
@@ -24,11 +32,13 @@ data class AddOnNeed(
     /** How much add-on is needed, in [unit]. */
     val amount: Double,
     val unit: String,
-    val rateLabel: String,
+    /** The dose as figures, worded by the screen: "28.0 g per kg of Polymer". */
+    val rateAmount: String,
+    val rateUnit: String,
     /** Containers to take, when the add-on's pack size is known. */
     val packs: Int?,
     val packLabel: String?,
-    val problem: String?,
+    val problem: AddOnProblem?,
 )
 
 /**
@@ -61,14 +71,13 @@ fun addOnNeeds(
         againstKg = againstKg,
         amount = amount,
         unit = product.addOnUnit,
-        rateLabel = "${formatDecimal(product.addOnAmountPerKg * 1000, 1)} " +
-            "${if (product.addOnUnit == "L") "ml" else "g"} per kg of ${part?.label ?: "—"}",
+        rateAmount = formatDecimal(product.addOnAmountPerKg * 1000, 1),
+        rateUnit = if (product.addOnUnit == "L") "ml" else "g",
         packs = packs,
         packLabel = pack?.let { "${formatDecimal(it.first, 2)} ${it.second}" },
         problem = when {
-            product.addOnAmountPerKg <= 0.0 ->
-                "No dose set on ${product.name} — set it on the product under \"Added to another mix\"."
-            part == null -> "Pick which part of the mix this is measured against."
+            product.addOnAmountPerKg <= 0.0 -> AddOnProblem.NoDose
+            part == null -> AddOnProblem.NoPart
             else -> null
         },
     )

@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.ui.theme.CardShape
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.model.ProjectStatus
 
 @Composable
 fun ProjectsScreen(navController: NavHostController) {
@@ -86,8 +87,14 @@ fun ProjectsScreen(navController: NavHostController) {
 
             item {
                 ChipRow(
-                    options = viewModel.filterOptions.map { option ->
-                        ChipOption(label = option, selected = option == state.filter, onClick = { viewModel.setFilter(option) })
+                    // null is "All"; the rest come from the enum, so the chip shown and the
+                    // value filtered on can't drift apart when the language changes.
+                    options = (listOf(null) + ProjectStatus.entries).map { option ->
+                        ChipOption(
+                            label = stringResource(option?.labelRes() ?: R.string.status_all),
+                            selected = option == state.filter,
+                            onClick = { viewModel.setFilter(option) },
+                        )
                     },
                 )
             }
@@ -103,7 +110,7 @@ fun ProjectsScreen(navController: NavHostController) {
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.weight(1f).padding(end = 10.dp),
                         )
-                        Text(text = project.status.label(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                        Text(text = stringResource(project.status.labelRes()), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     }
                     // Client and site are optional, so only the parts that exist get printed —
                     // an empty project used to show a lone "·".

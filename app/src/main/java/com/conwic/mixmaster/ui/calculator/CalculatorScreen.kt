@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.pluralStringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
+import com.conwic.mixmaster.domain.AddOnProblem
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
@@ -414,7 +415,16 @@ fun CalculatorScreen(navController: NavHostController) {
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         )
                         Text(
-                            text = stringResource(R.string.calc_addon_rate, need.rateLabel, formatKg(need.againstKg * 1000)),
+                            text = stringResource(
+                                R.string.calc_addon_rate,
+                                stringResource(
+                                    R.string.addon_rate_label,
+                                    need.rateAmount,
+                                    need.rateUnit,
+                                    need.againstLabel,
+                                ),
+                                formatKg(need.againstKg * 1000),
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp),
@@ -429,7 +439,11 @@ fun CalculatorScreen(navController: NavHostController) {
                         }
                         need.problem?.let { problem ->
                             Text(
-                                text = problem,
+                                text = when (problem) {
+                                    AddOnProblem.NoDose ->
+                                        stringResource(R.string.addon_no_dose, need.name)
+                                    AddOnProblem.NoPart -> stringResource(R.string.addon_pick_part)
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Bold,

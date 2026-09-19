@@ -118,9 +118,9 @@ fun HomeScreen(navController: NavHostController) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard(modifier = Modifier.weight(1f), label = "Projects", value = "${state.activeProjectCount} active")
-                StatCard(modifier = Modifier.weight(1f), label = "Open today", value = "${state.todayTaskCount}", valueColor = MaterialTheme.colorScheme.secondary)
-                StatCard(modifier = Modifier.weight(1f), label = "Products", value = "${state.productCount}")
+                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_projects), value = stringResource(R.string.home_projects_value, state.activeProjectCount))
+                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_open_today), value = "${state.todayTaskCount}", valueColor = MaterialTheme.colorScheme.secondary)
+                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_products), value = "${state.productCount}")
             }
         }
 
@@ -128,9 +128,9 @@ fun HomeScreen(navController: NavHostController) {
             CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Quick calculate", style = MaterialTheme.typography.titleLarge, color = OnAccentCard)
+                        Text(text = stringResource(R.string.home_quick_calculate), style = MaterialTheme.typography.titleLarge, color = OnAccentCard)
                         Text(
-                            text = "Get an exact mix split in seconds",
+                            text = stringResource(R.string.home_quick_calculate_sub),
                             style = MaterialTheme.typography.bodyMedium,
                             color = OnAccentCard.copy(alpha = 0.85f),
                         )
@@ -143,18 +143,18 @@ fun HomeScreen(navController: NavHostController) {
             Column {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { viewModel.shiftWeek(-1) }) {
-                        Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous week")
+                        Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.home_prev_week))
                     }
                     Text(
                         text = "Week ${state.weekLabel.removePrefix("W")}",
                         style = MaterialTheme.typography.titleMedium,
                     )
                     IconButton(onClick = { viewModel.shiftWeek(1) }) {
-                        Icon(Icons.Filled.ChevronRight, contentDescription = "Next week")
+                        Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.home_next_week))
                     }
                     Box(modifier = Modifier.weight(1f))
                     Text(
-                        text = "Full calendar",
+                        text = stringResource(R.string.home_full_calendar),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.tappableText { navController.navigate(Routes.CALENDAR) },
@@ -187,7 +187,7 @@ fun HomeScreen(navController: NavHostController) {
                         },
                     )
                     Text(
-                        text = "+ Add task",
+                        text = stringResource(R.string.action_add_task),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -201,7 +201,7 @@ fun HomeScreen(navController: NavHostController) {
                 if (state.dayTasks.isEmpty()) {
                     CardFlat {
                         Text(
-                            text = "Nothing on this day. Tap + Add task.",
+                            text = stringResource(R.string.home_nothing_today),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -234,7 +234,7 @@ fun HomeScreen(navController: NavHostController) {
                             TaskRow(
                                 title = item.task.title,
                                 subtitle = item.task.dueDate
-                                    ?.let { "${item.subtitle} · was due ${formatDueDate(it, today)}" }
+                                    ?.let { stringResource(R.string.home_was_due, item.subtitle, formatDueDate(it, today)) }
                                     ?: item.subtitle,
                                 done = item.task.isDone,
                                 priority = item.task.priority,
@@ -252,7 +252,7 @@ fun HomeScreen(navController: NavHostController) {
         if (state.undatedTasks.isNotEmpty()) {
             item {
                 Column {
-                    SectionLabel(text = "Anytime · ${state.undatedTasks.size}")
+                    SectionLabel(text = stringResource(R.string.home_anytime, state.undatedTasks.size))
                     CardFlat {
                         state.undatedTasks.forEachIndexed { index, item ->
                             TaskRow(
@@ -274,7 +274,7 @@ fun HomeScreen(navController: NavHostController) {
         if (state.recentProducts.isNotEmpty()) {
             item {
                 Column {
-                    SectionLabel(text = "Recently added products")
+                    SectionLabel(text = stringResource(R.string.home_recent_products))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.recentProducts.forEach { product ->
                             Text(

@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
 import com.conwic.mixmaster.BuildConfig
+import com.conwic.mixmaster.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,7 +39,7 @@ sealed interface UpdateState {
     data class Available(val info: UpdateInfo) : UpdateState
     data class Downloading(val info: UpdateInfo, val percent: Int) : UpdateState
     data class ReadyToInstall(val info: UpdateInfo, val file: File) : UpdateState
-    data class Failed(val reason: String) : UpdateState
+    data class Failed(@StringRes val reasonRes: Int) : UpdateState
 }
 
 /**
@@ -139,7 +141,7 @@ object AppUpdates {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         runCatching { context.startActivity(intent) }.onFailure {
-            _state.value = UpdateState.Failed("Couldn't open the installer.")
+            _state.value = UpdateState.Failed(R.string.upd_err_installer)
         }
     }
 
@@ -228,9 +230,14 @@ object AppUpdates {
         disconnect()
     }
 
-    private fun readableReason(error: Throwable): String = when (error) {
-        is java.net.UnknownHostException -> "No connection."
-        is java.net.SocketTimeoutException -> "The server took too long."
-        else -> error.message ?: "Something went wrong."
+    /**
+     * A resource id, not a sentence — this runs off the main thread with no language in scope,
+     * and the exception's own message would be English (or machine noise) whatever happened.
+     */
+    @StringRes
+    private fun readableReason(error: Throwable): Int = when (error) {
+        is java.net.UnknownHostException -> R.string.upd_err_no_connection
+        is java.net.SocketTimeoutException -> R.string.upd_err_timeout
+        else -> R.string.upd_err_generic
     }
 }
