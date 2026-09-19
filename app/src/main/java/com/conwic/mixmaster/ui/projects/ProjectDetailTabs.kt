@@ -67,6 +67,7 @@ import com.conwic.mixmaster.ui.theme.Ok
 import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -467,8 +468,8 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
             OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text("Area (m²)") }, modifier = Modifier.fillMaxWidth())
             PrimaryButton(
                 text = "Add room",
-                onClick = { onAdd(name, area.toDoubleOrNull() ?: 0.0) },
-                enabled = name.isNotBlank() && area.toDoubleOrNull() != null,
+                onClick = { onAdd(name, area.toNumberOrNull() ?: 0.0) },
+                enabled = name.isNotBlank() && area.toNumberOrNull() != null,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

@@ -47,6 +47,7 @@ import com.conwic.mixmaster.ui.components.SuggestField
 import com.conwic.mixmaster.ui.theme.CardShape
 import androidx.compose.material3.Switch
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 @Composable
 fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
@@ -102,14 +103,17 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             CardFlat {
                 DropdownField(
                     label = "Measured per",
-                    selected = state.dosingMode.name,
-                    options = DosingMode.entries.map { it.name },
-                    onSelect = { name -> viewModel.setDosingMode(DosingMode.valueOf(name)) },
+                    selected = state.dosingMode.pickerLabel,
+                    options = DosingMode.entries.map { it.pickerLabel },
+                    onSelect = { chosen ->
+                        DosingMode.entries.firstOrNull { it.pickerLabel == chosen }
+                            ?.let(viewModel::setDosingMode)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    text = "Grams per m². If the datasheet gives one figure rather than a range, " +
-                        "put it in both boxes.",
+                    text = state.dosingMode.explanation +
+                        " If the datasheet gives one figure rather than a range, put it in both boxes.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
@@ -237,7 +241,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         item {
             // Reads back the ratio as it's typed, rather than explaining ratios in the abstract.
             val named = state.components.filter {
-                it.label.isNotBlank() && (it.ratioText.toDoubleOrNull() ?: 0.0) > 0.0
+                it.label.isNotBlank() && (it.ratioText.toNumberOrNull() ?: 0.0) > 0.0
             }
             CardFlat {
                 if (named.isEmpty()) {
@@ -297,11 +301,31 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         }
 
         item {
+            if (state.saveBlockers.isNotEmpty()) {
+                CardFlat(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                    Text(
+                        text = if (state.saveBlockers.size == 1) {
+                            "One thing left before this saves"
+                        } else {
+                            "${state.saveBlockers.size} things left before this saves"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    state.saveBlockers.forEach { blocker ->
+                        Text(
+                            text = "· $blocker",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
+                }
+            }
             PrimaryButton(
                 text = "Save product",
                 onClick = { viewModel.save { navController.popBackStack() } },
                 enabled = state.isValid,
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
             )
         }
     }
@@ -468,11 +492,33 @@ private fun ComponentCard(
 
 /** Reads the add-on dose back in the form the datasheet states it. */
 private fun addOnDoseSummary(state: ProductFormState): String {
-    val amount = state.addOnAmountText.trim().replace(',', '.').toDoubleOrNull()
-    val per = state.addOnPerKgText.trim().replace(',', '.').toDoubleOrNull()
+    val amount = state.addOnAmountText.toNumberOrNull()
+    val per = state.addOnPerKgText.toNumberOrNull()
     if (amount == null || amount <= 0.0 || per == null || per <= 0.0) {
         return "Set an amount to use this as an add-on."
     }
     val perLabel = if (per == 1.0) "1 kg" else "${formatDecimal(per, 2)} kg"
     return "${formatDecimal(amount, 2)} ${state.addOnUnitChoice} per $perLabel of whatever it goes into"
 }
+
+/**
+ * What each dosing mode is called on screen. The picker used to show the enum constant, so the
+ * choice read as "MM" — which says nothing to whoever is holding the datasheet.
+ */
+private val DosingMode.pickerLabel: String
+    get() = when (this) {
+        DosingMode.COATS -> "Per coat"
+        DosingMode.POUR -> "Per pour"
+        DosingMode.MM -> "Per mm of thickness"
+    }
+
+/** What the figures below the picker actually mean in that mode. */
+private val DosingMode.explanation: String
+    get() = when (this) {
+        DosingMode.COATS ->
+            "Grams per m² for each coat — two coats uses twice these figures."
+        DosingMode.POUR ->
+            "Grams per m² for the whole pour, laid in one go."
+        DosingMode.MM ->
+            "Grams per m² for every millimetre of thickness — 10 mm uses ten times these figures."
+    }

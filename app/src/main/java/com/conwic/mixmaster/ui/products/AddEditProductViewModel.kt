@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 /** Stable ids so the list of parts can be keyed — without them every keystroke re-lays out
  * every card on the form, which is a good part of why it dragged. */
@@ -37,7 +38,7 @@ data class ComponentFormRow(
     val densityKgPerLText: String = "",
 ) {
     private val densityValue: Double?
-        get() = densityKgPerLText.trim().takeIf { it.isNotEmpty() }?.replace(',', '.')?.toDoubleOrNull()
+        get() = densityKgPerLText.toNumberOrNull()
 
     /** Blocks the save. The rule itself lives in the domain, so the calculator agrees with it. */
     val densityProblem: String?
@@ -70,21 +71,43 @@ data class ProductFormState(
     val components: List<ComponentFormRow> = listOf(ComponentFormRow(label = "Part A", ratioText = "100"), ComponentFormRow(label = "Part B", ratioText = "")),
     val isLoaded: Boolean = false,
 ) {
-    val isValid: Boolean
-        get() {
-            val min = minDoseText.toDoubleOrNull()
-            val max = maxDoseText.toDoubleOrNull()
-            return brand.isNotBlank() && name.isNotBlank() && category.isNotBlank() &&
-                min != null && max != null && min > 0.0 && max >= min &&
-                components.any { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null } &&
-                components.none { it.densityProblem != null }
+    /**
+     * Everything standing between this form and a saved product, in the order it appears on
+     * screen. The screen shows this list; a disabled Save button with nothing to explain it is
+     * how a mistyped decimal turned into "it just won't save".
+     */
+    val saveBlockers: List<String>
+        get() = buildList {
+            if (brand.isBlank()) add("Brand is empty")
+            if (name.isBlank()) add("Product name is empty")
+            if (category.isBlank()) add("Type is empty")
+
+            val min = minDoseText.toNumberOrNull()
+            val max = maxDoseText.toNumberOrNull()
+            when {
+                minDoseText.isBlank() || maxDoseText.isBlank() ->
+                    add("Min and max cover both need a figure — put the same one in both if the datasheet gives one")
+                min == null -> add("Min cover isn't a number")
+                max == null -> add("Max cover isn't a number")
+                min <= 0.0 -> add("Min cover has to be more than zero")
+                max < min -> add("Max cover is smaller than min cover")
+            }
+
+            if (components.none { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }) {
+                add("At least one part needs a name and a number of parts")
+            }
+            components.forEachIndexed { index, row ->
+                row.densityProblem?.let { add("Part ${index + 1} density — $it") }
+            }
         }
+
+    val isValid: Boolean get() = saveBlockers.isEmpty()
 }
 
 /** "28 g per 1 kg" becomes 0.028 kg per kg; "1 L per 25 kg" becomes 0.04 L per kg. */
 internal fun normaliseAddOnDose(amountText: String, unitChoice: String, perKgText: String): Pair<Double, String> {
-    val amount = amountText.trim().replace(',', '.').toDoubleOrNull() ?: 0.0
-    val perKg = perKgText.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 } ?: 1.0
+    val amount = amountText.toNumberOrNull() ?: 0.0
+    val perKg = perKgText.toNumberOrNull()?.takeIf { it > 0.0 } ?: 1.0
     val inBaseUnit = when (unitChoice) {
         "g", "ml" -> amount / 1000.0
         else -> amount
@@ -108,9 +131,9 @@ internal fun describeAddOnDose(amountPerKg: Double, unit: String): Triple<String
 }
 
 private fun computeRatioLabel(components: List<ComponentFormRow>): String {
-    val valid = components.filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
+    val valid = components.filter { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }
     if (valid.size <= 1) return "1K"
-    return valid.joinToString(":") { (it.ratioText.toDoubleOrNull() ?: 0.0).toInt().toString() }
+    return valid.joinToString(":") { (it.ratioText.toNumberOrNull() ?: 0.0).toInt().toString() }
 }
 
 /** Everything already in the catalogue, offered back so the same thing isn't typed two ways. */
@@ -221,8 +244,8 @@ class AddEditProductViewModel(
         val state = _formState.value
         if (!state.isValid) return
         viewModelScope.launch {
-            val min = state.minDoseText.toDoubleOrNull() ?: 0.0
-            val max = state.maxDoseText.toDoubleOrNull() ?: min
+            val min = state.minDoseText.toNumberOrNull() ?: 0.0
+            val max = state.maxDoseText.toNumberOrNull() ?: min
             val product = ProductEntity(
                 id = state.productId,
                 brand = state.brand.trim(),
@@ -246,10 +269,10 @@ class AddEditProductViewModel(
                 addOnUnit = normaliseAddOnDose(state.addOnAmountText, state.addOnUnitChoice, state.addOnPerKgText).second,
             )
             val components = state.components
-                .filter { it.label.isNotBlank() && it.ratioText.toDoubleOrNull() != null }
+                .filter { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }
                 .mapIndexed { index, row ->
                     // Water is 1 kg/L whatever was typed, so nobody has to remember to fill it in.
-                    val typedDensity = row.densityKgPerLText.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    val typedDensity = row.densityKgPerLText.toNumberOrNull() ?: 0.0
                     val densityValue = if (isWaterLabel(row.label)) 1.0 else typedDensity
                     ProductComponentEntity(
                         productId = 0,
@@ -262,7 +285,7 @@ class AddEditProductViewModel(
                         potLife = row.potLife.trim(),
                         notes = row.notes.trim(),
                         sortOrder = index,
-                        packageSize = row.packSizeText.toDoubleOrNull() ?: 0.0,
+                        packageSize = row.packSizeText.toNumberOrNull() ?: 0.0,
                         packageUnit = row.packUnit,
                         packageType = row.packType,
                         densityKgPerL = densityValue,

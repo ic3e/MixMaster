@@ -31,6 +31,7 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.theme.StepperShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 /**
  * The design's − / + stepper. The value stays typeable as well as steppable, because real
@@ -53,7 +54,7 @@ fun Stepper(
     var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
 
     fun nudge(delta: Double) {
-        val current = field.text.toDoubleOrNull() ?: 0.0
+        val current = field.text.toNumberOrNull() ?: 0.0
         val next = formatDecimal((current + delta).coerceAtLeast(minValue), decimals)
         field = TextFieldValue(next, TextRange(next.length))
         onValueChange(next)

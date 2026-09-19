@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 data class CalculatorUiState(
     val selectedProduct: ProductWithComponents? = null,
@@ -110,8 +111,8 @@ class CalculatorViewModel(
     val uiState: StateFlow<CalculatorUiState> =
         combine(selectedProductFlow, usageLogsFlow, inputs, addOnsFlow) { productWithComponents, logs, input, addOnData ->
             val (availableAddOns, addOnPacks) = addOnData
-            val area = input.areaText.toDoubleOrNull()
-            val quantity = input.quantityText.toDoubleOrNull() ?: 1.0
+            val area = input.areaText.toNumberOrNull()
+            val quantity = input.quantityText.toNumberOrNull() ?: 1.0
             val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
             val result = if (productWithComponents != null && area != null && area > 0.0) {
                 MixCalculator.compute(productWithComponents, area, quantity, doseGramsPerM2 = coverage)

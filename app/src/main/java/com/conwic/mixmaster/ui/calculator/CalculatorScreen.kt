@@ -54,6 +54,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import java.time.LocalDate
 import kotlin.random.Random
 import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.domain.toNumberOrNull
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -152,7 +153,7 @@ fun CalculatorScreen(navController: NavHostController) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         SectionLabel(text = "Area to cover")
                         Text(
-                            text = state.areaInput.toDoubleOrNull()?.let { "${formatArea(it)} m²" } ?: "—",
+                            text = state.areaInput.toNumberOrNull()?.let { "${formatArea(it)} m²" } ?: "—",
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }
@@ -480,7 +481,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             }
                             Stepper(
                                 value = formatDecimal(state.mixerLitres, 0),
-                                onValueChange = { viewModel.setMixerLitres(it.toDoubleOrNull() ?: 0.0) },
+                                onValueChange = { viewModel.setMixerLitres(it.toNumberOrNull() ?: 0.0) },
                                 step = 5.0,
                                 minValue = 5.0,
                                 decimals = 0,
@@ -526,7 +527,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             }
                             Stepper(
                                 value = formatDecimal(state.maxBatchKg, 1),
-                                onValueChange = { viewModel.setMaxBatchKg(it.toDoubleOrNull() ?: 0.0) },
+                                onValueChange = { viewModel.setMaxBatchKg(it.toNumberOrNull() ?: 0.0) },
                                 step = 5.0,
                                 minValue = 1.0,
                                 decimals = 1,

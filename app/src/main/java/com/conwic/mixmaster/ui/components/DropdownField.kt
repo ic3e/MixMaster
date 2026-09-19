@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
@@ -48,8 +50,22 @@ fun DropdownField(
             modifier = if (fieldWidth > 0.dp) Modifier.width(fieldWidth) else Modifier,
         ) {
             options.forEach { option ->
+                // The open menu marks the one already in force. Without it the list gives no
+                // clue what the field currently holds, so picking felt like it hadn't landed.
+                val isSelected = option == selected
                 DropdownMenuItem(
-                    text = { Text(text = option, modifier = Modifier.fillMaxWidth()) },
+                    text = {
+                        Text(
+                            text = if (isSelected) "✓  $option" else option,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    },
                     onClick = { onSelect(option); expanded = false },
                 )
             }
