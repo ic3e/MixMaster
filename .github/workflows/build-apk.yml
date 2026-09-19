@@ -71,6 +71,17 @@ jobs:
           mkdir -p dist
           rm -f dist/*.apk
           cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
+
+          # The in-app updater reads this to decide whether the phone is behind. versionCode is
+          # the same run number the APK was built with, so the file can't describe a build that
+          # doesn't exist. json.dumps does the escaping, because a commit subject can contain
+          # quotes and a hand-built JSON string would then be invalid.
+          SIZE=$(stat -c%s "dist/MixMaster_$VERSION.apk")
+          NOTES=$(git log -1 --pretty=%s)
+          RUN="${{ github.run_number }}"
+          python3 -c 'import json,sys; v,r,z,n = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; print(json.dumps({"versionCode": r, "versionName": v, "apk": "MixMaster_" + v + ".apk", "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_" + v + ".apk", "sizeBytes": z, "notes": n}, indent=2))' "$VERSION" "$RUN" "$SIZE" "$NOTES" > dist/latest.json
+          cat dist/latest.json
+
           git config user.email "ci-bot@users.noreply.github.com"
           git config user.name "CI Bot"
           git add -A dist

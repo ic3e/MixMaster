@@ -58,6 +58,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.conwic.mixmaster.ui.settings.UpdateBanner
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -106,6 +107,8 @@ fun HomeScreen(navController: NavHostController) {
                 )
             }
         }
+
+        item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

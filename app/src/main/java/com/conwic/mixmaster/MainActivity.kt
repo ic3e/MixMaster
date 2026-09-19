@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
+import com.conwic.mixmaster.data.update.AppUpdates
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
@@ -27,6 +28,10 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val container = (application as MixMasterApp).container
+
+        // Looks once per app start, and stays quiet unless there's something newer — a failed
+        // check on a site with no signal isn't news.
+        AppUpdates.checkOnStart()
 
         setContent {
             // The theme setting used to be saved and then ignored — the app always followed the

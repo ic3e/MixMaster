@@ -288,6 +288,8 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
+        item { UpdateSection(modifier = Modifier.fillMaxWidth()) }
+
         item {
             Column {
                 SectionLabel(text = "Help")
