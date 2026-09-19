@@ -63,6 +63,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.conwic.mixmaster.ui.components.CrashReportCard
 import com.conwic.mixmaster.ui.settings.UpdateBanner
 
 @Composable
@@ -113,6 +114,8 @@ fun HomeScreen(navController: NavHostController) {
                 )
             }
         }
+
+        item { CrashReportCard() }
 
         item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 

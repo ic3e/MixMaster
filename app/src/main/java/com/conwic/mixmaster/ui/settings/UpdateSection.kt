@@ -18,13 +18,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.update.AppUpdates
+import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.data.update.UpdateState
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.GhostButton
@@ -49,13 +49,19 @@ fun UpdateSection(modifier: Modifier = Modifier) {
     // never arrived, which looked like the update had simply died.
     var canInstall by remember { mutableStateOf(AppUpdates.canInstall(context)) }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
+    // The activity is used as the lifecycle owner rather than LocalLifecycleOwner: Compose UI
+    // 1.7 deprecated its own and forwards to the one in androidx.lifecycle.compose, and reading
+    // a CompositionLocal that was never provided throws the moment this enters composition —
+    // which is what closed the app on opening Settings. The activity is handed down explicitly,
+    // so there is nothing to be absent.
+    val activity = LocalAppActivity.current
+    DisposableEffect(activity) {
+        val lifecycle = activity?.lifecycle ?: return@DisposableEffect onDispose { }
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) canInstall = AppUpdates.canInstall(context)
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
     }
 
     // The settings screen reports nothing back, so the result is ignored and the package

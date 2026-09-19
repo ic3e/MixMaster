@@ -518,4 +518,7 @@
     <string name="report_task_done">[done] </string>
     <string name="report_task_line">%1$s%2$s — %3$s</string>
     <string name="report_no_due">no due date</string>
+    <string name="crash_title">MixMaster closed unexpectedly</string>
+    <string name="crash_note">Copy the details and send them on — that is what says which line did it.</string>
+    <string name="crash_copy">Copy details</string>
 </resources>

@@ -36,17 +36,22 @@ import com.conwic.mixmaster.ui.components.PrimaryButton
  * photo or answering a call isn't a re-authentication, short enough to be worth something. */
 private const val RelockAfterMillis = 2 * 60 * 1000L
 
-/** Which authenticators this phone can actually offer, or null if it can offer none. */
-private fun allowedAuthenticators(context: Context): Int? {
+/**
+ * Which authenticators this phone can actually offer, or null if it can offer none.
+ *
+ * Wrapped because this asks the system on behalf of a context the app builds itself for the
+ * language setting. A lock that can't be checked has to mean "don't lock", never "don't open".
+ */
+private fun allowedAuthenticators(context: Context): Int? = runCatching {
     val manager = BiometricManager.from(context)
     val withCredential = BiometricManager.Authenticators.BIOMETRIC_WEAK or
         BiometricManager.Authenticators.DEVICE_CREDENTIAL
-    if (manager.canAuthenticate(withCredential) == BiometricManager.BIOMETRIC_SUCCESS) return withCredential
+    if (manager.canAuthenticate(withCredential) == BiometricManager.BIOMETRIC_SUCCESS) return@runCatching withCredential
     if (manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS) {
-        return BiometricManager.Authenticators.BIOMETRIC_WEAK
+        return@runCatching BiometricManager.Authenticators.BIOMETRIC_WEAK
     }
-    return null
-}
+    null
+}.getOrNull()
 
 /** True when this phone has a fingerprint, face or screen lock the app can check against. */
 fun canLockApp(context: Context): Boolean = allowedAuthenticators(context) != null

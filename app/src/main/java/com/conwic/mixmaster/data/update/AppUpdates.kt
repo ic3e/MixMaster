@@ -119,8 +119,14 @@ object AppUpdates {
         _state.value = UpdateState.Idle
     }
 
-    /** Whether the phone lets this app install another. One-time toggle in system settings. */
-    fun canInstall(context: Context): Boolean = context.packageManager.canRequestPackageInstalls()
+    /**
+     * Whether the phone lets this app install another. One-time toggle in system settings.
+     *
+     * Wrapped because it asks the package manager through a context the app builds itself for
+     * the language setting; not being able to ask means the answer is no, not a crash.
+     */
+    fun canInstall(context: Context): Boolean =
+        runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
 
     /**
      * The one-time "allow this app to install apps" screen.

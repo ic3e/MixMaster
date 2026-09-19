@@ -470,4 +470,7 @@
     <string name="report_task_done">[tehty] </string>
     <string name="report_task_line">%1$s%2$s — %3$s</string>
     <string name="report_no_due">ei määräpäivää</string>
+    <string name="crash_title">MixMaster sulkeutui odottamatta</string>
+    <string name="crash_note">Kopioi tiedot ja lähetä ne eteenpäin — juuri ne kertovat, mikä rivi sen aiheutti.</string>
+    <string name="crash_copy">Kopioi tiedot</string>
 </resources>
