@@ -32,7 +32,8 @@ data class CalendarCell(
 data class CalendarWeek(val weekNumber: Int, val days: List<CalendarCell>)
 
 data class CalendarTaskUi(val task: TaskEntity, val projectName: String) {
-    val subtitle: String get() = projectName.ifBlank { "No project" }
+    /** Blank when the task has no project — the screen supplies the wording. */
+    val subtitle: String get() = projectName
 }
 
 data class CalendarUiState(

@@ -146,7 +146,7 @@ fun HomeScreen(navController: NavHostController) {
                         Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.home_prev_week))
                     }
                     Text(
-                        text = "Week ${state.weekLabel.removePrefix("W")}",
+                        text = stringResource(R.string.home_week, state.weekLabel.removePrefix("W")),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     IconButton(onClick = { viewModel.shiftWeek(1) }) {
@@ -211,7 +211,7 @@ fun HomeScreen(navController: NavHostController) {
                         state.dayTasks.forEachIndexed { index, item ->
                             TaskRow(
                                 title = item.task.title,
-                                subtitle = item.subtitle,
+                                subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
                                 onEdit = { editing = item.task.toDraft() },
@@ -234,8 +234,8 @@ fun HomeScreen(navController: NavHostController) {
                             TaskRow(
                                 title = item.task.title,
                                 subtitle = item.task.dueDate
-                                    ?.let { stringResource(R.string.home_was_due, item.subtitle, formatDueDate(it, today)) }
-                                    ?: item.subtitle,
+                                    ?.let { stringResource(R.string.home_was_due, item.subtitle.ifBlank { stringResource(R.string.task_none_project) }, formatDueDate(it, today)) }
+                                    ?: item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
                                 onEdit = { editing = item.task.toDraft() },
@@ -257,7 +257,7 @@ fun HomeScreen(navController: NavHostController) {
                         state.undatedTasks.forEachIndexed { index, item ->
                             TaskRow(
                                 title = item.task.title,
-                                subtitle = item.subtitle,
+                                subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
                                 onEdit = { editing = item.task.toDraft() },

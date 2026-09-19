@@ -24,7 +24,8 @@ import java.time.temporal.TemporalAdjusters
 
 /** A task as the home list shows it — the row needs the whole task to open the editor. */
 data class HomeTaskUi(val task: TaskEntity, val projectName: String) {
-    val subtitle: String get() = projectName.ifBlank { "No project" }
+    /** Blank when the task has no project — the screen supplies the wording. */
+    val subtitle: String get() = projectName
 }
 
 data class WeekDayUi(

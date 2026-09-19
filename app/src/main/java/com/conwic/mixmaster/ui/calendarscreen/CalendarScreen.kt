@@ -165,7 +165,7 @@ fun CalendarScreen(navController: NavHostController) {
             CardFlat {
                 TaskRow(
                     title = item.task.title,
-                    subtitle = item.subtitle,
+                    subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                     done = item.task.isDone,
                     priority = item.task.priority,
                     onEdit = { editing = item.task.toDraft() },
