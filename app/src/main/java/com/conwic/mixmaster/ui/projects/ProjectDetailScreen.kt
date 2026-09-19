@@ -48,8 +48,17 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
-private val tabTitles = listOf("Overview", "Tasks", "Layout", "Materials", "Calendar")
+// Resource ids: this list is built at class load, before any language is known.
+private val tabTitleRes = listOf(
+    R.string.tab_overview,
+    R.string.tab_tasks,
+    R.string.tab_layout,
+    R.string.tab_materials,
+    R.string.tab_calendar,
+)
 
 @Composable
 fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
@@ -80,11 +89,11 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     actions = {
                         if (role == Role.EMPLOYER) {
                             IconButton(onClick = { overflowOpen = true }) {
-                                Icon(Icons.Filled.MoreVert, contentDescription = "More")
+                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                             }
                             DropdownMenu(expanded = overflowOpen, onDismissRequest = { overflowOpen = false }) {
                                 DropdownMenuItem(
-                                    text = { Text("Generate report (PDF)") },
+                                    text = { Text(stringResource(R.string.prj_generate_report)) },
                                     onClick = {
                                         overflowOpen = false
                                         generatedReportUri = ReportGenerator.generate(
@@ -97,14 +106,14 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                         )
                                     },
                                 )
-                                DropdownMenuItem(text = { Text("Edit project") }, onClick = { overflowOpen = false; editSheetOpen = true })
-                                DropdownMenuItem(text = { Text("Archive project") }, onClick = { overflowOpen = false; viewModel.archive { navController.popBackStack() } })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_edit)) }, onClick = { overflowOpen = false; editSheetOpen = true })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_archive)) }, onClick = { overflowOpen = false; viewModel.archive { navController.popBackStack() } })
                             }
                         }
                     },
                 )
                 SegmentedTabs(
-                    titles = tabTitles,
+                    titles = tabTitleRes.map { stringResource(it) },
                     selectedIndex = selectedTab,
                     onSelect = { selectedTab = it },
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
@@ -174,11 +183,11 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     }
                     runCatching { context.startActivity(intent) }
                     generatedReportUri = null
-                }) { Text("Open") }
+                }) { Text(stringResource(R.string.action_open)) }
             },
-            dismissButton = { TextButton(onClick = { generatedReportUri = null }) { Text("Close") } },
-            title = { Text("Report generated") },
-            text = { Text("The branded PDF report for \"${project.name}\" has been saved to the app's Reports folder.") },
+            dismissButton = { TextButton(onClick = { generatedReportUri = null }) { Text(stringResource(R.string.action_close)) } },
+            title = { Text(stringResource(R.string.prj_report_generated)) },
+            text = { Text(stringResource(R.string.prj_report_saved, project.name)) },
         )
     }
 }
@@ -187,6 +196,9 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
 private fun AddressActionSheet(address: String, onDismiss: () -> Unit, context: Context) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp)) {
+            // Resolved out here: the clipboard label is set inside a click handler, which is
+            // never a composable.
+            val addressLabel = stringResource(R.string.prj_site_address)
             Text(text = address, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().clickable {
@@ -197,16 +209,16 @@ private fun AddressActionSheet(address: String, onDismiss: () -> Unit, context: 
                 }.padding(vertical = 12.dp),
             ) {
                 Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text(text = "Get directions", modifier = Modifier.padding(start = 12.dp))
+                Text(text = stringResource(R.string.prj_get_directions), modifier = Modifier.padding(start = 12.dp))
             }
             Row(
                 modifier = Modifier.fillMaxWidth().clickable {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Site address", address))
+                    clipboard.setPrimaryClip(ClipData.newPlainText(addressLabel, address))
                     onDismiss()
                 }.padding(vertical = 12.dp),
             ) {
-                Text(text = "Copy address", modifier = Modifier.padding(start = 36.dp))
+                Text(text = stringResource(R.string.prj_copy_address), modifier = Modifier.padding(start = 36.dp))
             }
         }
     }
@@ -228,13 +240,13 @@ private fun EditProjectSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Edit project", style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Project name") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text("Client") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Site address") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = scope, onValueChange = { scope = it }, label = { Text("Scope") }, modifier = Modifier.fillMaxWidth())
+            Text(text = stringResource(R.string.prj_edit), style = MaterialTheme.typography.headlineMedium)
+            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.project_name)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text(stringResource(R.string.prj_client)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(stringResource(R.string.prj_site_address)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = scope, onValueChange = { scope = it }, label = { Text(stringResource(R.string.prj_scope)) }, modifier = Modifier.fillMaxWidth())
             PrimaryButton(
-                text = "Save project",
+                text = stringResource(R.string.prj_save),
                 onClick = { onSave(name, client, address, scope) },
                 modifier = Modifier.fillMaxWidth(),
             )

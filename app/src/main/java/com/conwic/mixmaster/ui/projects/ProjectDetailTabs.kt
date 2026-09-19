@@ -68,6 +68,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.domain.toNumberOrNull
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.model.TaskPriority
 
 private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -81,25 +84,25 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
     ) {
         item {
             CardFlat {
-                InfoRow(label = "Client", value = project.clientName.ifBlank { "—" })
+                InfoRow(label = stringResource(R.string.prj_client), value = project.clientName.ifBlank { "—" })
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable(onClick = onAddressClick).padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = "Site address", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = stringResource(R.string.prj_site_address), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row {
                         Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Text(text = project.address.ifBlank { "—" }, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 4.dp))
                     }
                 }
-                InfoRow(label = "Start date", value = project.startDate?.toString() ?: "—")
-                InfoRow(label = "Target finish", value = project.targetFinishDate?.toString() ?: "—")
+                InfoRow(label = stringResource(R.string.prj_start_date), value = project.startDate?.toString() ?: "—")
+                InfoRow(label = stringResource(R.string.prj_target_finish), value = project.targetFinishDate?.toString() ?: "—")
             }
         }
         item {
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    SectionLabel(text = "Progress")
+                    SectionLabel(text = stringResource(R.string.prj_progress))
                     Text(text = "${data.progressPercent}%", fontWeight = FontWeight.Bold)
                 }
                 ProgressBarRow(progressPercent = data.progressPercent)
@@ -107,8 +110,8 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
         }
         item {
             CardFlat {
-                SectionLabel(text = "Scope")
-                Text(text = project.scopeNotes.ifBlank { "No scope notes yet." }, style = MaterialTheme.typography.bodyMedium)
+                SectionLabel(text = stringResource(R.string.prj_scope))
+                Text(text = project.scopeNotes.ifBlank { stringResource(R.string.prj_no_scope) }, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -141,7 +144,7 @@ fun TasksTab(
         if (isEmployer) {
             item {
                 GhostButton(
-                    text = "+ Add task",
+                    text = stringResource(R.string.action_add_task),
                     onClick = { editing = TaskDraft(dueDate = LocalDate.now()) },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -151,7 +154,7 @@ fun TasksTab(
             CardFlat(modifier = Modifier.fillMaxWidth()) {
                 TaskRow(
                     title = task.title,
-                    subtitle = task.dueDate?.let { formatDueDate(it) } ?: "No due date",
+                    subtitle = task.dueDate?.let { formatDueDate(it) } ?: stringResource(R.string.prj_no_due_date),
                     done = task.isDone,
                     priority = task.priority,
                     onToggle = { onToggle(task.id, !task.isDone) },
@@ -215,7 +218,7 @@ fun LayoutTab(
                     photoProblem = null
                     onAddPhoto(stored)
                 } else {
-                    photoProblem = "Couldn't copy that photo in — try again, or pick a different one."
+                    photoProblem = stringResource(R.string.prj_photo_copy_failed)
                 }
             }
         }
@@ -230,7 +233,7 @@ fun LayoutTab(
             item {
                 CardFlat {
                     Text(
-                        text = "Viewing as Worker — rooms, areas and product assignments are set up by your office. You can still add photos and notes below.",
+                        text = stringResource(R.string.prj_worker_note),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -244,10 +247,10 @@ fun LayoutTab(
         item {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    AccentStat(label = "Total area", value = "${formatArea(data.totalAreaM2)} m²")
-                    AccentStat(label = "Rooms · floors", value = "${data.rooms.size} · ${data.floors.size}")
+                    AccentStat(label = stringResource(R.string.prj_total_area), value = "${formatArea(data.totalAreaM2)} m²")
+                    AccentStat(label = stringResource(R.string.prj_rooms_floors), value = "${data.rooms.size} · ${data.floors.size}")
                     AccentStat(
-                        label = "Est. material",
+                        label = stringResource(R.string.prj_est_material),
                         value = "${formatKg(roomMixes.values.filterNotNull().sumOf { it.totalGrams })} kg",
                     )
                 }
@@ -256,9 +259,9 @@ fun LayoutTab(
 
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SectionLabel(text = "Floors & rooms")
+                SectionLabel(text = stringResource(R.string.prj_floors_rooms))
                 if (isEmployer) {
-                    Text(text = "+ Add floor", color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addFloorOpen = true })
+                    Text(text = stringResource(R.string.prj_add_floor), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addFloorOpen = true })
                 }
             }
         }
@@ -268,7 +271,7 @@ fun LayoutTab(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = floor.name, style = MaterialTheme.typography.titleMedium)
                     if (isEmployer) {
-                        Text(text = "+ Add room", color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
+                        Text(text = stringResource(R.string.prj_add_room), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
                     }
                 }
                 data.rooms.filter { it.floorId == floor.id }.forEach { room ->
@@ -290,7 +293,7 @@ fun LayoutTab(
                             )
                         }
                         Text(
-                            text = productName ?: if (isEmployer) "Assign ›" else "Unassigned",
+                            text = productName ?: if (isEmployer) stringResource(R.string.prj_assign) else stringResource(R.string.prj_unassigned),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -301,9 +304,9 @@ fun LayoutTab(
 
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SectionLabel(text = "Photos · ${data.photos.size}")
+                SectionLabel(text = stringResource(R.string.prj_photos, data.photos.size))
                 Text(
-                    text = "+ Add photo",
+                    text = stringResource(R.string.prj_add_photo),
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.tappableText {
                         photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -335,7 +338,7 @@ fun LayoutTab(
         }
 
         item {
-            SectionLabel(text = "Notes · ${data.notes.size}")
+            SectionLabel(text = stringResource(R.string.prj_notes, data.notes.size))
         }
         item {
             Row(
@@ -345,11 +348,14 @@ fun LayoutTab(
                 // together and read as misaligned.
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedTextField(value = noteText, onValueChange = { noteText = it }, label = { Text("Add a note") }, modifier = Modifier.weight(1f))
+                OutlinedTextField(value = noteText, onValueChange = { noteText = it }, label = { Text(stringResource(R.string.prj_add_note)) }, modifier = Modifier.weight(1f))
+                // Resolved above the callback — onClick is never composable.
+                val employerName = stringResource(R.string.prj_you_employer)
+                val workerName = stringResource(R.string.prj_you_worker)
                 PrimaryButton(
-                    text = "Post",
+                    text = stringResource(R.string.prj_post),
                     onClick = {
-                        val authorName = if (role == Role.EMPLOYER) "You (Employer)" else "You (Worker)"
+                        val authorName = if (role == Role.EMPLOYER) employerName else workerName
                         onAddNote(noteText, authorName, role)
                         noteText = ""
                     },
@@ -402,10 +408,10 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
 
     Column {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel(text = "Blueprint")
+            SectionLabel(text = stringResource(R.string.prj_blueprint))
             if (isEmployer) {
                 Text(
-                    text = if (blueprintUri == null) "+ Attach" else "Replace",
+                    text = if (blueprintUri == null) stringResource(R.string.prj_attach) else stringResource(R.string.prj_replace),
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.tappableText { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
                 )
@@ -425,12 +431,12 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
                     runCatching { context.startActivity(intent) }
                 },
             ) {
-                Text(text = "View blueprint ↗", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(text = stringResource(R.string.prj_view_blueprint), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }
         } else {
             CardFlat(modifier = Modifier.padding(top = 6.dp)) {
                 Text(
-                    text = if (isEmployer) "No blueprint attached yet. Attach a floor plan image or PDF." else "No blueprint attached yet.",
+                    text = if (isEmployer) stringResource(R.string.prj_no_blueprint_employer) else stringResource(R.string.prj_no_blueprint_worker),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -452,9 +458,9 @@ private fun AddFloorSheet(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     var name by remember { mutableStateOf("") }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Add floor", style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Floor name") }, modifier = Modifier.fillMaxWidth())
-            PrimaryButton(text = "Add floor", onClick = { onAdd(name) }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth())
+            Text(text = stringResource(R.string.prj_add_floor_action), style = MaterialTheme.typography.headlineMedium)
+            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_floor_name)) }, modifier = Modifier.fillMaxWidth())
+            PrimaryButton(text = stringResource(R.string.prj_add_floor_action), onClick = { onAdd(name) }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -465,11 +471,11 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
     var area by remember { mutableStateOf("") }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Add room", style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Room name") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text("Area (m²)") }, modifier = Modifier.fillMaxWidth())
+            Text(text = stringResource(R.string.prj_add_room_action), style = MaterialTheme.typography.headlineMedium)
+            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_room_name)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text(stringResource(R.string.prj_room_area)) }, modifier = Modifier.fillMaxWidth())
             PrimaryButton(
-                text = "Add room",
+                text = stringResource(R.string.prj_add_room_action),
                 onClick = { onAdd(name, area.toNumberOrNull() ?: 0.0) },
                 enabled = name.isNotBlank() && area.toNumberOrNull() != null,
                 modifier = Modifier.fillMaxWidth(),
@@ -487,9 +493,9 @@ private fun ProductPickerSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(text = "Assign a product", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 8.dp))
+            Text(text = stringResource(R.string.prj_assign_product), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 8.dp))
             Text(
-                text = "No product",
+                text = stringResource(R.string.prj_no_product),
                 modifier = Modifier.fillMaxWidth().clickable { onPick(null) }.padding(vertical = 12.dp),
                 color = if (currentProductId == null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             )
@@ -517,18 +523,18 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
         item {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = "Total material used", color = OnAccentCard)
+                    Text(text = stringResource(R.string.prj_total_used), color = OnAccentCard)
                     Text(text = "${formatKg(totalGrams)} kg", style = MaterialTheme.typography.headlineMedium, color = OnAccentCard, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
-        item { SectionLabel(text = "Materials logged") }
+        item { SectionLabel(text = stringResource(R.string.prj_materials_logged)) }
         if (loggedRooms.isEmpty()) {
-            item { Text(text = "No rooms have an assigned product yet.", style = MaterialTheme.typography.bodyMedium) }
+            item { Text(text = stringResource(R.string.prj_no_assigned), style = MaterialTheme.typography.bodyMedium) }
         }
         items(loggedRooms) { room ->
             val mix = roomMixes[room.id]!!
-            val productName = data.products.firstOrNull { it.id == room.assignedProductId }?.name ?: "Product"
+            val productName = data.products.firstOrNull { it.id == room.assignedProductId }?.name ?: stringResource(R.string.calc_product)
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = productName, style = MaterialTheme.typography.titleMedium)
@@ -553,20 +559,31 @@ fun CalendarTab(data: ProjectDetailData) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (sorted.isEmpty()) {
-            item { Text(text = "No scheduled tasks yet.", style = MaterialTheme.typography.bodyMedium) }
+            item { Text(text = stringResource(R.string.prj_no_scheduled), style = MaterialTheme.typography.bodyMedium) }
         }
         items(sorted) { task ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = task.dueDate?.let { formatDueDate(it) } ?: "No date",
+                        text = task.dueDate?.let { formatDueDate(it) } ?: stringResource(R.string.task_no_date),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     // This used to print the priority whatever had happened to the task, so a
                     // task closed off in the Tasks tab still read "LOW" here.
                     Text(
-                        text = if (task.isDone) "Done" else task.priority.name,
+                        text = if (task.isDone) {
+                            stringResource(R.string.task_done)
+                        } else {
+                            // The enum constant would read "LOW" in every language.
+                            stringResource(
+                                when (task.priority) {
+                                    TaskPriority.HIGH -> R.string.priority_high
+                                    TaskPriority.MEDIUM -> R.string.priority_medium
+                                    TaskPriority.LOW -> R.string.priority_low
+                                },
+                            )
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = if (task.isDone) Ok else priorityColor(task.priority),
                         fontWeight = FontWeight.Bold,

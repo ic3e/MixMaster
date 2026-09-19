@@ -55,6 +55,8 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.GhostButton
+import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.R
 
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
@@ -82,10 +84,10 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 actions = {
                     if (role == Role.EMPLOYER) {
                         IconButton(onClick = { navController.navigate(Routes.productEdit(product.id)) }) {
-                            Icon(Icons.Filled.Edit, contentDescription = "Edit")
+                            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
                         }
                         IconButton(onClick = { viewModel.delete { navController.popBackStack() } }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete")
+                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
                 },
@@ -96,11 +98,11 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
                         Text(text = "${product.brand} · ${product.category}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                        Text(text = "Mix ratio", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+                        Text(text = stringResource(R.string.pd_mix_ratio), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
                         RatioBadge(text = product.ratioLabel, modifier = Modifier.padding(top = 4.dp))
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "Coverage", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = stringResource(R.string.pd_coverage), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(text = "${product.typicalDoseGramsPerM2.toInt()}", style = MaterialTheme.typography.headlineMedium)
                         Text(text = "g/m² ${product.doseUnitLabel}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -110,7 +112,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 }
                 if (product.datasheetUrl.isNotBlank()) {
                     Text(
-                        text = "View official datasheet ↗",
+                        text = stringResource(R.string.calc_view_datasheet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -124,7 +126,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 
         item {
             Column {
-                SectionLabel(text = "Field data")
+                SectionLabel(text = stringResource(R.string.pd_field_data))
                 CardFlat {
                     FieldDataRangeBar(
                         min = product.minDoseGramsPerM2,
@@ -137,13 +139,13 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         Text(text = "${product.maxDoseGramsPerM2.toInt()} g/m²", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Datasheet typical", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.pd_datasheet_typical), style = MaterialTheme.typography.bodyMedium)
                         Text(text = "${product.typicalDoseGramsPerM2.toInt()} g/m²", style = MaterialTheme.typography.titleMedium)
                     }
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Your site average", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.pd_site_average), style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text = if (siteAverage != null) "${siteAverage.toInt()} g/m² (${usageLogs.size} logged)" else "No logged jobs yet",
+                            text = if (siteAverage != null) stringResource(R.string.pd_site_average_value, siteAverage.toInt().toString(), usageLogs.size) else stringResource(R.string.calc_no_logged),
                             style = MaterialTheme.typography.titleMedium,
                             color = if (siteAverage != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -152,7 +154,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
             }
         }
 
-        item { SectionLabel(text = "Components") }
+        item { SectionLabel(text = stringResource(R.string.pd_components)) }
         items(data.components) { component ->
             ExpandableComponentCard(component)
         }
@@ -161,13 +163,13 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (role == Role.EMPLOYER) {
                     GhostButton(
-                        text = "Edit product",
+                        text = stringResource(R.string.pd_edit_product),
                         onClick = { navController.navigate(Routes.productEdit(product.id)) },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 PrimaryButton(
-                    text = "Use in calculator",
+                    text = stringResource(R.string.pd_use_in_calculator),
                     onClick = { navController.navigateToTopLevel(Routes.CALCULATOR) },
                     modifier = Modifier.weight(1f),
                 )
@@ -184,12 +186,12 @@ private fun ExpandableComponentCard(component: ProductComponentEntity) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(text = component.label, style = MaterialTheme.typography.titleMedium)
-                Text(text = "${component.basis} · ${component.ratioParts.toInt()} parts", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = stringResource(R.string.pd_parts_line, component.basis, component.ratioParts.toInt().toString()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     text = if (component.packageSize > 0.0) {
-                        "Sold in ${formatDecimal(component.packageSize, 2)} ${component.packageUnit} ${component.packageType}s"
+                        stringResource(R.string.pd_sold_in, formatDecimal(component.packageSize, 2), component.packageUnit)
                     } else {
-                        "No pack size set"
+                        stringResource(R.string.pd_no_pack_size)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (component.packageSize > 0.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -200,13 +202,13 @@ private fun ExpandableComponentCard(component: ProductComponentEntity) {
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 if (component.density.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Density", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = stringResource(R.string.pd_density), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(text = component.density, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 if (component.potLife.isNotBlank()) {
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Pot life", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = stringResource(R.string.product_pot_life), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(text = component.potLife, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
