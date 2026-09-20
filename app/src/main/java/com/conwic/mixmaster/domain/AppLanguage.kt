@@ -20,13 +20,8 @@ enum class AppLanguage(val tag: String, val label: String) {
     companion object {
         fun fromTag(tag: String?): AppLanguage? = entries.firstOrNull { it.tag == tag }
 
-        /**
-         * What the phone is set to, or English when that's none of the three.
-         *
-         * Only the starting point — once a language is chosen in Settings it is stored and
-         * this stops being consulted, so changing the phone's language doesn't override
-         * somebody's choice.
-         */
-        fun fromDevice(): AppLanguage = fromTag(Locale.getDefault().language) ?: ENGLISH
+        // What the phone is set to lives in LanguageStore, which reads the system resources.
+        // Locale.getDefault() can't answer it: the app sets that to its own language, so
+        // asking would return our own choice back.
     }
 }

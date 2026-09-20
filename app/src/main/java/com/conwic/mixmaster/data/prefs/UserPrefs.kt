@@ -56,10 +56,13 @@ class UserPrefs(private val context: Context) {
 
     /** The chosen language, or the phone's if it's one of ours, or English. */
     val language: Flow<AppLanguage> = context.dataStore.data.map { prefs ->
-        AppLanguage.fromTag(prefs[Keys.LANGUAGE]) ?: AppLanguage.fromDevice()
+        AppLanguage.fromTag(prefs[Keys.LANGUAGE]) ?: LanguageStore.deviceLanguage()
     }
 
     suspend fun setLanguage(language: AppLanguage) {
+        // Mirrored first, and synchronously: the activity is about to be rebuilt and will read
+        // the language from there before there is anywhere to suspend.
+        LanguageStore.write(context, language)
         context.dataStore.edit { it[Keys.LANGUAGE] = language.tag }
     }
 

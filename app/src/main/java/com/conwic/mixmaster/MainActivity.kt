@@ -1,9 +1,6 @@
 package com.conwic.mixmaster
 
 import android.content.Context
-import android.content.ContextWrapper
-import android.content.res.Resources
-import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,44 +8,42 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import com.conwic.mixmaster.data.update.AppUpdates
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
+import com.conwic.mixmaster.data.prefs.LanguageStore
+import com.conwic.mixmaster.domain.AppLanguage
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
-import java.util.Locale
-
-/**
- * The activity, serving resources in the chosen language.
- *
- * A wrapper *around the activity* rather than the context createConfigurationContext hands
- * back: that one is a fresh ContextImpl with no link to the activity, and several Compose APIs
- * find what they need by walking the ContextWrapper chain up from LocalContext.
- * rememberLauncherForActivityResult is one — given a context with no activity in its chain it
- * throws "No ActivityResultRegistryOwner was provided", which is what closed the app on
- * opening Settings. Wrapping keeps the chain intact and still answers getResources() in the
- * right language, which is all stringResource asks for.
- */
-private class LocalizedContext(base: Context, configuration: Configuration) : ContextWrapper(base) {
-    private val localized: Resources = base.createConfigurationContext(configuration).resources
-    override fun getResources(): Resources = localized
-}
 
 /**
  * A FragmentActivity rather than a plain ComponentActivity: BiometricPrompt, which backs the
  * app lock, can only be hosted by one.
  */
 class MainActivity : FragmentActivity() {
+
+    /** What this activity was built for, so a later change can be noticed. */
+    private lateinit var startedInLanguage: AppLanguage
+
+    /**
+     * The language is applied here rather than through LocalContext.
+     *
+     * Popups, bottom sheets and dialogs each live in their own window and build their own
+     * composition, which re-provides LocalContext from the activity — so overriding it higher
+     * up left every menu and sheet in the phone's language while the screen behind them
+     * followed the setting. Configuring the activity's own base context reaches all of them.
+     */
+    override fun attachBaseContext(newBase: Context) {
+        startedInLanguage = LanguageStore.chosenOrDevice(newBase)
+        super.attachBaseContext(LanguageStore.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,36 +71,19 @@ class MainActivity : FragmentActivity() {
                     .isAppearanceLightStatusBars = !dark
             }
 
-            // The chosen language, applied by handing every reader a context configured for it.
-            // That is what makes stringResource resolve in the right language and, just as
-            // importantly, what makes java.time format dates in it — the two used to disagree,
-            // so "TODAY" sat above an Estonian weekday on the same screen.
+            // Changing the language rebuilds the activity, which is what lets attachBaseContext
+            // apply it to the popup windows too.
             val language by container.userPrefs.language.collectAsState(initial = null)
-            val baseContext = LocalContext.current
-            val localeConfig = remember(language, baseContext) {
-                language?.let {
-                    Configuration(baseContext.resources.configuration).apply { setLocale(it.locale) }
-                }
-            }
-            val localizedContext = remember(localeConfig) {
-                localeConfig?.let { LocalizedContext(this@MainActivity, it) }
+            LaunchedEffect(language) {
+                if (language != null && language != startedInLanguage) recreate()
             }
 
             MixMasterTheme(darkTheme = dark) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if (language == null || localizedContext == null || localeConfig == null) {
-                        return@Surface
-                    }
-                    // java.time reads the JVM default, so the setting has to reach it too or
-                    // the dates go on following the phone while the words follow the setting.
-                    // A SideEffect, because composition is not the place to mutate globals.
-                    val chosen = language!!.locale
-                    SideEffect { Locale.setDefault(chosen) }
+                    if (language == null) return@Surface
                     CompositionLocalProvider(
                         LocalAppContainer provides container,
                         LocalAppActivity provides this@MainActivity,
-                        LocalContext provides localizedContext,
-                        LocalConfiguration provides localeConfig,
                     ) {
                         val appLockEnabled by container.userPrefs.appLockEnabled.collectAsState(initial = null)
                         // Onboarding hasn't been seen yet on a fresh install -> start at Sign in;

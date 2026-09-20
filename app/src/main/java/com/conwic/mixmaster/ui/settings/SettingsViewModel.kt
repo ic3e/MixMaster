@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val theme: String = "Auto",
-    val language: AppLanguage = AppLanguage.fromDevice(),
+    val language: AppLanguage = AppLanguage.ENGLISH,
     val role: Role = Role.EMPLOYER,
     val appLockEnabled: Boolean = false,
     val mixingRemindersEnabled: Boolean = true,
