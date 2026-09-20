@@ -1,8 +1,8 @@
 {
-  "versionCode": 60,
-  "versionName": "1.0.60",
-  "apk": "MixMaster_1.0.60.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.60.apk",
+  "versionCode": 61,
+  "versionName": "1.0.61",
+  "apk": "MixMaster_1.0.61.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.61.apk",
   "sizeBytes": 19966192,
-  "notes": "Let a picked suggestion reach the field it was picked for"
+  "notes": "Don't offer a datasheet link that can't be opened, and mean \"use in calculator\""
 }
