@@ -1,8 +1,8 @@
 {
-  "versionCode": 59,
-  "versionName": "1.0.59",
-  "apk": "MixMaster_1.0.59.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.59.apk",
+  "versionCode": 60,
+  "versionName": "1.0.60",
+  "apk": "MixMaster_1.0.60.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.60.apk",
   "sizeBytes": 19966192,
-  "notes": "Wrap the activity for the language, don't replace it"
+  "notes": "Let a picked suggestion reach the field it was picked for"
 }
