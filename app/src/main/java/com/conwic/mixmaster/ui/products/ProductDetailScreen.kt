@@ -43,6 +43,9 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.openableUrl
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
@@ -61,6 +64,7 @@ import com.conwic.mixmaster.R
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
     val container = LocalAppContainer.current
+    val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val viewModel: ProductDetailViewModel = viewModel(
         factory = viewModelFactory { initializer { ProductDetailViewModel(container.productRepository, productId) } },
@@ -110,7 +114,10 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 if (product.sourceNote.isNotBlank()) {
                     Text(text = product.sourceNote, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp))
                 }
-                if (product.datasheetUrl.isNotBlank()) {
+                // Only offered when it's something the system can actually open — the field is
+                    // free text, and handing "test datasheet" to the browser took the app down.
+                    val datasheetLink = openableUrl(product.datasheetUrl)
+                    if (datasheetLink != null) {
                     Text(
                         text = stringResource(R.string.calc_view_datasheet),
                         style = MaterialTheme.typography.bodyMedium,
@@ -118,7 +125,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(top = 8.dp)
-                            .tappableText { uriHandler.openUri(product.datasheetUrl) },
+                            .tappableText { runCatching { uriHandler.openUri(datasheetLink) } },
                     )
                 }
             }
@@ -170,7 +177,12 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 }
                 PrimaryButton(
                     text = stringResource(R.string.pd_use_in_calculator),
-                    onClick = { navController.navigateToTopLevel(Routes.CALCULATOR) },
+                    onClick = {
+                        // Says which product before going there; the button used to open the
+                        // calculator on whatever happened to be selected already.
+                        scope.launch { container.userPrefs.setLastProductId(product.id) }
+                        navController.navigateToTopLevel(Routes.CALCULATOR)
+                    },
                     modifier = Modifier.weight(1f),
                 )
             }

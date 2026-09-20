@@ -72,7 +72,7 @@ private data class CalculatorInputs(
 
 class CalculatorViewModel(
     private val productRepository: ProductRepository,
-    userPrefs: UserPrefs,
+    private val userPrefs: UserPrefs,
 ) : ViewModel() {
 
     /** Settings can turn the "leave the drum room" nudge off for people who've heard it. */
@@ -87,6 +87,16 @@ class CalculatorViewModel(
     // of slider travel, which is what made dragging stutter.
     private val selectedProductId = MutableStateFlow<Long?>(null)
     private val inputs = MutableStateFlow(CalculatorInputs())
+
+    init {
+        // Followed rather than read once: "Use in calculator" writes the id and navigates in the
+        // same breath, so the write can land after this screen is already up.
+        viewModelScope.launch {
+            userPrefs.lastProductId.collect { id ->
+                if (id > 0L && selectedProductId.value != id) selectProduct(id)
+            }
+        }
+    }
 
     /** The add-ons and the pack sizes to count their containers with. */
     private val addOnsFlow = combine(
@@ -154,8 +164,10 @@ class CalculatorViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
 
     fun selectProduct(productId: Long) {
+        if (selectedProductId.value == productId) return
         selectedProductId.value = productId
         inputs.update { it.copy(coverageOverride = null) }
+        viewModelScope.launch { userPrefs.setLastProductId(productId) }
     }
 
     fun setArea(text: String) {

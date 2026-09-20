@@ -2,6 +2,7 @@ package com.conwic.mixmaster.data.prefs
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -24,6 +25,9 @@ class UserPrefs(private val context: Context) {
         // starting point without it later overriding a choice that was made.
         val LANGUAGE = stringPreferencesKey("language")
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
+        // What the calculator is working on. Stored rather than held in the view model so
+        // "Use in calculator" can say which product before the calculator exists.
+        val LAST_PRODUCT_ID = longPreferencesKey("last_product_id")
         // Was labelled "contextual tips"; it now drives the mixing reminders in the calculator.
         // The key is left alone so anyone who already turned it off stays turned off.
         val MIXING_REMINDERS = booleanPreferencesKey("tips_enabled")
@@ -57,6 +61,13 @@ class UserPrefs(private val context: Context) {
 
     suspend fun setLanguage(language: AppLanguage) {
         context.dataStore.edit { it[Keys.LANGUAGE] = language.tag }
+    }
+
+    /** The product the calculator should be on. 0 when nothing has been chosen yet. */
+    val lastProductId: Flow<Long> = context.dataStore.data.map { it[Keys.LAST_PRODUCT_ID] ?: 0L }
+
+    suspend fun setLastProductId(id: Long) {
+        context.dataStore.edit { it[Keys.LAST_PRODUCT_ID] = id }
     }
 
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.APP_LOCK_ENABLED] ?: false }

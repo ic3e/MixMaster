@@ -43,6 +43,7 @@ import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.openableUrl
 import com.conwic.mixmaster.domain.formatKg
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
@@ -147,7 +148,10 @@ fun CalculatorScreen(navController: NavHostController) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 10.dp),
                     )
-                    if (product.datasheetUrl.isNotBlank()) {
+                    // Only offered when it's something the system can actually open — the field is
+                    // free text, and handing "test datasheet" to the browser took the app down.
+                    val datasheetLink = openableUrl(product.datasheetUrl)
+                    if (datasheetLink != null) {
                         Text(
                             text = stringResource(R.string.calc_view_datasheet),
                             style = MaterialTheme.typography.bodyMedium,
@@ -155,7 +159,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .padding(top = 8.dp)
-                                .tappableText { uriHandler.openUri(product.datasheetUrl) },
+                                .tappableText { runCatching { uriHandler.openUri(datasheetLink) } },
                         )
                     }
                 }
