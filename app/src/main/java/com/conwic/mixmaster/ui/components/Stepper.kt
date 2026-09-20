@@ -53,6 +53,17 @@ fun Stepper(
 ) {
     var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
 
+    // Same rule as FormTextField: a change that didn't come from typing or the +/- buttons has
+    // to reach the field. Keyed on [value] changing, not on it differing, because after a
+    // keystroke this recomposes with a [value] that hasn't caught up yet.
+    var lastValue by remember { mutableStateOf(value) }
+    if (value != lastValue) {
+        lastValue = value
+        if (value != field.text) {
+            field = TextFieldValue(value, TextRange(value.length))
+        }
+    }
+
     fun nudge(delta: Double) {
         val current = field.text.toNumberOrNull() ?: 0.0
         val next = formatDecimal((current + delta).coerceAtLeast(minValue), decimals)

@@ -41,6 +41,22 @@ fun FormTextField(
     trailing: (() -> Unit)? = null,
 ) {
     var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+
+    // [value] normally only seeds the field — see above. But a change that came from somewhere
+    // other than typing, like a suggestion picked from the dropdown, has to reach the field or
+    // it lands in the form and never appears on screen.
+    //
+    // Keyed on [value] changing rather than on it differing from the text: after a keystroke
+    // this recomposes with a [value] that hasn't caught up yet, and syncing on the difference
+    // would undo what was just typed.
+    var lastValue by remember { mutableStateOf(value) }
+    if (value != lastValue) {
+        lastValue = value
+        if (value != field.text) {
+            field = TextFieldValue(value, TextRange(value.length))
+        }
+    }
+
     val supporting = problem ?: hint
     OutlinedTextField(
         value = field,
