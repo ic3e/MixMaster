@@ -37,21 +37,27 @@ data class Quantity(val amount: String, val unit: String) {
     val text: String get() = "$amount $unit"
 }
 
-/** Under a gram the figure is a pigment dose, where every decimal is still worth something. */
-private fun smallDecimals(value: Double): Int = if (abs(value) < 1.0) 3 else 2
-
-/** Rounds the way [formatDecimal] will, so the unit is picked from the figure actually shown. */
-private fun roundedTo(value: Double, decimals: Int): Double {
-    if (!value.isFinite()) return 0.0
-    var factor = 1.0
-    repeat(decimals) { factor *= 10.0 }
-    return (value * factor).roundToLong() / factor
+/**
+ * Grams as the scale on the van reads them: a tenth, never finer.
+ *
+ * A batch that says "500.04 g" is asking for a figure no site scale can hit, and reading it off
+ * leaves you working out which digits matter. Anything that would round away to nothing is
+ * shown as the smallest the scale reads instead, because "0 g" of a pigment is wrong in a way
+ * that a tenth of a gram is not.
+ */
+private fun onScale(grams: Double): Double {
+    val snapped = toScale(grams)
+    return when {
+        snapped == 0.0 -> 0.0
+        abs(snapped) < ScaleGrams -> if (snapped < 0.0) -ScaleGrams else ScaleGrams
+        else -> snapped
+    }
 }
 
 fun quantityFromGrams(grams: Double): Quantity {
-    val decimals = smallDecimals(grams)
-    return if (abs(roundedTo(grams, decimals)) < 1000.0) {
-        Quantity(formatDecimal(grams, decimals), "g")
+    val scaled = onScale(grams)
+    return if (abs(scaled) < 1000.0) {
+        Quantity(formatDecimal(scaled, 1), "g")
     } else {
         // Kilos stay at gram precision — that's what a site scale reads out.
         Quantity(formatKg(grams), "kg")
@@ -59,10 +65,9 @@ fun quantityFromGrams(grams: Double): Quantity {
 }
 
 fun quantityFromLitres(litres: Double): Quantity {
-    val millilitres = litres * 1000.0
-    val decimals = smallDecimals(millilitres)
-    return if (abs(roundedTo(millilitres, decimals)) < 1000.0) {
-        Quantity(formatDecimal(millilitres, decimals), "ml")
+    val millilitres = onScale(litres * 1000.0)
+    return if (abs(millilitres) < 1000.0) {
+        Quantity(formatDecimal(millilitres, 1), "ml")
     } else {
         Quantity(formatDecimal(litres, 2), "L")
     }
