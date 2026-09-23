@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.data.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -27,4 +28,7 @@ data class UsageLogEntity(
     val productId: Long,
     val doseGramsPerM2: Double,
     val loggedAt: Instant,
+    /** The mix this reading was taken on. [productId] is the shape it was logged in before
+     * mixes and products were separate things, and is kept only so the rows survive. */
+    @ColumnInfo(defaultValue = "0") val solutionId: Long = 0L,
 )

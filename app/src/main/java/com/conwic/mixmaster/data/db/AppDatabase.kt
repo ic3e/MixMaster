@@ -28,6 +28,10 @@ import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.db.entity.UsageLogEntity
 import com.conwic.mixmaster.data.db.entity.StockEntity
+import com.conwic.mixmaster.domain.isWaterLabel
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
+import com.conwic.mixmaster.data.db.entity.SolutionLineEntity
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.seed.SeedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,8 +52,11 @@ const val DATABASE_NAME = "mixmaster.db"
         TeamMemberEntity::class,
         UsageLogEntity::class,
         StockEntity::class,
+        SolutionEntity::class,
+        SolutionLineEntity::class,
+        RoomLayerEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -155,9 +162,269 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Splits products into what you buy and what you mix.
+         *
+         * A product carried its own mix ratio until now, so water sat in the catalogue as a
+         * product with a recipe, and a room could hold exactly one of them — no primer, no
+         * sealer. A product is now a bought item with a pack size of its own, a solution is a
+         * recipe made of products, and a room holds an ordered list of coats.
+         *
+         * Everything already entered is carried across. Each product becomes a solution of the
+         * same name, and each of its parts becomes a product named after its parent, so
+         * "Powder" from two brands cannot be silently merged into one. Water-like parts are the
+         * exception and share a single Water, which is what a shed actually holds. The old
+         * product rows stay, archived, because logged jobs and rooms still point at them.
+         */
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Packaging belongs to the thing that is ordered, carried and counted.
+                db.execSQL("ALTER TABLE products ADD COLUMN packageSize REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE products ADD COLUMN packageUnit TEXT NOT NULL DEFAULT 'kg'")
+                db.execSQL("ALTER TABLE products ADD COLUMN packageType TEXT NOT NULL DEFAULT 'bag'")
+                db.execSQL("ALTER TABLE products ADD COLUMN densityKgPerL REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE usage_logs ADD COLUMN solutionId INTEGER NOT NULL DEFAULT 0")
+
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `solutions` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`brand` TEXT NOT NULL, `name` TEXT NOT NULL, `category` TEXT NOT NULL, " +
+                        "`dosingMode` TEXT NOT NULL, `minDoseGramsPerM2` REAL NOT NULL, " +
+                        "`maxDoseGramsPerM2` REAL NOT NULL, `typicalDoseGramsPerM2` REAL NOT NULL, " +
+                        "`doseUnitLabel` TEXT NOT NULL, `rangeNote` TEXT NOT NULL, " +
+                        "`sourceNote` TEXT NOT NULL, `datasheetUrl` TEXT NOT NULL, " +
+                        "`ratioLabel` TEXT NOT NULL, `isArchived` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `solution_lines` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`solutionId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, " +
+                        "`label` TEXT NOT NULL, `role` TEXT NOT NULL, `ratioParts` REAL NOT NULL, " +
+                        "`amountPerKg` REAL NOT NULL DEFAULT 0, " +
+                        "`amountUnit` TEXT NOT NULL DEFAULT 'kg', " +
+                        "`againstLineId` INTEGER NOT NULL DEFAULT 0, `sortOrder` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`solutionId`) REFERENCES `solutions`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                        "FOREIGN KEY(`productId`) REFERENCES `products`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_solution_lines_solutionId` ON `solution_lines` (`solutionId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_solution_lines_productId` ON `solution_lines` (`productId`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `room_layers` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`roomId` INTEGER NOT NULL, " +
+                        "`solutionId` INTEGER NOT NULL DEFAULT 0, " +
+                        "`productId` INTEGER NOT NULL DEFAULT 0, " +
+                        "`doseGramsPerM2` REAL NOT NULL DEFAULT 0, " +
+                        "`quantity` REAL NOT NULL DEFAULT 1, " +
+                        "`sortOrder` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`roomId`) REFERENCES `room_areas`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_room_layers_roomId` ON `room_layers` (`roomId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_room_layers_solutionId` ON `room_layers` (`solutionId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_room_layers_productId` ON `room_layers` (`productId`)")
+
+                fun lastId(): Long =
+                    db.query("SELECT last_insert_rowid()").use { c ->
+                        if (c.moveToFirst()) c.getLong(0) else 0L
+                    }
+
+                /** A bought item, carrying the packaging the mix part was entered with. */
+                fun newProduct(
+                    name: String,
+                    brand: String,
+                    category: String,
+                    packSize: Double,
+                    packUnit: String,
+                    packType: String,
+                    density: Double,
+                ): Long {
+                    db.execSQL(
+                        "INSERT INTO products (brand, name, category, dosingMode, minDoseGramsPerM2, " +
+                            "maxDoseGramsPerM2, typicalDoseGramsPerM2, doseUnitLabel, rangeNote, " +
+                            "sourceNote, datasheetUrl, ratioLabel, isAddOn, addOnAmountPerKg, addOnUnit, " +
+                            "isArchived, packageSize, packageUnit, packageType, densityKgPerL) " +
+                            "VALUES (?, ?, ?, 'COATS', 0, 0, 0, '', '', '', '', '', 0, 0, 'kg', 0, ?, ?, ?, ?)",
+                        arrayOf<Any>(brand, name, category, packSize, packUnit, packType, density),
+                    )
+                    return lastId()
+                }
+
+                var waterId = 0L
+                fun water(): Long {
+                    if (waterId == 0L) waterId = newProduct("Water", "", "Water", 0.0, "L", "canister", 1.0)
+                    return waterId
+                }
+
+                // Read the whole catalogue first. Inserting bought items while a cursor is open
+                // on the same table would have it walk over rows this migration just wrote.
+                val sources = mutableListOf<Array<Any?>>()
+                db.query(
+                    "SELECT id, brand, name, category, dosingMode, minDoseGramsPerM2, maxDoseGramsPerM2, " +
+                        "typicalDoseGramsPerM2, doseUnitLabel, rangeNote, sourceNote, datasheetUrl, " +
+                        "ratioLabel, isAddOn FROM products WHERE isArchived = 0",
+                ).use { c ->
+                    while (c.moveToNext()) {
+                        sources.add(
+                            arrayOf(
+                                c.getLong(0), c.getString(1) ?: "", c.getString(2) ?: "",
+                                c.getString(3) ?: "", c.getString(4) ?: "COATS", c.getDouble(5),
+                                c.getDouble(6), c.getDouble(7), c.getString(8) ?: "",
+                                c.getString(9) ?: "", c.getString(10) ?: "", c.getString(11) ?: "",
+                                c.getString(12) ?: "", c.getInt(13),
+                            ),
+                        )
+                    }
+                }
+
+                val componentToProduct = mutableMapOf<Long, Long>()
+                val productToSolution = mutableMapOf<Long, Long>()
+
+                for (row in sources) {
+                    val oldId = row[0] as Long
+                    val brand = row[1] as String
+                    val name = row[2] as String
+                    val category = row[3] as String
+
+                    val parts = mutableListOf<Array<Any?>>()
+                    db.query(
+                        "SELECT id, label, ratioParts, packageSize, packageUnit, packageType, densityKgPerL " +
+                            "FROM product_components WHERE productId = ? ORDER BY sortOrder",
+                        arrayOf<Any>(oldId),
+                    ).use { c ->
+                        while (c.moveToNext()) {
+                            parts.add(
+                                arrayOf(
+                                    c.getLong(0), c.getString(1) ?: "", c.getDouble(2), c.getDouble(3),
+                                    c.getString(4) ?: "kg", c.getString(5) ?: "bag", c.getDouble(6),
+                                ),
+                            )
+                        }
+                    }
+
+                    // A colour or admixture is already a bought item: it keeps its place in the
+                    // catalogue and becomes a line on whichever mix uses it.
+                    if ((row[13] as Int) == 1) {
+                        val first = parts.firstOrNull()
+                        if (first != null) {
+                            db.execSQL(
+                                "UPDATE products SET packageSize = ?, packageUnit = ?, packageType = ?, " +
+                                    "densityKgPerL = ? WHERE id = ?",
+                                arrayOf<Any>(first[3] as Double, first[4] as String, first[5] as String, first[6] as Double, oldId),
+                            )
+                        }
+                        continue
+                    }
+
+                    db.execSQL(
+                        "INSERT INTO solutions (brand, name, category, dosingMode, minDoseGramsPerM2, " +
+                            "maxDoseGramsPerM2, typicalDoseGramsPerM2, doseUnitLabel, rangeNote, " +
+                            "sourceNote, datasheetUrl, ratioLabel, isArchived) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
+                        arrayOf<Any>(
+                            brand, name, category, row[4] as String, row[5] as Double, row[6] as Double,
+                            row[7] as Double, row[8] as String, row[9] as String, row[10] as String,
+                            row[11] as String, row[12] as String,
+                        ),
+                    )
+                    val solutionId = lastId()
+                    productToSolution[oldId] = solutionId
+
+                    if (parts.isEmpty()) {
+                        // Nothing was ever said about its parts, so it is the whole of its own mix.
+                        db.execSQL(
+                            "INSERT INTO solution_lines (solutionId, productId, label, role, ratioParts, " +
+                                "amountPerKg, amountUnit, againstLineId, sortOrder) " +
+                                "VALUES (?, ?, '', 'BASE', 100, 0, 'kg', 0, 0)",
+                            arrayOf<Any>(solutionId, newProduct(name, brand, category, 0.0, "kg", "bag", 0.0)),
+                        )
+                    } else {
+                        parts.forEachIndexed { index, part ->
+                            val label = part[1] as String
+                            val productId = if (isWaterLabel(label)) {
+                                water()
+                            } else {
+                                newProduct(
+                                    if (parts.size == 1) name else "$name $label",
+                                    brand, category,
+                                    part[3] as Double, part[4] as String, part[5] as String, part[6] as Double,
+                                )
+                            }
+                            componentToProduct[part[0] as Long] = productId
+                            db.execSQL(
+                                "INSERT INTO solution_lines (solutionId, productId, label, role, ratioParts, " +
+                                    "amountPerKg, amountUnit, againstLineId, sortOrder) " +
+                                    "VALUES (?, ?, ?, 'BASE', ?, 0, 'kg', 0, ?)",
+                                arrayOf<Any>(solutionId, productId, label, part[2] as Double, index),
+                            )
+                        }
+                    }
+
+                    // The old row was the mix, not a thing you buy. It stays for whatever points
+                    // at it, out of the catalogue.
+                    db.execSQL("UPDATE products SET isArchived = 1 WHERE id = ?", arrayOf<Any>(oldId))
+                }
+
+                // A room's single product becomes its first coat.
+                val assignments = mutableListOf<Pair<Long, Long>>()
+                db.query("SELECT id, assignedProductId FROM room_areas WHERE assignedProductId IS NOT NULL").use { c ->
+                    while (c.moveToNext()) assignments.add(c.getLong(0) to c.getLong(1))
+                }
+                assignments.forEach { (roomId, oldProductId) ->
+                    val solutionId = productToSolution[oldProductId]
+                    if (solutionId != null) {
+                        db.execSQL(
+                            "INSERT INTO room_layers (roomId, solutionId, productId, doseGramsPerM2, quantity, sortOrder) " +
+                                "VALUES (?, ?, 0, 0, 1, 0)",
+                            arrayOf<Any>(roomId, solutionId),
+                        )
+                    }
+                }
+
+                // Logged readings belong to the mix they were taken on.
+                productToSolution.forEach { (oldProductId, solutionId) ->
+                    db.execSQL(
+                        "UPDATE usage_logs SET solutionId = ? WHERE productId = ?",
+                        arrayOf<Any>(solutionId, oldProductId),
+                    )
+                }
+
+                // Stock counted against a mix part is stock of the product that part became.
+                val counts = mutableListOf<Array<Any?>>()
+                db.query("SELECT componentId, fullPacks, openAmount, updatedAt FROM stock").use { c ->
+                    while (c.moveToNext()) {
+                        counts.add(arrayOf(c.getLong(0), c.getInt(1), c.getDouble(2), c.getLong(3)))
+                    }
+                }
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `stock_new` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`productId` INTEGER NOT NULL, " +
+                        "`fullPacks` INTEGER NOT NULL DEFAULT 0, " +
+                        "`openAmount` REAL NOT NULL DEFAULT 0, " +
+                        "`updatedAt` INTEGER NOT NULL DEFAULT 0)",
+                )
+                counts.forEach { count ->
+                    val productId = componentToProduct[count[0] as Long]
+                    if (productId != null) {
+                        db.execSQL(
+                            "INSERT OR REPLACE INTO stock_new (productId, fullPacks, openAmount, updatedAt) " +
+                                "VALUES (?, ?, ?, ?)",
+                            arrayOf<Any>(productId, count[1] as Int, count[2] as Double, count[3] as Long),
+                        )
+                    }
+                }
+                db.execSQL("DROP TABLE `stock`")
+                db.execSQL("ALTER TABLE `stock_new` RENAME TO `stock`")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_stock_productId` ON `stock` (`productId`)")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()
