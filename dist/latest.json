@@ -1,8 +1,8 @@
 {
-  "versionCode": 76,
-  "versionName": "1.0.76",
-  "apk": "MixMaster_1.0.76.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.76.apk",
-  "sizeBytes": 20113032,
-  "notes": "Merge the product/solution rewrite"
+  "versionCode": 77,
+  "versionName": "1.0.77",
+  "apk": "MixMaster_1.0.77.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.77.apk",
+  "sizeBytes": 20113048,
+  "notes": "Keep the field you are typing in above the keyboard"
 }
