@@ -1,8 +1,8 @@
 {
-  "versionCode": 73,
-  "versionName": "1.0.73",
-  "apk": "MixMaster_1.0.73.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.73.apk",
-  "sizeBytes": 20055140,
-  "notes": "The product form asks what a bought item actually is"
+  "versionCode": 74,
+  "versionName": "1.0.74",
+  "apk": "MixMaster_1.0.74.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.74.apk",
+  "sizeBytes": 20096644,
+  "notes": "Somewhere to write a recipe down"
 }
