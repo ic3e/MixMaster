@@ -49,6 +49,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.report.ReportGenerator
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -92,6 +93,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     var addressSheetOpen by remember { mutableStateOf(false) }
     var editSheetOpen by remember { mutableStateOf(false) }
     var generatedReportUri by remember { mutableStateOf<Uri?>(null) }
+    var confirmArchive by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -120,7 +122,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                     },
                                 )
                                 DropdownMenuItem(text = { Text(stringResource(R.string.prj_edit)) }, onClick = { overflowOpen = false; editSheetOpen = true })
-                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_archive)) }, onClick = { overflowOpen = false; viewModel.archive { navController.popBackStack() } })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_archive)) }, onClick = { overflowOpen = false; confirmArchive = true })
                             }
                         }
                     },
@@ -208,6 +210,19 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
             dismissButton = { TextButton(onClick = { generatedReportUri = null }) { Text(stringResource(R.string.action_close)) } },
             title = { Text(stringResource(R.string.prj_report_generated)) },
             text = { Text(stringResource(R.string.prj_report_saved, project.name)) },
+        )
+    }
+
+    if (confirmArchive) {
+        ConfirmDialog(
+            title = stringResource(R.string.prj_archive_confirm),
+            message = stringResource(R.string.prj_archive_confirm_body, project.name),
+            confirmText = stringResource(R.string.prj_archive),
+            onConfirm = {
+                confirmArchive = false
+                viewModel.archive { navController.popBackStack() }
+            },
+            onDismiss = { confirmArchive = false },
         )
     }
 }

@@ -18,6 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,6 +32,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
@@ -60,6 +64,11 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
     val state by viewModel.formState.collectAsState()
     if (!state.isLoaded) return
 
+    var confirmArchive by remember { mutableStateOf(false) }
+    // The part number waiting on an answer, so a mis-tap on a scrolling form does not
+    // quietly take a component out of the mix.
+    var confirmRemoveLine by remember { mutableStateOf<Int?>(null) }
+
     val productLabels = state.products.map { product ->
         if (product.brand.isBlank()) product.name else "${product.brand} — ${product.name}"
     }
@@ -75,7 +84,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                 onBack = { navController.popBackStack() },
                 actions = {
                     if (state.solutionId != 0L) {
-                        IconButton(onClick = { viewModel.archive { navController.popBackStack() } }) {
+                        IconButton(onClick = { confirmArchive = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
@@ -139,7 +148,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                     text = stringResource(R.string.action_remove),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.tappableText { viewModel.removeLine(index) },
+                                    modifier = Modifier.tappableText { confirmRemoveLine = index },
                                 )
                             }
                         }
@@ -272,6 +281,33 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
             )
         }
     }
+
+    if (confirmArchive) {
+        ConfirmDialog(
+            title = stringResource(R.string.solution_delete_confirm),
+            message = stringResource(R.string.solution_delete_confirm_body, state.name),
+            confirmText = stringResource(R.string.action_delete),
+            onConfirm = {
+                confirmArchive = false
+                viewModel.archive { navController.popBackStack() }
+            },
+            onDismiss = { confirmArchive = false },
+        )
+    }
+
+    confirmRemoveLine?.let { index ->
+        ConfirmDialog(
+            title = stringResource(R.string.part_remove_confirm),
+            message = stringResource(R.string.part_remove_confirm_body, index + 1),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                confirmRemoveLine = null
+                viewModel.removeLine(index)
+            },
+            onDismiss = { confirmRemoveLine = null },
+        )
+    }
+
 }
 
 private fun dosingLabel(mode: DosingMode): Int = when (mode) {

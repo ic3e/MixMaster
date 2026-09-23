@@ -17,6 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,6 +31,7 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
@@ -54,6 +58,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
     val usedIn by viewModel.usedIn.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
     val current = product ?: return
+    var confirmDelete by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -69,7 +74,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         IconButton(onClick = { navController.navigate(Routes.productEdit(current.id)) }) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
                         }
-                        IconButton(onClick = { viewModel.delete { navController.popBackStack() } }) {
+                        IconButton(onClick = { confirmDelete = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
                     }
@@ -143,4 +148,18 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
             }
         }
     }
+
+    if (confirmDelete) {
+        ConfirmDialog(
+            title = stringResource(R.string.product_delete_confirm),
+            message = stringResource(R.string.product_delete_confirm_body, current.name),
+            confirmText = stringResource(R.string.action_delete),
+            onConfirm = {
+                confirmDelete = false
+                viewModel.delete { navController.popBackStack() }
+            },
+            onDismiss = { confirmDelete = false },
+        )
+    }
+
 }

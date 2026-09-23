@@ -62,6 +62,7 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.components.CardAccent
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
@@ -218,6 +219,9 @@ fun LayoutTab(
 ) {
     var pickerRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
     var colourCoat by remember { mutableStateOf<CoatMix?>(null) }
+    // Asked before a coat comes off: it takes the room's material booking with it, and the
+    // word sits a thumb's width from the rate you were reading.
+    var removingCoat by remember { mutableStateOf<CoatMix?>(null) }
     var addFloorOpen by remember { mutableStateOf(false) }
     var addRoomForFloor by remember { mutableStateOf<Long?>(null) }
     var noteText by remember { mutableStateOf("") }
@@ -340,7 +344,7 @@ fun LayoutTab(
                                         text = stringResource(R.string.action_remove),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.tappableText { onRemoveCoat(coat.layer) },
+                                        modifier = Modifier.tappableText { removingCoat = coat },
                                     )
                                 }
                             }
@@ -504,6 +508,19 @@ fun LayoutTab(
                 onAddCoat(room.id, 0L, product.id, dose, 1.0)
                 pickerRoom = null
             },
+        )
+    }
+
+    removingCoat?.let { coat ->
+        ConfirmDialog(
+            title = stringResource(R.string.coat_remove_confirm),
+            message = stringResource(R.string.coat_remove_confirm_body, coat.title),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingCoat = null
+                onRemoveCoat(coat.layer)
+            },
+            onDismiss = { removingCoat = null },
         )
     }
 }

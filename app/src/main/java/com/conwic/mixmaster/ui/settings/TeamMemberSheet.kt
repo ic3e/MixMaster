@@ -4,6 +4,7 @@ package com.conwic.mixmaster.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -11,6 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,14 +25,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.ChipRow
-import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import androidx.compose.ui.res.stringResource
@@ -45,6 +51,7 @@ fun TeamMemberSheet(
     var name by remember { mutableStateOf(member.name) }
     var email by remember { mutableStateOf(member.email) }
     var role by remember { mutableStateOf(member.role) }
+    var confirmRemove by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -60,10 +67,24 @@ fun TeamMemberSheet(
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(if (isNew) R.string.crew_add else R.string.crew_edit),
-                style = MaterialTheme.typography.headlineMedium,
-            )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(if (isNew) R.string.crew_add else R.string.crew_edit),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                // Away from the thumb, like the task sheet: a full-width remove under Save is
+                // tapped by accident sooner or later.
+                if (onRemove != null) {
+                    IconButton(onClick = { confirmRemove = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.DeleteOutline,
+                            contentDescription = stringResource(R.string.crew_remove),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -103,9 +124,19 @@ fun TeamMemberSheet(
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (onRemove != null) {
-                GhostButton(text = stringResource(R.string.crew_remove), onClick = onRemove, modifier = Modifier.fillMaxWidth())
-            }
         }
+    }
+
+    if (confirmRemove && onRemove != null) {
+        ConfirmDialog(
+            title = stringResource(R.string.crew_remove_confirm),
+            message = stringResource(R.string.crew_remove_confirm_body, name.ifBlank { member.name }),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                confirmRemove = false
+                onRemove()
+            },
+            onDismiss = { confirmRemove = false },
+        )
     }
 }

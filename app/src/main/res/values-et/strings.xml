@@ -582,4 +582,18 @@
     <string name="products_tab_products">Tooted</string>
     <string name="products_tab_solutions">Segud</string>
     <string name="products_solutions_explain">Segu on retsept: millised tooted lähevad sisse, millises vahekorras ja kui palju see katab.</string>
+    <string name="task_delete_confirm">Kas kustutada see ülesanne?</string>
+    <string name="task_delete_confirm_body">%1$s kaob nimekirjast jäädavalt.</string>
+    <string name="product_delete_confirm">Kas kustutada see toode?</string>
+    <string name="product_delete_confirm_body">%1$s kaob kataloogist. Segudel, kus seda kasutatakse, jääb komponent puudu.</string>
+    <string name="solution_delete_confirm">Kas eemaldada see segu?</string>
+    <string name="solution_delete_confirm_body">%1$s kaob nimekirjast. Juba tehtud tööde arvud jäävad alles.</string>
+    <string name="part_remove_confirm">Kas eemaldada see komponent?</string>
+    <string name="part_remove_confirm_body">Komponent %1$d võetakse segust välja.</string>
+    <string name="coat_remove_confirm">Kas eemaldada see kiht?</string>
+    <string name="coat_remove_confirm_body">%1$s võetakse sellelt ruumilt maha ja selle materjali enam ei broneerita.</string>
+    <string name="crew_remove_confirm">Kas eemaldada see inimene?</string>
+    <string name="crew_remove_confirm_body">%1$s kaob meeskonna nimekirjast.</string>
+    <string name="prj_archive_confirm">Kas arhiveerida see töö?</string>
+    <string name="prj_archive_confirm_body">%1$s kaob aktiivsete nimekirjast ega broneeri enam materjali.</string>
 </resources>

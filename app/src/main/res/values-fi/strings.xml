@@ -582,4 +582,18 @@
     <string name="products_tab_products">Tuotteet</string>
     <string name="products_tab_solutions">Seokset</string>
     <string name="products_solutions_explain">Seos on resepti: mitkä tuotteet siihen tulevat, missä suhteessa ja paljonko se kattaa.</string>
+    <string name="task_delete_confirm">Poistetaanko tämä tehtävä?</string>
+    <string name="task_delete_confirm_body">%1$s katoaa listalta lopullisesti.</string>
+    <string name="product_delete_confirm">Poistetaanko tämä tuote?</string>
+    <string name="product_delete_confirm_body">%1$s poistuu luettelosta. Sekoituksista, joissa sitä käytetään, puuttuu osa.</string>
+    <string name="solution_delete_confirm">Poistetaanko tämä sekoitus?</string>
+    <string name="solution_delete_confirm_body">%1$s poistuu listalta. Jo tehtyjen töiden luvut säilyvät.</string>
+    <string name="part_remove_confirm">Poistetaanko tämä osa?</string>
+    <string name="part_remove_confirm_body">Osa %1$d poistuu sekoituksesta.</string>
+    <string name="coat_remove_confirm">Poistetaanko tämä kerros?</string>
+    <string name="coat_remove_confirm_body">%1$s poistuu tästä tilasta, eikä sen materiaalia enää varata.</string>
+    <string name="crew_remove_confirm">Poistetaanko tämä henkilö?</string>
+    <string name="crew_remove_confirm_body">%1$s poistuu työryhmästä.</string>
+    <string name="prj_archive_confirm">Arkistoidaanko tämä työ?</string>
+    <string name="prj_archive_confirm_body">%1$s poistuu aktiivisista eikä varaa enää materiaalia.</string>
 </resources>

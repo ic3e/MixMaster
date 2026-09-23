@@ -630,4 +630,18 @@
     <string name="products_tab_products">Products</string>
     <string name="products_tab_solutions">Solutions</string>
     <string name="products_solutions_explain">A solution is a recipe: which products go in, in what ratio, and how much it covers.</string>
+    <string name="task_delete_confirm">Delete this task?</string>
+    <string name="task_delete_confirm_body">%1$s comes off the list for good.</string>
+    <string name="product_delete_confirm">Delete this product?</string>
+    <string name="product_delete_confirm_body">%1$s comes out of the catalogue. Mixes that use it will be missing a part.</string>
+    <string name="solution_delete_confirm">Remove this mix?</string>
+    <string name="solution_delete_confirm_body">%1$s comes off the list. Jobs that already used it keep their figures.</string>
+    <string name="part_remove_confirm">Remove this part?</string>
+    <string name="part_remove_confirm_body">Part %1$d comes out of the mix.</string>
+    <string name="coat_remove_confirm">Remove this coat?</string>
+    <string name="coat_remove_confirm_body">%1$s comes off this room, and its material stops being booked.</string>
+    <string name="crew_remove_confirm">Remove this person?</string>
+    <string name="crew_remove_confirm_body">%1$s comes off the crew list.</string>
+    <string name="prj_archive_confirm">Archive this job?</string>
+    <string name="prj_archive_confirm_body">%1$s comes off the active list and stops booking material.</string>
 </resources>

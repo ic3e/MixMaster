@@ -31,6 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
@@ -38,9 +41,9 @@ import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.DropdownField
-import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PickerField
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -109,6 +112,7 @@ fun TaskEditorSheet(
     var priority by remember { mutableStateOf(draft.priority) }
     var projectId by remember { mutableStateOf(draft.projectId) }
     var isDone by remember { mutableStateOf(draft.isDone) }
+    var confirmDelete by remember { mutableStateOf(false) }
 
     val today = remember { LocalDate.now() }
 
@@ -137,10 +141,24 @@ fun TaskEditorSheet(
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(if (isNew) R.string.task_new else R.string.task_edit),
-                style = MaterialTheme.typography.headlineMedium,
-            )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(if (isNew) R.string.task_new else R.string.task_edit),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                // Up here rather than under Save: a full-width delete at the bottom of a sheet
+                // is exactly where a thumb lands when it means to save.
+                if (onDelete != null) {
+                    IconButton(onClick = { confirmDelete = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.DeleteOutline,
+                            contentDescription = stringResource(R.string.task_delete),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = title,
@@ -249,9 +267,6 @@ fun TaskEditorSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            if (onDelete != null) {
-                GhostButton(text = stringResource(R.string.task_delete), onClick = onDelete, modifier = Modifier.fillMaxWidth())
-            }
         }
     }
 
@@ -284,5 +299,18 @@ fun TaskEditorSheet(
         ) {
             DatePicker(state = pickerState)
         }
+    }
+
+    if (confirmDelete && onDelete != null) {
+        ConfirmDialog(
+            title = stringResource(R.string.task_delete_confirm),
+            message = stringResource(R.string.task_delete_confirm_body, title.ifBlank { draft.title }),
+            confirmText = stringResource(R.string.action_delete),
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+            onDismiss = { confirmDelete = false },
+        )
     }
 }
