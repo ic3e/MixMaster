@@ -15,6 +15,10 @@ interface RoomAreaDao {
     @Query("SELECT * FROM room_areas WHERE projectId = :projectId ORDER BY sortOrder")
     fun observeForProject(projectId: Long): Flow<List<RoomAreaEntity>>
 
+    /** Every room on every project, so the warehouse can see what is spoken for. */
+    @Query("SELECT * FROM room_areas ORDER BY projectId, sortOrder")
+    fun observeAll(): Flow<List<RoomAreaEntity>>
+
     @Query("SELECT * FROM room_areas WHERE floorId = :floorId ORDER BY sortOrder")
     fun observeForFloor(floorId: Long): Flow<List<RoomAreaEntity>>
 

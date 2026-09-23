@@ -12,12 +12,18 @@ object Routes {
     const val PROJECTS = "projects"
     const val PROJECT_DETAIL = "project/{projectId}"
     const val CALENDAR = "calendar"
+    const val WAREHOUSE = "warehouse"
     const val SETTINGS = "settings"
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"
     fun projectDetail(id: Long) = "project/$id"
 
-    /** Bottom-nav top-level destinations, in display order. */
-    val bottomNavRoutes = listOf(HOME, CALCULATOR, PRODUCTS, PROJECTS, SETTINGS)
+    /**
+     * Bottom-nav top-level destinations, in display order.
+     *
+     * The calculator is not among them any more: it belongs to a product, and is opened from
+     * one. Its slot went to the warehouse, which is the thing you check before a job.
+     */
+    val bottomNavRoutes = listOf(HOME, WAREHOUSE, PRODUCTS, PROJECTS, SETTINGS)
 }

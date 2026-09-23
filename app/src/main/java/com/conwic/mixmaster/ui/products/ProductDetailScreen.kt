@@ -181,7 +181,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         // Says which product before going there; the button used to open the
                         // calculator on whatever happened to be selected already.
                         scope.launch { container.userPrefs.setLastProductId(product.id) }
-                        navController.navigateToTopLevel(Routes.CALCULATOR)
+                        navController.navigate(Routes.CALCULATOR)
                     },
                     modifier = Modifier.weight(1f),
                 )

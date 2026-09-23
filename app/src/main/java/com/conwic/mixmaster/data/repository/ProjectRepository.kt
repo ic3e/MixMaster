@@ -35,6 +35,13 @@ class ProjectRepository(
 
     suspend fun archive(project: ProjectEntity) = projectDao.update(project.copy(isArchived = true))
 
+    /** Stamps a job as having its material, which is what stops it booking any more. */
+    suspend fun setMaterialsIssued(project: ProjectEntity, at: Long?) =
+        projectDao.update(project.copy(materialsIssuedAt = at))
+
+    /** Every room on every project, for working out what the warehouse has spoken for. */
+    fun observeAllRooms(): Flow<List<RoomAreaEntity>> = roomAreaDao.observeAll()
+
     fun observeFloors(projectId: Long): Flow<List<FloorEntity>> = floorDao.observeForProject(projectId)
 
     suspend fun addFloor(floor: FloorEntity): Long = floorDao.insert(floor)

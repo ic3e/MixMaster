@@ -53,6 +53,7 @@ import com.conwic.mixmaster.domain.quantityOf
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.ChipRow
@@ -107,7 +108,14 @@ fun CalculatorScreen(navController: NavHostController) {
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item { Text(text = stringResource(R.string.calc_title), style = MaterialTheme.typography.headlineLarge) }
+        // Opened from a product now rather than from the bottom bar, so it needs its own way
+        // back to the one you came from.
+        item {
+            MixMasterTopBar(
+                title = stringResource(R.string.calc_title),
+                onBack = { navController.popBackStack() },
+            )
+        }
 
         item {
             // Same reason as the Products screen: a row of brand chips runs out of room as the

@@ -13,6 +13,11 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.domain.MixCalculator
+import com.conwic.mixmaster.domain.partStock
+import com.conwic.mixmaster.domain.needsByComponent
+import com.conwic.mixmaster.domain.bookingsByComponent
+import com.conwic.mixmaster.domain.PartStock
+import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.toEntity
@@ -39,9 +44,28 @@ data class ProjectDetailData(
     val progressPercent: Int get() = if (tasks.isEmpty()) 0 else (tasks.count { it.isDone } * 100) / tasks.size
 }
 
+/** One part of one product on this job: what it needs, and what the warehouse can cover. */
+data class ProjectPart(
+    val productName: String,
+    /** In the part's own pack unit. */
+    val need: Double,
+    val stock: PartStock,
+) {
+    /** Free on the shelf once other jobs' bookings are honoured. */
+    val available: Double get() = stock.free
+    val shortfall: Double get() = (need - available).coerceAtLeast(0.0)
+    val packsToOrder: Int?
+        get() = when {
+            shortfall <= 0.0 -> 0
+            stock.packSize > 0.0 -> kotlin.math.ceil(shortfall / stock.packSize).toInt()
+            else -> null
+        }
+}
+
 class ProjectDetailViewModel(
     private val projectRepository: ProjectRepository,
     private val productRepository: ProductRepository,
+    private val stockRepository: StockRepository,
     private val projectId: Long,
 ) : ViewModel() {
 
@@ -62,6 +86,14 @@ class ProjectDetailViewModel(
     private val _roomMixes = MutableStateFlow<Map<Long, MixResult?>>(emptyMap())
     val roomMixes: StateFlow<Map<Long, MixResult?>> = _roomMixes.asStateFlow()
 
+    /**
+     * What this job needs of each part set against what is free on the shelf.
+     *
+     * Free, not on hand: material another job has already booked is not this job's to take.
+     */
+    private val _materials = MutableStateFlow<List<ProjectPart>>(emptyList())
+    val materials: StateFlow<List<ProjectPart>> = _materials.asStateFlow()
+
     init {
         viewModelScope.launch {
             data.collect { current ->
@@ -73,6 +105,50 @@ class ProjectDetailViewModel(
                     room.id to mix
                 }
             }
+        }
+        viewModelScope.launch {
+            combine(
+                data,
+                stockRepository.observeAll(),
+                projectRepository.observeAll(),
+                projectRepository.observeAllRooms(),
+            ) { current, stock, projects, allRooms ->
+                val productsWithComponents = productRepository.getAllWithComponents().associateBy { it.product.id }
+                val needs = needsByComponent(current.rooms, productsWithComponents)
+                val stockByComponent = stock.associateBy { it.componentId }
+                // Every other job's booking, so this one is measured against what is genuinely
+                // spare rather than against the whole shelf.
+                val bookings = bookingsByComponent(
+                    projects = projects.filter { it.id != projectId },
+                    roomsByProject = allRooms.groupBy { it.projectId },
+                    productsById = productsWithComponents,
+                )
+                val componentsById = productsWithComponents.values
+                    .flatMap { it.components }
+                    .associateBy { it.id }
+                needs.mapNotNull { (componentId, need) ->
+                    val component = componentsById[componentId] ?: return@mapNotNull null
+                    val product = productsWithComponents[component.productId]?.product
+                    ProjectPart(
+                        productName = product?.name.orEmpty(),
+                        need = need,
+                        stock = partStock(component, stockByComponent[componentId], bookings[componentId].orEmpty()),
+                    )
+                }.sortedWith(compareBy({ it.productName }, { it.stock.label }))
+            }.collect { _materials.value = it }
+        }
+    }
+
+    /** Takes this job's material off the shelf, once, and stops it booking any more. */
+    fun takeMaterialsOutOfStock() {
+        val project = data.value.project ?: return
+        if (project.materialsIssuedAt != null) return
+        val parts = _materials.value
+        viewModelScope.launch {
+            parts.forEach { part ->
+                stockRepository.take(part.stock.componentId, part.need, part.stock.packSize)
+            }
+            projectRepository.setMaterialsIssued(project, System.currentTimeMillis())
         }
     }
 

@@ -473,4 +473,34 @@
     <string name="crash_title">MixMaster sulkeutui odottamatta</string>
     <string name="crash_note">Kopioi tiedot ja lähetä ne eteenpäin — juuri ne kertovat, mikä rivi sen aiheutti.</string>
     <string name="crash_copy">Kopioi tiedot</string>
+
+    <!-- Warehouse -->
+    <string name="nav_warehouse">Varasto</string>
+    <string name="action_save">Tallenna</string>
+    <string name="wh_title">Varasto</string>
+    <string name="wh_to_order">Tilattavaa</string>
+    <string name="wh_to_order_sub">Varattuna on enemmän kuin hyllyssä riittää</string>
+    <string name="wh_on_the_shelf">Hyllyssä</string>
+    <string name="wh_empty">Ei vielä tuotteita. Lisää ne Tuotteet-välilehdeltä.</string>
+    <string name="wh_no_parts">Tällä tuotteella ei ole vielä osia.</string>
+    <string name="wh_booked_for">Varattu: %1$s</string>
+    <string name="wh_short_by">Puuttuu %1$s</string>
+    <string name="wh_free">%1$s vapaana</string>
+    <string name="wh_no_pack_size">Pakkauskokoa ei ole asetettu — lisää se tuotteelle</string>
+    <string name="wh_full_packs">Avaamattomat pakkaukset</string>
+    <string name="wh_pack_of">Yksi pakkaus on %1$s %2$s (%3$s)</string>
+    <string name="wh_open_pack">Avatussa pakkauksessa jäljellä (%1$s)</string>
+    <string name="wh_open_pack_hint">Jätä tyhjäksi, jos avattua ei ole</string>
+    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
+    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="prj_from_warehouse">Varastosta</string>
+    <string name="prj_no_materials_yet">Liitä huoneeseen tuote, niin työn materiaalit näkyvät tässä.</string>
+    <string name="prj_need">Tähän työhön tarvitaan</string>
+    <string name="prj_free_in_stock">Vapaana varastossa</string>
+    <string name="prj_to_order">Tilattavaa</string>
+    <string name="prj_nothing_to_order">Ei mitään</string>
+    <string name="prj_take_out_of_stock">Ota varastosta</string>
+    <string name="prj_materials_taken">Otettu varastosta %1$s</string>
+    <string name="home_check_warehouse">Tarkista varasto</string>
+    <string name="home_check_warehouse_sub">Hyllyssä ei riitä: %1$s</string>
 </resources>

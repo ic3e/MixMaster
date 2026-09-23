@@ -44,6 +44,8 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
+import java.time.Instant
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.components.CardAccent
@@ -514,7 +516,12 @@ private fun ProductPickerSheet(
 }
 
 @Composable
-fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
+fun MaterialsTab(
+    data: ProjectDetailData,
+    roomMixes: Map<Long, MixResult?>,
+    materials: List<ProjectPart>,
+    onTakeOutOfStock: () -> Unit,
+) {
     val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
     val loggedRooms = data.rooms.filter { roomMixes[it.id] != null }
 
@@ -531,6 +538,68 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
                 }
             }
         }
+        item { SectionLabel(text = stringResource(R.string.prj_from_warehouse)) }
+
+        if (materials.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.prj_no_materials_yet),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        items(materials) { part ->
+            CardFlat {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = part.stock.label, style = MaterialTheme.typography.titleMedium)
+                    Text(text = part.productName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                MaterialRow(
+                    label = stringResource(R.string.prj_need),
+                    value = "${formatDecimal(part.need, 2)} ${part.stock.packUnit}",
+                )
+                MaterialRow(
+                    label = stringResource(R.string.prj_free_in_stock),
+                    value = "${formatDecimal(part.available, 2)} ${part.stock.packUnit}",
+                )
+                val packs = part.packsToOrder
+                MaterialRow(
+                    label = stringResource(R.string.prj_to_order),
+                    value = when {
+                        part.shortfall <= 0.0 -> stringResource(R.string.prj_nothing_to_order)
+                        packs != null -> stringResource(R.string.wh_order_packs, packs, part.stock.packType)
+                        else -> "${formatDecimal(part.shortfall, 2)} ${part.stock.packUnit}"
+                    },
+                    strong = part.shortfall > 0.0,
+                )
+            }
+        }
+
+        if (materials.isNotEmpty()) {
+            item {
+                val issuedAt = data.project?.materialsIssuedAt
+                if (issuedAt == null) {
+                    PrimaryButton(
+                        text = stringResource(R.string.prj_take_out_of_stock),
+                        onClick = onTakeOutOfStock,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    Text(
+                        text = stringResource(
+                            R.string.prj_materials_taken,
+                            formatDueDate(Instant.ofEpochMilli(issuedAt).atZone(ZoneId.systemDefault()).toLocalDate()),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
         item { SectionLabel(text = stringResource(R.string.prj_materials_logged)) }
         if (loggedRooms.isEmpty()) {
             item { Text(text = stringResource(R.string.prj_no_assigned), style = MaterialTheme.typography.bodyMedium) }
@@ -601,5 +670,23 @@ fun CalendarTab(data: ProjectDetailData) {
                 )
             }
         }
+    }
+}
+
+
+/** A label and its figure, for the warehouse lines on the materials tab. */
+@Composable
+private fun MaterialRow(label: String, value: String, strong: Boolean = false) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = if (strong) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (strong) FontWeight.ExtraBold else FontWeight.Bold,
+        )
     }
 }

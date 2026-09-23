@@ -473,4 +473,34 @@
     <string name="crash_title">MixMaster sulgus ootamatult</string>
     <string name="crash_note">Kopeeri andmed ja saada edasi — just need ütlevad, milline rida selle põhjustas.</string>
     <string name="crash_copy">Kopeeri andmed</string>
+
+    <!-- Warehouse -->
+    <string name="nav_warehouse">Ladu</string>
+    <string name="action_save">Salvesta</string>
+    <string name="wh_title">Ladu</string>
+    <string name="wh_to_order">Tellida</string>
+    <string name="wh_to_order_sub">Broneeritud on rohkem, kui riiulil on</string>
+    <string name="wh_on_the_shelf">Riiulil</string>
+    <string name="wh_empty">Tooteid veel ei ole. Lisa need Toodete alt.</string>
+    <string name="wh_no_parts">Sellel tootel ei ole veel komponente.</string>
+    <string name="wh_booked_for">Broneeritud: %1$s</string>
+    <string name="wh_short_by">Puudu %1$s</string>
+    <string name="wh_free">%1$s vaba</string>
+    <string name="wh_no_pack_size">Pakendi suurus määramata — lisa see toote juurde</string>
+    <string name="wh_full_packs">Avamata pakendid</string>
+    <string name="wh_pack_of">Üks pakend on %1$s %2$s (%3$s)</string>
+    <string name="wh_open_pack">Avatud pakendis järel (%1$s)</string>
+    <string name="wh_open_pack_hint">Jäta tühjaks, kui avatut ei ole</string>
+    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
+    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="prj_from_warehouse">Laost</string>
+    <string name="prj_no_materials_yet">Määra ruumile toode ja selle töö materjal ilmub siia.</string>
+    <string name="prj_need">Sellele tööle vaja</string>
+    <string name="prj_free_in_stock">Laos vaba</string>
+    <string name="prj_to_order">Tellida</string>
+    <string name="prj_nothing_to_order">Ei midagi</string>
+    <string name="prj_take_out_of_stock">Võta laost välja</string>
+    <string name="prj_materials_taken">Laost välja võetud %1$s</string>
+    <string name="home_check_warehouse">Kontrolli ladu</string>
+    <string name="home_check_warehouse_sub">Riiulil ei jätku: %1$s</string>
 </resources>

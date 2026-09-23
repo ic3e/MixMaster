@@ -18,4 +18,9 @@ data class ProjectEntity(
     /** content:// URI to an attached blueprint image or PDF, set by the Employer. */
     val blueprintUri: String? = null,
     val isArchived: Boolean = false,
+    /**
+     * When this job's material was taken off the warehouse shelf. Until then the job books
+     * what it needs; afterwards it has its material and books nothing.
+     */
+    val materialsIssuedAt: Long? = null,
 )

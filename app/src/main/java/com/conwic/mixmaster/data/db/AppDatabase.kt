@@ -11,6 +11,7 @@ import com.conwic.mixmaster.data.db.dao.FloorDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProductDao
+import com.conwic.mixmaster.data.db.dao.StockDao
 import com.conwic.mixmaster.data.db.dao.ProjectDao
 import com.conwic.mixmaster.data.db.dao.RoomAreaDao
 import com.conwic.mixmaster.data.db.dao.TaskDao
@@ -26,6 +27,7 @@ import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.db.entity.UsageLogEntity
+import com.conwic.mixmaster.data.db.entity.StockEntity
 import com.conwic.mixmaster.data.seed.SeedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,12 +47,15 @@ const val DATABASE_NAME = "mixmaster.db"
         PhotoEntity::class,
         TeamMemberEntity::class,
         UsageLogEntity::class,
+        StockEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun stockDao(): StockDao
 
     abstract fun productDao(): ProductDao
     abstract fun projectDao(): ProjectDao
@@ -129,9 +134,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds the warehouse: what is on the shelf for each part, and the stamp that says a
+         * project has taken its material out (after which it stops booking any).
+         */
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `stock` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`productId` INTEGER NOT NULL, " +
+                        "`componentId` INTEGER NOT NULL, " +
+                        "`fullPacks` INTEGER NOT NULL DEFAULT 0, " +
+                        "`openAmount` REAL NOT NULL DEFAULT 0, " +
+                        "`updatedAt` INTEGER NOT NULL DEFAULT 0)",
+                )
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_stock_componentId` ON `stock` (`componentId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_stock_productId` ON `stock` (`productId`)")
+                db.execSQL("ALTER TABLE projects ADD COLUMN materialsIssuedAt INTEGER")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()

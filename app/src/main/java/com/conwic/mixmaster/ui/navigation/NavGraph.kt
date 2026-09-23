@@ -28,6 +28,7 @@ import com.conwic.mixmaster.ui.products.ProductsScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectsScreen
 import com.conwic.mixmaster.ui.settings.SettingsScreen
+import com.conwic.mixmaster.ui.warehouse.WarehouseScreen
 import com.conwic.mixmaster.ui.signin.SignInScreen
 
 @Composable
@@ -85,6 +86,9 @@ fun MixMasterNavGraph(startDestination: String) {
             }
             composable(Routes.HOME) { Inset(insets) { HomeScreen(navController = navController) } }
             composable(Routes.CALCULATOR) { Inset(insets) { CalculatorScreen(navController = navController) } }
+            composable(Routes.WAREHOUSE) {
+                Inset(insets) { WarehouseScreen(navController = navController) }
+            }
             composable(Routes.PRODUCTS) { Inset(insets) { ProductsScreen(navController = navController) } }
             composable(
                 route = Routes.PRODUCT_DETAIL,

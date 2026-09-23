@@ -66,11 +66,19 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     val context = LocalContext.current
     val viewModel: ProjectDetailViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { ProjectDetailViewModel(container.projectRepository, container.productRepository, projectId) }
+            initializer {
+                ProjectDetailViewModel(
+                    container.projectRepository,
+                    container.productRepository,
+                    container.stockRepository,
+                    projectId,
+                )
+            }
         },
     )
     val data by viewModel.data.collectAsState()
     val roomMixes by viewModel.roomMixes.collectAsState()
+    val materials by viewModel.materials.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
     val project = data.project ?: return
 
@@ -144,7 +152,12 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     blueprintUri = data.project?.blueprintUri,
                     onSetBlueprint = viewModel::setBlueprintUri,
                 )
-                3 -> MaterialsTab(data = data, roomMixes = roomMixes)
+                3 -> MaterialsTab(
+                    data = data,
+                    roomMixes = roomMixes,
+                    materials = materials,
+                    onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
+                )
                 4 -> CalendarTab(data = data)
             }
         }

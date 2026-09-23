@@ -71,7 +71,9 @@ fun HomeScreen(navController: NavHostController) {
     val container = LocalAppContainer.current
     val viewModel: HomeViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { HomeViewModel(container.projectRepository, container.productRepository) }
+            initializer {
+                HomeViewModel(container.projectRepository, container.productRepository, container.stockRepository)
+            }
         },
     )
     val state by viewModel.uiState.collectAsState()
@@ -117,6 +119,30 @@ fun HomeScreen(navController: NavHostController) {
 
         item { CrashReportCard() }
 
+        // Asked before the van is loaded, not after: a job with material assigned that the
+        // shelf can't cover is the one thing worth interrupting the morning for.
+        item {
+            val short by viewModel.shortOfMaterial.collectAsState()
+            if (short.isNotEmpty()) {
+                CardAccent(
+                    modifier = Modifier
+                        .clip(CardShape)
+                        .clickable { navController.navigateToTopLevel(Routes.WAREHOUSE) },
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_check_warehouse),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = OnAccentCard,
+                    )
+                    Text(
+                        text = stringResource(R.string.home_check_warehouse_sub, short.joinToString(", ")),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = OnAccentCard.copy(alpha = 0.85f),
+                    )
+                }
+            }
+        }
+
         item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 
         item {
@@ -146,7 +172,7 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         item {
-            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigateToTopLevel(Routes.CALCULATOR) }) {
+            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.CALCULATOR) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = stringResource(R.string.home_quick_calculate), style = MaterialTheme.typography.titleLarge, color = OnAccentCard)

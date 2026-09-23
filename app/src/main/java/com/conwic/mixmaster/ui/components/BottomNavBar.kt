@@ -14,7 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.Warehouse
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +40,7 @@ private data class NavItem(val route: String, @StringRes val labelRes: Int, val 
 
 private val navItems = listOf(
     NavItem(Routes.HOME, R.string.nav_home, Icons.Filled.Home),
-    NavItem(Routes.CALCULATOR, R.string.nav_calculate, Icons.Filled.Science),
+    NavItem(Routes.WAREHOUSE, R.string.nav_warehouse, Icons.Filled.Warehouse),
     NavItem(Routes.PRODUCTS, R.string.nav_products, Icons.Filled.Inventory2),
     NavItem(Routes.PROJECTS, R.string.nav_projects, Icons.Filled.CalendarMonth),
     NavItem(Routes.SETTINGS, R.string.nav_settings, Icons.Filled.Settings),

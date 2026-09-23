@@ -521,4 +521,34 @@
     <string name="crash_title">MixMaster closed unexpectedly</string>
     <string name="crash_note">Copy the details and send them on — that is what says which line did it.</string>
     <string name="crash_copy">Copy details</string>
+
+    <!-- Warehouse -->
+    <string name="nav_warehouse">Warehouse</string>
+    <string name="action_save">Save</string>
+    <string name="wh_title">Warehouse</string>
+    <string name="wh_to_order">To order</string>
+    <string name="wh_to_order_sub">More is booked than the shelf holds</string>
+    <string name="wh_on_the_shelf">On the shelf</string>
+    <string name="wh_empty">No products yet. Add one under Products.</string>
+    <string name="wh_no_parts">No parts on this product yet.</string>
+    <string name="wh_booked_for">Booked for %1$s</string>
+    <string name="wh_short_by">Short by %1$s</string>
+    <string name="wh_free">%1$s free</string>
+    <string name="wh_no_pack_size">Pack size not set — add it on the product</string>
+    <string name="wh_full_packs">Unopened packs</string>
+    <string name="wh_pack_of">One pack is %1$s %2$s (%3$s)</string>
+    <string name="wh_open_pack">Left in the open pack (%1$s)</string>
+    <string name="wh_open_pack_hint">Leave empty if there is none</string>
+    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
+    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="prj_from_warehouse">From the warehouse</string>
+    <string name="prj_no_materials_yet">Put a product on a room and the material for this job shows up here.</string>
+    <string name="prj_need">This job needs</string>
+    <string name="prj_free_in_stock">Free in the warehouse</string>
+    <string name="prj_to_order">To order</string>
+    <string name="prj_nothing_to_order">Nothing</string>
+    <string name="prj_take_out_of_stock">Take out of stock</string>
+    <string name="prj_materials_taken">Taken out of stock on %1$s</string>
+    <string name="home_check_warehouse">Check the warehouse</string>
+    <string name="home_check_warehouse_sub">Not enough on the shelf for %1$s</string>
 </resources>
