@@ -223,6 +223,10 @@ abstract class AppDatabase : RoomDatabase() {
                         "`productId` INTEGER NOT NULL DEFAULT 0, " +
                         "`doseGramsPerM2` REAL NOT NULL DEFAULT 0, " +
                         "`quantity` REAL NOT NULL DEFAULT 1, " +
+                        "`colourProductId` INTEGER NOT NULL DEFAULT 0, " +
+                        "`colourAmountPerKg` REAL NOT NULL DEFAULT 0, " +
+                        "`colourUnit` TEXT NOT NULL DEFAULT 'kg', " +
+                        "`colourAgainstIndex` INTEGER NOT NULL DEFAULT 0, " +
                         "`sortOrder` INTEGER NOT NULL, " +
                         "FOREIGN KEY(`roomId`) REFERENCES `room_areas`(`id`) " +
                         "ON UPDATE NO ACTION ON DELETE CASCADE )",

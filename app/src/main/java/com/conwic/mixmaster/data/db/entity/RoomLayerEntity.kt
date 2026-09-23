@@ -36,5 +36,18 @@ data class RoomLayerEntity(
     @ColumnInfo(defaultValue = "0") val doseGramsPerM2: Double = 0.0,
     /** Coats, pours or millimetres, depending on the solution's dosing mode. */
     @ColumnInfo(defaultValue = "1") val quantity: Double = 1.0,
+    /**
+     * The colour this coat is tinted with, or 0 for none.
+     *
+     * On the room rather than on the recipe: the same topping goes down ocra in one bay and
+     * grey in the next, and it is the room that knows which. The rate rides along with it so
+     * the mix is settled where the choice is made.
+     */
+    @ColumnInfo(defaultValue = "0") val colourProductId: Long = 0L,
+    /** How much colour per 1 kg of the part it is dosed against, in [colourUnit]. */
+    @ColumnInfo(defaultValue = "0") val colourAmountPerKg: Double = 0.0,
+    @ColumnInfo(defaultValue = "kg") val colourUnit: String = "kg",
+    /** Which part of the coat's mix the colour is measured against. */
+    @ColumnInfo(defaultValue = "0") val colourAgainstIndex: Int = 0,
     val sortOrder: Int = 0,
 )

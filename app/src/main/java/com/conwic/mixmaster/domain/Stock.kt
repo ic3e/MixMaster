@@ -87,6 +87,10 @@ fun needsByProduct(
                     need.amountInPackUnit?.let { add(need.productId, it) }
                 }
                 addOnNeeds(result, mix.addOns).forEach { add(it.productId, it.amount) }
+                // The colour the room asked for, which no recipe knows about.
+                colourAddOn(layer, mix.parts, products)?.let { colour ->
+                    addOnNeeds(result, listOf(colour)).forEach { add(it.productId, it.amount) }
+                }
                 return@forEach
             }
             // A coat laid straight out of its own container, with no recipe behind it.

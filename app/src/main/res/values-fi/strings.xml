@@ -518,4 +518,11 @@
     <string name="pd_density_unknown">Ei asetettu</string>
     <string name="pd_used_in">Käytössä seoksissa</string>
     <string name="pd_used_in_nothing">Mikään seos ei käytä tätä vielä.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">Ei väriä</string>
+    <string name="prj_set_colour">Aseta väri</string>
+    <string name="prj_colour">Väri</string>
+    <string name="prj_colour_line">%1$s · %2$s per %3$s</string>
+    <string name="prj_colour_rate">%1$s jokaista %2$s kiloa kohti</string>
 </resources>

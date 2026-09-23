@@ -518,4 +518,11 @@
     <string name="pd_density_unknown">Määramata</string>
     <string name="pd_used_in">Kasutusel segudes</string>
     <string name="pd_used_in_nothing">Ükski segu ei kasuta seda veel.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">Värvita</string>
+    <string name="prj_set_colour">Määra värv</string>
+    <string name="prj_colour">Värv</string>
+    <string name="prj_colour_line">%1$s · %2$s %3$s kohta</string>
+    <string name="prj_colour_rate">%1$s iga %2$s kg kohta</string>
 </resources>

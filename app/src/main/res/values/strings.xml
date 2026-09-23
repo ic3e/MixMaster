@@ -566,4 +566,11 @@
     <string name="pd_density_unknown">Not set</string>
     <string name="pd_used_in">Used in</string>
     <string name="pd_used_in_nothing">No solution calls for this yet.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">No colour</string>
+    <string name="prj_set_colour">Set colour</string>
+    <string name="prj_colour">Colour</string>
+    <string name="prj_colour_line">%1$s · %2$s against %3$s</string>
+    <string name="prj_colour_rate">%1$s per kg of %2$s</string>
 </resources>

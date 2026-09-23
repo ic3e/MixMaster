@@ -98,6 +98,35 @@ data class CoatMix(
     val doseUnitLabel: String,
     val parts: List<MixPart>,
     val result: MixResult,
+    /** What this coat is tinted with, worked out for the room. */
+    val colour: AddOnNeed? = null,
 ) {
     val totalGrams: Double get() = result.totalGrams
+}
+
+/**
+ * The colour a coat is tinted with, as the mix maths sees it.
+ *
+ * Held on the room rather than on the recipe: the same topping goes down ocra in one bay and
+ * grey in the next, so the choice — and the rate it is mixed at — belongs where it is made.
+ */
+fun colourAddOn(
+    layer: RoomLayerEntity,
+    parts: List<MixPart>,
+    productsById: Map<Long, ProductEntity>,
+): MixAddOn? {
+    if (layer.colourProductId <= 0L) return null
+    val colour = productsById[layer.colourProductId] ?: return null
+    val index = layer.colourAgainstIndex.coerceIn(0, (parts.size - 1).coerceAtLeast(0))
+    return MixAddOn(
+        productId = colour.id,
+        label = colour.name,
+        amountPerKg = layer.colourAmountPerKg,
+        amountUnit = layer.colourUnit,
+        againstLabel = parts.getOrNull(index)?.label.orEmpty(),
+        againstIndex = index,
+        packageSize = colour.packageSize,
+        packageUnit = colour.packageUnit,
+        packageType = colour.packageType,
+    )
 }

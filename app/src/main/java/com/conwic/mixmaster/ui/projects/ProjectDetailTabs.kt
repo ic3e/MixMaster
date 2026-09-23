@@ -44,6 +44,8 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.domain.quantityOf
 import androidx.compose.ui.text.input.KeyboardType
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.domain.toNumberOr
@@ -204,12 +206,14 @@ fun LayoutTab(
     onAddRoom: (Long, String, Double) -> Unit,
     onAddCoat: (Long, Long, Long, Double, Double) -> Unit,
     onRemoveCoat: (RoomLayerEntity) -> Unit,
+    onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
     onAddNote: (String, String, Role) -> Unit,
     onAddPhoto: (String) -> Unit,
     blueprintUri: String?,
     onSetBlueprint: (String) -> Unit,
 ) {
     var pickerRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
+    var colourCoat by remember { mutableStateOf<CoatMix?>(null) }
     var addFloorOpen by remember { mutableStateOf(false) }
     var addRoomForFloor by remember { mutableStateOf<Long?>(null) }
     var noteText by remember { mutableStateOf("") }
@@ -336,6 +340,39 @@ fun LayoutTab(
                                     )
                                 }
                             }
+                            val colour = coat.colour
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(start = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(
+                                    text = if (colour == null) {
+                                        stringResource(R.string.prj_no_colour)
+                                    } else {
+                                        stringResource(
+                                            R.string.prj_colour_line,
+                                            colour.name,
+                                            quantityOf(colour.amount, colour.unit).text,
+                                            colour.againstLabel,
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (colour == null) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.secondary
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (isEmployer) {
+                                    Text(
+                                        text = stringResource(R.string.prj_set_colour),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.tappableText { colourCoat = coat },
+                                    )
+                                }
+                            }
                         }
                         if (isEmployer) {
                             Text(
@@ -434,6 +471,22 @@ fun LayoutTab(
     addRoomForFloor?.let { floorId ->
         AddRoomSheet(onDismiss = { addRoomForFloor = null }, onAdd = { name, area -> onAddRoom(floorId, name, area); addRoomForFloor = null })
     }
+    colourCoat?.let { coat ->
+        ColourSheet(
+            coat = coat,
+            products = data.products,
+            onDismiss = { colourCoat = null },
+            onClear = {
+                onSetCoatColour(coat.layer, 0L, 0.0, "kg", 0)
+                colourCoat = null
+            },
+            onSet = { product, rate, againstIndex ->
+                onSetCoatColour(coat.layer, product.id, rate, product.packageUnit, againstIndex)
+                colourCoat = null
+            },
+        )
+    }
+
     pickerRoom?.let { room ->
         CoatPickerSheet(
             solutions = data.solutions,
@@ -535,6 +588,89 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
                 enabled = name.isNotBlank() && area.toNumberOrNull() != null,
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+    }
+}
+
+/**
+ * Which colour this coat is tinted with, and at what rate.
+ *
+ * Asked on the room because that is where it is decided: the same topping goes down ocra in one
+ * bay and grey in the next. The rate says which part it is measured against, so a pigment given
+ * as "28 g per kg of polymer" stays that and is not quietly re-based on the whole batch.
+ */
+@Composable
+private fun ColourSheet(
+    coat: CoatMix,
+    products: List<ProductEntity>,
+    onDismiss: () -> Unit,
+    onClear: () -> Unit,
+    onSet: (ProductEntity, Double, Int) -> Unit,
+) {
+    var chosen by remember { mutableStateOf(products.firstOrNull { it.id == coat.layer.colourProductId }) }
+    var rate by remember {
+        mutableStateOf(
+            if (coat.layer.colourAmountPerKg > 0.0) formatDecimal(coat.layer.colourAmountPerKg * 1000, 1) else "",
+        )
+    }
+    var againstIndex by remember { mutableStateOf(coat.layer.colourAgainstIndex) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(text = stringResource(R.string.prj_set_colour), style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = coat.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 10.dp),
+            )
+            DropdownField(
+                label = stringResource(R.string.prj_colour),
+                selected = chosen?.name ?: stringResource(R.string.prj_no_colour),
+                options = products.map { it.name },
+                onSelect = { name -> chosen = products.firstOrNull { it.name == name } },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val partLabels = coat.parts.map { it.label }
+            if (partLabels.size > 1) {
+                DropdownField(
+                    label = stringResource(R.string.calc_measured_against),
+                    selected = partLabels.getOrNull(againstIndex) ?: partLabels.first(),
+                    options = partLabels,
+                    onSelect = { label -> againstIndex = partLabels.indexOf(label).coerceAtLeast(0) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+            }
+            FormTextField(
+                value = rate,
+                onValueChange = { rate = it },
+                label = stringResource(
+                    R.string.prj_colour_rate,
+                    if (chosen?.packageUnit == "L") "ml" else "g",
+                    partLabels.getOrNull(againstIndex) ?: "",
+                ),
+                keyboardType = KeyboardType.Decimal,
+                modifier = Modifier.padding(top = 10.dp),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                GhostButton(
+                    text = stringResource(R.string.prj_no_colour),
+                    onClick = onClear,
+                    modifier = Modifier.weight(1f),
+                )
+                PrimaryButton(
+                    text = stringResource(R.string.action_save),
+                    onClick = {
+                        // Typed in grams per kilo, held in kilos per kilo, the way every other
+                        // rate in the app is.
+                        chosen?.let { onSet(it, rate.toNumberOr(0.0) / 1000.0, againstIndex) }
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }

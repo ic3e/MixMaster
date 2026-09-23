@@ -149,6 +149,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onAddRoom = viewModel::addRoom,
                     onAddCoat = viewModel::addCoat,
                     onRemoveCoat = viewModel::removeCoat,
+                    onSetCoatColour = viewModel::setCoatColour,
                     onAddNote = viewModel::addNote,
                     onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },
                     blueprintUri = data.project?.blueprintUri,

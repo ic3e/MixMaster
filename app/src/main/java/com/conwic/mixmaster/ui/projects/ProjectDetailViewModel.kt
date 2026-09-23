@@ -18,6 +18,8 @@ import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.domain.CoatMix
 import com.conwic.mixmaster.domain.MixCalculator
+import com.conwic.mixmaster.domain.addOnNeeds
+import com.conwic.mixmaster.domain.colourAddOn
 import com.conwic.mixmaster.domain.MixPart
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.ProductStock
@@ -172,13 +174,16 @@ class ProjectDetailViewModel(
         val mix = mixesById[layer.solutionId]
         if (mix != null) {
             val dose = layer.doseGramsPerM2.takeIf { it > 0.0 } ?: mix.solution.typicalDoseGramsPerM2
+            val result = MixCalculator.compute(mix.parts, areaM2, layer.quantity, dose)
             return CoatMix(
                 layer = layer,
                 title = mix.solution.name,
                 doseGramsPerM2 = dose,
                 doseUnitLabel = mix.solution.doseUnitLabel,
                 parts = mix.parts,
-                result = MixCalculator.compute(mix.parts, areaM2, layer.quantity, dose),
+                result = result,
+                colour = colourAddOn(layer, mix.parts, productsById)
+                    ?.let { addOnNeeds(result, listOf(it)).firstOrNull() },
             )
         }
         val product = productsById[layer.productId] ?: return null
@@ -207,6 +212,20 @@ class ProjectDetailViewModel(
     fun addCoat(roomId: Long, solutionId: Long, productId: Long, doseGramsPerM2: Double, quantity: Double) {
         viewModelScope.launch {
             projectRepository.addLayer(roomId, solutionId, productId, doseGramsPerM2, quantity)
+        }
+    }
+
+    /** Tints a coat, or clears the tint when [colourProductId] is 0. */
+    fun setCoatColour(layer: RoomLayerEntity, colourProductId: Long, amountPerKg: Double, unit: String, againstIndex: Int) {
+        viewModelScope.launch {
+            projectRepository.updateLayer(
+                layer.copy(
+                    colourProductId = colourProductId,
+                    colourAmountPerKg = amountPerKg,
+                    colourUnit = unit,
+                    colourAgainstIndex = againstIndex,
+                ),
+            )
         }
     }
 
