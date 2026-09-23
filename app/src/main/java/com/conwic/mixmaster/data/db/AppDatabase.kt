@@ -189,7 +189,6 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE products ADD COLUMN packageUnit TEXT NOT NULL DEFAULT 'kg'")
                 db.execSQL("ALTER TABLE products ADD COLUMN packageType TEXT NOT NULL DEFAULT 'bag'")
                 db.execSQL("ALTER TABLE products ADD COLUMN densityKgPerL REAL NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE usage_logs ADD COLUMN solutionId INTEGER NOT NULL DEFAULT 0")
 
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS `solutions` (" +
@@ -389,13 +388,36 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
 
-                // Logged readings belong to the mix they were taken on.
-                productToSolution.forEach { (oldProductId, solutionId) ->
-                    db.execSQL(
-                        "UPDATE usage_logs SET solutionId = ? WHERE productId = ?",
-                        arrayOf<Any>(solutionId, oldProductId),
-                    )
+                // Logged readings belong to the mix they were taken on, so the table is rebuilt
+                // around the solution. A reading against something that became no solution — a
+                // pigment — has nothing to be an average of, and is left behind.
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `usage_logs_new` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`solutionId` INTEGER NOT NULL, " +
+                        "`doseGramsPerM2` REAL NOT NULL, " +
+                        "`loggedAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`solutionId`) REFERENCES `solutions`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                val readings = mutableListOf<Array<Any?>>()
+                db.query("SELECT productId, doseGramsPerM2, loggedAt FROM usage_logs").use { c ->
+                    while (c.moveToNext()) {
+                        readings.add(arrayOf(c.getLong(0), c.getDouble(1), c.getLong(2)))
+                    }
                 }
+                readings.forEach { reading ->
+                    val solutionId = productToSolution[reading[0] as Long]
+                    if (solutionId != null) {
+                        db.execSQL(
+                            "INSERT INTO usage_logs_new (solutionId, doseGramsPerM2, loggedAt) VALUES (?, ?, ?)",
+                            arrayOf<Any>(solutionId, reading[1] as Double, reading[2] as Long),
+                        )
+                    }
+                }
+                db.execSQL("DROP TABLE `usage_logs`")
+                db.execSQL("ALTER TABLE `usage_logs_new` RENAME TO `usage_logs`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_usage_logs_solutionId` ON `usage_logs` (`solutionId`)")
 
                 // Stock counted against a mix part is stock of the product that part became.
                 val counts = mutableListOf<Array<Any?>>()

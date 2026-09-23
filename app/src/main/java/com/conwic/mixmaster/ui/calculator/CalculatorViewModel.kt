@@ -2,45 +2,42 @@ package com.conwic.mixmaster.ui.calculator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.conwic.mixmaster.data.db.dao.ProductWithComponents
-import com.conwic.mixmaster.data.db.entity.ProductEntity
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.ProductRepository
-import com.conwic.mixmaster.domain.AddOnChoice
+import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.domain.AddOnNeed
-import com.conwic.mixmaster.domain.addOnNeeds
-import com.conwic.mixmaster.domain.isWaterLabel
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.BatchPlan
+import com.conwic.mixmaster.domain.ImplausibleDensity
 import com.conwic.mixmaster.domain.MixCalculator
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
+import com.conwic.mixmaster.domain.SolutionMix
+import com.conwic.mixmaster.domain.addOnNeeds
+import com.conwic.mixmaster.domain.implausibleStoredDensities
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
-import com.conwic.mixmaster.domain.ImplausibleDensity
-import com.conwic.mixmaster.domain.implausibleStoredDensities
+import com.conwic.mixmaster.domain.solutionMix
+import com.conwic.mixmaster.domain.toNumberOrNull
 import com.conwic.mixmaster.domain.usableLitres
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.conwic.mixmaster.domain.toNumberOrNull
 
 data class CalculatorUiState(
-    val selectedProduct: ProductWithComponents? = null,
+    val selectedSolution: SolutionMix? = null,
     val areaInput: String = "",
     val quantityInput: String = "1",
-    /** The dose currently in effect — the product's datasheet typical until the slider is
-     * moved, then whatever the slider is set to. */
+    /** The dose in effect — the datasheet typical until the slider is moved. */
     val coverageValue: Double = 0.0,
     val result: MixResult? = null,
-    /** Average of what's actually been logged on site for this product, if anything has. */
+    /** Average of what has actually been logged on site for this mix, if anything has. */
     val siteAverageDose: Double? = null,
     val loggedJobCount: Int = 0,
     val packNeeds: List<PackNeed> = emptyList(),
@@ -51,117 +48,100 @@ data class CalculatorUiState(
     val usableLitres: Double = 39.0,
     val maxBatchKg: Double = 25.0,
     val batchPlan: BatchPlan? = null,
-    /** Densities saved on this product that can't be right; the screen words the warning. */
+    /** Densities saved on these products that can't be right; the screen words the warning. */
     val implausibleDensities: List<ImplausibleDensity> = emptyList(),
-    /** Colours and admixtures available to add to this job. */
-    val availableAddOns: List<ProductEntity> = emptyList(),
+    /** The colours and admixtures this recipe already carries. */
     val addOnNeeds: List<AddOnNeed> = emptyList(),
 )
 
 private data class CalculatorInputs(
     val areaText: String = "",
     val quantityText: String = "1",
-    /** null = not yet overridden by the user; falls back to the product's typical dose. */
+    /** null = not yet overridden by the user; falls back to the recipe's typical dose. */
     val coverageOverride: Double? = null,
     val batchBasis: BatchBasis = BatchBasis.ONE_PACKAGE,
-    /** Mixer or bucket capacity, chosen in 5 L steps. */
     val mixerLitres: Double = 65.0,
     val headroomPercent: Double = 40.0,
     val maxBatchKg: Double = 25.0,
-    val addOns: List<AddOnChoice> = emptyList(),
 )
 
 class CalculatorViewModel(
+    private val solutionRepository: SolutionRepository,
     private val productRepository: ProductRepository,
     private val userPrefs: UserPrefs,
-    /** The product this screen was opened for, or 0 when opened on its own. */
-    initialProductId: Long = 0L,
+    /** The mix this screen was opened for, or 0 when opened on its own. */
+    initialSolutionId: Long = 0L,
 ) : ViewModel() {
 
     /** Settings can turn the "leave the drum room" nudge off for people who've heard it. */
     val showMixingReminders: StateFlow<Boolean> = userPrefs.mixingRemindersEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val products: StateFlow<List<ProductEntity>> =
-        productRepository.observeAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val solutions: StateFlow<List<SolutionEntity>> = solutionRepository.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // The database flows are keyed on the product alone, kept separate from the typed inputs.
-    // Folding them together would re-subscribe both queries on every keystroke and every pixel
-    // of slider travel, which is what made dragging stutter.
-    private val selectedProductId = MutableStateFlow<Long?>(null)
+    // Kept apart from the typed inputs: folding them together would re-run the queries on
+    // every keystroke and every pixel of slider travel, which is what made dragging stutter.
+    private val selectedSolutionId = MutableStateFlow<Long?>(null)
     private val inputs = MutableStateFlow(CalculatorInputs())
 
     init {
-        if (initialProductId > 0L) {
+        if (initialSolutionId > 0L) {
             // Asked for by name. Nothing else gets to change it afterwards.
-            selectProduct(initialProductId)
+            selectSolution(initialSolutionId)
         } else {
             // Opened on its own, so carry on with whatever was last worked on. Read once, not
-            // followed: the stored id was being echoed back after the screen was already up,
-            // which is what made the calculator open on one product and jump to another.
+            // followed: an echo of the stored id after the screen is up would pull it off
+            // whatever has since been chosen.
             viewModelScope.launch {
-                val remembered = userPrefs.lastProductId.first()
-                if (remembered > 0L && selectedProductId.value == null) selectProduct(remembered)
+                val remembered = userPrefs.lastSolutionId.first()
+                if (remembered > 0L && selectedSolutionId.value == null) selectSolution(remembered)
             }
         }
     }
 
-    /** The add-ons and the pack sizes to count their containers with. */
-    private val addOnsFlow = combine(
-        productRepository.observeAddOns(),
-        productRepository.observeAllComponents(),
-    ) { addOns, components ->
-        val packs = components
-            .groupBy { it.productId }
-            .mapNotNull { (productId, rows) ->
-                val first = rows.firstOrNull { it.packageSize > 0.0 } ?: return@mapNotNull null
-                productId to (first.packageSize to first.packageUnit)
-            }
-            .toMap()
-        addOns to packs
+    /** Every recipe with its lines resolved to the products they name. */
+    private val mixes = combine(
+        solutionRepository.observeAllWithLines(),
+        productRepository.observeAll(),
+    ) { solutions, products ->
+        val productsById = products.associateBy { it.id }
+        solutions.associate { it.solution.id to solutionMix(it.solution, it.lines, productsById) }
     }
 
-    private val selectedProductFlow = selectedProductId
-        .flatMapLatest { id -> if (id == null) flowOf(null) else productRepository.observeWithComponents(id) }
-
-    private val usageLogsFlow = selectedProductId
-        .flatMapLatest { id -> if (id == null) flowOf(emptyList()) else productRepository.observeUsageLogs(id) }
-
     val uiState: StateFlow<CalculatorUiState> =
-        combine(selectedProductFlow, usageLogsFlow, inputs, addOnsFlow) { productWithComponents, logs, input, addOnData ->
-            val (availableAddOns, addOnPacks) = addOnData
+        combine(selectedSolutionId, mixes, inputs, solutionRepository.observeUsageLogs()) { id, byId, input, logs ->
+            val mix = id?.let { byId[it] }
             val area = input.areaText.toNumberOrNull()
             val quantity = input.quantityText.toNumberOrNull() ?: 1.0
-            val coverage = input.coverageOverride ?: productWithComponents?.product?.typicalDoseGramsPerM2 ?: 0.0
-            val result = if (productWithComponents != null && area != null && area > 0.0) {
-                MixCalculator.compute(productWithComponents, area, quantity, doseGramsPerM2 = coverage)
+            val coverage = input.coverageOverride ?: mix?.solution?.typicalDoseGramsPerM2 ?: 0.0
+            val parts = mix?.parts.orEmpty()
+            val result = if (mix != null && area != null && area > 0.0) {
+                MixCalculator.compute(parts, area, quantity, coverage)
             } else {
                 null
             }
-            val components = productWithComponents?.components.orEmpty()
+            val mine = logs.filter { it.solutionId == id }
             CalculatorUiState(
-                selectedProduct = productWithComponents,
+                selectedSolution = mix,
                 areaInput = input.areaText,
                 quantityInput = input.quantityText,
                 coverageValue = coverage,
                 result = result,
-                siteAverageDose = if (logs.isEmpty()) null else logs.map { it.doseGramsPerM2 }.average(),
-                loggedJobCount = logs.size,
-                packNeeds = result?.let { packNeeds(it, components) }.orEmpty(),
+                siteAverageDose = if (mine.isEmpty()) null else mine.map { it.doseGramsPerM2 }.average(),
+                loggedJobCount = mine.size,
+                packNeeds = result?.let { packNeeds(it, parts) }.orEmpty(),
                 batchBasis = input.batchBasis,
                 mixerLitres = input.mixerLitres,
                 headroomPercent = input.headroomPercent,
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
-                implausibleDensities = implausibleStoredDensities(components),
-                availableAddOns = availableAddOns,
-                addOnNeeds = result?.let {
-                    addOnNeeds(it, input.addOns, availableAddOns) { id -> addOnPacks[id] }
-                }.orEmpty(),
+                implausibleDensities = implausibleStoredDensities(parts),
+                addOnNeeds = result?.let { addOnNeeds(it, mix.addOns) }.orEmpty(),
                 batchPlan = result?.let {
                     planBatches(
                         it,
-                        components,
+                        parts,
                         input.batchBasis,
                         input.mixerLitres,
                         input.headroomPercent,
@@ -171,77 +151,37 @@ class CalculatorViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
 
-    fun selectProduct(productId: Long) {
-        if (selectedProductId.value == productId) return
-        selectedProductId.value = productId
+    fun selectSolution(solutionId: Long) {
+        if (selectedSolutionId.value == solutionId) return
+        selectedSolutionId.value = solutionId
         inputs.update { it.copy(coverageOverride = null) }
-        viewModelScope.launch { userPrefs.setLastProductId(productId) }
+        viewModelScope.launch { userPrefs.setLastSolutionId(solutionId) }
     }
 
-    fun setArea(text: String) {
-        inputs.update { it.copy(areaText = text) }
-    }
+    fun setArea(text: String) = inputs.update { it.copy(areaText = text) }
 
-    fun setQuantity(text: String) {
-        inputs.update { it.copy(quantityText = text) }
-    }
+    fun setQuantity(text: String) = inputs.update { it.copy(quantityText = text) }
 
-    fun setCoverage(value: Double) {
-        inputs.update { it.copy(coverageOverride = value) }
-    }
+    fun setCoverage(value: Double) = inputs.update { it.copy(coverageOverride = value) }
 
-    fun setBatchBasis(basis: BatchBasis) {
-        inputs.update { it.copy(batchBasis = basis) }
-    }
+    fun setBatchBasis(basis: BatchBasis) = inputs.update { it.copy(batchBasis = basis) }
 
-    fun setMixerLitres(litres: Double) {
-        inputs.update { it.copy(mixerLitres = litres) }
-    }
+    fun setMixerLitres(litres: Double) = inputs.update { it.copy(mixerLitres = litres) }
 
-    fun setHeadroomPercent(percent: Double) {
+    fun setHeadroomPercent(percent: Double) =
         inputs.update { it.copy(headroomPercent = percent.coerceIn(0.0, 80.0)) }
-    }
 
-    fun addAddOn(productId: Long) = inputs.update { current ->
-        if (current.addOns.any { it.productId == productId }) {
-            current
-        } else {
-            // Defaults to the liquid if the base mix has one — that's what a colour is measured
-            // against nine times out of ten — and to the first part otherwise.
-            current.copy(addOns = current.addOns + AddOnChoice(productId, defaultPartIndex()))
-        }
-    }
+    fun setMaxBatchKg(kg: Double) = inputs.update { it.copy(maxBatchKg = kg) }
 
-    fun setAddOnPart(productId: Long, partIndex: Int) = inputs.update { current ->
-        current.copy(
-            addOns = current.addOns.map {
-                if (it.productId == productId) it.copy(partIndex = partIndex) else it
-            },
-        )
-    }
-
-    fun removeAddOn(productId: Long) = inputs.update { current ->
-        current.copy(addOns = current.addOns.filterNot { it.productId == productId })
-    }
-
-    /** The liquid part of the current mix, if it has one. */
-    private fun defaultPartIndex(): Int {
-        val components = uiState.value.selectedProduct?.components.orEmpty()
-        val liquid = components.indexOfFirst { it.basis.equals("Volume", ignoreCase = true) || isWaterLabel(it.label) }
-        return if (liquid >= 0) liquid else 0
-    }
-
-    fun setMaxBatchKg(kg: Double) {
-        inputs.update { it.copy(maxBatchKg = kg) }
-    }
-
-    /** Logs the current coverage value as a real site reading — feeds Product Detail's
-     * "your site average", separate from the fixed datasheet figure. */
+    /**
+     * Logs the current coverage as a real site reading — what feeds "your site average",
+     * separate from the fixed datasheet figure.
+     */
     fun logUsage(onLogged: () -> Unit) {
         val state = uiState.value
-        val productId = state.selectedProduct?.product?.id ?: return
+        val solutionId = state.selectedSolution?.solution?.id ?: return
         viewModelScope.launch {
-            productRepository.logUsage(productId, state.coverageValue)
+            solutionRepository.logUsage(solutionId, state.coverageValue)
             onLogged()
         }
     }

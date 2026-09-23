@@ -18,7 +18,7 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.getInstance(context)
     val userPrefs: UserPrefs = UserPrefs(context)
 
-    val productRepository: ProductRepository by lazy { ProductRepository(database.productDao(), database.usageLogDao()) }
+    val productRepository: ProductRepository by lazy { ProductRepository(database.productDao()) }
 
     val projectRepository: ProjectRepository by lazy {
         ProjectRepository(
@@ -34,7 +34,7 @@ class AppContainer(context: Context) {
 
     val stockRepository: StockRepository by lazy { StockRepository(database.stockDao()) }
 
-    val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao()) }
+    val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao(), database.usageLogDao()) }
 
     val teamRepository: TeamRepository by lazy { TeamRepository(database.teamMemberDao()) }
 }

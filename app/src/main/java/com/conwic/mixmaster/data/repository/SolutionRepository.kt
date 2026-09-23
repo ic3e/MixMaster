@@ -1,14 +1,20 @@
 package com.conwic.mixmaster.data.repository
 
 import com.conwic.mixmaster.data.db.dao.SolutionDao
+import com.conwic.mixmaster.data.db.dao.UsageLogDao
 import com.conwic.mixmaster.data.db.dao.SolutionWithLines
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.db.entity.SolutionLineEntity
+import com.conwic.mixmaster.data.db.entity.UsageLogEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
-class SolutionRepository(private val solutionDao: SolutionDao) {
+class SolutionRepository(
+    private val solutionDao: SolutionDao,
+    private val usageLogDao: UsageLogDao,
+) {
 
     fun observeAll(): Flow<List<SolutionEntity>> = solutionDao.observeAll()
 
@@ -62,4 +68,16 @@ class SolutionRepository(private val solutionDao: SolutionDao) {
     suspend fun archive(solution: SolutionEntity) = solutionDao.update(solution.copy(isArchived = true))
 
     suspend fun delete(solution: SolutionEntity) = solutionDao.delete(solution)
+
+    fun observeUsageLogs(): Flow<List<UsageLogEntity>> = usageLogDao.observeAll()
+
+    fun observeUsageLogs(solutionId: Long): Flow<List<UsageLogEntity>> =
+        usageLogDao.observeForSolution(solutionId)
+
+    /** Records what was actually laid, which is what "your site average" is made of. */
+    suspend fun logUsage(solutionId: Long, doseGramsPerM2: Double) {
+        usageLogDao.insert(
+            UsageLogEntity(solutionId = solutionId, doseGramsPerM2 = doseGramsPerM2, loggedAt = Instant.now()),
+        )
+    }
 }
