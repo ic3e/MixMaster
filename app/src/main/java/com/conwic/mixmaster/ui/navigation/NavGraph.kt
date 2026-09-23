@@ -88,7 +88,7 @@ fun MixMasterNavGraph(startDestination: String) {
             composable(
                 route = Routes.CALCULATOR,
                 arguments = listOf(
-                    navArgument(Routes.CALCULATOR_PRODUCT) {
+                    navArgument(Routes.CALCULATOR_SOLUTION) {
                         type = NavType.LongType
                         defaultValue = 0L
                     },
@@ -97,7 +97,7 @@ fun MixMasterNavGraph(startDestination: String) {
                 Inset(insets) {
                     CalculatorScreen(
                         navController = navController,
-                        productId = entry.arguments?.getLong(Routes.CALCULATOR_PRODUCT) ?: 0L,
+                        solutionId = entry.arguments?.getLong(Routes.CALCULATOR_SOLUTION) ?: 0L,
                     )
                 }
             }

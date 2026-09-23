@@ -88,15 +88,22 @@ private fun perLabel(mode: DosingMode?): String =
     perLabelRes(mode)?.let { stringResource(it) } ?: ""
 
 @Composable
-fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
+fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     val container = LocalAppContainer.current
     val uriHandler = LocalUriHandler.current
     val viewModel: CalculatorViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { CalculatorViewModel(container.productRepository, container.userPrefs, productId) }
+            initializer {
+                CalculatorViewModel(
+                    container.solutionRepository,
+                    container.productRepository,
+                    container.userPrefs,
+                    solutionId,
+                )
+            }
         },
     )
-    val allProducts by viewModel.products.collectAsState()
+    val allSolutions by viewModel.solutions.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val showMixingReminders by viewModel.showMixingReminders.collectAsState()
 
@@ -104,8 +111,8 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
     var brandFilter by remember { mutableStateOf("All") }
     var loggedToast by remember { mutableStateOf(false) }
 
-    val brands = listOf("All") + allProducts.map { it.brand }.distinct().sorted()
-    val visibleProducts = allProducts.filter { brandFilter == "All" || it.brand == brandFilter }
+    val brands = listOf("All") + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
+    val visibleSolutions = allSolutions.filter { brandFilter == "All" || it.brand == brandFilter }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -139,26 +146,26 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
                 )
                 DropdownField(
                     label = stringResource(R.string.calc_product),
-                    selected = state.selectedProduct?.product
+                    selected = state.selectedSolution?.solution
                         ?.let { productLabel(it.brand, it.name) }
                         ?: stringResource(R.string.calc_choose_product),
-                    options = visibleProducts.map { productLabel(it.brand, it.name) },
+                    options = visibleSolutions.map { productLabel(it.brand, it.name) },
                     onSelect = { label ->
-                        visibleProducts.firstOrNull { productLabel(it.brand, it.name) == label }
-                            ?.let { viewModel.selectProduct(it.id) }
+                        visibleSolutions.firstOrNull { productLabel(it.brand, it.name) == label }
+                            ?.let { viewModel.selectSolution(it.id) }
                     },
                     modifier = Modifier.weight(FieldWeightWide),
                 )
             }
         }
 
-        val data = state.selectedProduct
-        val product = data?.product
+        val data = state.selectedSolution
+        val product = data?.solution
         if (product != null) {
             item {
                 CardFlat {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        BrandPill(text = product.brand)
+                        if (product.brand.isNotBlank()) BrandPill(text = product.brand)
                         Text(
                             text = product.name,
                             style = MaterialTheme.typography.bodyLarge,
@@ -317,7 +324,7 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
 
             result.components.forEachIndexed { index, amount ->
                 item {
-                    val parts = data.components.getOrNull(index)?.ratioParts
+                    val parts = data.parts.getOrNull(index)?.ratioParts
                     val pack = state.packNeeds.getOrNull(index)
                     CardFlat {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -400,39 +407,10 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
                 }
             }
 
-            if (state.availableAddOns.isNotEmpty()) {
+            // What the recipe itself carries. Which colour a floor gets is decided on the
+            // room, not here — the calculator works out a mix, it does not choose the job.
+            if (state.addOnNeeds.isNotEmpty()) {
                 item { SectionLabel(text = stringResource(R.string.calc_colour_additives), modifier = Modifier.padding(top = 4.dp)) }
-                item {
-                    val unchosen = state.availableAddOns.filter { addOn ->
-                        state.addOnNeeds.none { it.productId == addOn.id }
-                    }
-                    CardFlat {
-                        if (unchosen.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.calc_addons_all_used),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        } else {
-                            DropdownField(
-                                label = stringResource(R.string.calc_add_to_mix),
-                                selected = stringResource(R.string.calc_choose_addon),
-                                options = unchosen.map { "${it.brand} — ${it.name}" },
-                                onSelect = { chosen ->
-                                    unchosen.firstOrNull { "${it.brand} — ${it.name}" == chosen }
-                                        ?.let { viewModel.addAddOn(it.id) }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Text(
-                                text = stringResource(R.string.calc_addon_brand_note),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        }
-                    }
-                }
                 items(state.addOnNeeds, key = { it.productId }) { need ->
                     CardFlat {
                         Row(
@@ -440,28 +418,21 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
-                                Text(text = need.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                                Text(text = need.name, style = MaterialTheme.typography.titleLarge)
-                            }
-                            // A colour dose is grams against kilos of base: shown in kilos it
-                            // reads "0", which is the one figure on this card nobody can guess.
+                            Text(
+                                text = need.name,
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.weight(1f).padding(end = 10.dp),
+                            )
                             val dose = quantityOf(need.amount, need.unit)
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(text = dose.amount, style = MaterialTheme.typography.headlineMedium)
-                                Text(text = dose.unit, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = dose.unit,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
-                        DropdownField(
-                            label = stringResource(R.string.calc_measured_against),
-                            selected = need.againstLabel,
-                            options = data.components.map { it.label },
-                            onSelect = { label ->
-                                val index = data.components.indexOfFirst { it.label == label }
-                                if (index >= 0) viewModel.setAddOnPart(need.productId, index)
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                        )
                         Text(
                             text = stringResource(
                                 R.string.calc_addon_rate,
@@ -485,27 +456,6 @@ fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
                                 modifier = Modifier.padding(top = 4.dp),
                             )
                         }
-                        need.problem?.let { problem ->
-                            Text(
-                                text = when (problem) {
-                                    AddOnProblem.NoDose ->
-                                        stringResource(R.string.addon_no_dose, need.name)
-                                    AddOnProblem.NoPart -> stringResource(R.string.addon_pick_part)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 6.dp),
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.action_remove),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .tappableText { viewModel.removeAddOn(need.productId) },
-                        )
                     }
                 }
             }
