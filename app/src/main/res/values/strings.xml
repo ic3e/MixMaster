@@ -560,4 +560,10 @@
     <string name="prj_solutions">Solutions</string>
     <string name="prj_straight_from_the_tin">Straight from the tin</string>
     <string name="prj_coat_coverage">Coverage (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Sold as</string>
+    <string name="pd_density_unknown">Not set</string>
+    <string name="pd_used_in">Used in</string>
+    <string name="pd_used_in_nothing">No solution calls for this yet.</string>
 </resources>

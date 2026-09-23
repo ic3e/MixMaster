@@ -512,4 +512,10 @@
     <string name="prj_solutions">Seokset</string>
     <string name="prj_straight_from_the_tin">Suoraan astiasta</string>
     <string name="prj_coat_coverage">Menekki (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Myydään</string>
+    <string name="pd_density_unknown">Ei asetettu</string>
+    <string name="pd_used_in">Käytössä seoksissa</string>
+    <string name="pd_used_in_nothing">Mikään seos ei käytä tätä vielä.</string>
 </resources>

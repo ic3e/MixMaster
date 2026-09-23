@@ -512,4 +512,10 @@
     <string name="prj_solutions">Segud</string>
     <string name="prj_straight_from_the_tin">Otse nõust</string>
     <string name="prj_coat_coverage">Kulu (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Müüakse</string>
+    <string name="pd_density_unknown">Määramata</string>
+    <string name="pd_used_in">Kasutusel segudes</string>
+    <string name="pd_used_in_nothing">Ükski segu ei kasuta seda veel.</string>
 </resources>
