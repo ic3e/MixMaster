@@ -198,7 +198,7 @@ private fun PartRow(part: PartStock, onCount: () -> Unit) {
                 text = if (part.short > 0.0) {
                     stringResource(R.string.wh_short_by, amountText(part.short, part.packUnit))
                 } else {
-                    stringResource(R.string.wh_free, amountText(part.free, part.packUnit))
+                    stringResource(R.string.wh_in_stock, amountText(part.free, part.packUnit))
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (part.short > 0.0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,

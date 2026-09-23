@@ -561,7 +561,7 @@ fun MaterialsTab(
                     value = "${formatDecimal(part.need, 2)} ${part.stock.packUnit}",
                 )
                 MaterialRow(
-                    label = stringResource(R.string.prj_free_in_stock),
+                    label = stringResource(R.string.prj_in_stock),
                     value = "${formatDecimal(part.available, 2)} ${part.stock.packUnit}",
                 )
                 val packs = part.packsToOrder

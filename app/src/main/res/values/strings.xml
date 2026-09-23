@@ -533,7 +533,7 @@
     <string name="wh_no_parts">No parts on this product yet.</string>
     <string name="wh_booked_for">Booked for %1$s</string>
     <string name="wh_short_by">Short by %1$s</string>
-    <string name="wh_free">%1$s free</string>
+    <string name="wh_in_stock">%1$s in stock</string>
     <string name="wh_no_pack_size">Pack size not set — add it on the product</string>
     <string name="wh_full_packs">Unopened packs</string>
     <string name="wh_pack_of">One pack is %1$s %2$s (%3$s)</string>
@@ -544,7 +544,7 @@
     <string name="prj_from_warehouse">From the warehouse</string>
     <string name="prj_no_materials_yet">Put a product on a room and the material for this job shows up here.</string>
     <string name="prj_need">This job needs</string>
-    <string name="prj_free_in_stock">Free in the warehouse</string>
+    <string name="prj_in_stock">In stock</string>
     <string name="prj_to_order">To order</string>
     <string name="prj_nothing_to_order">Nothing</string>
     <string name="prj_take_out_of_stock">Take out of stock</string>

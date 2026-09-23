@@ -485,7 +485,7 @@
     <string name="wh_no_parts">Tällä tuotteella ei ole vielä osia.</string>
     <string name="wh_booked_for">Varattu: %1$s</string>
     <string name="wh_short_by">Puuttuu %1$s</string>
-    <string name="wh_free">%1$s vapaana</string>
+    <string name="wh_in_stock">%1$s varastossa</string>
     <string name="wh_no_pack_size">Pakkauskokoa ei ole asetettu — lisää se tuotteelle</string>
     <string name="wh_full_packs">Avaamattomat pakkaukset</string>
     <string name="wh_pack_of">Yksi pakkaus on %1$s %2$s (%3$s)</string>
@@ -496,7 +496,7 @@
     <string name="prj_from_warehouse">Varastosta</string>
     <string name="prj_no_materials_yet">Liitä huoneeseen tuote, niin työn materiaalit näkyvät tässä.</string>
     <string name="prj_need">Tähän työhön tarvitaan</string>
-    <string name="prj_free_in_stock">Vapaana varastossa</string>
+    <string name="prj_in_stock">Varastossa</string>
     <string name="prj_to_order">Tilattavaa</string>
     <string name="prj_nothing_to_order">Ei mitään</string>
     <string name="prj_take_out_of_stock">Ota varastosta</string>

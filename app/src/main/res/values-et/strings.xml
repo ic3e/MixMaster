@@ -485,7 +485,7 @@
     <string name="wh_no_parts">Sellel tootel ei ole veel komponente.</string>
     <string name="wh_booked_for">Broneeritud: %1$s</string>
     <string name="wh_short_by">Puudu %1$s</string>
-    <string name="wh_free">%1$s vaba</string>
+    <string name="wh_in_stock">%1$s laos</string>
     <string name="wh_no_pack_size">Pakendi suurus määramata — lisa see toote juurde</string>
     <string name="wh_full_packs">Avamata pakendid</string>
     <string name="wh_pack_of">Üks pakend on %1$s %2$s (%3$s)</string>
@@ -496,7 +496,7 @@
     <string name="prj_from_warehouse">Laost</string>
     <string name="prj_no_materials_yet">Määra ruumile toode ja selle töö materjal ilmub siia.</string>
     <string name="prj_need">Sellele tööle vaja</string>
-    <string name="prj_free_in_stock">Laos vaba</string>
+    <string name="prj_in_stock">Laos</string>
     <string name="prj_to_order">Tellida</string>
     <string name="prj_nothing_to_order">Ei midagi</string>
     <string name="prj_take_out_of_stock">Võta laost välja</string>
