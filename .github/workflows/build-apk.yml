@@ -2,10 +2,7 @@ name: Build APK
 
 on:
   push:
-    # product-solutions is here so the rewrite gets a real compiler while it is in
-    # progress. CI pushes to whichever branch it ran on, and the app reads latest.json
-    # from main, so a branch build cannot disturb the APK on anyone's phone.
-    branches: [ main, master, product-solutions ]
+    branches: [ main, master ]
     paths-ignore:
       - '.ci-logs/**'
       - 'dist/**'
