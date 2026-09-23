@@ -530,4 +530,23 @@
     <string name="product_problem_no_name">Anna nimi, et selle nimekirjast üles leiaks.</string>
     <string name="product_how_sold">Kuidas müüakse</string>
     <string name="product_how_sold_explain">Pakend on see, mida tellitakse, veetakse ja riiulil loetakse. Tihedus muudab kaalu liitriteks, mis nõusse mahuvad.</string>
+
+    <!-- Solutions -->
+    <string name="solution_add">Uus segu</string>
+    <string name="solution_edit">Muuda segu</string>
+    <string name="solution_name">Segu nimi</string>
+    <string name="solution_save">Salvesta segu</string>
+    <string name="solution_whats_in_it">Mis sinna läheb</string>
+    <string name="solution_parts_explain">Iga rida on toode ja mitu osa sellest läheb. 100 osa pulbrit 21 osa vee kohta tähendabki täpselt seda, ükskõik milles kaalud.</string>
+    <string name="solution_line_product">Toode</string>
+    <string name="solution_line_choose">Vali toode</string>
+    <string name="solution_line_label">Nimetus</string>
+    <string name="solution_line_label_hint">Tühjaks jättes kasutatakse toote nime</string>
+    <string name="solution_problem_no_name">Anna nimi, et selle nimekirjast üles leiaks.</string>
+    <string name="solution_problem_no_parts">Lisa vähemalt üks toode.</string>
+    <string name="solution_problem_no_ratio">Märgi, mitu osa igaühest läheb.</string>
+    <string name="solution_problem_no_dose">Sisesta kulu, muidu tuleb iga segu nulliks.</string>
+    <string name="products_tab_products">Tooted</string>
+    <string name="products_tab_solutions">Segud</string>
+    <string name="products_solutions_explain">Segu on retsept: millised tooted lähevad sisse, millises vahekorras ja kui palju see katab.</string>
 </resources>

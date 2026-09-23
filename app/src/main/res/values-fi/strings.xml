@@ -530,4 +530,23 @@
     <string name="product_problem_no_name">Anna nimi, jotta sen löytää listalta.</string>
     <string name="product_how_sold">Miten myydään</string>
     <string name="product_how_sold_explain">Pakkaus on se, mikä tilataan, kannetaan ja lasketaan hyllyssä. Tiheys muuttaa painon litroiksi, joita astiaan mahtuu.</string>
+
+    <!-- Solutions -->
+    <string name="solution_add">Uusi seos</string>
+    <string name="solution_edit">Muokkaa seosta</string>
+    <string name="solution_name">Seoksen nimi</string>
+    <string name="solution_save">Tallenna seos</string>
+    <string name="solution_whats_in_it">Mitä siihen tulee</string>
+    <string name="solution_parts_explain">Jokainen rivi on tuote ja montako osaa sitä tulee. 100 osaa jauhetta 21 osaan vettä tarkoittaa juuri sitä, punnitsit millä tahansa.</string>
+    <string name="solution_line_product">Tuote</string>
+    <string name="solution_line_choose">Valitse tuote</string>
+    <string name="solution_line_label">Nimitys</string>
+    <string name="solution_line_label_hint">Tyhjänä käytetään tuotteen nimeä</string>
+    <string name="solution_problem_no_name">Anna nimi, jotta sen löytää listalta.</string>
+    <string name="solution_problem_no_parts">Lisää ainakin yksi tuote.</string>
+    <string name="solution_problem_no_ratio">Kerro montako osaa kutakin tulee.</string>
+    <string name="solution_problem_no_dose">Syötä menekki, tai jokainen seos laskee nollaksi.</string>
+    <string name="products_tab_products">Tuotteet</string>
+    <string name="products_tab_solutions">Seokset</string>
+    <string name="products_solutions_explain">Seos on resepti: mitkä tuotteet siihen tulevat, missä suhteessa ja paljonko se kattaa.</string>
 </resources>

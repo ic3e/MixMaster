@@ -28,6 +28,7 @@ import com.conwic.mixmaster.ui.products.ProductsScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectsScreen
 import com.conwic.mixmaster.ui.settings.SettingsScreen
+import com.conwic.mixmaster.ui.solutions.SolutionEditorScreen
 import com.conwic.mixmaster.ui.warehouse.WarehouseScreen
 import com.conwic.mixmaster.ui.signin.SignInScreen
 
@@ -121,6 +122,20 @@ fun MixMasterNavGraph(startDestination: String) {
             ) { entry ->
                 val productId = entry.arguments?.getLong("productId") ?: 0L
                 Inset(insets) { AddEditProductScreen(navController = navController, productId = productId) }
+            }
+            composable(Routes.SOLUTION_ADD) {
+                Inset(insets) { SolutionEditorScreen(navController = navController, solutionId = null) }
+            }
+            composable(
+                route = Routes.SOLUTION_EDIT,
+                arguments = listOf(navArgument("solutionId") { type = NavType.LongType }),
+            ) { entry ->
+                Inset(insets) {
+                    SolutionEditorScreen(
+                        navController = navController,
+                        solutionId = entry.arguments?.getLong("solutionId") ?: 0L,
+                    )
+                }
             }
             composable(Routes.PROJECTS) { Inset(insets) { ProjectsScreen(navController = navController) } }
             composable(

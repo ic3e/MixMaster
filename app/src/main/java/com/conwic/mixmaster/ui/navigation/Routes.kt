@@ -17,6 +17,8 @@ object Routes {
     const val PRODUCT_DETAIL = "product/{productId}"
     const val PRODUCT_ADD = "product/add"
     const val PRODUCT_EDIT = "product/edit/{productId}"
+    const val SOLUTION_ADD = "solution/add"
+    const val SOLUTION_EDIT = "solution/edit/{solutionId}"
     const val PROJECTS = "projects"
     const val PROJECT_DETAIL = "project/{projectId}"
     const val CALENDAR = "calendar"
@@ -28,6 +30,8 @@ object Routes {
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"
+
+    fun solutionEdit(id: Long) = "solution/edit/$id"
     fun projectDetail(id: Long) = "project/$id"
 
     /**

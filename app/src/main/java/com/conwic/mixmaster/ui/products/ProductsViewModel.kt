@@ -1,6 +1,8 @@
 package com.conwic.mixmaster.ui.products
 
 import androidx.lifecycle.ViewModel
+import com.conwic.mixmaster.data.repository.SolutionRepository
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.repository.ProductRepository
@@ -19,7 +21,14 @@ data class ProductsUiState(
     val visibleProducts: List<ProductEntity> = emptyList(),
 )
 
-class ProductsViewModel(private val productRepository: ProductRepository) : ViewModel() {
+class ProductsViewModel(
+    private val productRepository: ProductRepository,
+    private val solutionRepository: SolutionRepository,
+) : ViewModel() {
+
+    /** The recipes, listed beside the things they are made of. */
+    val solutions: StateFlow<List<SolutionEntity>> = solutionRepository.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val brandFilter = MutableStateFlow("All")
     private val categoryFilter = MutableStateFlow("All")
