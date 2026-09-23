@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.conwic.mixmaster.ui.warehouse
 
 import androidx.compose.foundation.clickable
@@ -7,10 +9,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +41,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
@@ -40,9 +49,15 @@ import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
+import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.OnAccentCard
+import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.Ok
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * What is actually in the shed.
@@ -68,6 +83,9 @@ fun WarehouseScreen(navController: NavHostController) {
         },
     )
     val state by viewModel.uiState.collectAsState()
+    // Held as an id rather than a copy of the row, so the sheet follows the shelf while it is
+    // open — a count saved elsewhere, or a room resized on a job, shows up straight away.
+    var detailId by remember { mutableStateOf<Long?>(null) }
     var counting by remember { mutableStateOf<ProductStock?>(null) }
 
     LazyColumn(
@@ -136,7 +154,7 @@ fun WarehouseScreen(navController: NavHostController) {
             CardFlat(
                 modifier = Modifier
                     .clip(CardShape)
-                    .clickable { counting = item },
+                    .clickable { detailId = item.productId },
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     if (item.brand.isNotBlank()) BrandPill(text = item.brand)
@@ -180,6 +198,26 @@ fun WarehouseScreen(navController: NavHostController) {
         }
     }
 
+    val detail = detailId?.let { id -> state.items.firstOrNull { it.productId == id } }
+    detail?.let { item ->
+        StockSheet(
+            item = item,
+            onDismiss = { detailId = null },
+            onCount = {
+                detailId = null
+                counting = item
+            },
+            onOpenProject = { projectId ->
+                detailId = null
+                navController.navigate(Routes.projectDetail(projectId))
+            },
+            onOpenProduct = {
+                detailId = null
+                navController.navigate(Routes.productDetail(item.productId))
+            },
+        )
+    }
+
     counting?.let { item ->
         CountDialog(
             item = item,
@@ -188,6 +226,205 @@ fun WarehouseScreen(navController: NavHostController) {
                 viewModel.setStock(item.productId, packs, open)
                 counting = null
             },
+        )
+    }
+}
+
+/**
+ * Everything the shed knows about one bought item.
+ *
+ * The list card can only fit a total and the names of the jobs behind it, which is the wrong way
+ * round when something is short: what you need standing in front of the rack is how that total
+ * is made up, and which job — and which bay of it — is waiting on the stock.
+ */
+@Composable
+private fun StockSheet(
+    item: ProductStock,
+    onDismiss: () -> Unit,
+    onCount: () -> Unit,
+    onOpenProject: (Long) -> Unit,
+    onOpenProduct: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (item.brand.isNotBlank()) BrandPill(text = item.brand)
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f).padding(start = if (item.brand.isNotBlank()) 10.dp else 0.dp),
+                )
+            }
+            Text(
+                text = if (item.isKnownPack) {
+                    stringResource(
+                        R.string.wh_pack_of,
+                        formatDecimal(item.packSize, 2),
+                        item.packUnit,
+                        item.packType,
+                    )
+                } else {
+                    stringResource(R.string.wh_no_pack_size)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            SectionLabel(text = stringResource(R.string.wh_on_the_shelf))
+            CardFlat {
+                if (item.isKnownPack) {
+                    StockRow(
+                        label = stringResource(R.string.wh_full_packs),
+                        value = stringResource(
+                            R.string.wh_packs_and_amount,
+                            item.fullPacks,
+                            item.packType,
+                            amountText(item.packedAmount, item.packUnit),
+                        ),
+                    )
+                    StockRow(
+                        label = stringResource(R.string.wh_open_pack_row),
+                        value = amountText(item.openAmount, item.packUnit),
+                    )
+                }
+                StockRow(
+                    label = stringResource(R.string.wh_total_on_hand),
+                    value = amountText(item.onHand, item.packUnit),
+                    strong = true,
+                )
+                Text(
+                    text = if (item.countedAt > 0L) {
+                        stringResource(
+                            R.string.wh_counted_on,
+                            formatDueDate(
+                                Instant.ofEpochMilli(item.countedAt).atZone(ZoneId.systemDefault()).toLocalDate(),
+                            ),
+                        )
+                    } else {
+                        stringResource(R.string.wh_never_counted)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+
+            SectionLabel(text = stringResource(R.string.wh_booked_title))
+            if (item.bookings.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.wh_not_booked),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item.bookings.sortedByDescending { it.amount }.forEach { booking ->
+                CardFlat(
+                    modifier = Modifier
+                        .clip(CardShape)
+                        .clickable { onOpenProject(booking.projectId) },
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = booking.projectName,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        )
+                        Text(
+                            text = amountText(booking.amount, item.packUnit),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                    booking.rooms.forEach { room ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                text = room.roomName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            )
+                            Text(
+                                text = amountText(room.amount, item.packUnit),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
+            CardFlat {
+                StockRow(
+                    label = stringResource(R.string.wh_booked_total),
+                    value = amountText(item.booked, item.packUnit),
+                )
+                if (item.short > 0.0) {
+                    StockRow(
+                        label = stringResource(R.string.wh_short_label),
+                        value = amountText(item.short, item.packUnit),
+                        strong = true,
+                    )
+                } else {
+                    StockRow(
+                        label = stringResource(R.string.wh_free),
+                        value = amountText(item.free, item.packUnit),
+                        valueColor = Ok,
+                    )
+                }
+                StockRow(
+                    label = stringResource(R.string.wh_to_order),
+                    value = if (item.short > 0.0) {
+                        orderText(item)
+                    } else {
+                        stringResource(R.string.prj_nothing_to_order)
+                    },
+                    strong = item.short > 0.0,
+                )
+            }
+
+            PrimaryButton(
+                text = stringResource(R.string.wh_count_stock),
+                onClick = onCount,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            GhostButton(
+                text = stringResource(R.string.wh_open_product),
+                onClick = onOpenProduct,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** A label and its figure, the way the materials tab sets them out. */
+@Composable
+private fun StockRow(
+    label: String,
+    value: String,
+    strong: Boolean = false,
+    valueColor: Color? = null,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = valueColor ?: if (strong) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (strong) FontWeight.ExtraBold else FontWeight.Bold,
         )
     }
 }

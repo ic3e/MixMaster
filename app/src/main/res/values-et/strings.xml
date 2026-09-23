@@ -493,6 +493,17 @@
     <string name="wh_open_pack_hint">Jäta tühjaks, kui avatut ei ole</string>
     <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
     <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_open_pack_row">Avatud pakendis</string>
+    <string name="wh_total_on_hand">Kokku riiulil</string>
+    <string name="wh_counted_on">Loetud %1$s</string>
+    <string name="wh_never_counted">Veel loendamata</string>
+    <string name="wh_booked_title">Broneeringud</string>
+    <string name="wh_not_booked">Ükski töö ei ole seda broneerinud.</string>
+    <string name="wh_booked_total">Broneeritud</string>
+    <string name="wh_free">Vaba</string>
+    <string name="wh_short_label">Puudu</string>
+    <string name="wh_count_stock">Loe riiul üle</string>
+    <string name="wh_open_product">Ava toode</string>
     <string name="prj_from_warehouse">Laost</string>
     <string name="prj_no_materials_yet">Määra ruumile toode ja selle töö materjal ilmub siia.</string>
     <string name="prj_need">Sellele tööle vaja</string>

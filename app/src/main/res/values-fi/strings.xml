@@ -493,6 +493,17 @@
     <string name="wh_open_pack_hint">Jätä tyhjäksi, jos avattua ei ole</string>
     <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
     <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_open_pack_row">Avatussa pakkauksessa</string>
+    <string name="wh_total_on_hand">Yhteensä hyllyssä</string>
+    <string name="wh_counted_on">Laskettu %1$s</string>
+    <string name="wh_never_counted">Ei vielä laskettu</string>
+    <string name="wh_booked_title">Varaukset</string>
+    <string name="wh_not_booked">Mikään työ ei ole varannut tätä.</string>
+    <string name="wh_booked_total">Varattu</string>
+    <string name="wh_free">Vapaana</string>
+    <string name="wh_short_label">Puuttuu</string>
+    <string name="wh_count_stock">Laske hylly</string>
+    <string name="wh_open_product">Avaa tuote</string>
     <string name="prj_from_warehouse">Varastosta</string>
     <string name="prj_no_materials_yet">Liitä huoneeseen tuote, niin työn materiaalit näkyvät tässä.</string>
     <string name="prj_need">Tähän työhön tarvitaan</string>

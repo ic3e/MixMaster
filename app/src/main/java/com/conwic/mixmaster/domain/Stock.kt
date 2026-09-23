@@ -8,8 +8,17 @@ import com.conwic.mixmaster.data.db.entity.StockEntity
 import com.conwic.mixmaster.data.model.ProjectStatus
 import kotlin.math.ceil
 
+/** One room's share of a booking, so "booked for Riverside" can say which bays and how much. */
+data class BookingRoom(val roomId: Long, val roomName: String, val amount: Double)
+
 /** A job with this product spoken for, and how much of it. */
-data class Booking(val projectId: Long, val projectName: String, val amount: Double)
+data class Booking(
+    val projectId: Long,
+    val projectName: String,
+    val amount: Double,
+    /** The rooms behind [amount], in the order they are laid out. */
+    val rooms: List<BookingRoom> = emptyList(),
+)
 
 /**
  * One bought item as the warehouse sees it. Every amount is in [packUnit] — the unit it is
@@ -25,9 +34,14 @@ data class ProductStock(
     val fullPacks: Int,
     val openAmount: Double,
     val bookings: List<Booking>,
+    /** When the shelf was last counted, as epoch millis. Zero when nobody has counted it yet. */
+    val countedAt: Long = 0L,
 ) {
     /** Everything on the shelf, opened packs included. */
     val onHand: Double get() = fullPacks * packSize + openAmount
+
+    /** What the unopened packs alone come to. */
+    val packedAmount: Double get() = fullPacks * packSize
 
     val booked: Double get() = bookings.sumOf { it.amount }
 
@@ -59,11 +73,53 @@ val ProjectEntity.booksMaterial: Boolean
     get() = !isArchived && status != ProjectStatus.COMPLETED && materialsIssuedAt == null
 
 /**
- * How much of each product a set of rooms needs, in each product's own pack unit.
+ * How much of each product one room needs, in each product's own pack unit.
  *
  * A part whose litres can't be worked out — an L-sold pack with no density — is left out
  * rather than guessed at, so it shows as "pack size not set" instead of a made-up figure.
  */
+fun needsForRoom(
+    room: RoomAreaEntity,
+    layers: List<RoomLayerEntity>,
+    mixes: Map<Long, SolutionMix>,
+    products: Map<Long, ProductEntity>,
+): Map<Long, Double> {
+    if (room.areaM2 <= 0.0) return emptyMap()
+    val needs = mutableMapOf<Long, Double>()
+    fun add(productId: Long, amount: Double) {
+        if (amount > 0.0) needs[productId] = (needs[productId] ?: 0.0) + amount
+    }
+
+    layers.sortedBy { it.sortOrder }.forEach { layer ->
+        val mix = mixes[layer.solutionId]
+        if (mix != null) {
+            val dose = layer.doseGramsPerM2.takeIf { it > 0.0 }
+                ?: mix.solution.typicalDoseGramsPerM2
+            val result = MixCalculator.compute(mix.parts, room.areaM2, layer.quantity, dose)
+            packNeeds(result, mix.parts).forEach { need ->
+                need.amountInPackUnit?.let { add(need.productId, it) }
+            }
+            addOnNeeds(result, mix.addOns).forEach { add(it.productId, it.amount) }
+            // The colour the room asked for, which no recipe knows about.
+            colourAddOn(layer, mix.parts, products)?.let { colour ->
+                addOnNeeds(result, listOf(colour)).forEach { add(it.productId, it.amount) }
+            }
+            return@forEach
+        }
+        // A coat laid straight out of its own container, with no recipe behind it.
+        val product = products[layer.productId] ?: return@forEach
+        val kg = layer.doseGramsPerM2 * room.areaM2 * layer.quantity / 1000.0
+        val amount = when {
+            product.packageUnit == "kg" -> kg
+            product.densityKgPerL > 0.0 -> kg / product.densityKgPerL
+            else -> 0.0
+        }
+        add(product.id, amount)
+    }
+    return needs
+}
+
+/** How much of each product a set of rooms needs, in each product's own pack unit. */
 fun needsByProduct(
     rooms: List<RoomAreaEntity>,
     layersByRoom: Map<Long, List<RoomLayerEntity>>,
@@ -71,43 +127,20 @@ fun needsByProduct(
     products: Map<Long, ProductEntity>,
 ): Map<Long, Double> {
     val needs = mutableMapOf<Long, Double>()
-    fun add(productId: Long, amount: Double) {
-        if (amount > 0.0) needs[productId] = (needs[productId] ?: 0.0) + amount
-    }
-
     rooms.forEach { room ->
-        if (room.areaM2 <= 0.0) return@forEach
-        layersByRoom[room.id].orEmpty().sortedBy { it.sortOrder }.forEach { layer ->
-            val mix = mixes[layer.solutionId]
-            if (mix != null) {
-                val dose = layer.doseGramsPerM2.takeIf { it > 0.0 }
-                    ?: mix.solution.typicalDoseGramsPerM2
-                val result = MixCalculator.compute(mix.parts, room.areaM2, layer.quantity, dose)
-                packNeeds(result, mix.parts).forEach { need ->
-                    need.amountInPackUnit?.let { add(need.productId, it) }
-                }
-                addOnNeeds(result, mix.addOns).forEach { add(it.productId, it.amount) }
-                // The colour the room asked for, which no recipe knows about.
-                colourAddOn(layer, mix.parts, products)?.let { colour ->
-                    addOnNeeds(result, listOf(colour)).forEach { add(it.productId, it.amount) }
-                }
-                return@forEach
-            }
-            // A coat laid straight out of its own container, with no recipe behind it.
-            val product = products[layer.productId] ?: return@forEach
-            val kg = layer.doseGramsPerM2 * room.areaM2 * layer.quantity / 1000.0
-            val amount = when {
-                product.packageUnit == "kg" -> kg
-                product.densityKgPerL > 0.0 -> kg / product.densityKgPerL
-                else -> 0.0
-            }
-            add(product.id, amount)
+        needsForRoom(room, layersByRoom[room.id].orEmpty(), mixes, products).forEach { (productId, amount) ->
+            needs[productId] = (needs[productId] ?: 0.0) + amount
         }
     }
     return needs
 }
 
-/** Every booking against every product, keyed by product. */
+/**
+ * Every booking against every product, keyed by product.
+ *
+ * The room behind each figure is kept, not just the job total: standing in the shed, "1446 kg
+ * for Riverside" is only half the answer — the other half is which bays it is going on.
+ */
 fun bookingsByProduct(
     projects: List<ProjectEntity>,
     rooms: List<RoomAreaEntity>,
@@ -118,11 +151,21 @@ fun bookingsByProduct(
     val roomsByProject = rooms.groupBy { it.projectId }
     val out = mutableMapOf<Long, MutableList<Booking>>()
     projects.filter { it.booksMaterial }.forEach { project ->
-        val needs = needsByProduct(roomsByProject[project.id].orEmpty(), layersByRoom, mixes, products)
-        needs.forEach { (productId, amount) ->
-            if (amount > 0.0) {
-                out.getOrPut(productId) { mutableListOf() }.add(Booking(project.id, project.name, amount))
-            }
+        val totals = mutableMapOf<Long, Double>()
+        val byRoom = mutableMapOf<Long, MutableList<BookingRoom>>()
+        roomsByProject[project.id].orEmpty().sortedBy { it.sortOrder }.forEach { room ->
+            needsForRoom(room, layersByRoom[room.id].orEmpty(), mixes, products)
+                .forEach { (productId, amount) ->
+                    if (amount > 0.0) {
+                        totals[productId] = (totals[productId] ?: 0.0) + amount
+                        byRoom.getOrPut(productId) { mutableListOf() }
+                            .add(BookingRoom(room.id, room.name, amount))
+                    }
+                }
+        }
+        totals.forEach { (productId, amount) ->
+            out.getOrPut(productId) { mutableListOf() }
+                .add(Booking(project.id, project.name, amount, byRoom[productId].orEmpty()))
         }
     }
     return out
@@ -143,4 +186,5 @@ fun productStock(
     fullPacks = stock?.fullPacks ?: 0,
     openAmount = stock?.openAmount ?: 0.0,
     bookings = bookings,
+    countedAt = stock?.updatedAt ?: 0L,
 )

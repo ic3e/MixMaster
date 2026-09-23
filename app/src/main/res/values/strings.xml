@@ -541,6 +541,17 @@
     <string name="wh_open_pack_hint">Leave empty if there is none</string>
     <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
     <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_open_pack_row">In the open pack</string>
+    <string name="wh_total_on_hand">Total on the shelf</string>
+    <string name="wh_counted_on">Counted %1$s</string>
+    <string name="wh_never_counted">Not counted yet</string>
+    <string name="wh_booked_title">Booked out</string>
+    <string name="wh_not_booked">No job has this booked.</string>
+    <string name="wh_booked_total">Booked</string>
+    <string name="wh_free">Free</string>
+    <string name="wh_short_label">Short</string>
+    <string name="wh_count_stock">Count what is on the shelf</string>
+    <string name="wh_open_product">Open the product</string>
     <string name="prj_from_warehouse">From the warehouse</string>
     <string name="prj_no_materials_yet">Put a product on a room and the material for this job shows up here.</string>
     <string name="prj_need">This job needs</string>
