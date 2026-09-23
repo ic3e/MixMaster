@@ -1,8 +1,8 @@
 {
-  "versionCode": 65,
-  "versionName": "1.0.65",
-  "apk": "MixMaster_1.0.65.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.65.apk",
-  "sizeBytes": 19982580,
-  "notes": "Weigh to a tenth of a gram, and mean the rate that is shown"
+  "versionCode": 66,
+  "versionName": "1.0.66",
+  "apk": "MixMaster_1.0.66.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.66.apk",
+  "sizeBytes": 19982576,
+  "notes": "Let the three figures on Home open what they count"
 }
