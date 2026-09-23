@@ -1,6 +1,8 @@
 package com.conwic.mixmaster.data.report
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -35,8 +37,12 @@ data class PickupLine(val name: String, val amount: String, val short: String?)
 object PickupList {
 
     fun print(context: Context, title: String, subtitle: String, lines: List<PickupLine>) {
-        val file = write(context, title, subtitle, lines)
-        val printManager = context.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
+        // The print service will only take a job from an activity, and a sheet's context is the
+        // dialog window it lives in — asking that one to print throws. Unwrapped rather than
+        // passed in, so every caller does not have to know this.
+        val activity = context.findActivity() ?: return
+        val file = write(activity, title, subtitle, lines)
+        val printManager = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
         printManager.print(
             title,
             PdfFileAdapter(file, title),
@@ -102,6 +108,15 @@ object PickupList {
         FileOutputStream(file).use { pdf.writeTo(it) }
         pdf.close()
         return file
+    }
+
+    private fun Context.findActivity(): Activity? {
+        var context: Context? = this
+        while (context is ContextWrapper) {
+            if (context is Activity) return context
+            context = context.baseContext
+        }
+        return null
     }
 
     private fun textPaint(size: Float, bold: Boolean, colorHex: String = "#262322"): Paint = Paint().apply {
