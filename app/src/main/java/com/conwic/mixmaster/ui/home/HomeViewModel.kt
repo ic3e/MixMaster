@@ -6,9 +6,11 @@ import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.ProjectStatus
 import com.conwic.mixmaster.data.repository.ProductRepository
-import com.conwic.mixmaster.domain.bookingsByComponent
 import com.conwic.mixmaster.data.repository.StockRepository
-import com.conwic.mixmaster.data.db.dao.ProductWithComponents
+import com.conwic.mixmaster.domain.solutionMix
+import com.conwic.mixmaster.domain.productStock
+import com.conwic.mixmaster.domain.bookingsByProduct
+import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.ui.tasks.ProjectOption
@@ -57,6 +59,7 @@ class HomeViewModel(
     private val projectRepository: ProjectRepository,
     private val productRepository: ProductRepository,
     private val stockRepository: StockRepository,
+    private val solutionRepository: SolutionRepository,
 ) : ViewModel() {
 
     private val selectedDate = MutableStateFlow(LocalDate.now())
@@ -67,29 +70,29 @@ class HomeViewModel(
      * Kept apart from the rest of the home state because it asks the warehouse a question, and
      * a job that is short is worth knowing about before the van is loaded, not after.
      */
-    val shortOfMaterial: StateFlow<List<String>> = combine(
+    private val bookings = combine(
         projectRepository.observeAll(),
         projectRepository.observeAllRooms(),
+        projectRepository.observeAllLayers(),
+        solutionRepository.observeAllWithLines(),
+        productRepository.observeAll(),
+    ) { projects, rooms, layers, solutions, products ->
+        val productsById = products.associateBy { it.id }
+        val mixes = solutions.associate { it.solution.id to solutionMix(it.solution, it.lines, productsById) }
+        bookingsByProduct(projects, rooms, layers.groupBy { it.roomId }, mixes, productsById)
+    }
+
+    val shortOfMaterial: StateFlow<List<String>> = combine(
+        bookings,
         stockRepository.observeAll(),
         productRepository.observeAll(),
-        productRepository.observeAllComponents(),
-    ) { projects, rooms, stock, products, components ->
-        val componentsByProduct = components.groupBy { it.productId }
-        val productsById = products.associate { product ->
-            product.id to ProductWithComponents(product, componentsByProduct[product.id].orEmpty())
+    ) { booked, stock, products ->
+        val stockByProduct = stock.associateBy { it.productId }
+        val short = products.filter { product ->
+            val held = productStock(product, stockByProduct[product.id], booked[product.id].orEmpty())
+            held.short > 0.0
         }
-        val roomsByProject = rooms.groupBy { it.projectId }
-        val bookings = bookingsByComponent(projects, roomsByProject, productsById)
-        val onHand = stock.associate { it.componentId to it }
-        val componentsById = components.associateBy { it.id }
-        // Short where everything booked against a part is more than the shelf holds.
-        val shortComponents = bookings.filterKeys { componentId ->
-            val component = componentsById[componentId] ?: return@filterKeys false
-            val row = onHand[componentId]
-            val held = (row?.fullPacks ?: 0) * component.packageSize + (row?.openAmount ?: 0.0)
-            bookings[componentId].orEmpty().sumOf { it.amount } > held
-        }
-        shortComponents.values.flatten().map { it.projectName }.distinct().sorted()
+        short.flatMap { booked[it.id].orEmpty() }.map { it.projectName }.distinct().sorted()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val uiState: StateFlow<HomeUiState> = combine(

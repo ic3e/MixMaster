@@ -72,7 +72,12 @@ fun HomeScreen(navController: NavHostController) {
     val viewModel: HomeViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
-                HomeViewModel(container.projectRepository, container.productRepository, container.stockRepository)
+                HomeViewModel(
+                    container.projectRepository,
+                    container.productRepository,
+                    container.stockRepository,
+                    container.solutionRepository,
+                )
             }
         },
     )
