@@ -209,7 +209,7 @@
     <string name="calc_choose_addon">Choose a colour or additive</string>
     <string name="calc_addon_brand_note">Any brand — what matters is which part of this mix it\'s measured against.</string>
     <string name="calc_measured_against">Measured against</string>
-    <string name="calc_addon_rate">%1$s · %2$s kg in this job</string>
+    <string name="calc_addon_rate">%1$s · %2$s in this job</string>
     <string name="action_remove">Remove</string>
     <string name="calc_mixing">Mixing</string>
     <string name="calc_by_the_bag">By the bag</string>
@@ -226,7 +226,7 @@
         <item quantity="one">1 mixing</item>
         <item quantity="other">%1$d mixings</item>
     </plurals>
-    <string name="calc_to_get_through">to get through %1$s kg of mixed material</string>
+    <string name="calc_to_get_through">to get through %1$s of mixed material</string>
     <string name="calc_batches_split">%1$d full + 1 part · %2$s</string>
     <string name="calc_too_big">Too big for this mixer — %1$s L in a drum you only want filled to %2$s L. Use a bigger mixer or split the batch.</string>
     <string name="calc_spare">Leaves %1$s L spare — the drum holds %2$s L and you\'re filling it to %3$s L.</string>
@@ -499,7 +499,7 @@
     <string name="batch_and">%1$s and %2$s</string>
     <string name="batch_whole_pack">1 × %1$s kg %2$s per batch</string>
     <string name="batch_litres">%1$s L per batch</string>
-    <string name="batch_kilos">%1$s kg per batch</string>
+    <string name="batch_weight">%1$s per batch</string>
     <string name="batch_problem_no_pack_weight">Set the bag or bucket weight on this product\'s powder to count mixings.</string>
     <string name="batch_problem_needs_density">Batching by mixer size needs litres, and %1$s has no density set. Add it on the product (Products → edit → Density), or batch by the bag instead.</string>
     <string name="batch_problem_no_mixer">Choose a mixer size.</string>

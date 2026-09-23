@@ -175,7 +175,7 @@
     <string name="calc_choose_addon">Vali värv või lisand</string>
     <string name="calc_addon_brand_note">Bränd pole oluline — oluline on, millise segu osa järgi seda mõõdetakse.</string>
     <string name="calc_measured_against">Mõõdetakse millegi järgi</string>
-    <string name="calc_addon_rate">%1$s · %2$s kg sellel tööl</string>
+    <string name="calc_addon_rate">%1$s · %2$s sellel tööl</string>
     <string name="action_remove">Eemalda</string>
     <string name="calc_mixing">Segamine</string>
     <string name="calc_by_the_bag">Koti kaupa</string>
@@ -192,7 +192,7 @@
         <item quantity="one">1 segamine</item>
         <item quantity="other">%1$d segamist</item>
     </plurals>
-    <string name="calc_to_get_through">et katta %1$s kg valmis segu</string>
+    <string name="calc_to_get_through">et katta %1$s valmis segu</string>
     <string name="calc_batches_split">%1$d täis + 1 osaline · %2$s</string>
     <string name="calc_too_big">Selle segumasina jaoks liiga suur — %1$s L nõus, mida tahad täita ainult %2$s L-ni. Võta suurem segumasin või jaga kogus pooleks.</string>
     <string name="calc_spare">Jääb %1$s L varu — nõusse mahub %2$s L ja sa täidad selle %3$s L-ni.</string>
@@ -452,7 +452,7 @@
     <string name="batch_and">%1$s ja %2$s</string>
     <string name="batch_whole_pack">1 × %1$s kg %2$s korraga</string>
     <string name="batch_litres">%1$s L korraga</string>
-    <string name="batch_kilos">%1$s kg korraga</string>
+    <string name="batch_weight">%1$s korraga</string>
     <string name="batch_problem_no_pack_weight">Määra selle toote pulbri koti või ämbri kaal, et segamiskordi lugeda.</string>
     <string name="batch_problem_needs_density">Segumasina mahu järgi jagamiseks on vaja liitreid ja %1$s tihedus on määramata. Lisa see tootele (Tooted → muuda → Tihedus) või jaga koti kaupa.</string>
     <string name="batch_problem_no_mixer">Vali segumasina maht.</string>

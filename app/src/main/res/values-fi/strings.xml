@@ -175,7 +175,7 @@
     <string name="calc_choose_addon">Valitse väri tai lisäaine</string>
     <string name="calc_addon_brand_note">Merkillä ei ole väliä — ratkaisevaa on, mitä massan osaa vasten se mitataan.</string>
     <string name="calc_measured_against">Mitataan tätä vasten</string>
-    <string name="calc_addon_rate">%1$s · %2$s kg tässä työssä</string>
+    <string name="calc_addon_rate">%1$s · %2$s tässä työssä</string>
     <string name="action_remove">Poista</string>
     <string name="calc_mixing">Sekoitus</string>
     <string name="calc_by_the_bag">Säkeittäin</string>
@@ -192,7 +192,7 @@
         <item quantity="one">1 sekoitus</item>
         <item quantity="other">%1$d sekoitusta</item>
     </plurals>
-    <string name="calc_to_get_through">jotta saadaan %1$s kg valmista massaa</string>
+    <string name="calc_to_get_through">jotta saadaan %1$s valmista massaa</string>
     <string name="calc_batches_split">%1$d täyttä + 1 osittainen · %2$s</string>
     <string name="calc_too_big">Liian suuri tälle sekoittimelle — %1$s L astiassa, jonka haluat täyttää vain %2$s litraan. Ota isompi sekoitin tai jaa erä.</string>
     <string name="calc_spare">Jää %1$s L varaa — astiaan mahtuu %2$s L ja täytät sen %3$s litraan.</string>
@@ -452,7 +452,7 @@
     <string name="batch_and">%1$s ja %2$s</string>
     <string name="batch_whole_pack">1 × %1$s kg %2$s erää kohti</string>
     <string name="batch_litres">%1$s L erää kohti</string>
-    <string name="batch_kilos">%1$s kg erää kohti</string>
+    <string name="batch_weight">%1$s erää kohti</string>
     <string name="batch_problem_no_pack_weight">Aseta tämän tuotteen jauheen säkin tai ämpärin paino, jotta sekoituskerrat voidaan laskea.</string>
     <string name="batch_problem_needs_density">Sekoitusastian koon mukaan jakaminen vaatii litrat, eikä %1$s tiheyttä ole asetettu. Lisää se tuotteelle (Tuotteet → muokkaa → Tiheys) tai jaa säkeittäin.</string>
     <string name="batch_problem_no_mixer">Valitse sekoitusastian koko.</string>

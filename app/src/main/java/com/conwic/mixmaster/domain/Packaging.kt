@@ -34,7 +34,8 @@ sealed interface BatchSize {
     data object Unknown : BatchSize
     data class WholePack(val packSizeKg: String, val packType: String) : BatchSize
     data class Litres(val litres: String) : BatchSize
-    data class Kilos(val kilos: String) : BatchSize
+    /** A batch limited by weight — in grams when that's under a kilo. */
+    data class Weight(val weight: String) : BatchSize
 }
 
 data class BatchPlan(
@@ -222,7 +223,7 @@ fun planBatches(
         BatchBasis.MAX_WEIGHT -> {
             if (maxBatchKg <= 0.0) return BatchPlan(1, result.components, BatchSize.Unknown, problem = BatchProblem.NoMaxWeight)
             batches = ceil(totalKg / maxBatchKg).toInt().coerceAtLeast(1)
-            size = BatchSize.Kilos(formatKg(result.totalGrams / batches))
+            size = BatchSize.Weight(quantityFromGrams(result.totalGrams / batches).text)
         }
         BatchBasis.ONE_PACKAGE -> error("handled above")
     }

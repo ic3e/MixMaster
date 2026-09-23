@@ -44,7 +44,9 @@ import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.openableUrl
-import com.conwic.mixmaster.domain.formatKg
+import com.conwic.mixmaster.domain.quantityFromGrams
+import com.conwic.mixmaster.domain.quantityFromLitres
+import com.conwic.mixmaster.domain.quantityOf
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -287,10 +289,11 @@ fun CalculatorScreen(navController: NavHostController) {
                                     )
                                 }
                             }
+                            val shown = quantityFromGrams(amount.grams)
                             Row(verticalAlignment = Alignment.Bottom) {
-                                Text(text = formatKg(amount.grams), style = MaterialTheme.typography.headlineMedium)
+                                Text(text = shown.amount, style = MaterialTheme.typography.headlineMedium)
                                 Text(
-                                    text = "kg",
+                                    text = shown.unit,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
@@ -303,7 +306,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                     pack.packs != null ->
                                         stringResource(R.string.calc_packs, pack.packs, pack.packLabel) +
                                             (pack.amountInPackUnit?.takeIf { pack.packUnit == "L" }
-                                                ?.let { " · ${formatDecimal(it, 1)} L" } ?: "")
+                                                ?.let { " · " + quantityFromLitres(it).text } ?: "")
                                     pack.packSize > 0.0 && pack.packUnit == "L" ->
                                         stringResource(R.string.calc_add_density_to_count)
                                     else -> stringResource(R.string.calc_set_pack_to_count)
@@ -337,15 +340,16 @@ fun CalculatorScreen(navController: NavHostController) {
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
+                    val total = quantityFromGrams(result.totalGrams)
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = formatKg(result.totalGrams),
+                            text = total.amount,
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold,
                         )
                         Text(
-                            text = "kg",
+                            text = total.unit,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
@@ -398,16 +402,12 @@ fun CalculatorScreen(navController: NavHostController) {
                                 Text(text = need.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 Text(text = need.name, style = MaterialTheme.typography.titleLarge)
                             }
+                            // A colour dose is grams against kilos of base: shown in kilos it
+                            // reads "0", which is the one figure on this card nobody can guess.
+                            val dose = quantityOf(need.amount, need.unit)
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = if (need.unit == "L") {
-                                        formatDecimal(need.amount, 2)
-                                    } else {
-                                        formatKg(need.amount * 1000)
-                                    },
-                                    style = MaterialTheme.typography.headlineMedium,
-                                )
-                                Text(text = need.unit, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = dose.amount, style = MaterialTheme.typography.headlineMedium)
+                                Text(text = dose.unit, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         DropdownField(
@@ -429,7 +429,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                     need.rateUnit,
                                     need.againstLabel,
                                 ),
-                                formatKg(need.againstKg * 1000),
+                                quantityFromGrams(need.againstKg * 1000).text,
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -609,7 +609,7 @@ fun CalculatorScreen(navController: NavHostController) {
                             modifier = Modifier.padding(top = 14.dp),
                         )
                         Text(
-                            text = stringResource(R.string.calc_to_get_through, formatKg(result.totalGrams)),
+                            text = stringResource(R.string.calc_to_get_through, quantityFromGrams(result.totalGrams).text),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -670,7 +670,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
-                                    Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                                    Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
                         }
@@ -687,7 +687,7 @@ fun CalculatorScreen(navController: NavHostController) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
-                                    Text(text = "${formatKg(part.grams)} kg", style = MaterialTheme.typography.titleMedium)
+                                    Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
                         }
@@ -753,7 +753,7 @@ private fun batchSizeText(size: BatchSize): String = when (size) {
     is BatchSize.Unknown -> stringResource(R.string.batch_none)
     is BatchSize.WholePack -> stringResource(R.string.batch_whole_pack, size.packSizeKg, size.packType)
     is BatchSize.Litres -> stringResource(R.string.batch_litres, size.litres)
-    is BatchSize.Kilos -> stringResource(R.string.batch_kilos, size.kilos)
+    is BatchSize.Weight -> stringResource(R.string.batch_weight, size.weight)
 }
 
 /**
