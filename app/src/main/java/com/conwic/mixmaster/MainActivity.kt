@@ -15,6 +15,7 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import com.conwic.mixmaster.data.update.AppUpdates
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import com.conwic.mixmaster.data.prefs.LanguageStore
 import com.conwic.mixmaster.domain.AppLanguage
 import com.conwic.mixmaster.ui.LocalAppActivity
