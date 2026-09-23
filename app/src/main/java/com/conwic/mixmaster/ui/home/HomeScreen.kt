@@ -121,9 +121,27 @@ fun HomeScreen(navController: NavHostController) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_projects), value = stringResource(R.string.home_projects_value, state.activeProjectCount))
-                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_open_today), value = "${state.todayTaskCount}", valueColor = MaterialTheme.colorScheme.secondary)
-                StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.home_products), value = "${state.productCount}")
+                // Each figure opens what it counts — a number on its own only raises the
+                // question of where to go and see it.
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.home_projects),
+                    value = stringResource(R.string.home_projects_value, state.activeProjectCount),
+                    onClick = { navController.navigateToTopLevel(Routes.PROJECTS) },
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.home_open_today),
+                    value = "${state.todayTaskCount}",
+                    valueColor = MaterialTheme.colorScheme.secondary,
+                    onClick = { navController.navigate(Routes.CALENDAR) },
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.home_products),
+                    value = "${state.productCount}",
+                    onClick = { navController.navigateToTopLevel(Routes.PRODUCTS) },
+                )
             }
         }
 

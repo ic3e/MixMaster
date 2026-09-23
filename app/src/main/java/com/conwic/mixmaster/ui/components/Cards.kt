@@ -2,6 +2,7 @@ package com.conwic.mixmaster.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -57,9 +59,23 @@ fun CardAccent(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
     )
 }
 
+/**
+ * A headline figure with its label.
+ *
+ * Given an [onClick] it becomes the way to go and look at what the figure counts — clipped
+ * first so the press stays inside the card's corners rather than flashing a square behind it.
+ */
 @Composable
-fun StatCard(modifier: Modifier = Modifier, label: String, value: String, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
-    CardFlat(modifier = modifier) {
+fun StatCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
+    onClick: (() -> Unit)? = null,
+) {
+    CardFlat(
+        modifier = if (onClick == null) modifier else modifier.clip(CardShape).clickable(onClick = onClick),
+    ) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(text = value, style = MaterialTheme.typography.headlineMedium, color = valueColor, fontWeight = FontWeight.ExtraBold)
     }
