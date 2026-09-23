@@ -18,6 +18,8 @@ class ProductRepository(private val productDao: ProductDao) {
 
     fun observeAllComponents(): Flow<List<ProductComponentEntity>> = productDao.observeAllComponents()
 
+    fun observeById(id: Long): Flow<ProductEntity?> = productDao.observeById(id)
+
     fun observeBrands(): Flow<List<String>> = productDao.observeBrands()
 
     fun observeCategories(): Flow<List<String>> = productDao.observeCategories()

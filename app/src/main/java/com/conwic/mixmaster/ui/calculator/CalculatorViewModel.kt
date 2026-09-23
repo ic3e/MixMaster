@@ -137,7 +137,7 @@ class CalculatorViewModel(
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
                 implausibleDensities = implausibleStoredDensities(parts),
-                addOnNeeds = result?.let { addOnNeeds(it, mix.addOns) }.orEmpty(),
+                addOnNeeds = result?.let { addOnNeeds(it, mix?.addOns.orEmpty()) }.orEmpty(),
                 batchPlan = result?.let {
                     planBatches(
                         it,
