@@ -45,7 +45,7 @@ import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDueDate
-import com.conwic.mixmaster.domain.formatKg
+import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -254,7 +254,7 @@ fun LayoutTab(
                     AccentStat(label = stringResource(R.string.prj_rooms_floors), value = "${data.rooms.size} · ${data.floors.size}")
                     AccentStat(
                         label = stringResource(R.string.prj_est_material),
-                        value = "${formatKg(roomMixes.values.filterNotNull().sumOf { it.totalGrams })} kg",
+                        value = quantityFromGrams(roomMixes.values.filterNotNull().sumOf { it.totalGrams }).text,
                     )
                 }
             }
@@ -290,7 +290,7 @@ fun LayoutTab(
                         Column {
                             Text(text = room.name, style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                text = "${formatArea(room.areaM2)} m²" + if (mix != null) " · ${formatKg(mix.totalGrams)} kg" else "",
+                                text = "${formatArea(room.areaM2)} m²" + if (mix != null) " · ${quantityFromGrams(mix.totalGrams).text}" else "",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -527,7 +527,7 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = stringResource(R.string.prj_total_used), color = OnAccentCard)
-                    Text(text = "${formatKg(totalGrams)} kg", style = MaterialTheme.typography.headlineMedium, color = OnAccentCard, fontWeight = FontWeight.ExtraBold)
+                    Text(text = quantityFromGrams(totalGrams).text, style = MaterialTheme.typography.headlineMedium, color = OnAccentCard, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -541,10 +541,10 @@ fun MaterialsTab(data: ProjectDetailData, roomMixes: Map<Long, MixResult?>) {
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(text = productName, style = MaterialTheme.typography.titleMedium)
-                    Text(text = "${formatKg(mix.totalGrams)} kg", style = MaterialTheme.typography.titleMedium)
+                    Text(text = quantityFromGrams(mix.totalGrams).text, style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
-                    text = "${room.name} · ${formatArea(room.areaM2)} m² · " + mix.components.joinToString(" / ") { "${formatKg(it.grams)} kg ${it.label}" },
+                    text = "${room.name} · ${formatArea(room.areaM2)} m² · " + mix.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

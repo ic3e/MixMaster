@@ -20,6 +20,14 @@ fun toScale(grams: Double): Double {
 }
 
 /**
+ * The same step, for an amount held in a product's own unit — kilos or litres.
+ *
+ * A colour is dosed in grams against kilos of base, so its figure lands in the same place as
+ * the mix it goes into: a tenth of a gram, or a tenth of a millilitre.
+ */
+fun toScaleInBaseUnit(amount: Double): Double = toScale(amount * 1000.0) / 1000.0
+
+/**
  * How finely the dose rate can be set: tenths for the low-dose products, whole grams for the
  * ones measured in hundreds.
  *

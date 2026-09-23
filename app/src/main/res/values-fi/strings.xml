@@ -465,7 +465,7 @@
     <string name="report_scope">Työn laajuus</string>
     <string name="report_no_scope">Laajuudesta ei ole muistiinpanoja.</string>
     <string name="report_rooms">Tilat ja materiaalit</string>
-    <string name="report_total_material">Materiaalia kaikissa tiloissa yhteensä: %1$s kg</string>
+    <string name="report_total_material">Materiaalia kaikissa tiloissa yhteensä: %1$s</string>
     <string name="report_tasks">Tehtävät</string>
     <string name="report_task_done">[tehty] </string>
     <string name="report_task_line">%1$s%2$s — %3$s</string>

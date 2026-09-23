@@ -17,7 +17,7 @@ import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
-import com.conwic.mixmaster.domain.formatKg
+import com.conwic.mixmaster.domain.quantityFromGrams
 import java.io.File
 import java.io.FileOutputStream
 
@@ -93,7 +93,7 @@ object ReportGenerator {
             canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
             y += 13f
             val detail = if (mix != null) {
-                "$productName · ${formatKg(mix.totalGrams)} kg (" + mix.components.joinToString(" / ") { "${formatKg(it.grams)} kg ${it.label}" } + ")"
+                "$productName · ${quantityFromGrams(mix.totalGrams).text} (" + mix.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
             } else {
                 productName
             }
@@ -101,7 +101,7 @@ object ReportGenerator {
             y += 18f
         }
         newPageIfNeeded(20f)
-        canvas.drawText(context.getString(R.string.report_total_material, formatKg(totalGrams)), MARGIN, y, textPaint(size = 10f, bold = true))
+        canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 10f, bold = true))
         y += 26f
 
         newPageIfNeeded(24f)

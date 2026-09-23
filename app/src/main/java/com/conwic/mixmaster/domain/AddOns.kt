@@ -56,7 +56,7 @@ fun addOnNeeds(
     val product = addOns.firstOrNull { it.id == choice.productId } ?: return@mapNotNull null
     val part = result.components.getOrNull(choice.partIndex)
     val againstKg = (part?.grams ?: 0.0) / 1000.0
-    val amount = againstKg * product.addOnAmountPerKg
+    val amount = toScaleInBaseUnit(againstKg * product.addOnAmountPerKg)
     val pack = packSizeOf(product.id)
     val packs = if (pack != null && pack.first > 0.0 && pack.second == product.addOnUnit && amount > 0.0) {
         ceil(amount / pack.first).toInt()

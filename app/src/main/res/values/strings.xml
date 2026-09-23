@@ -513,7 +513,7 @@
     <string name="report_scope">Scope</string>
     <string name="report_no_scope">No scope notes recorded.</string>
     <string name="report_rooms">Rooms &amp; materials</string>
-    <string name="report_total_material">Total material across all rooms: %1$s kg</string>
+    <string name="report_total_material">Total material across all rooms: %1$s</string>
     <string name="report_tasks">Tasks</string>
     <string name="report_task_done">[done] </string>
     <string name="report_task_line">%1$s%2$s — %3$s</string>
