@@ -10,6 +10,10 @@ import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -255,7 +259,17 @@ private fun EditProjectSheet(
     var scope by remember { mutableStateOf(initialScope) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                // Lifts the sheet clear of the keyboard and lets it scroll under it: without
+                // this the last field and the save button sit behind the keys.
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Text(text = stringResource(R.string.prj_edit), style = MaterialTheme.typography.headlineMedium)
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.project_name)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text(stringResource(R.string.prj_client)) }, modifier = Modifier.fillMaxWidth())
