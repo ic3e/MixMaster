@@ -1,8 +1,8 @@
 {
-  "versionCode": 66,
-  "versionName": "1.0.66",
-  "apk": "MixMaster_1.0.66.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.66.apk",
-  "sizeBytes": 19982576,
-  "notes": "Let the three figures on Home open what they count"
+  "versionCode": 67,
+  "versionName": "1.0.67",
+  "apk": "MixMaster_1.0.67.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.67.apk",
+  "sizeBytes": 19982572,
+  "notes": "Dose colours to the scale too, and carry grams into projects and the report"
 }
