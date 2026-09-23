@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
+import com.conwic.mixmaster.data.report.PickupLine
+import com.conwic.mixmaster.data.report.PickupList
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.ui.components.DropdownField
@@ -1022,10 +1024,47 @@ private fun PickupSheet(
                     onClick = { context.startActivity(pickupShareIntent(context, projectName, materials)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
+                // Android's own print dialog, which is also where "Save as PDF" lives — so the
+                // same sheet goes to the office printer or into a folder.
+                GhostButton(
+                    text = stringResource(R.string.prj_pickup_print),
+                    onClick = {
+                        PickupList.print(
+                            context = context,
+                            title = context.getString(R.string.prj_pickup_header, projectName),
+                            subtitle = formatDueDate(LocalDate.now()),
+                            lines = pickupLines(context, materials),
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
 }
+
+/** The list as rows of name, figure and shortfall — what the printed sheet is set out from. */
+private fun pickupLines(context: android.content.Context, materials: List<ProjectMaterial>): List<PickupLine> =
+    materials.map { material ->
+        val figure = "${formatDecimal(material.need, 2)} ${material.stock.packUnit}"
+        val packs = material.packsToTake
+        PickupLine(
+            name = material.name,
+            amount = if (packs != null && packs > 0) {
+                context.getString(R.string.wh_packs_and_amount, packs, material.stock.packType, figure)
+            } else {
+                figure
+            },
+            short = if (material.shortfall > 0.0) {
+                context.getString(
+                    R.string.wh_short_by,
+                    "${formatDecimal(material.shortfall, 2)} ${material.stock.packUnit}",
+                )
+            } else {
+                null
+            },
+        )
+    }
 
 /** The same list as plain text, for the chooser — WhatsApp to the yard, or a note to self. */
 private fun pickupShareIntent(

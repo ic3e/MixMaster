@@ -532,6 +532,7 @@
     <string name="prj_pickup_sub">Mitä tälle työlle otetaan varastosta mukaan</string>
     <string name="prj_pickup_empty">Ei vielä mitään otettavaa — lisää ensin huoneelle kerros.</string>
     <string name="prj_pickup_share">Jaa lista</string>
+    <string name="prj_pickup_print">Tulosta lista</string>
     <string name="prj_pickup_header">%1$s — varastosta mukaan</string>
     <string name="prj_materials_taken">Otettu varastosta %1$s</string>
     <string name="home_check_warehouse">Tarkista varasto</string>

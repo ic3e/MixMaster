@@ -532,6 +532,7 @@
     <string name="prj_pickup_sub">Mida sellele tööle laost kaasa võtta</string>
     <string name="prj_pickup_empty">Veel ei ole midagi võtta — pane kõigepealt ruumile kiht peale.</string>
     <string name="prj_pickup_share">Jaga nimekirja</string>
+    <string name="prj_pickup_print">Prindi nimekiri</string>
     <string name="prj_pickup_header">%1$s — laost kaasa</string>
     <string name="prj_materials_taken">Laost välja võetud %1$s</string>
     <string name="home_check_warehouse">Kontrolli ladu</string>
