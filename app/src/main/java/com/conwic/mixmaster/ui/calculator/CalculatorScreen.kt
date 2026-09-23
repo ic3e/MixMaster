@@ -42,7 +42,10 @@ import com.conwic.mixmaster.domain.BatchProblem
 import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.domain.doseDecimals
+import com.conwic.mixmaster.domain.doseStep
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.snapDose
 import com.conwic.mixmaster.domain.openableUrl
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.domain.quantityFromLitres
@@ -145,7 +148,14 @@ fun CalculatorScreen(navController: NavHostController) {
                         RatioBadge(text = product.ratioLabel)
                     }
                     Text(
-                        text = stringResource(R.string.calc_datasheet_typical_full, formatDecimal(product.typicalDoseGramsPerM2, 0), perLabel(product.dosingMode)),
+                        text = stringResource(
+                            R.string.calc_datasheet_typical_full,
+                            formatDecimal(
+                                product.typicalDoseGramsPerM2,
+                                doseDecimals(doseStep(product.minDoseGramsPerM2, product.maxDoseGramsPerM2)),
+                            ),
+                            perLabel(product.dosingMode),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 10.dp),
@@ -207,13 +217,24 @@ fun CalculatorScreen(navController: NavHostController) {
                 // The drag is tracked locally so the thumb tracks the finger; the mix is only
                 // recomputed when the finger lifts.
                 var dragCoverage by remember(product.id) { mutableStateOf<Float?>(null) }
-                val shownCoverage = dragCoverage?.toDouble() ?: state.coverageValue
+                // Snapped to the same step it is shown in, so the rate on screen is the rate the
+                // mix below was worked out from.
+                val step = doseStep(product.minDoseGramsPerM2, product.maxDoseGramsPerM2)
+                val decimals = doseDecimals(step)
+                val snapped = snapDose(dragCoverage?.toDouble() ?: state.coverageValue, step)
+                // Kept inside the range the slider was given: snapping can land a hair past the
+                // end of it, and a product with no range at all has nothing to clamp to.
+                val shownCoverage = if (product.maxDoseGramsPerM2 > product.minDoseGramsPerM2) {
+                    snapped.coerceIn(product.minDoseGramsPerM2, product.maxDoseGramsPerM2)
+                } else {
+                    snapped
+                }
 
                 CardFlat {
                     SectionLabel(text = stringResource(R.string.calc_coverage_rate, perLabel(product.dosingMode)))
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = formatDecimal(shownCoverage, 0),
+                            text = formatDecimal(shownCoverage, decimals),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
@@ -228,7 +249,9 @@ fun CalculatorScreen(navController: NavHostController) {
                         Slider(
                             value = shownCoverage.toFloat(),
                             onValueChange = { dragCoverage = it },
-                            onValueChangeFinished = { dragCoverage?.let { viewModel.setCoverage(it.toDouble()) } },
+                            onValueChangeFinished = {
+                                dragCoverage?.let { viewModel.setCoverage(snapDose(it.toDouble(), step)) }
+                            },
                             valueRange = product.minDoseGramsPerM2.toFloat()..product.maxDoseGramsPerM2.toFloat(),
                             colors = SliderDefaults.colors(
                                 thumbColor = MaterialTheme.colorScheme.primary,
@@ -238,13 +261,13 @@ fun CalculatorScreen(navController: NavHostController) {
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
-                                text = stringResource(R.string.calc_datasheet_typical, formatDecimal(product.typicalDoseGramsPerM2, 0)),
+                                text = stringResource(R.string.calc_datasheet_typical, formatDecimal(product.typicalDoseGramsPerM2, decimals)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = state.siteAverageDose
-                                    ?.let { stringResource(R.string.calc_your_average, formatDecimal(it, 0)) }
+                                    ?.let { stringResource(R.string.calc_your_average, formatDecimal(it, decimals)) }
                                     ?: stringResource(R.string.calc_no_logged),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.secondary,

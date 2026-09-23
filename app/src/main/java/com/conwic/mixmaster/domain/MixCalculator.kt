@@ -2,7 +2,6 @@ package com.conwic.mixmaster.domain
 
 import com.conwic.mixmaster.data.db.dao.ProductWithComponents
 import com.conwic.mixmaster.data.model.DosingMode
-import kotlin.math.round
 
 data class ComponentAmount(
     val label: String,
@@ -41,12 +40,12 @@ object MixCalculator {
         val amounts = components.map { component ->
             ComponentAmount(
                 label = component.label,
-                grams = round(rawTotalGrams * (component.ratioParts / ratioSum)),
+                grams = toScale(rawTotalGrams * (component.ratioParts / ratioSum)),
             )
         }
-        // Total is the sum of the rounded parts, so what's weighed out always adds up to the
-        // total shown rather than drifting from it by a gram.
-        val totalGrams = if (amounts.isEmpty()) round(rawTotalGrams) else amounts.sumOf { it.grams }
+        // Total is the sum of the snapped parts, so what's weighed out always adds up to the
+        // total shown rather than drifting from it.
+        val totalGrams = if (amounts.isEmpty()) toScale(rawTotalGrams) else amounts.sumOf { it.grams }
         return MixResult(totalGrams = totalGrams, components = amounts)
     }
 }
