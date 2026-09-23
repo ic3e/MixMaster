@@ -1,8 +1,8 @@
 {
-  "versionCode": 69,
-  "versionName": "1.0.69",
-  "apk": "MixMaster_1.0.69.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.69.apk",
-  "sizeBytes": 20045552,
-  "notes": "Call it in stock, which is what it is"
+  "versionCode": 70,
+  "versionName": "1.0.70",
+  "apk": "MixMaster_1.0.70.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.70.apk",
+  "sizeBytes": 20045556,
+  "notes": "Open the calculator on the product that was asked for"
 }
