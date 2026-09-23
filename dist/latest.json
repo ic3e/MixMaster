@@ -1,8 +1,8 @@
 {
-  "versionCode": 83,
-  "versionName": "1.0.83",
-  "apk": "MixMaster_1.0.83.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.83.apk",
-  "sizeBytes": 20219224,
-  "notes": "Ask before deleting, and keep delete away from the thumb"
+  "versionCode": 84,
+  "versionName": "1.0.84",
+  "apk": "MixMaster_1.0.84.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.84.apk",
+  "sizeBytes": 20219700,
+  "notes": "Print the pick-up list"
 }
