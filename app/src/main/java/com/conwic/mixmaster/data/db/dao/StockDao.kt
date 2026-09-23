@@ -14,8 +14,8 @@ interface StockDao {
     @Query("SELECT * FROM stock")
     fun observeAll(): Flow<List<StockEntity>>
 
-    @Query("SELECT * FROM stock WHERE componentId = :componentId")
-    suspend fun getForComponent(componentId: Long): StockEntity?
+    @Query("SELECT * FROM stock WHERE productId = :productId")
+    suspend fun getForProduct(productId: Long): StockEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(stock: StockEntity): Long

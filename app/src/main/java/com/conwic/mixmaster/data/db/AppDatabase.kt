@@ -12,6 +12,8 @@ import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProductDao
 import com.conwic.mixmaster.data.db.dao.StockDao
+import com.conwic.mixmaster.data.db.dao.RoomLayerDao
+import com.conwic.mixmaster.data.db.dao.SolutionDao
 import com.conwic.mixmaster.data.db.dao.ProjectDao
 import com.conwic.mixmaster.data.db.dao.RoomAreaDao
 import com.conwic.mixmaster.data.db.dao.TaskDao
@@ -63,6 +65,10 @@ const val DATABASE_NAME = "mixmaster.db"
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun stockDao(): StockDao
+
+    abstract fun solutionDao(): SolutionDao
+
+    abstract fun roomLayerDao(): RoomLayerDao
 
     abstract fun productDao(): ProductDao
     abstract fun projectDao(): ProjectDao

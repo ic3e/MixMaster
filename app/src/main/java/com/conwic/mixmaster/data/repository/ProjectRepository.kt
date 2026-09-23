@@ -5,12 +5,14 @@ import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProjectDao
 import com.conwic.mixmaster.data.db.dao.RoomAreaDao
+import com.conwic.mixmaster.data.db.dao.RoomLayerDao
 import com.conwic.mixmaster.data.db.dao.TaskDao
 import com.conwic.mixmaster.data.db.entity.FloorEntity
 import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +20,7 @@ class ProjectRepository(
     private val projectDao: ProjectDao,
     private val floorDao: FloorDao,
     private val roomAreaDao: RoomAreaDao,
+    private val roomLayerDao: RoomLayerDao,
     private val taskDao: TaskDao,
     private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
@@ -41,6 +44,29 @@ class ProjectRepository(
 
     /** Every room on every project, for working out what the warehouse has spoken for. */
     fun observeAllRooms(): Flow<List<RoomAreaEntity>> = roomAreaDao.observeAll()
+
+    fun observeLayers(projectId: Long): Flow<List<RoomLayerEntity>> = roomLayerDao.observeForProject(projectId)
+
+    /** Every coat on every room, for the warehouse. */
+    fun observeAllLayers(): Flow<List<RoomLayerEntity>> = roomLayerDao.observeAll()
+
+    /** Adds a coat to a room, on top of whatever is already there. */
+    suspend fun addLayer(roomId: Long, solutionId: Long, productId: Long, doseGramsPerM2: Double, quantity: Double) {
+        roomLayerDao.insert(
+            RoomLayerEntity(
+                roomId = roomId,
+                solutionId = solutionId,
+                productId = productId,
+                doseGramsPerM2 = doseGramsPerM2,
+                quantity = quantity,
+                sortOrder = roomLayerDao.countForRoom(roomId),
+            ),
+        )
+    }
+
+    suspend fun updateLayer(layer: RoomLayerEntity) = roomLayerDao.update(layer)
+
+    suspend fun removeLayer(layer: RoomLayerEntity) = roomLayerDao.delete(layer)
 
     fun observeFloors(projectId: Long): Flow<List<FloorEntity>> = floorDao.observeForProject(projectId)
 

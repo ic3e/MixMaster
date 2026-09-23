@@ -1,6 +1,5 @@
 package com.conwic.mixmaster.domain
 
-import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import kotlin.math.ceil
 
 /** How a batch is limited: by what the mixer holds, by weight, or by whole packs. */
@@ -9,6 +8,8 @@ enum class BatchBasis { MIXER_VOLUME, MAX_WEIGHT, ONE_PACKAGE }
 /** What to buy for one component: the amount needed, and how many packs that is. */
 data class PackNeed(
     val label: String,
+    /** The bought item this is, so an order and the shelf can be matched up. */
+    val productId: Long = 0L,
     val amountKg: Double,
     /** Amount expressed in the unit the pack is sold in — litres for L-sold packs. */
     val amountInPackUnit: Double?,
@@ -87,8 +88,8 @@ fun isWaterLabel(label: String): Boolean =
     WORD_SEPARATORS.split(label.lowercase(java.util.Locale.ROOT))
         .any { it.isNotEmpty() && it in WATER_WORDS }
 
-fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
-    if (isWaterLabel(component.label)) 1.0 else component.densityKgPerL
+fun effectiveDensityKgPerL(part: MixPart): Double =
+    if (isWaterLabel(part.label)) 1.0 else part.densityKgPerL
 
 /**
  * The parts with no usable density, for a message that says what to go and fix.
@@ -96,29 +97,29 @@ fun effectiveDensityKgPerL(component: ProductComponentEntity): Double =
  * Returns the names rather than a phrase: joining them with "and" is a decision that belongs
  * in whichever language the app is set to.
  */
-fun missingDensityLabels(result: MixResult, components: List<ProductComponentEntity>): List<String> =
+fun missingDensityLabels(result: MixResult, parts: List<MixPart>): List<String> =
     result.components.filterIndexed { index, _ ->
-        (components.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0) <= 0.0
+        (parts.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0) <= 0.0
     }.map { it.label }
 
 /** Litres this mix occupies, or null if any part is missing a density. */
-fun mixVolumeLitres(result: MixResult, components: List<ProductComponentEntity>): Double? {
+fun mixVolumeLitres(result: MixResult, parts: List<MixPart>): Double? {
     var litres = 0.0
     result.components.forEachIndexed { index, amount ->
-        val density = components.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0
+        val density = parts.getOrNull(index)?.let { effectiveDensityKgPerL(it) } ?: 0.0
         if (density <= 0.0) return null
         litres += (amount.grams / 1000.0) / density
     }
     return litres
 }
 
-fun packNeeds(result: MixResult, components: List<ProductComponentEntity>): List<PackNeed> =
+fun packNeeds(result: MixResult, parts: List<MixPart>): List<PackNeed> =
     result.components.mapIndexed { index, amount ->
-        val component = components.getOrNull(index)
+        val part = parts.getOrNull(index)
         val kg = amount.grams / 1000.0
-        val packSize = component?.packageSize ?: 0.0
-        val packUnit = component?.packageUnit ?: "kg"
-        val density = component?.let { effectiveDensityKgPerL(it) } ?: 0.0
+        val packSize = part?.packageSize ?: 0.0
+        val packUnit = part?.packageUnit ?: "kg"
+        val density = part?.let { effectiveDensityKgPerL(it) } ?: 0.0
         // An L-sold pack has to be compared in litres, which needs the density.
         val amountInPackUnit = when {
             packUnit == "kg" -> kg
@@ -131,7 +132,8 @@ fun packNeeds(result: MixResult, components: List<ProductComponentEntity>): List
             amountInPackUnit = amountInPackUnit,
             packUnit = packUnit,
             packSize = packSize,
-            packType = component?.packageType ?: "bag",
+            packType = part?.packageType ?: "bag",
+            productId = part?.productId ?: 0L,
             packs = if (packSize > 0.0 && amountInPackUnit != null) {
                 ceil(amountInPackUnit / packSize).toInt().coerceAtLeast(1)
             } else {
@@ -148,7 +150,7 @@ fun packNeeds(result: MixResult, components: List<ProductComponentEntity>): List
  */
 fun planBatches(
     result: MixResult,
-    components: List<ProductComponentEntity>,
+    parts: List<MixPart>,
     basis: BatchBasis,
     mixerLitres: Double,
     headroomPercent: Double,
@@ -157,7 +159,7 @@ fun planBatches(
     val totalKg = result.totalGrams / 1000.0
     if (totalKg <= 0.0) return BatchPlan(0, emptyList(), BatchSize.Unknown)
 
-    val totalLitres = mixVolumeLitres(result, components)
+    val totalLitres = mixVolumeLitres(result, parts)
     val usable = usableLitres(mixerLitres, headroomPercent)
 
     /** Flags a plan whose batch wouldn't fit the mixing room left in the drum. */
@@ -171,9 +173,9 @@ fun planBatches(
     if (basis == BatchBasis.ONE_PACKAGE) {
         // Batch on the biggest part by ratio — that's the powder that comes in bags, not an
         // additive that happens to be listed first.
-        val index = components.indices
-            .filter { components[it].packageSize > 0.0 && components[it].packageUnit == "kg" }
-            .maxByOrNull { components[it].ratioParts }
+        val index = parts.indices
+            .filter { parts[it].packageSize > 0.0 && parts[it].packageUnit == "kg" }
+            .maxByOrNull { parts[it].ratioParts }
             ?: return BatchPlan(
                 1,
                 result.components,
@@ -181,13 +183,13 @@ fun planBatches(
                 problem = BatchProblem.NoPackWeight,
             )
         val partKg = (result.components.getOrNull(index)?.grams ?: 0.0) / 1000.0
-        val packSize = components[index].packageSize
+        val packSize = parts[index].packageSize
         if (partKg <= 0.0) return BatchPlan(0, emptyList(), BatchSize.Unknown)
 
         val fullBatches = kotlin.math.floor(partKg / packSize).toInt()
         val remainderKg = partKg - fullBatches * packSize
         val fullShare = packSize / partKg
-        val packType = components[index].packageType
+        val packType = parts[index].packageType
         val batchLitres = totalLitres?.times(fullShare)
         return BatchPlan(
             batches = fullBatches,
@@ -212,7 +214,7 @@ fun planBatches(
                     batches = 1,
                     perBatch = result.components,
                     batchSize = BatchSize.Unknown,
-                    problem = BatchProblem.NeedsDensity(missingDensityLabels(result, components)),
+                    problem = BatchProblem.NeedsDensity(missingDensityLabels(result, parts)),
                 )
             if (usable <= 0.0) return BatchPlan(1, result.components, BatchSize.Unknown, problem = BatchProblem.NoMixerSize)
             batches = ceil(litres / usable).toInt().coerceAtLeast(1)
