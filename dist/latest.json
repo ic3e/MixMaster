@@ -1,8 +1,8 @@
 {
-  "versionCode": 81,
-  "versionName": "1.0.81",
-  "apk": "MixMaster_1.0.81.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.81.apk",
-  "sizeBytes": 20193932,
-  "notes": "Show grams the way the scale reads them"
+  "versionCode": 82,
+  "versionName": "1.0.82",
+  "apk": "MixMaster_1.0.82.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.82.apk",
+  "sizeBytes": 20194996,
+  "notes": "Put a few grams over a bag in with the last batch"
 }
