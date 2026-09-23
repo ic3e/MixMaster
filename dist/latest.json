@@ -1,8 +1,8 @@
 {
-  "versionCode": 78,
-  "versionName": "1.0.78",
-  "apk": "MixMaster_1.0.78.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.78.apk",
-  "sizeBytes": 20134708,
-  "notes": "Open a shelf card to see what is there and who has it booked"
+  "versionCode": 79,
+  "versionName": "1.0.79",
+  "apk": "MixMaster_1.0.79.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.79.apk",
+  "sizeBytes": 20137360,
+  "notes": "Say a job's material in packs, and give it a pick-up list"
 }
