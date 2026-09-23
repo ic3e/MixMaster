@@ -1,309 +1,132 @@
 package com.conwic.mixmaster.ui.products
 
 import androidx.annotation.StringRes
-import com.conwic.mixmaster.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
+import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.data.repository.ProductRepository
-import com.conwic.mixmaster.domain.densityProblem as domainDensityProblem
-import com.conwic.mixmaster.domain.densityWarning as domainDensityWarning
+import com.conwic.mixmaster.domain.densityProblem
+import com.conwic.mixmaster.domain.densityWarning
 import com.conwic.mixmaster.domain.formatDecimal
-import com.conwic.mixmaster.domain.isWaterLabel
+import com.conwic.mixmaster.domain.toNumberOr
+import com.conwic.mixmaster.domain.toNumberOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.conwic.mixmaster.domain.toNumberOrNull
 
-/** Stable ids so the list of parts can be keyed — without them every keystroke re-lays out
- * every card on the form, which is a good part of why it dragged. */
-private var componentUidCounter = 0L
+/** The units a product is bought in. */
+val PackUnits = listOf("kg", "L")
 
-data class ComponentFormRow(
-    val uid: Long = ++componentUidCounter,
-    val label: String,
-    val ratioText: String,
-    val basis: String = "Weight",
-    val density: String = "",
-    val potLife: String = "",
-    val notes: String = "",
-    val packSizeText: String = "",
-    val packUnit: String = "kg",
-    val packType: String = "bag",
-    val densityKgPerLText: String = "",
-) {
-    private val densityValue: Double?
-        get() = densityKgPerLText.toNumberOrNull()
-
-    /** Blocks the save. The rule itself lives in the domain, so the calculator agrees with it. */
-    @get:StringRes
-    val densityProblem: Int?
-        get() = if (densityKgPerLText.isBlank()) null else domainDensityProblem(densityValue)
-
-    /** Doesn't block — see the domain rule. */
-    @get:StringRes
-    val densityWarning: Int?
-        get() = if (densityKgPerLText.isBlank()) null else domainDensityWarning(densityValue)
-}
-
-/** One reason the form won't save, as the screen needs to word it. */
-sealed interface SaveBlocker {
-    data class Simple(@StringRes val messageRes: Int) : SaveBlocker
-    data class PartDensity(val partNumber: Int, @StringRes val problemRes: Int) : SaveBlocker
-}
+/** What it comes in. Free text would give four spellings of "bucket" inside a week. */
+val PackTypes = listOf("bag", "bucket", "canister", "bottle", "drum", "tub")
 
 data class ProductFormState(
     val productId: Long = 0L,
+    val isLoaded: Boolean = false,
     val brand: String = "",
     val name: String = "",
     val category: String = "",
-    val dosingMode: DosingMode = DosingMode.COATS,
-    val minDoseText: String = "",
-    val maxDoseText: String = "",
-    val doseUnitLabel: String = "",
-    val rangeNote: String = "",
-    val sourceNote: String = "",
+    val packSizeText: String = "",
+    val packUnit: String = "kg",
+    val packType: String = "bag",
+    val densityText: String = "",
     val datasheetUrl: String = "",
-    /** Marks this as a colour or admixture that goes into another product's mix. */
-    val isAddOn: Boolean = false,
-    val addOnAmountText: String = "",
-    /** g, kg, ml or L — what [addOnAmountText] counts. */
-    val addOnUnitChoice: String = "g",
-    /** …per this many kg of the part it's measured against. */
-    val addOnPerKgText: String = "1",
-    val components: List<ComponentFormRow> = listOf(ComponentFormRow(label = "Part A", ratioText = "100"), ComponentFormRow(label = "Part B", ratioText = "")),
-    val isLoaded: Boolean = false,
-) {
-    /**
-     * Everything standing between this form and a saved product, in the order it appears on
-     * screen. The screen shows this list; a disabled Save button with nothing to explain it is
-     * how a mistyped decimal turned into "it just won't save".
-     *
-     * Resource ids, not sentences — this runs where no language is known.
-     */
-    val saveBlockers: List<SaveBlocker>
-        get() = buildList {
-            if (brand.isBlank()) add(SaveBlocker.Simple(R.string.blocker_brand))
-            if (name.isBlank()) add(SaveBlocker.Simple(R.string.blocker_name))
-            if (category.isBlank()) add(SaveBlocker.Simple(R.string.blocker_type))
-
-            val min = minDoseText.toNumberOrNull()
-            val max = maxDoseText.toNumberOrNull()
-            when {
-                minDoseText.isBlank() || maxDoseText.isBlank() ->
-                    add(SaveBlocker.Simple(R.string.blocker_minmax_blank))
-                min == null -> add(SaveBlocker.Simple(R.string.blocker_min_nan))
-                max == null -> add(SaveBlocker.Simple(R.string.blocker_max_nan))
-                min <= 0.0 -> add(SaveBlocker.Simple(R.string.blocker_min_zero))
-                max < min -> add(SaveBlocker.Simple(R.string.blocker_max_lt_min))
-            }
-
-            if (components.none { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }) {
-                add(SaveBlocker.Simple(R.string.blocker_no_part))
-            }
-            components.forEachIndexed { index, row ->
-                row.densityProblem?.let { add(SaveBlocker.PartDensity(index + 1, it)) }
-            }
-        }
-
-    val isValid: Boolean get() = saveBlockers.isEmpty()
-}
-
-/** "28 g per 1 kg" becomes 0.028 kg per kg; "1 L per 25 kg" becomes 0.04 L per kg. */
-internal fun normaliseAddOnDose(amountText: String, unitChoice: String, perKgText: String): Pair<Double, String> {
-    val amount = amountText.toNumberOrNull() ?: 0.0
-    val perKg = perKgText.toNumberOrNull()?.takeIf { it > 0.0 } ?: 1.0
-    val inBaseUnit = when (unitChoice) {
-        "g", "ml" -> amount / 1000.0
-        else -> amount
-    }
-    val unit = if (unitChoice == "ml" || unitChoice == "L") "L" else "kg"
-    return (inBaseUnit / perKg) to unit
-}
-
-/** The inverse, for showing a stored dose in whatever unit reads best. */
-internal fun describeAddOnDose(amountPerKg: Double, unit: String): Triple<String, String, String> {
-    if (amountPerKg <= 0.0) return Triple("", if (unit == "L") "ml" else "g", "1")
-    val small = amountPerKg < 1.0
-    val shown = if (small) amountPerKg * 1000.0 else amountPerKg
-    val shownUnit = when {
-        unit == "L" && small -> "ml"
-        unit == "L" -> "L"
-        small -> "g"
-        else -> "kg"
-    }
-    return Triple(formatDecimal(shown, 3), shownUnit, "1")
-}
-
-private fun computeRatioLabel(components: List<ComponentFormRow>): String {
-    val valid = components.filter { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }
-    if (valid.size <= 1) return "1K"
-    return valid.joinToString(":") { (it.ratioText.toNumberOrNull() ?: 0.0).toInt().toString() }
-}
-
-/** Everything already in the catalogue, offered back so the same thing isn't typed two ways. */
-data class ProductSuggestions(
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
-    val doseUnitLabels: List<String> = emptyList(),
-    val componentLabels: List<String> = emptyList(),
-)
+) {
+    /** A product with no name is a row nobody can pick out of a list. */
+    @get:StringRes
+    val nameProblem: Int? get() = if (name.isBlank()) R.string.product_problem_no_name else null
+
+    @get:StringRes
+    val densityProblemRes: Int?
+        get() = densityText.takeIf { it.isNotBlank() }?.let { densityProblem(it.toNumberOrNull()) }
+
+    @get:StringRes
+    val densityWarningRes: Int?
+        get() = densityText.takeIf { it.isNotBlank() }?.let { densityWarning(it.toNumberOrNull()) }
+
+    val isValid: Boolean get() = nameProblem == null && densityProblemRes == null
+}
 
 class AddEditProductViewModel(
     private val productRepository: ProductRepository,
     private val productId: Long?,
 ) : ViewModel() {
 
-    private val _formState = MutableStateFlow(ProductFormState(isLoaded = productId == null))
+    private val _formState = MutableStateFlow(ProductFormState())
     val formState: StateFlow<ProductFormState> = _formState.asStateFlow()
 
-    val suggestions: StateFlow<ProductSuggestions> = combine(
-        productRepository.observeBrands(),
-        productRepository.observeCategories(),
-        productRepository.observeDoseUnitLabels(),
-        productRepository.observeComponentLabels(),
-    ) { brands, categories, doseUnits, labels ->
-        ProductSuggestions(brands, categories, doseUnits, labels)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProductSuggestions())
-
     init {
-        if (productId != null) {
-            viewModelScope.launch {
-                productRepository.getWithComponents(productId)?.let { data ->
-                    _formState.update {
-                        ProductFormState(
-                            productId = data.product.id,
-                            brand = data.product.brand,
-                            name = data.product.name,
-                            category = data.product.category,
-                            dosingMode = data.product.dosingMode,
-                            minDoseText = data.product.minDoseGramsPerM2.toString(),
-                            maxDoseText = data.product.maxDoseGramsPerM2.toString(),
-                            doseUnitLabel = data.product.doseUnitLabel,
-                            rangeNote = data.product.rangeNote,
-                            sourceNote = data.product.sourceNote,
-                            datasheetUrl = data.product.datasheetUrl,
-                            isAddOn = data.product.isAddOn,
-                            addOnAmountText = describeAddOnDose(data.product.addOnAmountPerKg, data.product.addOnUnit).first,
-                            addOnUnitChoice = describeAddOnDose(data.product.addOnAmountPerKg, data.product.addOnUnit).second,
-                            addOnPerKgText = "1",
-                            components = data.components.map {
-                                ComponentFormRow(
-                                    label = it.label,
-                                    ratioText = it.ratioParts.toString(),
-                                    basis = it.basis,
-                                    density = it.density,
-                                    potLife = it.potLife,
-                                    notes = it.notes,
-                                    packSizeText = if (it.packageSize > 0.0) formatDecimal(it.packageSize, 2) else "",
-                                    packUnit = it.packageUnit,
-                                    packType = it.packageType,
-                                    densityKgPerLText = if (it.densityKgPerL > 0.0) formatDecimal(it.densityKgPerL, 3) else "",
-                                )
-                            },
-                            isLoaded = true,
-                        )
-                    }
+        viewModelScope.launch {
+            val existing = productId?.takeIf { it > 0L }?.let { productRepository.getById(it) }
+            _formState.update {
+                if (existing == null) {
+                    it.copy(isLoaded = true)
+                } else {
+                    it.copy(
+                        isLoaded = true,
+                        productId = existing.id,
+                        brand = existing.brand,
+                        name = existing.name,
+                        category = existing.category,
+                        packSizeText = if (existing.packageSize > 0.0) formatDecimal(existing.packageSize, 2) else "",
+                        packUnit = existing.packageUnit,
+                        packType = existing.packageType,
+                        densityText = if (existing.densityKgPerL > 0.0) formatDecimal(existing.densityKgPerL, 3) else "",
+                        datasheetUrl = existing.datasheetUrl,
+                    )
                 }
             }
+        }
+        viewModelScope.launch {
+            productRepository.observeBrands().collect { brands -> _formState.update { it.copy(brands = brands) } }
+        }
+        viewModelScope.launch {
+            productRepository.observeCategories().collect { rows -> _formState.update { it.copy(categories = rows) } }
         }
     }
 
     fun setBrand(value: String) = _formState.update { it.copy(brand = value) }
     fun setName(value: String) = _formState.update { it.copy(name = value) }
     fun setCategory(value: String) = _formState.update { it.copy(category = value) }
-    fun setDosingMode(value: DosingMode) = _formState.update { it.copy(dosingMode = value) }
-    fun setMinDose(value: String) = _formState.update { it.copy(minDoseText = value) }
-    fun setMaxDose(value: String) = _formState.update { it.copy(maxDoseText = value) }
-    fun setDoseUnitLabel(value: String) = _formState.update { it.copy(doseUnitLabel = value) }
-    fun setRangeNote(value: String) = _formState.update { it.copy(rangeNote = value) }
-    fun setSourceNote(value: String) = _formState.update { it.copy(sourceNote = value) }
+    fun setPackSize(value: String) = _formState.update { it.copy(packSizeText = value) }
+    fun setPackUnit(value: String) = _formState.update { it.copy(packUnit = value) }
+    fun setPackType(value: String) = _formState.update { it.copy(packType = value) }
+    fun setDensity(value: String) = _formState.update { it.copy(densityText = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
-
-    fun setComponentLabel(index: Int, value: String) = updateComponent(index) { it.copy(label = value) }
-    fun setComponentRatio(index: Int, value: String) = updateComponent(index) { it.copy(ratioText = value) }
-    fun setComponentBasis(index: Int, basis: String) = updateComponent(index) { it.copy(basis = basis) }
-    fun setComponentPotLife(index: Int, value: String) = updateComponent(index) { it.copy(potLife = value) }
-    fun setComponentNotes(index: Int, value: String) = updateComponent(index) { it.copy(notes = value) }
-    fun setComponentPackSize(index: Int, value: String) = updateComponent(index) { it.copy(packSizeText = value) }
-    fun setComponentPackUnit(index: Int, unit: String) = updateComponent(index) { it.copy(packUnit = unit) }
-    fun setComponentPackType(index: Int, type: String) = updateComponent(index) { it.copy(packType = type) }
-    fun setComponentDensityKgPerL(index: Int, value: String) = updateComponent(index) { it.copy(densityKgPerLText = value) }
-
-    private fun updateComponent(index: Int, transform: (ComponentFormRow) -> ComponentFormRow) = _formState.update { state ->
-        state.copy(components = state.components.mapIndexed { i, row -> if (i == index) transform(row) else row })
-    }
-
-    fun setIsAddOn(value: Boolean) = _formState.update { it.copy(isAddOn = value) }
-    fun setAddOnAmount(value: String) = _formState.update { it.copy(addOnAmountText = value) }
-    fun setAddOnUnitChoice(value: String) = _formState.update { it.copy(addOnUnitChoice = value) }
-    fun setAddOnPerKg(value: String) = _formState.update { it.copy(addOnPerKgText = value) }
-
-    fun addComponentRow() = _formState.update { it.copy(components = it.components + ComponentFormRow(label = "", ratioText = "")) }
-
-    fun removeComponentRow(index: Int) = _formState.update { state ->
-        state.copy(components = state.components.filterIndexed { i, _ -> i != index })
-    }
 
     fun save(onSaved: () -> Unit) {
         val state = _formState.value
         if (!state.isValid) return
         viewModelScope.launch {
-            val min = state.minDoseText.toNumberOrNull() ?: 0.0
-            val max = state.maxDoseText.toNumberOrNull() ?: min
-            val product = ProductEntity(
-                id = state.productId,
-                brand = state.brand.trim(),
-                name = state.name.trim(),
-                category = state.category.trim(),
-                dosingMode = state.dosingMode,
-                minDoseGramsPerM2 = min,
-                maxDoseGramsPerM2 = max,
-                typicalDoseGramsPerM2 = (min + max) / 2.0,
-                doseUnitLabel = state.doseUnitLabel.trim(),
-                rangeNote = state.rangeNote.trim(),
-                sourceNote = state.sourceNote.trim(),
-                datasheetUrl = state.datasheetUrl.trim(),
-                ratioLabel = computeRatioLabel(state.components),
-                isAddOn = state.isAddOn,
-                addOnAmountPerKg = if (state.isAddOn) {
-                    normaliseAddOnDose(state.addOnAmountText, state.addOnUnitChoice, state.addOnPerKgText).first
-                } else {
-                    0.0
-                },
-                addOnUnit = normaliseAddOnDose(state.addOnAmountText, state.addOnUnitChoice, state.addOnPerKgText).second,
+            productRepository.saveProduct(
+                ProductEntity(
+                    id = state.productId,
+                    brand = state.brand.trim(),
+                    name = state.name.trim(),
+                    category = state.category.trim(),
+                    // A bought item has no coverage and no ratio — those belong to the solution
+                    // it goes into. The columns are still on the row, left at nothing.
+                    dosingMode = DosingMode.COATS,
+                    minDoseGramsPerM2 = 0.0,
+                    maxDoseGramsPerM2 = 0.0,
+                    typicalDoseGramsPerM2 = 0.0,
+                    doseUnitLabel = "",
+                    rangeNote = "",
+                    sourceNote = "",
+                    datasheetUrl = state.datasheetUrl.trim(),
+                    ratioLabel = "",
+                    packageSize = state.packSizeText.toNumberOr(0.0),
+                    packageUnit = state.packUnit,
+                    packageType = state.packType,
+                    densityKgPerL = state.densityText.toNumberOr(0.0),
+                ),
             )
-            val components = state.components
-                .filter { it.label.isNotBlank() && it.ratioText.toNumberOrNull() != null }
-                .mapIndexed { index, row ->
-                    // Water is 1 kg/L whatever was typed, so nobody has to remember to fill it in.
-                    val typedDensity = row.densityKgPerLText.toNumberOrNull() ?: 0.0
-                    val densityValue = if (isWaterLabel(row.label)) 1.0 else typedDensity
-                    ProductComponentEntity(
-                        productId = 0,
-                        label = row.label.trim(),
-                        ratioParts = row.ratioText.toDouble(),
-                        basis = row.basis,
-                        // Kept in step with the numeric density so the detail screen's note and
-                        // the maths can never disagree.
-                        density = if (densityValue > 0.0) "${formatDecimal(densityValue, 3)} kg/L" else row.density.trim(),
-                        potLife = row.potLife.trim(),
-                        notes = row.notes.trim(),
-                        sortOrder = index,
-                        packageSize = row.packSizeText.toNumberOrNull() ?: 0.0,
-                        packageUnit = row.packUnit,
-                        packageType = row.packType,
-                        densityKgPerL = densityValue,
-                    )
-                }
-            productRepository.save(product, components)
             onSaved()
         }
     }

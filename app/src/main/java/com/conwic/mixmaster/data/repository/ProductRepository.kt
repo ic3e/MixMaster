@@ -20,6 +20,15 @@ class ProductRepository(private val productDao: ProductDao) {
 
     fun observeById(id: Long): Flow<ProductEntity?> = productDao.observeById(id)
 
+    suspend fun getById(id: Long): ProductEntity? = productDao.getById(id)
+
+    /** A bought item on its own: no mix, so no components. */
+    suspend fun saveProduct(product: ProductEntity): Long =
+        if (product.id == 0L) productDao.insertProduct(product) else {
+            productDao.updateProduct(product)
+            product.id
+        }
+
     fun observeBrands(): Flow<List<String>> = productDao.observeBrands()
 
     fun observeCategories(): Flow<List<String>> = productDao.observeCategories()

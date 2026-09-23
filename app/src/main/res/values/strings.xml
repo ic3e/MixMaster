@@ -573,4 +573,9 @@
     <string name="prj_colour">Colour</string>
     <string name="prj_colour_line">%1$s · %2$s against %3$s</string>
     <string name="prj_colour_rate">%1$s per kg of %2$s</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Give it a name so it can be found in a list.</string>
+    <string name="product_how_sold">How it is sold</string>
+    <string name="product_how_sold_explain">The pack is what gets ordered, carried and counted on the shelf. Density is what turns a weight into the litres a canister holds.</string>
 </resources>

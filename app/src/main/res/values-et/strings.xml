@@ -525,4 +525,9 @@
     <string name="prj_colour">Värv</string>
     <string name="prj_colour_line">%1$s · %2$s %3$s kohta</string>
     <string name="prj_colour_rate">%1$s iga %2$s kg kohta</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Anna nimi, et selle nimekirjast üles leiaks.</string>
+    <string name="product_how_sold">Kuidas müüakse</string>
+    <string name="product_how_sold_explain">Pakend on see, mida tellitakse, veetakse ja riiulil loetakse. Tihedus muudab kaalu liitriteks, mis nõusse mahuvad.</string>
 </resources>

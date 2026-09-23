@@ -525,4 +525,9 @@
     <string name="prj_colour">Väri</string>
     <string name="prj_colour_line">%1$s · %2$s per %3$s</string>
     <string name="prj_colour_rate">%1$s jokaista %2$s kiloa kohti</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Anna nimi, jotta sen löytää listalta.</string>
+    <string name="product_how_sold">Miten myydään</string>
+    <string name="product_how_sold_explain">Pakkaus on se, mikä tilataan, kannetaan ja lasketaan hyllyssä. Tiheys muuttaa painon litroiksi, joita astiaan mahtuu.</string>
 </resources>
