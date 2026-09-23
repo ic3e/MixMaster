@@ -234,6 +234,8 @@
     <string name="calc_each_full_batch">Each full batch:</string>
     <string name="calc_then_part_batch">Then one part batch:</string>
     <string name="calc_one_part_batch">One part batch:</string>
+    <string name="calc_add_to_last">Add to the last batch:</string>
+    <string name="calc_add_to_last_why">Too little to be worth a mixing of its own.</string>
     <string name="calc_log_usage">Log actual usage</string>
     <string name="calc_save_to_project">Save to project</string>
     <string name="calc_logged">Logged — this will feed the product\'s site average.</string>

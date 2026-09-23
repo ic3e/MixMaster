@@ -200,6 +200,8 @@
     <string name="calc_each_full_batch">Jokainen täysi erä:</string>
     <string name="calc_then_part_batch">Sitten yksi osittainen erä:</string>
     <string name="calc_one_part_batch">Yksi osittainen erä:</string>
+    <string name="calc_add_to_last">Lisää viimeiseen erään:</string>
+    <string name="calc_add_to_last_why">Liian vähän omaksi sekoitukseksi.</string>
     <string name="calc_log_usage">Kirjaa todellinen menekki</string>
     <string name="calc_save_to_project">Tallenna projektiin</string>
     <string name="calc_logged">Kirjattu — tämä menee tuotteen työmaakeskiarvoon.</string>

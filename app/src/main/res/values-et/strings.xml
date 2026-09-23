@@ -200,6 +200,8 @@
     <string name="calc_each_full_batch">Iga täiskogus:</string>
     <string name="calc_then_part_batch">Seejärel üks osaline kogus:</string>
     <string name="calc_one_part_batch">Üks osaline kogus:</string>
+    <string name="calc_add_to_last">Lisa viimasesse kogusesse:</string>
+    <string name="calc_add_to_last_why">Liiga vähe, et eraldi segada.</string>
     <string name="calc_log_usage">Salvesta tegelik kulu</string>
     <string name="calc_save_to_project">Salvesta projekti</string>
     <string name="calc_logged">Salvestatud — see läheb toote objektikeskmisesse.</string>

@@ -649,7 +649,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                             )
                         }
                         if (plan.batches > 0) {
-                            if (plan.remainderBatch != null) {
+                            if (plan.remainderBatch != null || plan.lastBatchExtra != null) {
                                 Text(
                                     text = stringResource(R.string.calc_each_full_batch),
                                     style = MaterialTheme.typography.bodyMedium,
@@ -667,6 +667,32 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                 }
                             }
                         }
+                        // Folded in rather than mixed on its own: named so the last drum still
+                        // gets everything, without anyone going back to weigh out a few grams.
+                        plan.lastBatchExtra?.let { extra ->
+                            Text(
+                                text = stringResource(R.string.calc_add_to_last),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                            extra.forEach { part ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
+                                }
+                            }
+                            Text(
+                                text = stringResource(R.string.calc_add_to_last_why),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+
                         plan.remainderBatch?.let { remainder ->
                             Text(
                                 text = stringResource(if (plan.batches > 0) R.string.calc_then_part_batch else R.string.calc_one_part_batch),

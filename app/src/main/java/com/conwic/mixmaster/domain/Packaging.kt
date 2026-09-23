@@ -47,6 +47,8 @@ data class BatchPlan(
     val batchSize: BatchSize,
     /** A smaller final batch, when batching by whole packs leaves a part bag over. */
     val remainderBatch: List<ComponentAmount>? = null,
+    /** A leftover too small to be worth its own mixing — it goes in with the last full batch. */
+    val lastBatchExtra: List<ComponentAmount>? = null,
     /** Volume one full batch takes up, when every part has a density. */
     val perBatchLitres: Double? = null,
     /** True when a batch wouldn't leave the requested mixing room — it would slop over. */
@@ -57,6 +59,15 @@ data class BatchPlan(
     /** Times the mixer actually gets loaded, counting the part batch at the end. */
     val totalMixes: Int get() = batches + if (remainderBatch != null) 1 else 0
 }
+
+/**
+ * How much of a pack can be left over before it is worth a mixing of its own.
+ *
+ * Two per cent: half a kilo out of a 25 kg bag makes about a litre of material, which is a
+ * patch rather than a batch, and adding it to the last drum changes that batch by a fortieth —
+ * less than the tolerance the dose itself is set to.
+ */
+const val SmallLeftover = 0.02
 
 /** What's actually mixable in a drum of [mixerLitres] once [headroomPercent] is left free. */
 fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
@@ -189,19 +200,29 @@ fun planBatches(
         val fullBatches = kotlin.math.floor(partKg / packSize).toInt()
         val remainderKg = partKg - fullBatches * packSize
         val fullShare = packSize / partKg
+        val remainderShare = remainderKg / partKg
         val packType = parts[index].packageType
+        val leftover = if (remainderKg > 0.001) {
+            result.components.map { ComponentAmount(it.label, it.grams * remainderShare) }
+        } else {
+            null
+        }
+        // Four grams over a whole bag is not a mixing. Anything under [SmallLeftover] of a pack
+        // goes in with the last full batch instead, where it disappears into the drum — sending
+        // someone back to the mixer to weigh out a few grams is how a batch gets skipped.
+        val foldsIn = leftover != null && fullBatches > 0 && remainderKg < packSize * SmallLeftover
         val batchLitres = totalLitres?.times(fullShare)
+        // The last batch is the big one when the leftover is folded into it, so that is the one
+        // the drum has to hold.
+        val biggestLitres = if (foldsIn) totalLitres?.times(fullShare + remainderShare) else batchLitres
         return BatchPlan(
             batches = fullBatches,
             perBatch = result.components.map { ComponentAmount(it.label, it.grams * fullShare) },
             batchSize = BatchSize.WholePack(formatDecimal(packSize, 2), packType),
-            remainderBatch = if (remainderKg > 0.001) {
-                result.components.map { ComponentAmount(it.label, it.grams * (remainderKg / partKg)) }
-            } else {
-                null
-            },
+            remainderBatch = if (foldsIn) null else leftover,
+            lastBatchExtra = if (foldsIn) leftover else null,
             perBatchLitres = batchLitres,
-            overflows = batchLitres != null && batchLitres > usable,
+            overflows = biggestLitres != null && biggestLitres > usable,
         )
     }
 
