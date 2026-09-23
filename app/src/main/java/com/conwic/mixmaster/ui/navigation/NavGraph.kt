@@ -85,7 +85,22 @@ fun MixMasterNavGraph(startDestination: String) {
                 }
             }
             composable(Routes.HOME) { Inset(insets) { HomeScreen(navController = navController) } }
-            composable(Routes.CALCULATOR) { Inset(insets) { CalculatorScreen(navController = navController) } }
+            composable(
+                route = Routes.CALCULATOR,
+                arguments = listOf(
+                    navArgument(Routes.CALCULATOR_PRODUCT) {
+                        type = NavType.LongType
+                        defaultValue = 0L
+                    },
+                ),
+            ) { entry ->
+                Inset(insets) {
+                    CalculatorScreen(
+                        navController = navController,
+                        productId = entry.arguments?.getLong(Routes.CALCULATOR_PRODUCT) ?: 0L,
+                    )
+                }
+            }
             composable(Routes.WAREHOUSE) {
                 Inset(insets) { WarehouseScreen(navController = navController) }
             }

@@ -44,8 +44,6 @@ import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.openableUrl
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
@@ -64,7 +62,6 @@ import com.conwic.mixmaster.R
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
     val container = LocalAppContainer.current
-    val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val viewModel: ProductDetailViewModel = viewModel(
         factory = viewModelFactory { initializer { ProductDetailViewModel(container.productRepository, productId) } },
@@ -177,12 +174,9 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 }
                 PrimaryButton(
                     text = stringResource(R.string.pd_use_in_calculator),
-                    onClick = {
-                        // Says which product before going there; the button used to open the
-                        // calculator on whatever happened to be selected already.
-                        scope.launch { container.userPrefs.setLastProductId(product.id) }
-                        navController.navigate(Routes.CALCULATOR)
-                    },
+                    // The product goes with the navigation, so the calculator opens on it
+                    // rather than on whatever was there last.
+                    onClick = { navController.navigate(Routes.calculator(product.id)) },
                     modifier = Modifier.weight(1f),
                 )
             }

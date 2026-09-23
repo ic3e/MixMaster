@@ -172,7 +172,7 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         item {
-            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.CALCULATOR) }) {
+            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.calculator()) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = stringResource(R.string.home_quick_calculate), style = MaterialTheme.typography.titleLarge, color = OnAccentCard)

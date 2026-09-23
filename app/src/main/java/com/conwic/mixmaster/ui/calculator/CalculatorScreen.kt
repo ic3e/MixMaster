@@ -56,6 +56,8 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.ui.components.FieldWeightWide
+import com.conwic.mixmaster.ui.components.FieldWeightNarrow
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -86,11 +88,13 @@ private fun perLabel(mode: DosingMode?): String =
     perLabelRes(mode)?.let { stringResource(it) } ?: ""
 
 @Composable
-fun CalculatorScreen(navController: NavHostController) {
+fun CalculatorScreen(navController: NavHostController, productId: Long = 0L) {
     val container = LocalAppContainer.current
     val uriHandler = LocalUriHandler.current
     val viewModel: CalculatorViewModel = viewModel(
-        factory = viewModelFactory { initializer { CalculatorViewModel(container.productRepository, container.userPrefs) } },
+        factory = viewModelFactory {
+            initializer { CalculatorViewModel(container.productRepository, container.userPrefs, productId) }
+        },
     )
     val allProducts by viewModel.products.collectAsState()
     val state by viewModel.uiState.collectAsState()
@@ -118,27 +122,34 @@ fun CalculatorScreen(navController: NavHostController) {
         }
 
         item {
-            // Same reason as the Products screen: a row of brand chips runs out of room as the
-            // catalogue grows, and whatever is off the right edge may as well not exist.
-            DropdownField(
-                label = stringResource(R.string.filter_brand),
-                selected = brandFilter,
-                options = brands,
-                onSelect = { brandFilter = it },
+            // Side by side, as on the Products screen. Dropdowns rather than chip rows for the
+            // same reason: the lists grow with the catalogue, and whatever is off the right
+            // edge may as well not exist. The product gets the wider half — its name is a
+            // brand and a product run together, where the brand filter is usually one word.
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-            )
-        }
-
-        item {
-            DropdownField(
-                label = stringResource(R.string.calc_product),
-                selected = state.selectedProduct?.product?.let { productLabel(it.brand, it.name) } ?: stringResource(R.string.calc_choose_product),
-                options = visibleProducts.map { productLabel(it.brand, it.name) },
-                onSelect = { label ->
-                    visibleProducts.firstOrNull { productLabel(it.brand, it.name) == label }?.let { viewModel.selectProduct(it.id) }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                DropdownField(
+                    label = stringResource(R.string.filter_brand),
+                    selected = brandFilter,
+                    options = brands,
+                    onSelect = { brandFilter = it },
+                    modifier = Modifier.weight(FieldWeightNarrow),
+                )
+                DropdownField(
+                    label = stringResource(R.string.calc_product),
+                    selected = state.selectedProduct?.product
+                        ?.let { productLabel(it.brand, it.name) }
+                        ?: stringResource(R.string.calc_choose_product),
+                    options = visibleProducts.map { productLabel(it.brand, it.name) },
+                    onSelect = { label ->
+                        visibleProducts.firstOrNull { productLabel(it.brand, it.name) == label }
+                            ?.let { viewModel.selectProduct(it.id) }
+                    },
+                    modifier = Modifier.weight(FieldWeightWide),
+                )
+            }
         }
 
         val data = state.selectedProduct

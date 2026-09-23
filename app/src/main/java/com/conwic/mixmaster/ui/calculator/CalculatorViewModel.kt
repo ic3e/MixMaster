@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -73,6 +74,8 @@ private data class CalculatorInputs(
 class CalculatorViewModel(
     private val productRepository: ProductRepository,
     private val userPrefs: UserPrefs,
+    /** The product this screen was opened for, or 0 when opened on its own. */
+    initialProductId: Long = 0L,
 ) : ViewModel() {
 
     /** Settings can turn the "leave the drum room" nudge off for people who've heard it. */
@@ -89,11 +92,16 @@ class CalculatorViewModel(
     private val inputs = MutableStateFlow(CalculatorInputs())
 
     init {
-        // Followed rather than read once: "Use in calculator" writes the id and navigates in the
-        // same breath, so the write can land after this screen is already up.
-        viewModelScope.launch {
-            userPrefs.lastProductId.collect { id ->
-                if (id > 0L && selectedProductId.value != id) selectProduct(id)
+        if (initialProductId > 0L) {
+            // Asked for by name. Nothing else gets to change it afterwards.
+            selectProduct(initialProductId)
+        } else {
+            // Opened on its own, so carry on with whatever was last worked on. Read once, not
+            // followed: the stored id was being echoed back after the screen was already up,
+            // which is what made the calculator open on one product and jump to another.
+            viewModelScope.launch {
+                val remembered = userPrefs.lastProductId.first()
+                if (remembered > 0L && selectedProductId.value == null) selectProduct(remembered)
             }
         }
     }

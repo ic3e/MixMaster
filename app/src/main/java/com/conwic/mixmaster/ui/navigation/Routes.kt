@@ -4,7 +4,15 @@ object Routes {
     const val SIGN_IN = "sign_in"
     const val ONBOARDING = "onboarding"
     const val HOME = "home"
-    const val CALCULATOR = "calculator"
+    /**
+     * The calculator, optionally opened for one product.
+     *
+     * Which product is carried by the navigation itself. It used to be left in a preference
+     * and picked up on the other side, which raced: the screen came up on whatever was stored,
+     * then jumped to the product actually asked for a beat later.
+     */
+    const val CALCULATOR = "calculator?productId={productId}"
+    const val CALCULATOR_PRODUCT = "productId"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "product/{productId}"
     const val PRODUCT_ADD = "product/add"
@@ -14,6 +22,9 @@ object Routes {
     const val CALENDAR = "calendar"
     const val WAREHOUSE = "warehouse"
     const val SETTINGS = "settings"
+
+    fun calculator(productId: Long = 0L): String =
+        if (productId > 0L) "calculator?productId=$productId" else "calculator"
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"
