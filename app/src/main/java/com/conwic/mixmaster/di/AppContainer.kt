@@ -5,6 +5,7 @@ import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
+import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.data.repository.TeamRepository
 
@@ -17,13 +18,14 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.getInstance(context)
     val userPrefs: UserPrefs = UserPrefs(context)
 
-    val productRepository: ProductRepository by lazy { ProductRepository(database.productDao(), database.usageLogDao()) }
+    val productRepository: ProductRepository by lazy { ProductRepository(database.productDao()) }
 
     val projectRepository: ProjectRepository by lazy {
         ProjectRepository(
             projectDao = database.projectDao(),
             floorDao = database.floorDao(),
             roomAreaDao = database.roomAreaDao(),
+            roomLayerDao = database.roomLayerDao(),
             taskDao = database.taskDao(),
             noteDao = database.noteDao(),
             photoDao = database.photoDao(),
@@ -31,6 +33,8 @@ class AppContainer(context: Context) {
     }
 
     val stockRepository: StockRepository by lazy { StockRepository(database.stockDao()) }
+
+    val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao(), database.usageLogDao()) }
 
     val teamRepository: TeamRepository by lazy { TeamRepository(database.teamMemberDao()) }
 }

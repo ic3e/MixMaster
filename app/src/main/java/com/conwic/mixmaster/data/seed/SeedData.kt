@@ -3,10 +3,13 @@ package com.conwic.mixmaster.data.seed
 import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.db.entity.FloorEntity
 import com.conwic.mixmaster.data.db.entity.NoteEntity
-import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
+import com.conwic.mixmaster.data.db.entity.SolutionLineRole
+import com.conwic.mixmaster.data.db.entity.SolutionLineEntity
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.DosingMode
@@ -209,11 +212,23 @@ object SeedData {
     suspend fun seed(db: AppDatabase) {
         val productDao = db.productDao()
         if (productDao.countAll() > 0) return
+        val solutionDao = db.solutionDao()
 
-        val productIds = mutableMapOf<String, Long>()
+        // One Water, the way a shed holds one, however many recipes call for it.
+        var waterId = 0L
+        suspend fun water(): Long {
+            if (waterId == 0L) {
+                waterId = productDao.insertProduct(
+                    boughtItem(brand = "", name = "Water", category = "Water", unit = "L", type = "canister", density = 1.0),
+                )
+            }
+            return waterId
+        }
+
+        val solutionIds = mutableMapOf<String, Long>()
         products.forEach { seedProduct ->
-            val id = productDao.insertProductWithComponents(
-                product = ProductEntity(
+            val solutionId = solutionDao.insert(
+                SolutionEntity(
                     brand = seedProduct.brand,
                     name = seedProduct.name,
                     category = seedProduct.category,
@@ -227,29 +242,69 @@ object SeedData {
                     datasheetUrl = seedProduct.datasheetUrl,
                     ratioLabel = seedProduct.ratioLabel,
                 ),
-                components = seedProduct.parts.mapIndexed { index, part ->
-                    ProductComponentEntity(
-                        productId = 0,
-                        label = part.label,
-                        ratioParts = part.ratio,
-                        basis = part.basis,
-                        density = part.density,
-                        potLife = part.potLife,
-                        notes = part.notes,
-                        sortOrder = index,
-                        // Water is the one density that needs no datasheet. Pack sizes are left
-                        // unset rather than guessed — they vary by supplier and market, so the
-                        // office fills in the ones they actually buy.
-                        densityKgPerL = if (isWaterLabel(part.label)) 1.0 else 0.0,
-                    )
-                },
             )
-            productIds[seedProduct.name] = id
+            seedProduct.parts.forEachIndexed { index, part ->
+                // Named after its parent, so two brands' "Powder" cannot be taken for one
+                // thing. Pack sizes are left unset rather than guessed — they vary by supplier
+                // and market, so the office fills in the ones they actually buy.
+                val productId = if (isWaterLabel(part.label)) {
+                    water()
+                } else {
+                    productDao.insertProduct(
+                        boughtItem(
+                            brand = seedProduct.brand,
+                            name = if (seedProduct.parts.size == 1) {
+                                seedProduct.name
+                            } else {
+                                "${seedProduct.name} ${part.label}"
+                            },
+                            category = seedProduct.category,
+                            unit = if (part.basis.equals("Volume", ignoreCase = true)) "L" else "kg",
+                            type = if (part.basis.equals("Volume", ignoreCase = true)) "canister" else "bag",
+                            density = 0.0,
+                        ),
+                    )
+                }
+                solutionDao.insertLine(
+                    SolutionLineEntity(
+                        solutionId = solutionId,
+                        productId = productId,
+                        label = part.label,
+                        role = SolutionLineRole.BASE,
+                        ratioParts = part.ratio,
+                        sortOrder = index,
+                    ),
+                )
+            }
+            solutionIds[seedProduct.name] = solutionId
         }
 
         seedDemoTeam(db)
-        seedDemoProject(db, productIds)
+        seedDemoProject(db, solutionIds)
     }
+
+    /** A thing you buy: no coverage, no ratio, because a bag of powder has neither. */
+    private fun boughtItem(
+        brand: String,
+        name: String,
+        category: String,
+        unit: String,
+        type: String,
+        density: Double,
+    ) = ProductEntity(
+        brand = brand,
+        name = name,
+        category = category,
+        dosingMode = DosingMode.COATS,
+        minDoseGramsPerM2 = 0.0,
+        maxDoseGramsPerM2 = 0.0,
+        typicalDoseGramsPerM2 = 0.0,
+        doseUnitLabel = "",
+        rangeNote = "",
+        packageUnit = unit,
+        packageType = type,
+        densityKgPerL = density,
+    )
 
     private suspend fun seedDemoTeam(db: AppDatabase) {
         val teamDao = db.teamMemberDao()
@@ -258,7 +313,7 @@ object SeedData {
         teamDao.insert(TeamMemberEntity(name = "Jaan Kask", email = "jaan@conwic.fi", role = Role.WORKER))
     }
 
-    private suspend fun seedDemoProject(db: AppDatabase, productIds: Map<String, Long>) {
+    private suspend fun seedDemoProject(db: AppDatabase, solutionIds: Map<String, Long>) {
         val projectId = db.projectDao().insert(
             ProjectEntity(
                 name = "Riverside Warehouse Floor",
@@ -276,15 +331,27 @@ object SeedData {
         val groundFloorId = db.floorDao().insert(FloorEntity(projectId = projectId, name = "Ground Floor", sortOrder = 0))
         val mezzanineId = db.floorDao().insert(FloorEntity(projectId = projectId, name = "Mezzanine", sortOrder = 1))
 
-        val baseCoatId = productIds["Microtopping® Base Coat"]
-        val finishCoatId = productIds["Microtopping® Finish Coat"]
+        val baseCoatId = solutionIds["Microtopping® Base Coat"] ?: 0L
+        val finishCoatId = solutionIds["Microtopping® Finish Coat"] ?: 0L
 
         val roomDao = db.roomAreaDao()
-        roomDao.insert(RoomAreaEntity(floorId = groundFloorId, projectId = projectId, name = "Bay 1", areaM2 = 1550.0, assignedProductId = baseCoatId, sortOrder = 0))
-        roomDao.insert(RoomAreaEntity(floorId = groundFloorId, projectId = projectId, name = "Bay 2", areaM2 = 1550.0, assignedProductId = baseCoatId, sortOrder = 1))
-        roomDao.insert(RoomAreaEntity(floorId = groundFloorId, projectId = projectId, name = "Loading Dock", areaM2 = 210.0, assignedProductId = null, sortOrder = 2))
-        roomDao.insert(RoomAreaEntity(floorId = mezzanineId, projectId = projectId, name = "Office", areaM2 = 85.0, assignedProductId = finishCoatId, sortOrder = 0))
-        roomDao.insert(RoomAreaEntity(floorId = mezzanineId, projectId = projectId, name = "Corridor", areaM2 = 40.0, assignedProductId = null, sortOrder = 1))
+        val layerDao = db.roomLayerDao()
+
+        // A real bay is a build-up: base coat, then finish. The demo says so.
+        suspend fun room(floorId: Long, name: String, area: Double, order: Int, coats: List<Long>) {
+            val roomId = roomDao.insert(
+                RoomAreaEntity(floorId = floorId, projectId = projectId, name = name, areaM2 = area, sortOrder = order),
+            )
+            coats.filter { it > 0L }.forEachIndexed { index, solutionId ->
+                layerDao.insert(RoomLayerEntity(roomId = roomId, solutionId = solutionId, sortOrder = index))
+            }
+        }
+
+        room(groundFloorId, "Bay 1", 1550.0, 0, listOf(baseCoatId, finishCoatId))
+        room(groundFloorId, "Bay 2", 1550.0, 1, listOf(baseCoatId))
+        room(groundFloorId, "Loading Dock", 210.0, 2, emptyList())
+        room(mezzanineId, "Office", 85.0, 0, listOf(finishCoatId))
+        room(mezzanineId, "Corridor", 40.0, 1, emptyList())
 
         val taskDao = db.taskDao()
         taskDao.insert(TaskEntity(projectId = projectId, title = "Apply Finish Coat — bay 2", dueDate = LocalDate.of(2026, 9, 19), priority = TaskPriority.HIGH))

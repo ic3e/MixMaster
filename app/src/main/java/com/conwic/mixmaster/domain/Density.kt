@@ -2,7 +2,6 @@ package com.conwic.mixmaster.domain
 
 import androidx.annotation.StringRes
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 
 /**
  * Solid quartz is 2.65 kg/L and set concrete about 2.4, so nothing that comes out of a bag, a
@@ -51,7 +50,7 @@ data class ImplausibleDensity(val label: String, val densityKgPerL: String)
  * Returns the offenders rather than a sentence, because the sentence has to be built in the
  * language the app is set to.
  */
-fun implausibleStoredDensities(components: List<ProductComponentEntity>): List<ImplausibleDensity> =
-    components
+fun implausibleStoredDensities(parts: List<MixPart>): List<ImplausibleDensity> =
+    parts
         .filter { effectiveDensityKgPerL(it) > MAX_PLAUSIBLE_DENSITY_KG_PER_L }
         .map { ImplausibleDensity(it.label, formatDecimal(it.densityKgPerL, 2)) }

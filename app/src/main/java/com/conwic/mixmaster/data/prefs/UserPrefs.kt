@@ -28,6 +28,7 @@ class UserPrefs(private val context: Context) {
         // What the calculator is working on. Stored rather than held in the view model so
         // "Use in calculator" can say which product before the calculator exists.
         val LAST_PRODUCT_ID = longPreferencesKey("last_product_id")
+        val LAST_SOLUTION_ID = longPreferencesKey("last_solution_id")
         // Was labelled "contextual tips"; it now drives the mixing reminders in the calculator.
         // The key is left alone so anyone who already turned it off stays turned off.
         val MIXING_REMINDERS = booleanPreferencesKey("tips_enabled")
@@ -66,8 +67,12 @@ class UserPrefs(private val context: Context) {
         context.dataStore.edit { it[Keys.LANGUAGE] = language.tag }
     }
 
-    /** The product the calculator should be on. 0 when nothing has been chosen yet. */
-    val lastProductId: Flow<Long> = context.dataStore.data.map { it[Keys.LAST_PRODUCT_ID] ?: 0L }
+    /** The mix the calculator should be on. 0 when nothing has been chosen yet. */
+    val lastSolutionId: Flow<Long> = context.dataStore.data.map { it[Keys.LAST_SOLUTION_ID] ?: 0L }
+
+    suspend fun setLastSolutionId(id: Long) {
+        context.dataStore.edit { it[Keys.LAST_SOLUTION_ID] = id }
+    }
 
     suspend fun setLastProductId(id: Long) {
         context.dataStore.edit { it[Keys.LAST_PRODUCT_ID] = id }

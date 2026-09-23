@@ -44,6 +44,15 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.domain.quantityOf
+import androidx.compose.ui.text.input.KeyboardType
+import com.conwic.mixmaster.ui.components.FormTextField
+import com.conwic.mixmaster.domain.toNumberOr
+import com.conwic.mixmaster.domain.CoatMix
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
+import com.conwic.mixmaster.data.db.entity.ProductEntity
 import java.time.Instant
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
@@ -190,18 +199,21 @@ fun TasksTab(
 @Composable
 fun LayoutTab(
     data: ProjectDetailData,
-    roomMixes: Map<Long, MixResult?>,
+    roomCoats: Map<Long, List<CoatMix>>,
     isEmployer: Boolean,
     role: Role,
     onAddFloor: (String) -> Unit,
     onAddRoom: (Long, String, Double) -> Unit,
-    onAssignProduct: (Long, Long?) -> Unit,
+    onAddCoat: (Long, Long, Long, Double, Double) -> Unit,
+    onRemoveCoat: (RoomLayerEntity) -> Unit,
+    onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
     onAddNote: (String, String, Role) -> Unit,
     onAddPhoto: (String) -> Unit,
     blueprintUri: String?,
     onSetBlueprint: (String) -> Unit,
 ) {
     var pickerRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
+    var colourCoat by remember { mutableStateOf<CoatMix?>(null) }
     var addFloorOpen by remember { mutableStateOf(false) }
     var addRoomForFloor by remember { mutableStateOf<Long?>(null) }
     var noteText by remember { mutableStateOf("") }
@@ -256,7 +268,7 @@ fun LayoutTab(
                     AccentStat(label = stringResource(R.string.prj_rooms_floors), value = "${data.rooms.size} · ${data.floors.size}")
                     AccentStat(
                         label = stringResource(R.string.prj_est_material),
-                        value = quantityFromGrams(roomMixes.values.filterNotNull().sumOf { it.totalGrams }).text,
+                        value = quantityFromGrams(roomCoats.values.flatten().sumOf { it.totalGrams }).text,
                     )
                 }
             }
@@ -280,28 +292,96 @@ fun LayoutTab(
                     }
                 }
                 data.rooms.filter { it.floorId == floor.id }.forEach { room ->
-                    val mix = roomMixes[room.id]
-                    val productName = data.products.firstOrNull { it.id == room.assignedProductId }?.name
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = isEmployer) { pickerRoom = room }
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
-                            Text(text = room.name, style = MaterialTheme.typography.bodyMedium)
+                    val coats = roomCoats[room.id].orEmpty()
+                    Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(text = room.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                             Text(
-                                text = "${formatArea(room.areaM2)} m²" + if (mix != null) " · ${quantityFromGrams(mix.totalGrams).text}" else "",
+                                text = "${formatArea(room.areaM2)} m²" +
+                                    if (coats.isNotEmpty()) " · ${quantityFromGrams(coats.sumOf { it.totalGrams }).text}" else "",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        Text(
-                            text = productName ?: if (isEmployer) stringResource(R.string.prj_assign) else stringResource(R.string.prj_unassigned),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        if (coats.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.prj_no_coats),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        coats.forEachIndexed { index, coat ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "${index + 1}. ${coat.title}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    Text(
+                                        text = stringResource(
+                                            R.string.prj_coat_rate,
+                                            formatDecimal(coat.doseGramsPerM2, 1),
+                                            quantityFromGrams(coat.totalGrams).text,
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (isEmployer) {
+                                    Text(
+                                        text = stringResource(R.string.action_remove),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.tappableText { onRemoveCoat(coat.layer) },
+                                    )
+                                }
+                            }
+                            val colour = coat.colour
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(start = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(
+                                    text = if (colour == null) {
+                                        stringResource(R.string.prj_no_colour)
+                                    } else {
+                                        stringResource(
+                                            R.string.prj_colour_line,
+                                            colour.name,
+                                            quantityOf(colour.amount, colour.unit).text,
+                                            colour.againstLabel,
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (colour == null) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.secondary
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (isEmployer) {
+                                    Text(
+                                        text = stringResource(R.string.prj_set_colour),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.tappableText { colourCoat = coat },
+                                    )
+                                }
+                            }
+                        }
+                        if (isEmployer) {
+                            Text(
+                                text = stringResource(R.string.prj_add_coat),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 8.dp).tappableText { pickerRoom = room },
+                            )
+                        }
                     }
                 }
             }
@@ -391,12 +471,35 @@ fun LayoutTab(
     addRoomForFloor?.let { floorId ->
         AddRoomSheet(onDismiss = { addRoomForFloor = null }, onAdd = { name, area -> onAddRoom(floorId, name, area); addRoomForFloor = null })
     }
-    pickerRoom?.let { room ->
-        ProductPickerSheet(
+    colourCoat?.let { coat ->
+        ColourSheet(
+            coat = coat,
             products = data.products,
-            currentProductId = room.assignedProductId,
+            onDismiss = { colourCoat = null },
+            onClear = {
+                onSetCoatColour(coat.layer, 0L, 0.0, "kg", 0)
+                colourCoat = null
+            },
+            onSet = { product, rate, againstIndex ->
+                onSetCoatColour(coat.layer, product.id, rate, product.packageUnit, againstIndex)
+                colourCoat = null
+            },
+        )
+    }
+
+    pickerRoom?.let { room ->
+        CoatPickerSheet(
+            solutions = data.solutions,
+            products = data.products,
             onDismiss = { pickerRoom = null },
-            onPick = { productId -> onAssignProduct(room.id, productId); pickerRoom = null },
+            onPickSolution = { solution ->
+                onAddCoat(room.id, solution.id, 0L, 0.0, 1.0)
+                pickerRoom = null
+            },
+            onPickProduct = { product, dose ->
+                onAddCoat(room.id, 0L, product.id, dose, 1.0)
+                pickerRoom = null
+            },
         )
     }
 }
@@ -489,26 +592,147 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
     }
 }
 
+/**
+ * Which colour this coat is tinted with, and at what rate.
+ *
+ * Asked on the room because that is where it is decided: the same topping goes down ocra in one
+ * bay and grey in the next. The rate says which part it is measured against, so a pigment given
+ * as "28 g per kg of polymer" stays that and is not quietly re-based on the whole batch.
+ */
 @Composable
-private fun ProductPickerSheet(
-    products: List<com.conwic.mixmaster.data.db.entity.ProductEntity>,
-    currentProductId: Long?,
+private fun ColourSheet(
+    coat: CoatMix,
+    products: List<ProductEntity>,
     onDismiss: () -> Unit,
-    onPick: (Long?) -> Unit,
+    onClear: () -> Unit,
+    onSet: (ProductEntity, Double, Int) -> Unit,
 ) {
+    var chosen by remember { mutableStateOf(products.firstOrNull { it.id == coat.layer.colourProductId }) }
+    var rate by remember {
+        mutableStateOf(
+            if (coat.layer.colourAmountPerKg > 0.0) formatDecimal(coat.layer.colourAmountPerKg * 1000, 1) else "",
+        )
+    }
+    var againstIndex by remember { mutableStateOf(coat.layer.colourAgainstIndex) }
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(text = stringResource(R.string.prj_assign_product), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(bottom = 8.dp))
+            Text(text = stringResource(R.string.prj_set_colour), style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = stringResource(R.string.prj_no_product),
-                modifier = Modifier.fillMaxWidth().clickable { onPick(null) }.padding(vertical = 12.dp),
-                color = if (currentProductId == null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                text = coat.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 10.dp),
             )
-            products.forEach { product ->
+            DropdownField(
+                label = stringResource(R.string.prj_colour),
+                selected = chosen?.name ?: stringResource(R.string.prj_no_colour),
+                options = products.map { it.name },
+                onSelect = { name -> chosen = products.firstOrNull { it.name == name } },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val partLabels = coat.parts.map { it.label }
+            if (partLabels.size > 1) {
+                DropdownField(
+                    label = stringResource(R.string.calc_measured_against),
+                    selected = partLabels.getOrNull(againstIndex) ?: partLabels.first(),
+                    options = partLabels,
+                    onSelect = { label -> againstIndex = partLabels.indexOf(label).coerceAtLeast(0) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+            }
+            FormTextField(
+                value = rate,
+                onValueChange = { rate = it },
+                label = stringResource(
+                    R.string.prj_colour_rate,
+                    if (chosen?.packageUnit == "L") "ml" else "g",
+                    partLabels.getOrNull(againstIndex) ?: "",
+                ),
+                keyboardType = KeyboardType.Decimal,
+                modifier = Modifier.padding(top = 10.dp),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                GhostButton(
+                    text = stringResource(R.string.prj_no_colour),
+                    onClick = onClear,
+                    modifier = Modifier.weight(1f),
+                )
+                PrimaryButton(
+                    text = stringResource(R.string.action_save),
+                    onClick = {
+                        // Typed in grams per kilo, held in kilos per kilo, the way every other
+                        // rate in the app is.
+                        chosen?.let { onSet(it, rate.toNumberOr(0.0) / 1000.0, againstIndex) }
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoatPickerSheet(
+    solutions: List<SolutionEntity>,
+    products: List<ProductEntity>,
+    onDismiss: () -> Unit,
+    onPickSolution: (SolutionEntity) -> Unit,
+    onPickProduct: (ProductEntity, Double) -> Unit,
+) {
+    var productFor by remember { mutableStateOf<ProductEntity?>(null) }
+    var dose by remember { mutableStateOf("") }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            val chosen = productFor
+            if (chosen == null) {
                 Text(
-                    text = "${product.brand} — ${product.name}",
-                    modifier = Modifier.fillMaxWidth().clickable { onPick(product.id) }.padding(vertical = 12.dp),
-                    color = if (currentProductId == product.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    text = stringResource(R.string.prj_add_coat),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+                Text(
+                    text = stringResource(R.string.prj_coat_pick_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 10.dp),
+                )
+                SectionLabel(text = stringResource(R.string.prj_solutions))
+                solutions.forEach { solution ->
+                    Text(
+                        text = if (solution.brand.isBlank()) solution.name else "${solution.brand} — ${solution.name}",
+                        modifier = Modifier.fillMaxWidth().clickable { onPickSolution(solution) }.padding(vertical = 12.dp),
+                    )
+                }
+                SectionLabel(text = stringResource(R.string.prj_straight_from_the_tin))
+                products.forEach { product ->
+                    Text(
+                        text = if (product.brand.isBlank()) product.name else "${product.brand} — ${product.name}",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { productFor = product; dose = "" }
+                            .padding(vertical = 12.dp),
+                    )
+                }
+            } else {
+                // A product laid as it comes has no recipe to take a coverage from, so it has
+                // to be said here.
+                Text(text = chosen.name, style = MaterialTheme.typography.headlineMedium)
+                FormTextField(
+                    value = dose,
+                    onValueChange = { dose = it },
+                    label = stringResource(R.string.prj_coat_coverage),
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                PrimaryButton(
+                    text = stringResource(R.string.prj_add_coat),
+                    onClick = { onPickProduct(chosen, dose.toNumberOr(0.0)) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 )
             }
         }
@@ -518,12 +742,12 @@ private fun ProductPickerSheet(
 @Composable
 fun MaterialsTab(
     data: ProjectDetailData,
-    roomMixes: Map<Long, MixResult?>,
-    materials: List<ProjectPart>,
+    roomCoats: Map<Long, List<CoatMix>>,
+    materials: List<ProjectMaterial>,
     onTakeOutOfStock: () -> Unit,
 ) {
-    val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
-    val loggedRooms = data.rooms.filter { roomMixes[it.id] != null }
+    val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
+    val laidRooms = data.rooms.filter { roomCoats[it.id].orEmpty().isNotEmpty() }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -550,29 +774,35 @@ fun MaterialsTab(
             }
         }
 
-        items(materials) { part ->
+        items(materials) { material ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = part.stock.label, style = MaterialTheme.typography.titleMedium)
-                    Text(text = part.productName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = material.name, style = MaterialTheme.typography.titleMedium)
+                    if (material.stock.brand.isNotBlank()) {
+                        Text(
+                            text = material.stock.brand,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 MaterialRow(
                     label = stringResource(R.string.prj_need),
-                    value = "${formatDecimal(part.need, 2)} ${part.stock.packUnit}",
+                    value = "${formatDecimal(material.need, 2)} ${material.stock.packUnit}",
                 )
                 MaterialRow(
                     label = stringResource(R.string.prj_in_stock),
-                    value = "${formatDecimal(part.available, 2)} ${part.stock.packUnit}",
+                    value = "${formatDecimal(material.available, 2)} ${material.stock.packUnit}",
                 )
-                val packs = part.packsToOrder
+                val packs = material.packsToOrder
                 MaterialRow(
                     label = stringResource(R.string.prj_to_order),
                     value = when {
-                        part.shortfall <= 0.0 -> stringResource(R.string.prj_nothing_to_order)
-                        packs != null -> stringResource(R.string.wh_order_packs, packs, part.stock.packType)
-                        else -> "${formatDecimal(part.shortfall, 2)} ${part.stock.packUnit}"
+                        material.shortfall <= 0.0 -> stringResource(R.string.prj_nothing_to_order)
+                        packs != null -> stringResource(R.string.wh_order_packs, packs, material.stock.packType)
+                        else -> "${formatDecimal(material.shortfall, 2)} ${material.stock.packUnit}"
                     },
-                    strong = part.shortfall > 0.0,
+                    strong = material.shortfall > 0.0,
                 )
             }
         }
@@ -601,22 +831,30 @@ fun MaterialsTab(
         }
 
         item { SectionLabel(text = stringResource(R.string.prj_materials_logged)) }
-        if (loggedRooms.isEmpty()) {
+        if (laidRooms.isEmpty()) {
             item { Text(text = stringResource(R.string.prj_no_assigned), style = MaterialTheme.typography.bodyMedium) }
         }
-        items(loggedRooms) { room ->
-            val mix = roomMixes[room.id]!!
-            val productName = data.products.firstOrNull { it.id == room.assignedProductId }?.name ?: stringResource(R.string.calc_product)
+        items(laidRooms) { room ->
+            val coats = roomCoats[room.id].orEmpty()
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = productName, style = MaterialTheme.typography.titleMedium)
-                    Text(text = quantityFromGrams(mix.totalGrams).text, style = MaterialTheme.typography.titleMedium)
+                    Text(text = room.name, style = MaterialTheme.typography.titleMedium)
+                    Text(text = quantityFromGrams(coats.sumOf { it.totalGrams }).text, style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
-                    text = "${room.name} · ${formatArea(room.areaM2)} m² · " + mix.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" },
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "${formatArea(room.areaM2)} m²",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                coats.forEachIndexed { index, coat ->
+                    Text(
+                        text = "${index + 1}. ${coat.title} · " +
+                            coat.result.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
         }
     }

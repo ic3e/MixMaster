@@ -15,7 +15,7 @@ import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
-import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.domain.CoatMix
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.quantityFromGrams
 import java.io.File
@@ -36,7 +36,7 @@ object ReportGenerator {
         context: Context,
         project: ProjectEntity,
         rooms: List<RoomAreaEntity>,
-        roomMixes: Map<Long, MixResult?>,
+        roomCoats: Map<Long, List<CoatMix>>,
         products: List<ProductEntity>,
         tasks: List<TaskEntity>,
     ): Uri {
@@ -85,20 +85,26 @@ object ReportGenerator {
         newPageIfNeeded(24f)
         canvas.drawText(context.getString(R.string.report_rooms), MARGIN, y, titlePaint)
         y += 18f
-        val totalGrams = roomMixes.values.filterNotNull().sumOf { it.totalGrams }
+        val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
         for (room in rooms) {
             newPageIfNeeded(30f)
-            val mix = roomMixes[room.id]
-            val productName = products.firstOrNull { it.id == room.assignedProductId }?.name ?: context.getString(R.string.prj_unassigned)
+            val coats = roomCoats[room.id].orEmpty()
             canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
             y += 13f
-            val detail = if (mix != null) {
-                "$productName · ${quantityFromGrams(mix.totalGrams).text} (" + mix.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
+            if (coats.isEmpty()) {
+                canvas.drawText(context.getString(R.string.prj_unassigned), MARGIN + 12f, y, dimPaint)
+                y += 18f
             } else {
-                productName
+                // A floor is a build-up, so the report reads as one: every coat, in order.
+                coats.forEachIndexed { index, coat ->
+                    newPageIfNeeded(16f)
+                    val detail = "${index + 1}. ${coat.title} · ${quantityFromGrams(coat.totalGrams).text} (" +
+                        coat.result.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
+                    canvas.drawText(detail, MARGIN + 12f, y, dimPaint)
+                    y += 14f
+                }
+                y += 4f
             }
-            canvas.drawText(detail, MARGIN + 12f, y, dimPaint)
-            y += 18f
         }
         newPageIfNeeded(20f)
         canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 10f, bold = true))

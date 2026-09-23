@@ -1,11 +1,11 @@
 package com.conwic.mixmaster.domain
 
-import com.conwic.mixmaster.data.db.dao.ProductWithComponents
-import com.conwic.mixmaster.data.model.DosingMode
 
 data class ComponentAmount(
     val label: String,
     val grams: Double,
+    /** The bought item this part is, so the warehouse can be asked about it by name. */
+    val productId: Long = 0L,
 )
 
 data class MixResult(
@@ -21,26 +21,23 @@ data class MixResult(
 object MixCalculator {
 
     /**
-     * @param quantity meaning depends on [ProductWithComponents.product]'s dosing mode:
-     *  - [DosingMode.COATS] → number of coats (e.g. 2.0 for two coats)
-     *  - [DosingMode.POUR] → number of pours (usually 1.0)
-     *  - [DosingMode.MM] → thickness in millimetres (e.g. 5.0 for a 5mm self-levelling pour)
-     * @param doseGramsPerM2 the per-m² dose to use — defaults to the product's typical (midpoint
-     *  of its datasheet range), but the calculator screen lets it be nudged within that range.
+     * @param parts the solution's parts, already resolved to the products they name
+     * @param quantity coats, pours or millimetres, depending on the solution's dosing mode
+     * @param doseGramsPerM2 the per-m² dose of the mixed material
      */
     fun compute(
-        productWithComponents: ProductWithComponents,
+        parts: List<MixPart>,
         areaM2: Double,
         quantity: Double,
-        doseGramsPerM2: Double = productWithComponents.product.typicalDoseGramsPerM2,
+        doseGramsPerM2: Double,
     ): MixResult {
         val rawTotalGrams = doseGramsPerM2 * areaM2 * quantity
-        val components = productWithComponents.components
-        val ratioSum = components.sumOf { it.ratioParts }.takeIf { it > 0.0 } ?: 1.0
-        val amounts = components.map { component ->
+        val ratioSum = parts.sumOf { it.ratioParts }.takeIf { it > 0.0 } ?: 1.0
+        val amounts = parts.map { part ->
             ComponentAmount(
-                label = component.label,
-                grams = toScale(rawTotalGrams * (component.ratioParts / ratioSum)),
+                label = part.label,
+                grams = toScale(rawTotalGrams * (part.ratioParts / ratioSum)),
+                productId = part.productId,
             )
         }
         // Total is the sum of the snapped parts, so what's weighed out always adds up to the

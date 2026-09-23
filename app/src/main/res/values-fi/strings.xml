@@ -503,4 +503,50 @@
     <string name="prj_materials_taken">Otettu varastosta %1$s</string>
     <string name="home_check_warehouse">Tarkista varasto</string>
     <string name="home_check_warehouse_sub">Hyllyssä ei riitä: %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">Ei vielä kerroksia.</string>
+    <string name="prj_add_coat">+ Lisää kerros</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">Seos tai tuote sellaisenaan.</string>
+    <string name="prj_solutions">Seokset</string>
+    <string name="prj_straight_from_the_tin">Suoraan astiasta</string>
+    <string name="prj_coat_coverage">Menekki (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Myydään</string>
+    <string name="pd_density_unknown">Ei asetettu</string>
+    <string name="pd_used_in">Käytössä seoksissa</string>
+    <string name="pd_used_in_nothing">Mikään seos ei käytä tätä vielä.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">Ei väriä</string>
+    <string name="prj_set_colour">Aseta väri</string>
+    <string name="prj_colour">Väri</string>
+    <string name="prj_colour_line">%1$s · %2$s per %3$s</string>
+    <string name="prj_colour_rate">%1$s jokaista %2$s kiloa kohti</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Anna nimi, jotta sen löytää listalta.</string>
+    <string name="product_how_sold">Miten myydään</string>
+    <string name="product_how_sold_explain">Pakkaus on se, mikä tilataan, kannetaan ja lasketaan hyllyssä. Tiheys muuttaa painon litroiksi, joita astiaan mahtuu.</string>
+
+    <!-- Solutions -->
+    <string name="solution_add">Uusi seos</string>
+    <string name="solution_edit">Muokkaa seosta</string>
+    <string name="solution_name">Seoksen nimi</string>
+    <string name="solution_save">Tallenna seos</string>
+    <string name="solution_whats_in_it">Mitä siihen tulee</string>
+    <string name="solution_parts_explain">Jokainen rivi on tuote ja montako osaa sitä tulee. 100 osaa jauhetta 21 osaan vettä tarkoittaa juuri sitä, punnitsit millä tahansa.</string>
+    <string name="solution_line_product">Tuote</string>
+    <string name="solution_line_choose">Valitse tuote</string>
+    <string name="solution_line_label">Nimitys</string>
+    <string name="solution_line_label_hint">Tyhjänä käytetään tuotteen nimeä</string>
+    <string name="solution_problem_no_name">Anna nimi, jotta sen löytää listalta.</string>
+    <string name="solution_problem_no_parts">Lisää ainakin yksi tuote.</string>
+    <string name="solution_problem_no_ratio">Kerro montako osaa kutakin tulee.</string>
+    <string name="solution_problem_no_dose">Syötä menekki, tai jokainen seos laskee nollaksi.</string>
+    <string name="products_tab_products">Tuotteet</string>
+    <string name="products_tab_solutions">Seokset</string>
+    <string name="products_solutions_explain">Seos on resepti: mitkä tuotteet siihen tulevat, missä suhteessa ja paljonko se kattaa.</string>
 </resources>

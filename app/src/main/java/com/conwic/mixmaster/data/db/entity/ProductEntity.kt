@@ -52,6 +52,16 @@ data class ProductEntity(
     /** "kg" or "L" — what [addOnAmountPerKg] counts. */
     @ColumnInfo(defaultValue = "kg") val addOnUnit: String = "kg",
     val isArchived: Boolean = false,
+    /**
+     * How this product is sold — 20.0 for a 20 kg bag, 10.0 for a 10 L canister. 0 means
+     * nobody has told the app yet. Packaging belongs to the product, not to a mix: it is the
+     * thing that is ordered, carried and counted on the shelf.
+     */
+    @ColumnInfo(defaultValue = "0") val packageSize: Double = 0.0,
+    @ColumnInfo(defaultValue = "kg") val packageUnit: String = "kg",
+    @ColumnInfo(defaultValue = "bag") val packageType: String = "bag",
+    /** kg per litre, for turning a weight into the litres a canister is sold in. 0 = unknown. */
+    @ColumnInfo(defaultValue = "0") val densityKgPerL: Double = 0.0,
 )
 
 @Entity(

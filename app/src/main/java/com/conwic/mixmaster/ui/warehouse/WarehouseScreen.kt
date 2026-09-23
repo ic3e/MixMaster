@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,7 +31,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.domain.PartStock
+import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.ui.LocalAppContainer
@@ -41,15 +42,15 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.SectionLabel
-import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.theme.CardShape
 
 /**
- * What is actually in the shed, part by part.
+ * What is actually in the shed.
  *
- * Counted in packs because that is what is on the racks, with the kilos or litres worked out
- * from the pack size the product already carries. A job books its material the moment a product
- * is put on one of its rooms, so what is left over — free — is the figure that decides whether
- * anything has to be ordered.
+ * Counted in packs, because that is what is on the racks, with the kilos or litres worked out
+ * from the pack size the product carries. A job books its material the moment a coat is put on
+ * one of its rooms, so what is left over is the figure that decides whether anything has to be
+ * ordered.
  */
 @Composable
 fun WarehouseScreen(navController: NavHostController) {
@@ -60,13 +61,14 @@ fun WarehouseScreen(navController: NavHostController) {
                 WarehouseViewModel(
                     container.productRepository,
                     container.projectRepository,
+                    container.solutionRepository,
                     container.stockRepository,
                 )
             }
         },
     )
     val state by viewModel.uiState.collectAsState()
-    var counting by remember { mutableStateOf<Pair<WarehouseProduct, PartStock>?>(null) }
+    var counting by remember { mutableStateOf<ProductStock?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -90,19 +92,19 @@ fun WarehouseScreen(navController: NavHostController) {
                         color = OnAccentCard.copy(alpha = 0.85f),
                         modifier = Modifier.padding(bottom = 6.dp),
                     )
-                    toOrder.forEach { (item, part) ->
+                    toOrder.forEach { item ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
-                                text = "${item.product.name} · ${part.label}",
+                                text = item.name,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = OnAccentCard,
                                 modifier = Modifier.weight(1f).padding(end = 8.dp),
                             )
                             Text(
-                                text = orderText(part),
+                                text = orderText(item),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = OnAccentCard,
                                 fontWeight = FontWeight.ExtraBold,
@@ -125,47 +127,65 @@ fun WarehouseScreen(navController: NavHostController) {
 
         item { SectionLabel(text = stringResource(R.string.wh_on_the_shelf)) }
 
-        if (state.products.isEmpty()) {
+        if (state.items.isEmpty()) {
             item { Text(text = stringResource(R.string.wh_empty), style = MaterialTheme.typography.bodyMedium) }
         }
 
-        items(state.products.size) { index ->
-            val item = state.products[index]
-            CardFlat {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navController.navigate(Routes.productDetail(item.product.id)) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    BrandPill(text = item.product.brand)
+        items(state.items.size) { index ->
+            val item = state.items[index]
+            CardFlat(
+                modifier = Modifier
+                    .clip(CardShape)
+                    .clickable { counting = item },
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    if (item.brand.isNotBlank()) BrandPill(text = item.brand)
                     Text(
-                        text = item.product.name,
+                        text = item.name,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f).padding(start = 10.dp),
+                        modifier = Modifier.weight(1f).padding(start = if (item.brand.isNotBlank()) 10.dp else 0.dp),
+                    )
+                    Text(text = onHandText(item), style = MaterialTheme.typography.titleMedium)
+                }
+                if (item.bookings.isNotEmpty()) {
+                    Text(
+                        text = stringResource(
+                            R.string.wh_booked_for,
+                            item.bookings.joinToString(", ") { it.projectName },
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                    Text(
+                        text = if (item.short > 0.0) {
+                            stringResource(R.string.wh_short_by, amountText(item.short, item.packUnit))
+                        } else {
+                            stringResource(R.string.wh_in_stock, amountText(item.free, item.packUnit))
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (item.short > 0.0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (item.parts.isEmpty()) {
+                if (!item.isKnownPack) {
                     Text(
-                        text = stringResource(R.string.wh_no_parts),
+                        text = stringResource(R.string.wh_no_pack_size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp),
+                        modifier = Modifier.padding(top = 6.dp),
                     )
-                }
-                item.parts.forEach { part ->
-                    PartRow(part = part, onCount = { counting = item to part })
                 }
             }
         }
     }
 
-    counting?.let { (item, part) ->
+    counting?.let { item ->
         CountDialog(
-            part = part,
+            item = item,
             onDismiss = { counting = null },
             onSave = { packs, open ->
-                viewModel.setStock(item.product.id, part.componentId, packs, open)
+                viewModel.setStock(item.productId, packs, open)
                 counting = null
             },
         )
@@ -173,55 +193,13 @@ fun WarehouseScreen(navController: NavHostController) {
 }
 
 @Composable
-private fun PartRow(part: PartStock, onCount: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onCount)
-            .padding(top = 10.dp),
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = part.label, style = MaterialTheme.typography.titleMedium)
-            Text(text = onHandText(part), style = MaterialTheme.typography.titleMedium)
-        }
-        if (part.bookings.isNotEmpty()) {
-            Text(
-                text = stringResource(
-                    R.string.wh_booked_for,
-                    part.bookings.joinToString(", ") { it.projectName },
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = if (part.short > 0.0) {
-                    stringResource(R.string.wh_short_by, amountText(part.short, part.packUnit))
-                } else {
-                    stringResource(R.string.wh_in_stock, amountText(part.free, part.packUnit))
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (part.short > 0.0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (!part.isKnownPack) {
-            Text(
-                text = stringResource(R.string.wh_no_pack_size),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CountDialog(part: PartStock, onDismiss: () -> Unit, onSave: (Int, Double) -> Unit) {
-    var packs by remember { mutableStateOf(if (part.fullPacks > 0) part.fullPacks.toString() else "") }
-    var open by remember { mutableStateOf(if (part.openAmount > 0.0) formatDecimal(part.openAmount, 2) else "") }
+private fun CountDialog(item: ProductStock, onDismiss: () -> Unit, onSave: (Int, Double) -> Unit) {
+    var packs by remember { mutableStateOf(if (item.fullPacks > 0) item.fullPacks.toString() else "") }
+    var open by remember { mutableStateOf(if (item.openAmount > 0.0) formatDecimal(item.openAmount, 2) else "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = part.label) },
+        title = { Text(text = item.name) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 FormTextField(
@@ -229,12 +207,12 @@ private fun CountDialog(part: PartStock, onDismiss: () -> Unit, onSave: (Int, Do
                     onValueChange = { packs = it },
                     label = stringResource(R.string.wh_full_packs),
                     keyboardType = KeyboardType.Number,
-                    hint = if (part.isKnownPack) {
+                    hint = if (item.isKnownPack) {
                         stringResource(
                             R.string.wh_pack_of,
-                            formatDecimal(part.packSize, 2),
-                            part.packUnit,
-                            part.packType,
+                            formatDecimal(item.packSize, 2),
+                            item.packUnit,
+                            item.packType,
                         )
                     } else {
                         stringResource(R.string.wh_no_pack_size)
@@ -243,7 +221,7 @@ private fun CountDialog(part: PartStock, onDismiss: () -> Unit, onSave: (Int, Do
                 FormTextField(
                     value = open,
                     onValueChange = { open = it },
-                    label = stringResource(R.string.wh_open_pack, part.packUnit),
+                    label = stringResource(R.string.wh_open_pack, item.packUnit),
                     keyboardType = KeyboardType.Decimal,
                     hint = stringResource(R.string.wh_open_pack_hint),
                 )
@@ -262,23 +240,23 @@ private fun CountDialog(part: PartStock, onDismiss: () -> Unit, onSave: (Int, Do
 
 /** "3 bags · 62.5 kg", or just the amount when nobody has said what a pack holds. */
 @Composable
-private fun onHandText(part: PartStock): String = when {
-    !part.isKnownPack -> amountText(part.onHand, part.packUnit)
+private fun onHandText(item: ProductStock): String = when {
+    !item.isKnownPack -> amountText(item.onHand, item.packUnit)
     else -> stringResource(
         R.string.wh_packs_and_amount,
-        part.fullPacks,
-        part.packType,
-        amountText(part.onHand, part.packUnit),
+        item.fullPacks,
+        item.packType,
+        amountText(item.onHand, item.packUnit),
     )
 }
 
 @Composable
-private fun orderText(part: PartStock): String {
-    val packs = part.packsToOrder
+private fun orderText(item: ProductStock): String {
+    val packs = item.packsToOrder
     return if (packs != null && packs > 0) {
-        stringResource(R.string.wh_order_packs, packs, part.packType)
+        stringResource(R.string.wh_order_packs, packs, item.packType)
     } else {
-        amountText(part.short, part.packUnit)
+        amountText(item.short, item.packUnit)
     }
 }
 

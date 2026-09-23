@@ -503,4 +503,50 @@
     <string name="prj_materials_taken">Laost välja võetud %1$s</string>
     <string name="home_check_warehouse">Kontrolli ladu</string>
     <string name="home_check_warehouse_sub">Riiulil ei jätku: %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">Kihte veel ei ole.</string>
+    <string name="prj_add_coat">+ Lisa kiht</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">Segu või toode, mis läheb peale nii nagu on.</string>
+    <string name="prj_solutions">Segud</string>
+    <string name="prj_straight_from_the_tin">Otse nõust</string>
+    <string name="prj_coat_coverage">Kulu (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Müüakse</string>
+    <string name="pd_density_unknown">Määramata</string>
+    <string name="pd_used_in">Kasutusel segudes</string>
+    <string name="pd_used_in_nothing">Ükski segu ei kasuta seda veel.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">Värvita</string>
+    <string name="prj_set_colour">Määra värv</string>
+    <string name="prj_colour">Värv</string>
+    <string name="prj_colour_line">%1$s · %2$s %3$s kohta</string>
+    <string name="prj_colour_rate">%1$s iga %2$s kg kohta</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Anna nimi, et selle nimekirjast üles leiaks.</string>
+    <string name="product_how_sold">Kuidas müüakse</string>
+    <string name="product_how_sold_explain">Pakend on see, mida tellitakse, veetakse ja riiulil loetakse. Tihedus muudab kaalu liitriteks, mis nõusse mahuvad.</string>
+
+    <!-- Solutions -->
+    <string name="solution_add">Uus segu</string>
+    <string name="solution_edit">Muuda segu</string>
+    <string name="solution_name">Segu nimi</string>
+    <string name="solution_save">Salvesta segu</string>
+    <string name="solution_whats_in_it">Mis sinna läheb</string>
+    <string name="solution_parts_explain">Iga rida on toode ja mitu osa sellest läheb. 100 osa pulbrit 21 osa vee kohta tähendabki täpselt seda, ükskõik milles kaalud.</string>
+    <string name="solution_line_product">Toode</string>
+    <string name="solution_line_choose">Vali toode</string>
+    <string name="solution_line_label">Nimetus</string>
+    <string name="solution_line_label_hint">Tühjaks jättes kasutatakse toote nime</string>
+    <string name="solution_problem_no_name">Anna nimi, et selle nimekirjast üles leiaks.</string>
+    <string name="solution_problem_no_parts">Lisa vähemalt üks toode.</string>
+    <string name="solution_problem_no_ratio">Märgi, mitu osa igaühest läheb.</string>
+    <string name="solution_problem_no_dose">Sisesta kulu, muidu tuleb iga segu nulliks.</string>
+    <string name="products_tab_products">Tooted</string>
+    <string name="products_tab_solutions">Segud</string>
+    <string name="products_solutions_explain">Segu on retsept: millised tooted lähevad sisse, millises vahekorras ja kui palju see katab.</string>
 </resources>

@@ -551,4 +551,50 @@
     <string name="prj_materials_taken">Taken out of stock on %1$s</string>
     <string name="home_check_warehouse">Check the warehouse</string>
     <string name="home_check_warehouse_sub">Not enough on the shelf for %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">No coats yet.</string>
+    <string name="prj_add_coat">+ Add coat</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">A mix, or a product laid as it comes.</string>
+    <string name="prj_solutions">Solutions</string>
+    <string name="prj_straight_from_the_tin">Straight from the tin</string>
+    <string name="prj_coat_coverage">Coverage (g/m²)</string>
+
+    <!-- Bought item -->
+    <string name="pd_sold_as">Sold as</string>
+    <string name="pd_density_unknown">Not set</string>
+    <string name="pd_used_in">Used in</string>
+    <string name="pd_used_in_nothing">No solution calls for this yet.</string>
+
+    <!-- Coat colour -->
+    <string name="prj_no_colour">No colour</string>
+    <string name="prj_set_colour">Set colour</string>
+    <string name="prj_colour">Colour</string>
+    <string name="prj_colour_line">%1$s · %2$s against %3$s</string>
+    <string name="prj_colour_rate">%1$s per kg of %2$s</string>
+
+    <!-- Bought item form -->
+    <string name="product_problem_no_name">Give it a name so it can be found in a list.</string>
+    <string name="product_how_sold">How it is sold</string>
+    <string name="product_how_sold_explain">The pack is what gets ordered, carried and counted on the shelf. Density is what turns a weight into the litres a canister holds.</string>
+
+    <!-- Solutions -->
+    <string name="solution_add">New solution</string>
+    <string name="solution_edit">Edit solution</string>
+    <string name="solution_name">Solution name</string>
+    <string name="solution_save">Save solution</string>
+    <string name="solution_whats_in_it">What goes in it</string>
+    <string name="solution_parts_explain">Each line is a product and how many parts of it go in. 100 powder to 21 water means exactly that, in whatever you weigh in.</string>
+    <string name="solution_line_product">Product</string>
+    <string name="solution_line_choose">Choose a product</string>
+    <string name="solution_line_label">Called</string>
+    <string name="solution_line_label_hint">Blank uses the product name</string>
+    <string name="solution_problem_no_name">Give it a name so it can be found in a list.</string>
+    <string name="solution_problem_no_parts">Add at least one product.</string>
+    <string name="solution_problem_no_ratio">Say how many parts of each go in.</string>
+    <string name="solution_problem_no_dose">Put in the coverage, or every mix works out as nothing.</string>
+    <string name="products_tab_products">Products</string>
+    <string name="products_tab_solutions">Solutions</string>
+    <string name="products_solutions_explain">A solution is a recipe: which products go in, in what ratio, and how much it covers.</string>
 </resources>

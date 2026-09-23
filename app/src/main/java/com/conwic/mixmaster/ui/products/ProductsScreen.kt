@@ -31,6 +31,11 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.domain.formatDecimal
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.navigation.Routes
@@ -44,16 +49,22 @@ import com.conwic.mixmaster.R
 fun ProductsScreen(navController: NavHostController) {
     val container = LocalAppContainer.current
     val viewModel: ProductsViewModel = viewModel(
-        factory = viewModelFactory { initializer { ProductsViewModel(container.productRepository) } },
+        factory = viewModelFactory {
+            initializer { ProductsViewModel(container.productRepository, container.solutionRepository) }
+        },
     )
     val state by viewModel.uiState.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
+    val solutions by viewModel.solutions.collectAsState()
+    var tab by remember { mutableStateOf(0) }
 
     Scaffold(
         floatingActionButton = {
             if (role == Role.EMPLOYER) {
                 FloatingActionButton(
-                    onClick = { navController.navigate(Routes.PRODUCT_ADD) },
+                    onClick = {
+                        navController.navigate(if (tab == 0) Routes.PRODUCT_ADD else Routes.SOLUTION_ADD)
+                    },
                     // Flat like the rest of the design — the default FAB shadow reads as a smudge here.
                     elevation = FloatingActionButtonDefaults.elevation(
                         defaultElevation = 0.dp,
@@ -77,6 +88,18 @@ fun ProductsScreen(navController: NavHostController) {
         ) {
             item { Text(text = stringResource(R.string.products_title), style = MaterialTheme.typography.headlineMedium) }
 
+            // Two lists, because they are two things: what you buy, and what you make of it.
+            item {
+                SegmentedTabs(
+                    titles = listOf(
+                        stringResource(R.string.products_tab_products),
+                        stringResource(R.string.products_tab_solutions),
+                    ),
+                    selectedIndex = tab,
+                    onSelect = { tab = it },
+                )
+            }
+
             if (role == Role.WORKER) {
                 item {
                     CardFlat {
@@ -88,6 +111,7 @@ fun ProductsScreen(navController: NavHostController) {
                 }
             }
 
+            if (tab == 0) {
             item {
                 // Dropdowns rather than chip rows: the brand and category lists grow with the
                 // catalogue, and a scrolling row of chips hides whatever is off the right edge.
@@ -135,10 +159,42 @@ fun ProductsScreen(navController: NavHostController) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = product.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                             Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-                            Text(text = product.rangeNote, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (product.packageSize > 0.0) {
+                                Text(
+                                    text = "${formatDecimal(product.packageSize, 2)} ${product.packageUnit} ${product.packageType}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
-                        if (product.ratioLabel.isNotBlank()) {
-                            RatioBadge(text = product.ratioLabel, modifier = Modifier.align(Alignment.Top))
+                    }
+                }
+            }
+            } else {
+                item {
+                    Text(
+                        text = stringResource(R.string.products_solutions_explain),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                items(solutions) { solution ->
+                    CardFlat(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(CardShape)
+                            .clickable { navController.navigate(Routes.solutionEdit(solution.id)) },
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (solution.brand.isNotBlank()) {
+                                    Text(text = solution.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                }
+                                Text(text = solution.name, style = MaterialTheme.typography.titleMedium)
+                            }
+                            if (solution.ratioLabel.isNotBlank()) {
+                                RatioBadge(text = solution.ratioLabel, modifier = Modifier.align(Alignment.Top))
+                            }
                         }
                     }
                 }
