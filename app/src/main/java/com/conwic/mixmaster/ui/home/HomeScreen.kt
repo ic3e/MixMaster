@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -42,6 +43,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatShortWeekday
 import com.conwic.mixmaster.domain.formatWeek
@@ -55,6 +57,8 @@ import com.conwic.mixmaster.ui.components.StatCard
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
+import com.conwic.mixmaster.ui.warehouse.ArrivalDialog
+import com.conwic.mixmaster.ui.warehouse.OrderDialog
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
 import com.conwic.mixmaster.ui.tasks.TaskRow
@@ -77,6 +81,7 @@ fun HomeScreen(navController: NavHostController) {
                     container.productRepository,
                     container.stockRepository,
                     container.solutionRepository,
+                    container.deliveryRepository,
                 )
             }
         },
@@ -89,6 +94,11 @@ fun HomeScreen(navController: NavHostController) {
 
     // Non-null while the add/edit sheet is open; holds what the sheet starts from.
     var editing by remember { mutableStateOf<TaskDraft?>(null) }
+
+    val alert by viewModel.shortOfMaterial.collectAsState()
+    val due by viewModel.dueDeliveries.collectAsState()
+    // Non-null while an order is being written down, from the shortage card.
+    var ordering by remember { mutableStateOf<ShortItem?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -127,8 +137,7 @@ fun HomeScreen(navController: NavHostController) {
         // Asked before the van is loaded, not after: a job with material assigned that the
         // shelf can't cover is the one thing worth interrupting the morning for.
         item {
-            val short by viewModel.shortOfMaterial.collectAsState()
-            if (short.isNotEmpty()) {
+            if (alert.items.isNotEmpty()) {
                 CardAccent(
                     modifier = Modifier
                         .clip(CardShape)
@@ -140,9 +149,57 @@ fun HomeScreen(navController: NavHostController) {
                         color = OnAccentCard,
                     )
                     Text(
-                        text = stringResource(R.string.home_check_warehouse_sub, short.joinToString(", ")),
+                        text = stringResource(R.string.home_check_warehouse_sub, alert.projects.joinToString(", ")),
                         style = MaterialTheme.typography.bodyMedium,
                         color = OnAccentCard.copy(alpha = 0.85f),
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                    // Naming what is short, not just the job: "check the warehouse" on its own
+                    // sends you to the shed to work out the same thing again.
+                    alert.items.forEach { short ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { ordering = short }
+                                .padding(vertical = 6.dp),
+                        ) {
+                            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = short.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = OnAccentCard,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.wh_short_by,
+                                        "${formatDecimal(short.short, 2)} ${short.unit}",
+                                    ),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = OnAccentCard,
+                                    fontWeight = FontWeight.ExtraBold,
+                                )
+                            }
+                            val dueOn = short.dueOn
+                            if (short.onOrder > 0.0 && dueOn != null) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.wh_coming_due,
+                                        "${formatDecimal(short.onOrder, 2)} ${short.unit}",
+                                        formatDueDate(dueOn),
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = OnAccentCard.copy(alpha = 0.7f),
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.home_short_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OnAccentCard.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
             }
@@ -362,6 +419,45 @@ fun HomeScreen(navController: NavHostController) {
             },
         )
     }
+
+    ordering?.let { short ->
+        OrderDialog(
+            productName = short.name,
+            packType = short.packType,
+            packUnit = short.unit,
+            isKnownPack = short.isKnownPack,
+            suggestedPacks = short.packsToOrder,
+            suggestedAmount = short.stillToOrder,
+            onDismiss = { ordering = null },
+            onOrder = { packs, amount, expectedOn, note ->
+                viewModel.order(short.productId, packs, amount, expectedOn, note)
+                ordering = null
+            },
+        )
+    }
+
+    // Asked on the day, one order at a time: the next one comes up as soon as this is answered.
+    due.firstOrNull()?.let { delivery ->
+        ArrivalDialog(
+            productName = delivery.productName,
+            line = deliveryLine(delivery),
+            onNotYet = { viewModel.postpone(delivery) },
+            onArrived = { viewModel.receive(delivery) },
+        )
+    }
+}
+
+/** "2 canister · 50 kg · Fri 25 Sep", for the question asked on the day it was due. */
+@Composable
+private fun deliveryLine(due: DueDelivery): String {
+    val figure = "${formatDecimal(due.amount, 2)} ${due.packUnit}"
+    val packs = due.delivery.packs
+    val amount = if (packs > 0) {
+        stringResource(R.string.wh_packs_and_amount, packs, due.packType, figure)
+    } else {
+        figure
+    }
+    return "$amount · ${formatDueDate(due.delivery.expectedOn)}"
 }
 
 @Composable

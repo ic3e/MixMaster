@@ -2,9 +2,11 @@ package com.conwic.mixmaster.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.ProjectStatus
+import com.conwic.mixmaster.data.repository.DeliveryRepository
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.domain.solutionMix
@@ -41,6 +43,44 @@ data class WeekDayUi(
     val taskCount: Int,
 )
 
+/**
+ * One product the shelf cannot cover.
+ *
+ * Carries enough to write an order straight from the home screen, because the moment you find
+ * out you are short is the moment to do something about it.
+ */
+data class ShortItem(
+    val productId: Long,
+    val name: String,
+    val short: Double,
+    val unit: String,
+    val packType: String,
+    val isKnownPack: Boolean,
+    /** Packs still to order once anything already on its way is counted. */
+    val packsToOrder: Int,
+    val stillToOrder: Double,
+    val onOrder: Double,
+    /** The soonest thing already ordered is due, if anything is. */
+    val dueOn: LocalDate?,
+)
+
+/** The warehouse's answer to "is anything going to stop work this week?" */
+data class MaterialAlert(
+    val projects: List<String> = emptyList(),
+    val items: List<ShortItem> = emptyList(),
+)
+
+/** An order whose day has come, and which nobody has ticked off yet. */
+data class DueDelivery(
+    val delivery: DeliveryEntity,
+    val productName: String,
+    val packType: String,
+    val packUnit: String,
+    val packSize: Double,
+) {
+    val amount: Double get() = delivery.packs * packSize + delivery.amount
+}
+
 data class HomeUiState(
     val activeProjectCount: Int = 0,
     val productCount: Int = 0,
@@ -60,6 +100,7 @@ class HomeViewModel(
     private val productRepository: ProductRepository,
     private val stockRepository: StockRepository,
     private val solutionRepository: SolutionRepository,
+    private val deliveryRepository: DeliveryRepository,
 ) : ViewModel() {
 
     private val selectedDate = MutableStateFlow(LocalDate.now())
@@ -82,18 +123,83 @@ class HomeViewModel(
         bookingsByProduct(projects, rooms, layers.groupBy { it.roomId }, mixes, productsById)
     }
 
-    val shortOfMaterial: StateFlow<List<String>> = combine(
+    val shortOfMaterial: StateFlow<MaterialAlert> = combine(
         bookings,
         stockRepository.observeAll(),
         productRepository.observeAll(),
-    ) { booked, stock, products ->
+        deliveryRepository.observeAll(),
+    ) { booked, stock, products, deliveries ->
         val stockByProduct = stock.associateBy { it.productId }
-        val short = products.filter { product ->
-            val held = productStock(product, stockByProduct[product.id], booked[product.id].orEmpty())
-            held.short > 0.0
+        val coming = deliveries.filter { it.arrivedOn == null }.groupBy { it.productId }
+        val short = products.mapNotNull { product ->
+            val held = productStock(
+                product = product,
+                stock = stockByProduct[product.id],
+                bookings = booked[product.id].orEmpty(),
+                deliveries = coming[product.id].orEmpty(),
+            )
+            held.takeIf { it.short > 0.0 }
         }
-        short.flatMap { booked[it.id].orEmpty() }.map { it.projectName }.distinct().sorted()
+        MaterialAlert(
+            projects = short.flatMap { it.bookings }.map { it.projectName }.distinct().sorted(),
+            // Worst first: the one that will stop work soonest is the one to read.
+            items = short.sortedByDescending { it.short }.map { held ->
+                ShortItem(
+                    productId = held.productId,
+                    name = held.name,
+                    short = held.short,
+                    unit = held.packUnit,
+                    packType = held.packType,
+                    isKnownPack = held.isKnownPack,
+                    packsToOrder = held.packsStillToOrder ?: 0,
+                    stillToOrder = held.stillToOrder,
+                    onOrder = held.onOrder,
+                    dueOn = coming[held.productId].orEmpty().minOfOrNull { it.expectedOn },
+                )
+            },
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MaterialAlert())
+
+    /**
+     * Orders that were due today or earlier and are still open.
+     *
+     * The app asks rather than assumes: a lorry that did not turn up would otherwise put stock
+     * on the shelf that nobody can find.
+     */
+    val dueDeliveries: StateFlow<List<DueDelivery>> = combine(
+        deliveryRepository.observeAll(),
+        productRepository.observeAll(),
+    ) { deliveries, products ->
+        val productsById = products.associateBy { it.id }
+        val today = LocalDate.now()
+        deliveries
+            .filter { it.arrivedOn == null && !it.expectedOn.isAfter(today) }
+            .mapNotNull { delivery ->
+                productsById[delivery.productId]?.let { product ->
+                    DueDelivery(
+                        delivery = delivery,
+                        productName = product.name,
+                        packType = product.packageType,
+                        packUnit = product.packageUnit,
+                        packSize = product.packageSize,
+                    )
+                }
+            }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun order(productId: Long, packs: Int, amount: Double, expectedOn: LocalDate, note: String) {
+        viewModelScope.launch { deliveryRepository.order(productId, packs, amount, expectedOn, note) }
+    }
+
+    /** It turned up: onto the shelf, and the question stops being asked. */
+    fun receive(due: DueDelivery) {
+        viewModelScope.launch { deliveryRepository.receive(due.delivery, due.packSize) }
+    }
+
+    /** Not here yet — ask again tomorrow rather than every time the app is opened. */
+    fun postpone(due: DueDelivery) {
+        viewModelScope.launch { deliveryRepository.postpone(due.delivery, LocalDate.now().plusDays(1)) }
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         projectRepository.observeAll(),

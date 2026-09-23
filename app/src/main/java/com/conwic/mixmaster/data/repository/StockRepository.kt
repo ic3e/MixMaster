@@ -23,6 +23,26 @@ class StockRepository(private val stockDao: StockDao) {
     }
 
     /**
+     * Puts a delivery on the shelf.
+     *
+     * Loose amounts are rolled up into whole packs where they make one, so a shed that takes in
+     * two 25 kg canisters twice reads as four canisters rather than 100 kg of "open pack".
+     */
+    suspend fun add(productId: Long, packs: Int, amount: Double, packSize: Double) {
+        val existing = stockDao.getForProduct(productId)
+        val open = (existing?.openAmount ?: 0.0) + amount.coerceAtLeast(0.0)
+        val rolled = if (packSize > 0.0) floor(open / packSize).toInt() else 0
+        val row = StockEntity(
+            id = existing?.id ?: 0L,
+            productId = productId,
+            fullPacks = (existing?.fullPacks ?: 0) + packs.coerceAtLeast(0) + rolled,
+            openAmount = open - rolled * packSize,
+            updatedAt = System.currentTimeMillis(),
+        )
+        if (existing == null) stockDao.insert(row) else stockDao.update(row)
+    }
+
+    /**
      * Takes [amount] off the shelf, in the pack's own unit.
      *
      * Worked out as one total and split back into packs afterwards, rather than tracking which

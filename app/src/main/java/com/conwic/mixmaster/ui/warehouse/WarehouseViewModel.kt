@@ -2,6 +2,8 @@ package com.conwic.mixmaster.ui.warehouse
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.conwic.mixmaster.data.db.entity.DeliveryEntity
+import com.conwic.mixmaster.data.repository.DeliveryRepository
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
@@ -14,16 +16,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class WarehouseUiState(
     val brands: List<String> = emptyList(),
     val brandFilter: String = "All",
     val items: List<ProductStock> = emptyList(),
 ) {
-    /** Everything that has to be ordered, whatever it belongs to. */
-    val toOrder: List<ProductStock> get() = items.filter { it.short > 0.0 }
+    /** What still has to be ordered — anything already on its way is somebody's problem already. */
+    val toOrder: List<ProductStock> get() = items.filter { it.stillToOrder > 0.0 }
 }
 
 class WarehouseViewModel(
@@ -31,6 +35,7 @@ class WarehouseViewModel(
     private val projectRepository: ProjectRepository,
     private val solutionRepository: SolutionRepository,
     private val stockRepository: StockRepository,
+    private val deliveryRepository: DeliveryRepository,
 ) : ViewModel() {
 
     private val brandFilter = MutableStateFlow("All")
@@ -48,14 +53,25 @@ class WarehouseViewModel(
         bookingsByProduct(projects, rooms, layers.groupBy { it.roomId }, mixes, productsById)
     }
 
+    /** Ordered and not here yet, by product — what the shelf is waiting on. */
+    val onTheWay: StateFlow<Map<Long, List<DeliveryEntity>>> = deliveryRepository.observeAll()
+        .map { rows -> rows.filter { it.arrivedOn == null }.groupBy { it.productId } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     private val shelf = combine(
         productRepository.observeAll(),
         stockRepository.observeAll(),
         bookings,
-    ) { products, stock, booked ->
+        onTheWay,
+    ) { products, stock, booked, coming ->
         val stockByProduct = stock.associateBy { it.productId }
         products.map { product ->
-            productStock(product, stockByProduct[product.id], booked[product.id].orEmpty())
+            productStock(
+                product = product,
+                stock = stockByProduct[product.id],
+                bookings = booked[product.id].orEmpty(),
+                deliveries = coming[product.id].orEmpty(),
+            )
         }
     }
 
@@ -73,5 +89,17 @@ class WarehouseViewModel(
 
     fun setStock(productId: Long, fullPacks: Int, openAmount: Double) {
         viewModelScope.launch { stockRepository.set(productId, fullPacks, openAmount) }
+    }
+
+    fun order(productId: Long, packs: Int, amount: Double, expectedOn: LocalDate, note: String) {
+        viewModelScope.launch { deliveryRepository.order(productId, packs, amount, expectedOn, note) }
+    }
+
+    fun receive(delivery: DeliveryEntity, packSize: Double) {
+        viewModelScope.launch { deliveryRepository.receive(delivery, packSize) }
+    }
+
+    fun cancelOrder(id: Long) {
+        viewModelScope.launch { deliveryRepository.cancel(id) }
     }
 }

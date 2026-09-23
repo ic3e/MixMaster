@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.domain
 
+import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
@@ -36,6 +37,8 @@ data class ProductStock(
     val bookings: List<Booking>,
     /** When the shelf was last counted, as epoch millis. Zero when nobody has counted it yet. */
     val countedAt: Long = 0L,
+    /** Ordered and on its way, in [packUnit]. Not stock: it cannot be mixed or booked yet. */
+    val onOrder: Double = 0.0,
 ) {
     /** Everything on the shelf, opened packs included. */
     val onHand: Double get() = fullPacks * packSize + openAmount
@@ -59,8 +62,22 @@ data class ProductStock(
             else -> null
         }
 
+    /** What is short that nobody has ordered yet — the figure a new order is written from. */
+    val stillToOrder: Double get() = (short - onOrder).coerceAtLeast(0.0)
+
+    val packsStillToOrder: Int?
+        get() = when {
+            stillToOrder <= 0.0 -> 0
+            packSize > 0.0 -> ceil(stillToOrder / packSize).toInt()
+            else -> null
+        }
+
     val isKnownPack: Boolean get() = packSize > 0.0
 }
+
+/** What one product has coming, in its own pack unit. Arrived lines are stock, so they are out. */
+fun onOrderAmount(deliveries: List<DeliveryEntity>, packSize: Double): Double =
+    deliveries.filter { it.arrivedOn == null }.sumOf { it.packs * packSize + it.amount }
 
 /**
  * A job books its material from the moment a coat is put on one of its rooms, and stops the
@@ -176,6 +193,7 @@ fun productStock(
     product: ProductEntity,
     stock: StockEntity?,
     bookings: List<Booking>,
+    deliveries: List<DeliveryEntity> = emptyList(),
 ): ProductStock = ProductStock(
     productId = product.id,
     name = product.name,
@@ -187,4 +205,5 @@ fun productStock(
     openAmount = stock?.openAmount ?: 0.0,
     bookings = bookings,
     countedAt = stock?.updatedAt ?: 0L,
+    onOrder = onOrderAmount(deliveries, product.packageSize),
 )

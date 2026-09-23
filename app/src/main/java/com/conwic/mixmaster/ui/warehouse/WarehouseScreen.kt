@@ -39,6 +39,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
@@ -78,15 +79,19 @@ fun WarehouseScreen(navController: NavHostController) {
                     container.projectRepository,
                     container.solutionRepository,
                     container.stockRepository,
+                    container.deliveryRepository,
                 )
             }
         },
     )
     val state by viewModel.uiState.collectAsState()
+    val onTheWay by viewModel.onTheWay.collectAsState()
     // Held as an id rather than a copy of the row, so the sheet follows the shelf while it is
     // open — a count saved elsewhere, or a room resized on a job, shows up straight away.
     var detailId by remember { mutableStateOf<Long?>(null) }
     var counting by remember { mutableStateOf<ProductStock?>(null) }
+    var ordering by remember { mutableStateOf<ProductStock?>(null) }
+    var askingAbout by remember { mutableStateOf<DeliveryEntity?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -202,10 +207,19 @@ fun WarehouseScreen(navController: NavHostController) {
     detail?.let { item ->
         StockSheet(
             item = item,
+            deliveries = onTheWay[item.productId].orEmpty(),
             onDismiss = { detailId = null },
             onCount = {
                 detailId = null
                 counting = item
+            },
+            onOrder = {
+                detailId = null
+                ordering = item
+            },
+            onDelivery = { delivery ->
+                detailId = null
+                askingAbout = delivery
             },
             onOpenProject = { projectId ->
                 detailId = null
@@ -228,6 +242,42 @@ fun WarehouseScreen(navController: NavHostController) {
             },
         )
     }
+
+    ordering?.let { item ->
+        OrderDialog(
+            productName = item.name,
+            packType = item.packType,
+            packUnit = item.packUnit,
+            isKnownPack = item.isKnownPack,
+            suggestedPacks = item.packsStillToOrder ?: 0,
+            suggestedAmount = item.stillToOrder,
+            onDismiss = { ordering = null },
+            onOrder = { packs, amount, due, note ->
+                viewModel.order(item.productId, packs, amount, due, note)
+                ordering = null
+            },
+        )
+    }
+
+    // Tapped from the shelf rather than asked on the day, so "not yet" only closes it — the
+    // date it is due is the app's business, not something to move by looking at it.
+    askingAbout?.let { delivery ->
+        state.items.firstOrNull { it.productId == delivery.productId }?.let { item ->
+            ArrivalDialog(
+                productName = item.name,
+                line = deliveryText(delivery, item) + " · " + formatDueDate(delivery.expectedOn),
+                onNotYet = { askingAbout = null },
+                onArrived = {
+                    viewModel.receive(delivery, item.packSize)
+                    askingAbout = null
+                },
+                onCancelOrder = {
+                    viewModel.cancelOrder(delivery.id)
+                    askingAbout = null
+                },
+            )
+        }
+    }
 }
 
 /**
@@ -240,8 +290,11 @@ fun WarehouseScreen(navController: NavHostController) {
 @Composable
 private fun StockSheet(
     item: ProductStock,
+    deliveries: List<DeliveryEntity>,
     onDismiss: () -> Unit,
     onCount: () -> Unit,
+    onOrder: () -> Unit,
+    onDelivery: (DeliveryEntity) -> Unit,
     onOpenProject: (Long) -> Unit,
     onOpenProduct: () -> Unit,
 ) {
@@ -364,6 +417,39 @@ private fun StockSheet(
                 }
             }
 
+            if (deliveries.isNotEmpty()) {
+                SectionLabel(text = stringResource(R.string.wh_on_its_way))
+                deliveries.forEach { delivery ->
+                    CardFlat(
+                        modifier = Modifier
+                            .clip(CardShape)
+                            .clickable { onDelivery(delivery) },
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = deliveryText(delivery, item),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            )
+                            Text(
+                                text = formatDueDate(delivery.expectedOn),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        if (delivery.note.isNotBlank()) {
+                            Text(
+                                text = delivery.note,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
             CardFlat {
                 StockRow(
                     label = stringResource(R.string.wh_booked_total),
@@ -382,20 +468,32 @@ private fun StockSheet(
                         valueColor = Ok,
                     )
                 }
+                if (item.onOrder > 0.0) {
+                    StockRow(
+                        label = stringResource(R.string.wh_on_order_label),
+                        value = amountText(item.onOrder, item.packUnit),
+                        valueColor = MaterialTheme.colorScheme.secondary,
+                    )
+                }
                 StockRow(
                     label = stringResource(R.string.wh_to_order),
-                    value = if (item.short > 0.0) {
+                    value = if (item.stillToOrder > 0.0) {
                         orderText(item)
                     } else {
                         stringResource(R.string.prj_nothing_to_order)
                     },
-                    strong = item.short > 0.0,
+                    strong = item.stillToOrder > 0.0,
                 )
             }
 
             PrimaryButton(
                 text = stringResource(R.string.wh_count_stock),
                 onClick = onCount,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            GhostButton(
+                text = stringResource(R.string.wh_mark_ordered),
+                onClick = onOrder,
                 modifier = Modifier.fillMaxWidth(),
             )
             GhostButton(
@@ -489,11 +587,27 @@ private fun onHandText(item: ProductStock): String = when {
 
 @Composable
 private fun orderText(item: ProductStock): String {
-    val packs = item.packsToOrder
+    val packs = item.packsStillToOrder
     return if (packs != null && packs > 0) {
         stringResource(R.string.wh_order_packs, packs, item.packType)
     } else {
-        amountText(item.short, item.packUnit)
+        amountText(item.stillToOrder, item.packUnit)
+    }
+}
+
+/** "2 canister · 50 kg" for one order, or just the amount when the pack size is unknown. */
+@Composable
+private fun deliveryText(delivery: DeliveryEntity, item: ProductStock): String {
+    val total = delivery.packs * item.packSize + delivery.amount
+    return if (delivery.packs > 0) {
+        stringResource(
+            R.string.wh_packs_and_amount,
+            delivery.packs,
+            item.packType,
+            amountText(total, item.packUnit),
+        )
+    } else {
+        amountText(total, item.packUnit)
     }
 }
 

@@ -11,6 +11,7 @@ import com.conwic.mixmaster.data.db.dao.FloorDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProductDao
+import com.conwic.mixmaster.data.db.dao.DeliveryDao
 import com.conwic.mixmaster.data.db.dao.StockDao
 import com.conwic.mixmaster.data.db.dao.RoomLayerDao
 import com.conwic.mixmaster.data.db.dao.SolutionDao
@@ -29,6 +30,7 @@ import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.db.entity.UsageLogEntity
+import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import com.conwic.mixmaster.data.db.entity.StockEntity
 import com.conwic.mixmaster.domain.isWaterLabel
 import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
@@ -57,14 +59,17 @@ const val DATABASE_NAME = "mixmaster.db"
         SolutionEntity::class,
         SolutionLineEntity::class,
         RoomLayerEntity::class,
+        DeliveryEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun stockDao(): StockDao
+
+    abstract fun deliveryDao(): DeliveryDao
 
     abstract fun solutionDao(): SolutionDao
 
@@ -454,9 +459,36 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds what has been ordered but has not turned up yet.
+         *
+         * Nothing existing changes: a delivery only becomes stock when someone says it arrived,
+         * and until then it is there so the shelf can say "short, but two bags are due Friday"
+         * rather than leaving that in someone's head.
+         */
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `deliveries` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`productId` INTEGER NOT NULL, " +
+                        "`packs` INTEGER NOT NULL, " +
+                        "`amount` REAL NOT NULL, " +
+                        "`expectedOn` INTEGER NOT NULL, " +
+                        "`orderedOn` INTEGER NOT NULL, " +
+                        "`note` TEXT NOT NULL, " +
+                        "`arrivedOn` INTEGER, " +
+                        "FOREIGN KEY(`productId`) REFERENCES `products`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_deliveries_productId` ON `deliveries` (`productId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_deliveries_expectedOn` ON `deliveries` (`expectedOn`)")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()

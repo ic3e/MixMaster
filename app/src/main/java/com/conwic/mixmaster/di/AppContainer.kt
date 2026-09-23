@@ -3,6 +3,7 @@ package com.conwic.mixmaster.di
 import android.content.Context
 import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.prefs.UserPrefs
+import com.conwic.mixmaster.data.repository.DeliveryRepository
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
@@ -33,6 +34,10 @@ class AppContainer(context: Context) {
     }
 
     val stockRepository: StockRepository by lazy { StockRepository(database.stockDao()) }
+
+    val deliveryRepository: DeliveryRepository by lazy {
+        DeliveryRepository(database.deliveryDao(), stockRepository)
+    }
 
     val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao(), database.usageLogDao()) }
 
