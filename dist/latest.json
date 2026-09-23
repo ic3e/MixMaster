@@ -1,8 +1,8 @@
 {
-  "versionCode": 61,
-  "versionName": "1.0.61",
-  "apk": "MixMaster_1.0.61.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.61.apk",
-  "sizeBytes": 19966192,
-  "notes": "Don't offer a datasheet link that can't be opened, and mean \"use in calculator\""
+  "versionCode": 63,
+  "versionName": "1.0.63",
+  "apk": "MixMaster_1.0.63.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.63.apk",
+  "sizeBytes": 19966164,
+  "notes": "Put back the import the status-bar effect needs"
 }
