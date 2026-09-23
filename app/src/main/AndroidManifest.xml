@@ -23,9 +23,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MixMaster">
 
+        <!--
+            configChanges: the app configures its own locale. Handling that change here, rather
+            than being relaunched for it, means a disagreement with the system configuration can
+            never turn into a relaunch loop.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="locale|layoutDirection"
             android:theme="@style/Theme.MixMaster">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

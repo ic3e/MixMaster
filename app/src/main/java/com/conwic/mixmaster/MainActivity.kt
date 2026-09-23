@@ -76,7 +76,16 @@ class MainActivity : FragmentActivity() {
             // apply it to the popup windows too.
             val language by container.userPrefs.language.collectAsState(initial = null)
             LaunchedEffect(language) {
-                if (language != null && language != startedInLanguage) recreate()
+                // Guarded so this can only ever fire once: attachBaseContext builds the next
+                // activity from the mirrored choice, so unless that already says something
+                // else, recreating would put back the very activity we are standing in.
+                val next = language
+                if (next != null &&
+                    next != startedInLanguage &&
+                    LanguageStore.chosenOrDevice(this@MainActivity) == next
+                ) {
+                    recreate()
+                }
             }
 
             MixMasterTheme(darkTheme = dark) {

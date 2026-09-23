@@ -22,11 +22,11 @@ private fun LocalDate.formatIn(pattern: String, locale: Locale): String =
     format(DateTimeFormatter.ofPattern(pattern, locale))
 
 /** "Thursday, 18 September · W38", in whichever language is set. */
-fun formatDayWithWeek(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+fun formatDayWithWeek(date: LocalDate, locale: Locale = AppLocale.current): String =
     "${date.formatIn(LONG_DAY_PATTERN, locale)} · ${formatWeek(date)}"
 
 /** Just the day, for a heading that already says which week it is. */
-fun formatLongDay(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+fun formatLongDay(date: LocalDate, locale: Locale = AppLocale.current): String =
     date.formatIn(LONG_DAY_PATTERN, locale)
 
 /**
@@ -35,18 +35,18 @@ fun formatLongDay(date: LocalDate, locale: Locale = Locale.getDefault()): String
 fun formatDueDate(
     date: LocalDate,
     today: LocalDate = LocalDate.now(),
-    locale: Locale = Locale.getDefault(),
+    locale: Locale = AppLocale.current,
 ): String {
     val pattern = if (date.year == today.year) DAY_PATTERN else DAY_WITH_YEAR_PATTERN
     return "${date.formatIn(pattern, locale)} · ${formatWeek(date)}"
 }
 
 /** The weekday's own short name — "Mon" / "esmasp." / "ma" — rather than the enum constant. */
-fun formatShortWeekday(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+fun formatShortWeekday(date: LocalDate, locale: Locale = AppLocale.current): String =
     date.formatIn("EEE", locale).replaceFirstChar { it.uppercase(locale) }
 
 /** "September 2026", for the month heading. */
-fun formatMonthYear(date: LocalDate, locale: Locale = Locale.getDefault()): String =
+fun formatMonthYear(date: LocalDate, locale: Locale = AppLocale.current): String =
     date.formatIn("LLLL yyyy", locale).replaceFirstChar { it.uppercase(locale) }
 
 /**
@@ -55,7 +55,7 @@ fun formatMonthYear(date: LocalDate, locale: Locale = Locale.getDefault()): Stri
  * Taken from the locale rather than kept as a translated list: these are the same seven names
  * java.time already knows, and a hand-kept copy is one more thing to get out of step.
  */
-fun shortWeekdayNames(locale: Locale = Locale.getDefault()): List<String> =
+fun shortWeekdayNames(locale: Locale = AppLocale.current): List<String> =
     java.time.DayOfWeek.entries.map { day ->
         day.getDisplayName(java.time.format.TextStyle.SHORT, locale)
             .replaceFirstChar { it.uppercase(locale) }

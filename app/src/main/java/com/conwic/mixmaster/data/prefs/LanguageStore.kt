@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import com.conwic.mixmaster.domain.AppLanguage
+import com.conwic.mixmaster.domain.AppLocale
 import java.util.Locale
 
 /**
@@ -44,6 +45,21 @@ object LanguageStore {
     fun chosenOrDevice(context: Context): AppLanguage = read(context) ?: deviceLanguage()
 
     /**
+     * The locale to run in — the phone's own, whenever it is already in the right language.
+     *
+     * A phone set to Estonian runs in et-EE. Applying a bare "et" over that is a different
+     * configuration from the system's, and the framework relaunches the activity to reconcile
+     * the two — whereupon attachBaseContext applies it again. That is a loop with no end, and
+     * it is what left the app flicking between a blank screen and the lock screen instead of
+     * opening. Keeping the country means the ordinary case, the app in the phone's own
+     * language, overrides nothing at all.
+     */
+    private fun localeFor(language: AppLanguage, base: Context): Locale {
+        val device = runCatching { base.resources.configuration.locales[0] }.getOrNull()
+        return if (device != null && device.language == language.tag) device else language.locale
+    }
+
+    /**
      * The base context an activity should run on, configured for the chosen language.
      *
      * Applied this low down so *everything* derived from the activity follows — including the
@@ -52,10 +68,13 @@ object LanguageStore {
      * up left those windows in the phone's language.
      */
     fun wrap(base: Context): Context {
-        val language = chosenOrDevice(base)
-        Locale.setDefault(language.locale)
+        val locale = localeFor(chosenOrDevice(base), base)
+        AppLocale.current = locale
+        // Still set, for the formatting the app doesn't do itself. AppLocale is what the app's
+        // own dates read, because the framework takes this default back on every config change.
+        Locale.setDefault(locale)
         val config = Configuration(base.resources.configuration).apply {
-            setLocale(language.locale)
+            setLocale(locale)
         }
         return base.createConfigurationContext(config)
     }
