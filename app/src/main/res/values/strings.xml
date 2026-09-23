@@ -559,6 +559,11 @@
     <string name="prj_to_order">To order</string>
     <string name="prj_nothing_to_order">Nothing</string>
     <string name="prj_take_out_of_stock">Take out of stock</string>
+    <string name="prj_pickup_list">Pick-up list</string>
+    <string name="prj_pickup_sub">What to load from the warehouse for this job</string>
+    <string name="prj_pickup_empty">Nothing to take yet — put a coat on a room first.</string>
+    <string name="prj_pickup_share">Share the list</string>
+    <string name="prj_pickup_header">%1$s — pick-up list</string>
     <string name="prj_materials_taken">Taken out of stock on %1$s</string>
     <string name="home_check_warehouse">Check the warehouse</string>
     <string name="home_check_warehouse_sub">Not enough on the shelf for %1$s</string>

@@ -511,6 +511,11 @@
     <string name="prj_to_order">Tilattavaa</string>
     <string name="prj_nothing_to_order">Ei mitään</string>
     <string name="prj_take_out_of_stock">Ota varastosta</string>
+    <string name="prj_pickup_list">Varastosta mukaan</string>
+    <string name="prj_pickup_sub">Mitä tälle työlle otetaan varastosta mukaan</string>
+    <string name="prj_pickup_empty">Ei vielä mitään otettavaa — lisää ensin huoneelle kerros.</string>
+    <string name="prj_pickup_share">Jaa lista</string>
+    <string name="prj_pickup_header">%1$s — varastosta mukaan</string>
     <string name="prj_materials_taken">Otettu varastosta %1$s</string>
     <string name="home_check_warehouse">Tarkista varasto</string>
     <string name="home_check_warehouse_sub">Hyllyssä ei riitä: %1$s</string>

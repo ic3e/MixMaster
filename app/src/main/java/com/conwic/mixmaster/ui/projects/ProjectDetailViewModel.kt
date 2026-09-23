@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.math.ceil
+import kotlin.math.floor
 
 data class ProjectDetailData(
     val project: ProjectEntity? = null,
@@ -72,6 +73,19 @@ data class ProjectMaterial(
             stock.packSize > 0.0 -> ceil(shortfall / stock.packSize).toInt()
             else -> null
         }
+
+    /**
+     * Whole packs to load for the site.
+     *
+     * Rounded up, because nobody carries two thirds of a bag out of the shed: 43 kg of a 25 kg
+     * bag is two bags, and the rest goes back on the shelf.
+     */
+    val packsToTake: Int?
+        get() = if (stock.packSize > 0.0 && need > 0.0) ceil(need / stock.packSize).toInt() else null
+
+    /** Whole packs the shelf can actually spare — rounded down, for the same reason. */
+    val packsAvailable: Int?
+        get() = if (stock.packSize > 0.0) floor(available.coerceAtLeast(0.0) / stock.packSize).toInt() else null
 }
 
 class ProjectDetailViewModel(

@@ -782,6 +782,7 @@ fun MaterialsTab(
 ) {
     val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
     val laidRooms = data.rooms.filter { roomCoats[it.id].orEmpty().isNotEmpty() }
+    var pickupOpen by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -822,11 +823,21 @@ fun MaterialsTab(
                 }
                 MaterialRow(
                     label = stringResource(R.string.prj_need),
-                    value = "${formatDecimal(material.need, 2)} ${material.stock.packUnit}",
+                    value = packAmountText(
+                        packs = material.packsToTake,
+                        packType = material.stock.packType,
+                        amount = material.need,
+                        unit = material.stock.packUnit,
+                    ),
                 )
                 MaterialRow(
                     label = stringResource(R.string.prj_in_stock),
-                    value = "${formatDecimal(material.available, 2)} ${material.stock.packUnit}",
+                    value = packAmountText(
+                        packs = material.packsAvailable,
+                        packType = material.stock.packType,
+                        amount = material.available,
+                        unit = material.stock.packUnit,
+                    ),
                 )
                 val packs = material.packsToOrder
                 MaterialRow(
@@ -842,6 +853,13 @@ fun MaterialsTab(
         }
 
         if (materials.isNotEmpty()) {
+            item {
+                GhostButton(
+                    text = stringResource(R.string.prj_pickup_list),
+                    onClick = { pickupOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             item {
                 val issuedAt = data.project?.materialsIssuedAt
                 if (issuedAt == null) {
@@ -891,6 +909,155 @@ fun MaterialsTab(
                 }
             }
         }
+    }
+
+    if (pickupOpen) {
+        PickupSheet(
+            projectName = data.project?.name.orEmpty(),
+            materials = materials,
+            onDismiss = { pickupOpen = false },
+        )
+    }
+}
+
+/**
+ * What to load out of the shed for this job.
+ *
+ * Packs, not kilos: the van is loaded in bags and canisters, and 1446.67 kg is not something
+ * anyone can act on standing in front of a pallet. The exact figure stays beside it, because
+ * that is what the mix will actually take, and the list can be sent to whoever is loading.
+ */
+@Composable
+private fun PickupSheet(
+    projectName: String,
+    materials: List<ProjectMaterial>,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(text = stringResource(R.string.prj_pickup_list), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(R.string.prj_pickup_sub),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "$projectName · ${formatDueDate(LocalDate.now())}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            if (materials.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.prj_pickup_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            materials.forEach { material ->
+                CardFlat {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = material.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        )
+                        Text(
+                            text = packAmountText(
+                                packs = material.packsToTake,
+                                packType = material.stock.packType,
+                                amount = material.need,
+                                unit = material.stock.packUnit,
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                    // Said here as well as on the tab behind: whoever is loading the van is the
+                    // one who finds out the shelf cannot cover it.
+                    if (material.shortfall > 0.0) {
+                        Text(
+                            text = stringResource(
+                                R.string.wh_short_by,
+                                "${formatDecimal(material.shortfall, 2)} ${material.stock.packUnit}",
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+            }
+
+            if (materials.isNotEmpty()) {
+                PrimaryButton(
+                    text = stringResource(R.string.prj_pickup_share),
+                    onClick = { context.startActivity(pickupShareIntent(context, projectName, materials)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+/** The same list as plain text, for the chooser — WhatsApp to the yard, or a note to self. */
+private fun pickupShareIntent(
+    context: android.content.Context,
+    projectName: String,
+    materials: List<ProjectMaterial>,
+): Intent {
+    val title = context.getString(R.string.prj_pickup_header, projectName)
+    val body = buildString {
+        appendLine(title)
+        appendLine(formatDueDate(LocalDate.now()))
+        appendLine()
+        materials.forEach { material ->
+            val figure = "${formatDecimal(material.need, 2)} ${material.stock.packUnit}"
+            val packs = material.packsToTake
+            appendLine(
+                if (packs != null && packs > 0) {
+                    "${material.name}: " +
+                        context.getString(R.string.wh_packs_and_amount, packs, material.stock.packType, figure)
+                } else {
+                    "${material.name}: $figure"
+                },
+            )
+            if (material.shortfall > 0.0) {
+                appendLine(
+                    "  " + context.getString(
+                        R.string.wh_short_by,
+                        "${formatDecimal(material.shortfall, 2)} ${material.stock.packUnit}",
+                    ),
+                )
+            }
+        }
+    }
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, title)
+        putExtra(Intent.EXTRA_TEXT, body)
+    }
+    return Intent.createChooser(send, title).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+}
+
+/** "2 canister · 43.4 kg", or the amount on its own when nobody has said what a pack holds. */
+@Composable
+private fun packAmountText(packs: Int?, packType: String, amount: Double, unit: String): String {
+    val figure = "${formatDecimal(amount, 2)} $unit"
+    return if (packs != null && packs > 0) {
+        stringResource(R.string.wh_packs_and_amount, packs, packType, figure)
+    } else {
+        figure
     }
 }
 
