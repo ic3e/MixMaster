@@ -70,6 +70,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 ProjectDetailViewModel(
                     container.projectRepository,
                     container.productRepository,
+                    container.solutionRepository,
                     container.stockRepository,
                     projectId,
                 )
@@ -77,7 +78,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
         },
     )
     val data by viewModel.data.collectAsState()
-    val roomMixes by viewModel.roomMixes.collectAsState()
+    val roomCoats by viewModel.roomCoats.collectAsState()
     val materials by viewModel.materials.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
     val project = data.project ?: return
@@ -108,7 +109,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                             context = context,
                                             project = project,
                                             rooms = data.rooms,
-                                            roomMixes = roomMixes,
+                                            roomCoats = roomCoats,
                                             products = data.products,
                                             tasks = data.tasks,
                                         )
@@ -141,12 +142,13 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 )
                 2 -> LayoutTab(
                     data = data,
-                    roomMixes = roomMixes,
+                    roomCoats = roomCoats,
                     isEmployer = role == Role.EMPLOYER,
                     role = role,
                     onAddFloor = viewModel::addFloor,
                     onAddRoom = viewModel::addRoom,
-                    onAssignProduct = viewModel::assignProduct,
+                    onAddCoat = viewModel::addCoat,
+                    onRemoveCoat = viewModel::removeCoat,
                     onAddNote = viewModel::addNote,
                     onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },
                     blueprintUri = data.project?.blueprintUri,
@@ -154,7 +156,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 )
                 3 -> MaterialsTab(
                     data = data,
-                    roomMixes = roomMixes,
+                    roomCoats = roomCoats,
                     materials = materials,
                     onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
                 )

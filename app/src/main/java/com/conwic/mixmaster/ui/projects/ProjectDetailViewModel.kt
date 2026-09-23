@@ -8,17 +8,24 @@ import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
-import com.conwic.mixmaster.domain.MixCalculator
-import com.conwic.mixmaster.domain.partStock
-import com.conwic.mixmaster.domain.needsByComponent
-import com.conwic.mixmaster.domain.bookingsByComponent
-import com.conwic.mixmaster.domain.PartStock
+import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
+import com.conwic.mixmaster.domain.CoatMix
+import com.conwic.mixmaster.domain.MixCalculator
+import com.conwic.mixmaster.domain.MixPart
 import com.conwic.mixmaster.domain.MixResult
+import com.conwic.mixmaster.domain.ProductStock
+import com.conwic.mixmaster.domain.SolutionMix
+import com.conwic.mixmaster.domain.bookingsByProduct
+import com.conwic.mixmaster.domain.needsByProduct
+import com.conwic.mixmaster.domain.productStock
+import com.conwic.mixmaster.domain.solutionMix
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.toEntity
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.math.ceil
 
 data class ProjectDetailData(
     val project: ProjectEntity? = null,
@@ -39,17 +47,19 @@ data class ProjectDetailData(
     val notes: List<NoteEntity> = emptyList(),
     val photos: List<PhotoEntity> = emptyList(),
     val products: List<ProductEntity> = emptyList(),
+    val solutions: List<SolutionEntity> = emptyList(),
 ) {
     val totalAreaM2: Double get() = rooms.sumOf { it.areaM2 }
     val progressPercent: Int get() = if (tasks.isEmpty()) 0 else (tasks.count { it.isDone } * 100) / tasks.size
 }
 
-/** One part of one product on this job: what it needs, and what the warehouse can cover. */
-data class ProjectPart(
-    val productName: String,
-    /** In the part's own pack unit. */
+/** One bought item this job needs, set against what the warehouse can spare. */
+data class ProjectMaterial(
+    val productId: Long,
+    val name: String,
+    /** In the product's own pack unit. */
     val need: Double,
-    val stock: PartStock,
+    val stock: ProductStock,
 ) {
     /** Free on the shelf once other jobs' bookings are honoured. */
     val available: Double get() = stock.free
@@ -57,7 +67,7 @@ data class ProjectPart(
     val packsToOrder: Int?
         get() = when {
             shortfall <= 0.0 -> 0
-            stock.packSize > 0.0 -> kotlin.math.ceil(shortfall / stock.packSize).toInt()
+            stock.packSize > 0.0 -> ceil(shortfall / stock.packSize).toInt()
             else -> null
         }
 }
@@ -65,6 +75,7 @@ data class ProjectPart(
 class ProjectDetailViewModel(
     private val projectRepository: ProjectRepository,
     private val productRepository: ProductRepository,
+    private val solutionRepository: SolutionRepository,
     private val stockRepository: StockRepository,
     private val projectId: Long,
 ) : ViewModel() {
@@ -81,72 +92,140 @@ class ProjectDetailViewModel(
         partial.copy(photos = photos)
     }.combine(productRepository.observeAll()) { partial, products ->
         partial.copy(products = products)
+    }.combine(solutionRepository.observeAll()) { partial, solutions ->
+        partial.copy(solutions = solutions)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProjectDetailData())
 
-    private val _roomMixes = MutableStateFlow<Map<Long, MixResult?>>(emptyMap())
-    val roomMixes: StateFlow<Map<Long, MixResult?>> = _roomMixes.asStateFlow()
+    /** Every solution with its lines resolved, keyed by id — the recipes this job can lay. */
+    private val mixes: StateFlow<Map<Long, SolutionMix>> = combine(
+        solutionRepository.observeAllWithLines(),
+        productRepository.observeAll(),
+    ) { solutions, products ->
+        val productsById = products.associateBy { it.id }
+        solutions.associate { it.solution.id to solutionMix(it.solution, it.lines, productsById) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    /**
-     * What this job needs of each part set against what is free on the shelf.
-     *
-     * Free, not on hand: material another job has already booked is not this job's to take.
-     */
-    private val _materials = MutableStateFlow<List<ProjectPart>>(emptyList())
-    val materials: StateFlow<List<ProjectPart>> = _materials.asStateFlow()
+    private val layers: StateFlow<List<RoomLayerEntity>> = projectRepository.observeLayers(projectId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    init {
-        viewModelScope.launch {
-            data.collect { current ->
-                val productsWithComponents = productRepository.getAllWithComponents().associateBy { it.product.id }
-                _roomMixes.value = current.rooms.associate { room ->
-                    val mix = room.assignedProductId
-                        ?.let { productsWithComponents[it] }
-                        ?.let { MixCalculator.compute(it, room.areaM2, quantity = 1.0) }
-                    room.id to mix
-                }
+    /** The coats on each room, in the order they go down. */
+    val roomCoats: StateFlow<Map<Long, List<CoatMix>>> = combine(
+        data,
+        layers,
+        mixes,
+    ) { current, rows, byId ->
+        val productsById = current.products.associateBy { it.id }
+        current.rooms.associate { room ->
+            room.id to rows.filter { it.roomId == room.id }.sortedBy { it.sortOrder }.mapNotNull { layer ->
+                coatMix(layer, room.areaM2, byId, productsById)
             }
         }
-        viewModelScope.launch {
-            combine(
-                data,
-                stockRepository.observeAll(),
-                projectRepository.observeAll(),
-                projectRepository.observeAllRooms(),
-            ) { current, stock, projects, allRooms ->
-                val productsWithComponents = productRepository.getAllWithComponents().associateBy { it.product.id }
-                val needs = needsByComponent(current.rooms, productsWithComponents)
-                val stockByComponent = stock.associateBy { it.componentId }
-                // Every other job's booking, so this one is measured against what is genuinely
-                // spare rather than against the whole shelf.
-                val bookings = bookingsByComponent(
-                    projects = projects.filter { it.id != projectId },
-                    roomsByProject = allRooms.groupBy { it.projectId },
-                    productsById = productsWithComponents,
-                )
-                val componentsById = productsWithComponents.values
-                    .flatMap { it.components }
-                    .associateBy { it.id }
-                needs.mapNotNull { (componentId, need) ->
-                    val component = componentsById[componentId] ?: return@mapNotNull null
-                    val product = productsWithComponents[component.productId]?.product
-                    ProjectPart(
-                        productName = product?.name.orEmpty(),
-                        need = need,
-                        stock = partStock(component, stockByComponent[componentId], bookings[componentId].orEmpty()),
-                    )
-                }.sortedWith(compareBy({ it.productName }, { it.stock.label }))
-            }.collect { _materials.value = it }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * What this job needs of each product, set against what is genuinely spare.
+     *
+     * Spare, not on hand: material another job has already booked is not this job's to take.
+     */
+    /** Every other job, so this one can be measured against what they have not claimed. */
+    private val elsewhere = combine(
+        projectRepository.observeAll(),
+        projectRepository.observeAllRooms(),
+        projectRepository.observeAllLayers(),
+    ) { projects, rooms, allLayers -> Triple(projects, rooms, allLayers) }
+
+    val materials: StateFlow<List<ProjectMaterial>> = combine(
+        data,
+        layers,
+        mixes,
+        stockRepository.observeAll(),
+        elsewhere,
+    ) { current, rows, byId, stock, others ->
+        val productsById = current.products.associateBy { it.id }
+        val needs = needsByProduct(current.rooms, rows.groupBy { it.roomId }, byId, productsById)
+        val stockByProduct = stock.associateBy { it.productId }
+        // Every other job's booking, so this one is measured against what is genuinely spare.
+        val claimed = bookingsByProduct(
+            projects = others.first.filter { it.id != projectId },
+            rooms = others.second,
+            layersByRoom = others.third.groupBy { it.roomId },
+            mixes = byId,
+            products = productsById,
+        )
+        needs.mapNotNull { (productId, need) ->
+            val product = productsById[productId] ?: return@mapNotNull null
+            ProjectMaterial(
+                productId = productId,
+                name = product.name,
+                need = need,
+                stock = productStock(product, stockByProduct[productId], claimed[productId].orEmpty()),
+            )
+        }.sortedBy { it.name }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun coatMix(
+        layer: RoomLayerEntity,
+        areaM2: Double,
+        mixesById: Map<Long, SolutionMix>,
+        productsById: Map<Long, ProductEntity>,
+    ): CoatMix? {
+        val mix = mixesById[layer.solutionId]
+        if (mix != null) {
+            val dose = layer.doseGramsPerM2.takeIf { it > 0.0 } ?: mix.solution.typicalDoseGramsPerM2
+            return CoatMix(
+                layer = layer,
+                title = mix.solution.name,
+                doseGramsPerM2 = dose,
+                doseUnitLabel = mix.solution.doseUnitLabel,
+                parts = mix.parts,
+                result = MixCalculator.compute(mix.parts, areaM2, layer.quantity, dose),
+            )
         }
+        val product = productsById[layer.productId] ?: return null
+        val parts = listOf(
+            MixPart(
+                productId = product.id,
+                label = product.name,
+                ratioParts = 100.0,
+                packageSize = product.packageSize,
+                packageUnit = product.packageUnit,
+                packageType = product.packageType,
+                densityKgPerL = product.densityKgPerL,
+            ),
+        )
+        return CoatMix(
+            layer = layer,
+            title = product.name,
+            doseGramsPerM2 = layer.doseGramsPerM2,
+            doseUnitLabel = "",
+            parts = parts,
+            result = MixCalculator.compute(parts, areaM2, layer.quantity, layer.doseGramsPerM2),
+        )
+    }
+
+    /** Puts another coat on a room — a primer, a mix, a sealer. */
+    fun addCoat(roomId: Long, solutionId: Long, productId: Long, doseGramsPerM2: Double, quantity: Double) {
+        viewModelScope.launch {
+            projectRepository.addLayer(roomId, solutionId, productId, doseGramsPerM2, quantity)
+        }
+    }
+
+    fun removeCoat(layer: RoomLayerEntity) {
+        viewModelScope.launch { projectRepository.removeLayer(layer) }
+    }
+
+    fun updateCoat(layer: RoomLayerEntity) {
+        viewModelScope.launch { projectRepository.updateLayer(layer) }
     }
 
     /** Takes this job's material off the shelf, once, and stops it booking any more. */
     fun takeMaterialsOutOfStock() {
         val project = data.value.project ?: return
         if (project.materialsIssuedAt != null) return
-        val parts = _materials.value
+        val needed = materials.value
         viewModelScope.launch {
-            parts.forEach { part ->
-                stockRepository.take(part.stock.componentId, part.need, part.stock.packSize)
+            needed.forEach { material ->
+                stockRepository.take(material.productId, material.need, material.stock.packSize)
             }
             projectRepository.setMaterialsIssued(project, System.currentTimeMillis())
         }
@@ -168,10 +247,6 @@ class ProjectDetailViewModel(
                 RoomAreaEntity(floorId = floorId, projectId = projectId, name = name.trim(), areaM2 = areaM2, sortOrder = sortOrder),
             )
         }
-    }
-
-    fun assignProduct(roomId: Long, productId: Long?) {
-        viewModelScope.launch { projectRepository.assignProduct(roomId, productId) }
     }
 
     /** Saves a task from the shared editor. New tasks are pinned to this project. */

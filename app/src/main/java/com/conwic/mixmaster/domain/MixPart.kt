@@ -1,6 +1,7 @@
 package com.conwic.mixmaster.domain
 
 import com.conwic.mixmaster.data.db.entity.ProductEntity
+import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.db.entity.SolutionLineEntity
 import com.conwic.mixmaster.data.db.entity.SolutionLineRole
@@ -82,4 +83,21 @@ fun solutionMix(
         )
     }
     return SolutionMix(solution, parts, addOns)
+}
+
+/**
+ * One coat on one room, with its mix worked out.
+ *
+ * A coat laid straight out of its container is a mix of one part, so both kinds go through the
+ * same maths and the same figures come out.
+ */
+data class CoatMix(
+    val layer: RoomLayerEntity,
+    val title: String,
+    val doseGramsPerM2: Double,
+    val doseUnitLabel: String,
+    val parts: List<MixPart>,
+    val result: MixResult,
+) {
+    val totalGrams: Double get() = result.totalGrams
 }

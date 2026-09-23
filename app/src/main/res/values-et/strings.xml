@@ -503,4 +503,13 @@
     <string name="prj_materials_taken">Laost välja võetud %1$s</string>
     <string name="home_check_warehouse">Kontrolli ladu</string>
     <string name="home_check_warehouse_sub">Riiulil ei jätku: %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">Kihte veel ei ole.</string>
+    <string name="prj_add_coat">+ Lisa kiht</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">Segu või toode, mis läheb peale nii nagu on.</string>
+    <string name="prj_solutions">Segud</string>
+    <string name="prj_straight_from_the_tin">Otse nõust</string>
+    <string name="prj_coat_coverage">Kulu (g/m²)</string>
 </resources>

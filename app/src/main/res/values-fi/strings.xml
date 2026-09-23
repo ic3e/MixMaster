@@ -503,4 +503,13 @@
     <string name="prj_materials_taken">Otettu varastosta %1$s</string>
     <string name="home_check_warehouse">Tarkista varasto</string>
     <string name="home_check_warehouse_sub">Hyllyssä ei riitä: %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">Ei vielä kerroksia.</string>
+    <string name="prj_add_coat">+ Lisää kerros</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">Seos tai tuote sellaisenaan.</string>
+    <string name="prj_solutions">Seokset</string>
+    <string name="prj_straight_from_the_tin">Suoraan astiasta</string>
+    <string name="prj_coat_coverage">Menekki (g/m²)</string>
 </resources>

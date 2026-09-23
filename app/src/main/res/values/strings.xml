@@ -551,4 +551,13 @@
     <string name="prj_materials_taken">Taken out of stock on %1$s</string>
     <string name="home_check_warehouse">Check the warehouse</string>
     <string name="home_check_warehouse_sub">Not enough on the shelf for %1$s</string>
+
+    <!-- Room coats -->
+    <string name="prj_no_coats">No coats yet.</string>
+    <string name="prj_add_coat">+ Add coat</string>
+    <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
+    <string name="prj_coat_pick_hint">A mix, or a product laid as it comes.</string>
+    <string name="prj_solutions">Solutions</string>
+    <string name="prj_straight_from_the_tin">Straight from the tin</string>
+    <string name="prj_coat_coverage">Coverage (g/m²)</string>
 </resources>
