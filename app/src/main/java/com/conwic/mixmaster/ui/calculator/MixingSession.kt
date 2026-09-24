@@ -30,8 +30,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -367,17 +367,26 @@ fun MixingSession(
                 )
             },
         ) {
+            // One screenful, whatever the recipe holds: a header that stays, a middle that takes
+            // whatever is left, and the controls on the floor of the screen. The whole page used
+            // to scroll, so a mix of six parts pushed the start button off the bottom — which is
+            // the one thing on here that has to be under a thumb.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
                     .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (finished || step == null) {
+                    // The summary is read once, at the end, and can be as long as the run was.
+                    Column(
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                     MixingSummary(
                         title = title,
                         steps = doneSteps,
@@ -392,6 +401,7 @@ fun MixingSession(
                         },
                         onClose = close,
                     )
+                    }
                     return@Column
                 }
 
@@ -424,38 +434,6 @@ fun MixingSession(
                     )
                 }
 
-                CardFlat {
-                    SectionLabel(text = stringResource(R.string.mix_goes_in))
-                    step.amounts.forEach { amount ->
-                        val part = parts.firstOrNull { it.label == amount.label }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = amount.label,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                            )
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = quantityFromGrams(amount.grams).text,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                )
-                                packText(part, amount.grams)?.let { packs ->
-                                    Text(
-                                        text = packs,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 val total = seconds * 1000L
                 // Read through a lambda so the clock lands inside the ring rather than up here:
                 // ticking ten times a second in this scope recomposed the batch list, the cards
@@ -467,16 +445,68 @@ fun MixingSession(
                         MixPhase.READY -> total
                     }
                 }
-                // Keyed on the batch, so every one of them gets the wind-up rather than only
-                // the first: the ring arriving is what says a new batch is up.
-                key(stepIndex) {
-                    TimerRing(
-                        remaining = remaining,
-                        total = total,
-                        running = phase == MixPhase.RUNNING,
-                        done = phase == MixPhase.DONE,
-                        calm = calm,
-                    )
+
+                // The middle of the screen holds one thing at a time, and it is always the thing
+                // the worker is doing: what to weigh out before the drill starts, the ring while
+                // it turns, and then the list again so the next batch can be weighed. Showing
+                // both at once is what pushed everything else off the bottom.
+                BoxWithConstraints(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (phase == MixPhase.RUNNING) {
+                        // Square, and never taller than the room it has been left.
+                        val side = minOf(maxWidth, maxHeight)
+                        // Keyed on the batch, so every one of them gets the wind-up rather than
+                        // only the first: the ring arriving is what says a new batch is up.
+                        key(stepIndex) {
+                            TimerRing(
+                                remaining = remaining,
+                                total = total,
+                                running = true,
+                                done = false,
+                                calm = calm,
+                                modifier = Modifier.size(side),
+                            )
+                        }
+                    } else {
+                        // Scrolls inside its own space rather than taking the page with it —
+                        // a recipe of ten parts is rare, and when it happens the buttons stay
+                        // where they are.
+                        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                            CardFlat {
+                                SectionLabel(text = stringResource(R.string.mix_goes_in))
+                                step.amounts.forEach { amount ->
+                                    val part = parts.firstOrNull { it.label == amount.label }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            text = amount.label,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
+                                        )
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                text = quantityFromGrams(amount.grams).text,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.ExtraBold,
+                                            )
+                                            packText(part, amount.grams)?.let { packs ->
+                                                Text(
+                                                    text = packs,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Only before it starts: a countdown that can be argued with while it runs is
@@ -484,6 +514,7 @@ fun MixingSession(
                 if (phase == MixPhase.READY) {
                     TimeStepper(
                         label = stringResource(R.string.mix_time_label),
+                        value = clock(seconds),
                         onLess = { seconds = (seconds - MixStepSeconds).coerceAtLeast(MixStepSeconds) },
                         // Never downwards: a mix that already asks for twenty minutes would
                         // otherwise have "more time" clamp it back to the ceiling.
@@ -676,6 +707,7 @@ private fun TimerRing(
     running: Boolean,
     done: Boolean,
     calm: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     val motion = rememberRingMotion(calm)
     val breathe = motion?.breathe
@@ -732,7 +764,7 @@ private fun TimerRing(
         // All of it soft: the countdown is light on the page, not a ring drawn on it. Drawn
         // straight onto the page rather than into a layer of its own — a layer has edges, and
         // anything reaching them comes back with corners.
-        Canvas(modifier = Modifier.widthIn(max = RingMax).fillMaxWidth().aspectRatio(1f)) {
+        Canvas(modifier = modifier.widthIn(max = RingMax)) {
             val core = 14.dp.toPx()
             val spread = 26.dp.toPx()
             // A square to draw in, whatever shape the box ended up, and a ring of its own size
@@ -855,19 +887,29 @@ private fun DrawScope.softArc(
 
 /** Nudges the mixing time before a batch starts. Big targets: this is done in gloves. */
 @Composable
-private fun TimeStepper(label: String, onLess: () -> Unit, onMore: () -> Unit) {
+private fun TimeStepper(label: String, value: String, onLess: () -> Unit, onMore: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         StepperKey(add = false, onClick = onLess)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        // The figure lives here now. It used to be read off the ring, which is not on screen
+        // before the drill starts — leaving two keys either side of a word and no number.
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                // headlineLarge, not a Material default: the theme only defines the styles the
+                // app uses, and anything else falls back to Roboto in the middle of Manrope.
+                style = MaterialTheme.typography.headlineLarge,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         StepperKey(add = true, onClick = onMore)
     }
 }
