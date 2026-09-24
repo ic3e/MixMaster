@@ -1,8 +1,8 @@
 {
-  "versionCode": 90,
-  "versionName": "1.0.90",
-  "apk": "MixMaster_1.0.90.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.90.apk",
-  "sizeBytes": 20243068,
-  "notes": "Let one mix hold a coat at a time, and take the datasheet's own figures"
+  "versionCode": 91,
+  "versionName": "1.0.91",
+  "apk": "MixMaster_1.0.91.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.91.apk",
+  "sizeBytes": 20259452,
+  "notes": "Carry the figures across when the parts change units"
 }
