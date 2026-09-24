@@ -1,8 +1,8 @@
 {
-  "versionCode": 107,
-  "versionName": "1.0.107",
-  "apk": "MixMaster_1.0.107.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.107.apk",
-  "sizeBytes": 20393123,
-  "notes": "Import the modifier, and write down how to notice next time"
+  "versionCode": 108,
+  "versionName": "1.0.108",
+  "apk": "MixMaster_1.0.108.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.108.apk",
+  "sizeBytes": 20413539,
+  "notes": "Take a room's floor build-up straight into the calculator"
 }
