@@ -1,8 +1,8 @@
 {
-  "versionCode": 99,
-  "versionName": "1.0.99",
-  "apk": "MixMaster_1.0.99.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.99.apk",
-  "sizeBytes": 20324651,
-  "notes": "Make the mixing alarm keep its promise, and the ring keep still"
+  "versionCode": 100,
+  "versionName": "1.0.100",
+  "apk": "MixMaster_1.0.100.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.100.apk",
+  "sizeBytes": 20341155,
+  "notes": "Keep the mix, not just the alarm"
 }
