@@ -1,8 +1,8 @@
 {
-  "versionCode": 113,
-  "versionName": "1.0.113",
-  "apk": "MixMaster_1.0.113.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.113.apk",
-  "sizeBytes": 20485079,
-  "notes": "Put back the body of a function that was deleted around it"
+  "versionCode": 115,
+  "versionName": "1.0.115",
+  "apk": "MixMaster_1.0.115.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.115.apk",
+  "sizeBytes": 20512019,
+  "notes": "Give @Composable back the function it was written for"
 }
