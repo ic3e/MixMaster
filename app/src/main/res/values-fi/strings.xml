@@ -342,6 +342,26 @@
     <string name="prj_scope">Työn laajuus</string>
     <string name="prj_save">Tallenna projekti</string>
     <string name="prj_start_date">Aloitus</string>
+    <!-- Työn, kerroksen, tilan tai pinnoitekerroksen korjaaminen jälkikäteen. -->
+    <string name="prj_status">Missä työ menee</string>
+    <string name="prj_dates">Päivämäärät</string>
+    <string name="action_clear">Tyhjennä</string>
+    <string name="prj_edit_floor">Muokkaa kerrosta</string>
+    <string name="prj_remove_floor">Poista kerros</string>
+    <string name="prj_remove_floor_confirm">Poistetaanko tämä kerros?</string>
+    <string name="prj_remove_floor_confirm_body">%1$s poistuu, ja sen mukana kaikki sen tilat ja niiden pinnoitekerrokset.</string>
+    <string name="prj_edit_room">Muokkaa tilaa</string>
+    <string name="prj_remove_room">Poista tila</string>
+    <string name="prj_remove_room_confirm">Poistetaanko tämä tila?</string>
+    <string name="prj_remove_room_confirm_body">%1$s poistuu kerroksineen ja niiden varaamine materiaaleineen.</string>
+    <string name="prj_edit_coat">Muokkaa kerrosta</string>
+    <string name="prj_remove_note_confirm">Poistetaanko tämä muistiinpano?</string>
+    <string name="prj_remove_note_confirm_body">Se poistuu työltä lopullisesti.</string>
+    <string name="prj_remove_photo_confirm">Poistetaanko tämä kuva?</string>
+    <string name="prj_remove_photo_confirm_body">Kuva poistuu työltä ja puhelimesta.</string>
+    <string name="projects_archived_show">Arkistoidut · %1$d</string>
+    <string name="projects_archived_hide">Piilota arkistoidut · %1$d</string>
+    <string name="projects_restore">Palauta</string>
     <string name="prj_target_finish">Tavoitteellinen valmistuminen</string>
     <string name="prj_progress">Edistyminen</string>
     <string name="prj_no_scope">Laajuudesta ei ole vielä muistiinpanoja.</string>

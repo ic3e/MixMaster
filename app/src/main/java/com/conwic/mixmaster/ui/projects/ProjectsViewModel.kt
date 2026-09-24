@@ -44,7 +44,20 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
         ProjectsUiState(filter = currentFilter, visibleProjects = items)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProjectsUiState())
 
+    /**
+     * What has been put away.
+     *
+     * Archiving was a one-way door: the list filters archived jobs out and nothing else ever
+     * showed them, so a job archived by mistake was gone with its rooms, coats and receipts.
+     */
+    val archived: StateFlow<List<ProjectEntity>> = projectRepository.observeArchived()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setFilter(value: ProjectStatus?) = filter.update { value }
+
+    fun unarchive(project: ProjectEntity) {
+        viewModelScope.launch { projectRepository.unarchive(project) }
+    }
 
     /**
      * Writes the project only once it has a name.

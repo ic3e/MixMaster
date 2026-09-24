@@ -381,6 +381,26 @@
     <string name="prj_scope">Scope</string>
     <string name="prj_save">Save project</string>
     <string name="prj_start_date">Start date</string>
+    <!-- Putting a job, a floor, a room or a coat right after it was first written down. -->
+    <string name="prj_status">Where it stands</string>
+    <string name="prj_dates">Dates</string>
+    <string name="action_clear">Clear</string>
+    <string name="prj_edit_floor">Edit floor</string>
+    <string name="prj_remove_floor">Remove floor</string>
+    <string name="prj_remove_floor_confirm">Remove this floor?</string>
+    <string name="prj_remove_floor_confirm_body">%1$s goes, and every room on it with its coats.</string>
+    <string name="prj_edit_room">Edit room</string>
+    <string name="prj_remove_room">Remove room</string>
+    <string name="prj_remove_room_confirm">Remove this room?</string>
+    <string name="prj_remove_room_confirm_body">%1$s goes, along with the coats on it and the material they book.</string>
+    <string name="prj_edit_coat">Edit coat</string>
+    <string name="prj_remove_note_confirm">Remove this note?</string>
+    <string name="prj_remove_note_confirm_body">It comes off the job for good.</string>
+    <string name="prj_remove_photo_confirm">Remove this photo?</string>
+    <string name="prj_remove_photo_confirm_body">It comes off the job and off this phone.</string>
+    <string name="projects_archived_show">Archived · %1$d</string>
+    <string name="projects_archived_hide">Hide archived · %1$d</string>
+    <string name="projects_restore">Put back</string>
     <string name="prj_target_finish">Target finish</string>
     <string name="prj_progress">Progress</string>
     <string name="prj_no_scope">No scope notes yet.</string>

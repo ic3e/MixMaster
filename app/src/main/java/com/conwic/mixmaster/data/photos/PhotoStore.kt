@@ -34,4 +34,21 @@ object PhotoStore {
             }
         }.getOrNull()
     }
+
+    /**
+     * Drops the copy behind a stored URI.
+     *
+     * A photo taken off a job used to leave its file behind for the life of the install — the
+     * row went, the megabytes stayed. Only touches files this object wrote: anything that isn't
+     * a file:// URI under the app's own photo folder is left alone.
+     */
+    suspend fun forget(context: Context, stored: String): Boolean = withContext(Dispatchers.IO) {
+        runCatching {
+            val uri = Uri.parse(stored)
+            if (uri.scheme != "file") return@runCatching false
+            val file = File(uri.path ?: return@runCatching false)
+            if (file.parentFile?.canonicalPath != dir(context).canonicalPath) return@runCatching false
+            file.delete()
+        }.getOrDefault(false)
+    }
 }

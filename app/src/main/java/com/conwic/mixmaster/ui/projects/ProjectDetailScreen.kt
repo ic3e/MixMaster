@@ -25,6 +25,19 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.Alignment
+import com.conwic.mixmaster.data.model.ProjectStatus
+import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ChipRow
+import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.domain.formatDueDate
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -73,6 +86,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
         factory = viewModelFactory {
             initializer {
                 ProjectDetailViewModel(
+                    container.appContext,
                     container.projectRepository,
                     container.productRepository,
                     container.solutionRepository,
@@ -156,6 +170,13 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onAddRoom = viewModel::addRoom,
                     onAddCoat = viewModel::addCoat,
                     onRemoveCoat = viewModel::removeCoat,
+                    onEditCoat = viewModel::updateCoat,
+                    onRenameFloor = viewModel::renameFloor,
+                    onRemoveFloor = viewModel::removeFloor,
+                    onEditRoom = viewModel::updateRoom,
+                    onRemoveRoom = viewModel::removeRoom,
+                    onRemoveNote = viewModel::removeNote,
+                    onRemovePhoto = viewModel::removePhoto,
                     onMixCoat = { room, coat ->
                         // Straight into the calculator on that coat, with the room's area, the
                         // rate it is specified at and the number of passes already in. Nothing
@@ -207,9 +228,12 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
             initialClient = project.clientName,
             initialAddress = project.address,
             initialScope = project.scopeNotes,
+            initialStatus = project.status,
+            initialStart = project.startDate,
+            initialTarget = project.targetFinishDate,
             onDismiss = { editSheetOpen = false },
-            onSave = { name, client, address, scope ->
-                viewModel.updateDetails(name, client, address, scope, project.startDate, project.targetFinishDate)
+            onSave = { name, client, address, scope, status, start, target ->
+                viewModel.updateDetails(name, client, address, scope, start, target, status)
                 editSheetOpen = false
             },
         )
@@ -286,13 +310,24 @@ private fun EditProjectSheet(
     initialClient: String,
     initialAddress: String,
     initialScope: String,
+    initialStatus: ProjectStatus,
+    initialStart: LocalDate?,
+    initialTarget: LocalDate?,
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String) -> Unit,
+    onSave: (String, String, String, String, ProjectStatus, LocalDate?, LocalDate?) -> Unit,
 ) {
     var name by remember { mutableStateOf(initialName) }
     var client by remember { mutableStateOf(initialClient) }
     var address by remember { mutableStateOf(initialAddress) }
     var scope by remember { mutableStateOf(initialScope) }
+    // Where the job has got to. It was fixed at "planning" from the moment a project was made,
+    // with nothing anywhere to move it on — which left the filters on the list, and the count
+    // on the home screen, reading something that could never come true.
+    var status by remember { mutableStateOf(initialStatus) }
+    var startDate by remember { mutableStateOf(initialStart) }
+    var targetDate by remember { mutableStateOf(initialTarget) }
+    // Which of the two dates the picker is open for, or null when it is closed.
+    var picking by remember { mutableStateOf<DateField?>(null) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -311,11 +346,103 @@ private fun EditProjectSheet(
             OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text(stringResource(R.string.prj_client)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(stringResource(R.string.prj_site_address)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = scope, onValueChange = { scope = it }, label = { Text(stringResource(R.string.prj_scope)) }, modifier = Modifier.fillMaxWidth())
-            PrimaryButton(
-                text = stringResource(R.string.prj_save),
-                onClick = { onSave(name, client, address, scope) },
+
+            SectionLabel(text = stringResource(R.string.prj_status))
+            ChipRow(
+                options = ProjectStatus.entries.map { option ->
+                    ChipOption(
+                        label = stringResource(option.labelRes()),
+                        selected = option == status,
+                        onClick = { status = option },
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            SectionLabel(text = stringResource(R.string.prj_dates))
+            DateRow(
+                label = stringResource(R.string.prj_start_date),
+                date = startDate,
+                onPick = { picking = DateField.START },
+                onClear = { startDate = null },
+            )
+            DateRow(
+                label = stringResource(R.string.prj_target_finish),
+                date = targetDate,
+                onPick = { picking = DateField.TARGET },
+                onClear = { targetDate = null },
+            )
+
+            PrimaryButton(
+                text = stringResource(R.string.prj_save),
+                onClick = { onSave(name, client, address, scope, status, startDate, targetDate) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+
+    picking?.let { field ->
+        val current = if (field == DateField.START) startDate else targetDate
+        // The picker works in UTC millis, so the date goes in and comes back out at UTC midnight
+        // rather than through the device's zone, where it can land a day either side.
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = (current ?: LocalDate.now())
+                .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { picking = null },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { millis ->
+                            val picked = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                            if (field == DateField.START) startDate = picked else targetDate = picked
+                        }
+                        picking = null
+                    },
+                ) { Text(stringResource(R.string.task_set_date)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { picking = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
+/** Which date the one picker is standing in for. */
+private enum class DateField { START, TARGET }
+
+/** A date on the project, with a way to clear it — both are optional on a job. */
+@Composable
+private fun DateRow(label: String, date: LocalDate?, onPick: () -> Unit, onClear: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f, fill = false),
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = date?.let { formatDueDate(it) } ?: stringResource(R.string.task_no_date),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.tappableText(onClick = onPick),
+            )
+            if (date != null) {
+                Text(
+                    text = stringResource(R.string.action_clear),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 10.dp).tappableText(onClick = onClear),
+                )
+            }
         }
     }
 }

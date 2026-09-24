@@ -342,6 +342,26 @@
     <string name="prj_scope">Töö maht</string>
     <string name="prj_save">Salvesta projekt</string>
     <string name="prj_start_date">Algus</string>
+    <!-- Töö, korruse, ruumi või kihi parandamine pärast esmast sisestust. -->
+    <string name="prj_status">Kus töö on</string>
+    <string name="prj_dates">Kuupäevad</string>
+    <string name="action_clear">Tühjenda</string>
+    <string name="prj_edit_floor">Muuda korrust</string>
+    <string name="prj_remove_floor">Eemalda korrus</string>
+    <string name="prj_remove_floor_confirm">Kas eemaldada see korrus?</string>
+    <string name="prj_remove_floor_confirm_body">%1$s kaob ja koos sellega kõik selle ruumid ja nende kihid.</string>
+    <string name="prj_edit_room">Muuda ruumi</string>
+    <string name="prj_remove_room">Eemalda ruum</string>
+    <string name="prj_remove_room_confirm">Kas eemaldada see ruum?</string>
+    <string name="prj_remove_room_confirm_body">%1$s kaob koos kihtidega ja materjaliga, mida need broneerivad.</string>
+    <string name="prj_edit_coat">Muuda kihti</string>
+    <string name="prj_remove_note_confirm">Kas eemaldada see märkus?</string>
+    <string name="prj_remove_note_confirm_body">See kaob töölt lõplikult.</string>
+    <string name="prj_remove_photo_confirm">Kas eemaldada see foto?</string>
+    <string name="prj_remove_photo_confirm_body">Foto kaob töölt ja ka telefonist.</string>
+    <string name="projects_archived_show">Arhiveeritud · %1$d</string>
+    <string name="projects_archived_hide">Peida arhiveeritud · %1$d</string>
+    <string name="projects_restore">Taasta</string>
     <string name="prj_target_finish">Plaanitud lõpp</string>
     <string name="prj_progress">Edenemine</string>
     <string name="prj_no_scope">Töö mahu märkmeid veel pole.</string>

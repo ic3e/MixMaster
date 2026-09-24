@@ -19,6 +19,9 @@ import kotlinx.coroutines.SupervisorJob
  */
 class AppContainer(context: Context) {
 
+    /** The application context — safe to hold, and what the file-backed stores need. */
+    val appContext: Context = context.applicationContext
+
     val database: AppDatabase = AppDatabase.getInstance(context)
 
     /**

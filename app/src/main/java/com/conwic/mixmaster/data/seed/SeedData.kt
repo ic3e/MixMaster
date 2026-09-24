@@ -1,24 +1,12 @@
 package com.conwic.mixmaster.data.seed
 
 import com.conwic.mixmaster.data.db.AppDatabase
-import com.conwic.mixmaster.data.db.entity.FloorEntity
-import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
-import com.conwic.mixmaster.data.db.entity.ProjectEntity
-import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.SolutionLineRole
 import com.conwic.mixmaster.data.db.entity.SolutionLineEntity
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
-import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
-import com.conwic.mixmaster.data.db.entity.TaskEntity
-import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.DosingMode
-import com.conwic.mixmaster.data.model.ProjectStatus
-import com.conwic.mixmaster.data.model.Role
-import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.isWaterLabel
-import java.time.Instant
-import java.time.LocalDate
 
 /**
  * First-run seed: the real manufacturer product catalog (ratios and coverage ranges researched
@@ -279,8 +267,10 @@ object SeedData {
             solutionIds[seedProduct.name] = solutionId
         }
 
-        seedDemoTeam(db)
-        seedDemoProject(db, solutionIds)
+        // Nothing else is seeded. The catalogue above is real — the products and recipes off
+        // the datasheets this firm works to — but a made-up job and a made-up crew are not:
+        // a demo project counted as an active job on the home screen, booked three tonnes of
+        // material it was never going to use, and drove the "check the warehouse" warning.
     }
 
     /** A thing you buy: no coverage, no ratio, because a bag of powder has neither. */
@@ -305,77 +295,4 @@ object SeedData {
         packageType = type,
         densityKgPerL = density,
     )
-
-    private suspend fun seedDemoTeam(db: AppDatabase) {
-        val teamDao = db.teamMemberDao()
-        teamDao.insert(TeamMemberEntity(name = "Tanel", email = "tanel@conwic.fi", role = Role.EMPLOYER))
-        teamDao.insert(TeamMemberEntity(name = "Marek Saar", email = "marek@conwic.fi", role = Role.WORKER))
-        teamDao.insert(TeamMemberEntity(name = "Jaan Kask", email = "jaan@conwic.fi", role = Role.WORKER))
-    }
-
-    private suspend fun seedDemoProject(db: AppDatabase, solutionIds: Map<String, Long>) {
-        val projectId = db.projectDao().insert(
-            ProjectEntity(
-                name = "Riverside Warehouse Floor",
-                clientName = "Baltic Freight OÜ",
-                address = "Paldiski mnt 12, Tallinn",
-                status = ProjectStatus.ACTIVE,
-                startDate = LocalDate.of(2026, 9, 2),
-                targetFinishDate = LocalDate.of(2026, 9, 30),
-                scopeNotes = "3,100 m² warehouse floor. Ideal Work Microtopping® system — Base Coat, " +
-                    "then Finish Coat — over the existing slab. Client wants light grey (colour chart 03), " +
-                    "matte sealer. Access via loading dock B only before 16:00.",
-            ),
-        )
-
-        val groundFloorId = db.floorDao().insert(FloorEntity(projectId = projectId, name = "Ground Floor", sortOrder = 0))
-        val mezzanineId = db.floorDao().insert(FloorEntity(projectId = projectId, name = "Mezzanine", sortOrder = 1))
-
-        val baseCoatId = solutionIds["Microtopping® Base Coat"] ?: 0L
-        val finishCoatId = solutionIds["Microtopping® Finish Coat"] ?: 0L
-
-        val roomDao = db.roomAreaDao()
-        val layerDao = db.roomLayerDao()
-
-        // A real bay is a build-up: base coat, then finish. The demo says so.
-        suspend fun room(floorId: Long, name: String, area: Double, order: Int, coats: List<Long>) {
-            val roomId = roomDao.insert(
-                RoomAreaEntity(floorId = floorId, projectId = projectId, name = name, areaM2 = area, sortOrder = order),
-            )
-            coats.filter { it > 0L }.forEachIndexed { index, solutionId ->
-                layerDao.insert(RoomLayerEntity(roomId = roomId, solutionId = solutionId, sortOrder = index))
-            }
-        }
-
-        room(groundFloorId, "Bay 1", 1550.0, 0, listOf(baseCoatId, finishCoatId))
-        room(groundFloorId, "Bay 2", 1550.0, 1, listOf(baseCoatId))
-        room(groundFloorId, "Loading Dock", 210.0, 2, emptyList())
-        room(mezzanineId, "Office", 85.0, 0, listOf(finishCoatId))
-        room(mezzanineId, "Corridor", 40.0, 1, emptyList())
-
-        val taskDao = db.taskDao()
-        taskDao.insert(TaskEntity(projectId = projectId, title = "Apply Finish Coat — bay 2", dueDate = LocalDate.of(2026, 9, 19), priority = TaskPriority.HIGH))
-        taskDao.insert(TaskEntity(projectId = projectId, title = "Order more Microtopping® powder", dueDate = LocalDate.of(2026, 9, 18), priority = TaskPriority.MEDIUM))
-        taskDao.insert(TaskEntity(projectId = projectId, title = "Prime bay 1 — IdealPU-WB", dueDate = LocalDate.of(2026, 9, 16), priority = TaskPriority.DONE, isDone = true))
-        taskDao.insert(TaskEntity(projectId = projectId, title = "Client walkthrough", dueDate = LocalDate.of(2026, 9, 22), priority = TaskPriority.LOW))
-
-        db.noteDao().insert(
-            NoteEntity(
-                projectId = projectId,
-                authorName = "Marek (site)",
-                authorRole = Role.WORKER,
-                text = "Bay 1 base coat went down clean — humidity was fine this morning.",
-                createdAt = Instant.now().minusSeconds(3600),
-            ),
-        )
-        db.noteDao().insert(
-            NoteEntity(
-                projectId = projectId,
-                authorName = "Tanel",
-                authorRole = Role.EMPLOYER,
-                text = "Client confirmed colour chart 03. Order two extra bags of Finish Coat for the office area.",
-                createdAt = Instant.now().minusSeconds(86_400),
-            ),
-        )
-    }
 }

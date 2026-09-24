@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
-    <uses-permission android:name="android.permission.CAMERA" />
     <!-- The mixing timer buzzes when a batch is done: a site is too loud for sound alone. -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- The mixing timer has to land even with the app off screen: it books the end of a batch
@@ -21,10 +20,6 @@
     <!-- A restart cancels every alarm the app had booked. A batch that is still due gets booked
          again, so a phone that reboots mid-mix does not lose the mix. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-
     <application
         android:name=".MixMasterApp"
         android:allowBackup="true"

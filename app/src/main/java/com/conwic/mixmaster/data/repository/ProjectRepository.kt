@@ -76,6 +76,11 @@ class ProjectRepository(
 
     suspend fun archive(project: ProjectEntity) = projectDao.update(project.copy(isArchived = true))
 
+    /** Puts an archived job back on the list. Archiving used to be a one-way door. */
+    suspend fun unarchive(project: ProjectEntity) = projectDao.update(project.copy(isArchived = false))
+
+    fun observeArchived(): Flow<List<ProjectEntity>> = projectDao.observeArchived()
+
     /** Stamps a job as having its material, which is what stops it booking any more. */
     suspend fun setMaterialsIssued(project: ProjectEntity, at: Long?) =
         projectDao.update(project.copy(materialsIssuedAt = at))
@@ -110,9 +115,18 @@ class ProjectRepository(
 
     suspend fun addFloor(floor: FloorEntity): Long = floorDao.insert(floor)
 
+    suspend fun updateFloor(floor: FloorEntity) = floorDao.update(floor)
+
+    /** Takes a floor off the job. Its rooms — and their coats — go with it, by the cascade. */
+    suspend fun removeFloor(floor: FloorEntity) = floorDao.delete(floor)
+
     fun observeRooms(projectId: Long): Flow<List<RoomAreaEntity>> = roomAreaDao.observeForProject(projectId)
 
     suspend fun addRoom(room: RoomAreaEntity): Long = roomAreaDao.insert(room)
+
+    suspend fun updateRoom(room: RoomAreaEntity) = roomAreaDao.update(room)
+
+    suspend fun removeRoom(room: RoomAreaEntity) = roomAreaDao.delete(room)
 
     suspend fun assignProduct(roomId: Long, productId: Long?) = roomAreaDao.assignProduct(roomId, productId)
 
@@ -134,7 +148,11 @@ class ProjectRepository(
 
     suspend fun addNote(note: NoteEntity): Long = noteDao.insert(note)
 
+    suspend fun removeNote(note: NoteEntity) = noteDao.delete(note)
+
     fun observePhotos(projectId: Long): Flow<List<PhotoEntity>> = photoDao.observeForProject(projectId)
 
     suspend fun addPhoto(photo: PhotoEntity): Long = photoDao.insert(photo)
+
+    suspend fun removePhoto(photo: PhotoEntity) = photoDao.delete(photo)
 }

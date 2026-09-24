@@ -31,6 +31,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +40,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
@@ -57,7 +60,11 @@ fun ProjectsScreen(navController: NavHostController) {
         factory = viewModelFactory { initializer { ProjectsViewModel(container.projectRepository) } },
     )
     val state by viewModel.uiState.collectAsState()
+    val archived by viewModel.archived.collectAsState()
     var newProjectOpen by remember { mutableStateOf(false) }
+    // Closed until asked for: what is archived is archived, and it should not sit between the
+    // crew and the jobs they are on.
+    var archivedOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
@@ -125,6 +132,53 @@ fun ProjectsScreen(navController: NavHostController) {
                         )
                     }
                     ProgressBarRow(progressPercent = item.progressPercent, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+
+            // The way back. Archiving used to be one-way: the list hides an archived job and
+            // nothing anywhere else listed one, so a mis-tap took the rooms, the coats and the
+            // receipts with it.
+            if (archived.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(
+                            if (archivedOpen) R.string.projects_archived_hide else R.string.projects_archived_show,
+                            archived.size,
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 10.dp).tappableText { archivedOpen = !archivedOpen },
+                    )
+                }
+            }
+            if (archivedOpen) {
+                items(archived) { project ->
+                    CardFlat(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
+                                Text(text = project.name, style = MaterialTheme.typography.titleMedium)
+                                if (project.clientName.isNotBlank()) {
+                                    Text(
+                                        text = project.clientName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            Text(
+                                text = stringResource(R.string.projects_restore),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.tappableText { viewModel.unarchive(project) },
+                            )
+                        }
+                    }
                 }
             }
         }

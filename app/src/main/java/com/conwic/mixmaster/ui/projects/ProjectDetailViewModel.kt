@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.projects
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.FloorEntity
@@ -12,6 +13,8 @@ import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.db.entity.TaskEntity
+import com.conwic.mixmaster.data.photos.PhotoStore
+import com.conwic.mixmaster.data.model.ProjectStatus
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
@@ -101,6 +104,7 @@ data class ProjectMaterial(
 }
 
 class ProjectDetailViewModel(
+    private val appContext: Context,
     private val projectRepository: ProjectRepository,
     private val productRepository: ProductRepository,
     private val solutionRepository: SolutionRepository,
@@ -292,9 +296,6 @@ class ProjectDetailViewModel(
         viewModelScope.launch { projectRepository.removeLayer(layer) }
     }
 
-    fun updateCoat(layer: RoomLayerEntity) {
-        viewModelScope.launch { projectRepository.updateLayer(layer) }
-    }
 
     /** Takes this job's material off the shelf, once, and stops it booking any more. */
     fun takeMaterialsOutOfStock() {
@@ -324,6 +325,53 @@ class ProjectDetailViewModel(
             projectRepository.addRoom(
                 RoomAreaEntity(floorId = floorId, projectId = projectId, name = name.trim(), areaM2 = areaM2, sortOrder = sortOrder),
             )
+        }
+    }
+
+    /** Renames a floor. A floor was add-only, and a typo stood for the life of the job. */
+    fun renameFloor(floor: FloorEntity, name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch { projectRepository.updateFloor(floor.copy(name = name.trim())) }
+    }
+
+    /** Takes a floor off. Its rooms and their coats go with it — the dialog says so. */
+    fun removeFloor(floor: FloorEntity) {
+        viewModelScope.launch { projectRepository.removeFloor(floor) }
+    }
+
+    /** A bay gets renamed and re-measured once somebody has been round it with a tape. */
+    fun updateRoom(room: RoomAreaEntity, name: String, areaM2: Double) {
+        if (name.isBlank() || areaM2 <= 0.0) return
+        viewModelScope.launch {
+            projectRepository.updateRoom(room.copy(name = name.trim(), areaM2 = areaM2))
+        }
+    }
+
+    fun removeRoom(room: RoomAreaEntity) {
+        viewModelScope.launch { projectRepository.removeRoom(room) }
+    }
+
+    /** Changes what a coat is laid at — the rate, and how many passes of it. */
+    fun updateCoat(layer: RoomLayerEntity, doseGramsPerM2: Double, quantity: Double) {
+        viewModelScope.launch {
+            projectRepository.updateLayer(
+                layer.copy(
+                    doseGramsPerM2 = doseGramsPerM2.coerceAtLeast(0.0),
+                    quantity = quantity.coerceAtLeast(0.0),
+                ),
+            )
+        }
+    }
+
+    fun removeNote(note: NoteEntity) {
+        viewModelScope.launch { projectRepository.removeNote(note) }
+    }
+
+    /** Takes a photo off the job, and the copy the app made of it off the phone. */
+    fun removePhoto(photo: PhotoEntity) {
+        viewModelScope.launch {
+            projectRepository.removePhoto(photo)
+            PhotoStore.forget(appContext, photo.uri)
         }
     }
 
@@ -365,7 +413,15 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun updateDetails(name: String, clientName: String, address: String, scopeNotes: String, startDate: LocalDate?, targetFinishDate: LocalDate?) {
+    fun updateDetails(
+        name: String,
+        clientName: String,
+        address: String,
+        scopeNotes: String,
+        startDate: LocalDate?,
+        targetFinishDate: LocalDate?,
+        status: ProjectStatus,
+    ) {
         viewModelScope.launch {
             data.value.project?.let {
                 projectRepository.save(
@@ -376,6 +432,7 @@ class ProjectDetailViewModel(
                         scopeNotes = scopeNotes.trim(),
                         startDate = startDate,
                         targetFinishDate = targetFinishDate,
+                        status = status,
                     ),
                 )
             }

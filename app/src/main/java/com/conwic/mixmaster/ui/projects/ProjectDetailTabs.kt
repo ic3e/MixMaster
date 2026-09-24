@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,8 +25,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.conwic.mixmaster.data.db.entity.FloorEntity
+import com.conwic.mixmaster.data.db.entity.NoteEntity
+import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.UsedAmount
 import com.conwic.mixmaster.data.model.Role
@@ -220,6 +226,14 @@ fun LayoutTab(
     onAddRoom: (Long, String, Double) -> Unit,
     onAddCoat: (Long, Long, Long, Double, Double) -> Unit,
     onRemoveCoat: (RoomLayerEntity) -> Unit,
+    /** The rate and the number of passes, put right without taking the coat off. */
+    onEditCoat: (RoomLayerEntity, Double, Double) -> Unit,
+    onRenameFloor: (FloorEntity, String) -> Unit,
+    onRemoveFloor: (FloorEntity) -> Unit,
+    onEditRoom: (RoomAreaEntity, String, Double) -> Unit,
+    onRemoveRoom: (RoomAreaEntity) -> Unit,
+    onRemoveNote: (NoteEntity) -> Unit,
+    onRemovePhoto: (PhotoEntity) -> Unit,
     /** Takes one coat of one room into the calculator, with the room's figures. */
     onMixCoat: (RoomAreaEntity, CoatMix) -> Unit,
     onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
@@ -235,6 +249,14 @@ fun LayoutTab(
     var removingCoat by remember { mutableStateOf<CoatMix?>(null) }
     var addFloorOpen by remember { mutableStateOf(false) }
     var addRoomForFloor by remember { mutableStateOf<Long?>(null) }
+    // Non-null while one of them is being put right, rather than added.
+    var editingFloor by remember { mutableStateOf<FloorEntity?>(null) }
+    var editingRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
+    var editingCoat by remember { mutableStateOf<CoatMix?>(null) }
+    var removingFloor by remember { mutableStateOf<FloorEntity?>(null) }
+    var removingRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
+    var removingNote by remember { mutableStateOf<NoteEntity?>(null) }
+    var openPhoto by remember { mutableStateOf<PhotoEntity?>(null) }
     var noteText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -305,7 +327,15 @@ fun LayoutTab(
         items(data.floors) { floor ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(modifier = Modifier.weight(1f, fill = false), text = floor.name, style = MaterialTheme.typography.titleMedium)
+                    // The name is the way in to putting it right: a floor was add-only, so a
+                    // typo on the first morning stood for the life of the job.
+                    Text(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .then(if (isEmployer) Modifier.tappableText { editingFloor = floor } else Modifier),
+                        text = floor.name,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                     if (isEmployer) {
                         Text(text = stringResource(R.string.prj_add_room), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
                     }
@@ -314,7 +344,17 @@ fun LayoutTab(
                     val coats = roomCoats[room.id].orEmpty()
                     Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(modifier = Modifier.weight(1f, fill = false), text = room.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                            // Same as the floor: tapping the name opens it for a rename or a
+                            // re-measure, which is what happens once somebody has been round
+                            // the bay with a tape.
+                            Text(
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .then(if (isEmployer) Modifier.tappableText { editingRoom = room } else Modifier),
+                                text = room.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                            )
                             Text(
                                 text = "${formatArea(room.areaM2)} m²" +
                                     if (coats.isNotEmpty()) " · ${quantityFromGrams(coats.sumOf { it.totalGrams }).text}" else "",
@@ -364,6 +404,12 @@ fun LayoutTab(
                                         )
                                     }
                                     if (isEmployer) {
+                                        Text(
+                                            text = stringResource(R.string.action_edit),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.tappableText { editingCoat = coat },
+                                        )
                                         Text(
                                             text = stringResource(R.string.action_remove),
                                             style = MaterialTheme.typography.labelSmall,
@@ -479,7 +525,10 @@ fun LayoutTab(
                         ContentImage(
                             uri = photo.uri,
                             targetSize = 84.dp,
-                            modifier = Modifier.size(84.dp).clip(RoundedCornerShape(12.dp)),
+                            modifier = Modifier
+                                .size(84.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { openPhoto = photo },
                         )
                     }
                 }
@@ -519,21 +568,87 @@ fun LayoutTab(
                     Text(text = note.authorRole.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
                 Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                Text(
-                    text = note.createdAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 6.dp),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f, fill = false),
+                        text = note.createdAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    // A note was write-only: a wrong one, or one meant for another job, stayed
+                    // on the record for good.
+                    if (isEmployer) {
+                        Text(
+                            text = stringResource(R.string.action_remove),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.tappableText { removingNote = note },
+                        )
+                    }
+                }
             }
         }
     }
 
     if (addFloorOpen) {
-        AddFloorSheet(onDismiss = { addFloorOpen = false }, onAdd = { onAddFloor(it); addFloorOpen = false })
+        FloorSheet(
+            initialName = "",
+            onDismiss = { addFloorOpen = false },
+            onSave = { onAddFloor(it); addFloorOpen = false },
+            onRemove = null,
+        )
     }
     addRoomForFloor?.let { floorId ->
-        AddRoomSheet(onDismiss = { addRoomForFloor = null }, onAdd = { name, area -> onAddRoom(floorId, name, area); addRoomForFloor = null })
+        RoomSheet(
+            initialName = "",
+            initialArea = "",
+            onDismiss = { addRoomForFloor = null },
+            onSave = { name, area -> onAddRoom(floorId, name, area); addRoomForFloor = null },
+            onRemove = null,
+        )
+    }
+    editingFloor?.let { floor ->
+        FloorSheet(
+            initialName = floor.name,
+            onDismiss = { editingFloor = null },
+            onSave = { name ->
+                onRenameFloor(floor, name)
+                editingFloor = null
+            },
+            onRemove = {
+                editingFloor = null
+                removingFloor = floor
+            },
+        )
+    }
+    editingRoom?.let { room ->
+        RoomSheet(
+            initialName = room.name,
+            initialArea = formatDecimal(room.areaM2, 2),
+            onDismiss = { editingRoom = null },
+            onSave = { name, area ->
+                onEditRoom(room, name, area)
+                editingRoom = null
+            },
+            onRemove = {
+                editingRoom = null
+                removingRoom = room
+            },
+        )
+    }
+    editingCoat?.let { coat ->
+        EditCoatSheet(
+            coat = coat,
+            onDismiss = { editingCoat = null },
+            onSave = { dose, quantity ->
+                onEditCoat(coat.layer, dose, quantity)
+                editingCoat = null
+            },
+        )
     }
     colourCoat?.let { coat ->
         ColourSheet(
@@ -564,6 +679,58 @@ fun LayoutTab(
                 onAddCoat(room.id, 0L, product.id, dose, 1.0)
                 pickerRoom = null
             },
+        )
+    }
+
+    removingFloor?.let { floor ->
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_floor_confirm),
+            message = stringResource(R.string.prj_remove_floor_confirm_body, floor.name),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingFloor = null
+                onRemoveFloor(floor)
+            },
+            onDismiss = { removingFloor = null },
+        )
+    }
+
+    removingRoom?.let { room ->
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_room_confirm),
+            message = stringResource(R.string.prj_remove_room_confirm_body, room.name),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingRoom = null
+                onRemoveRoom(room)
+            },
+            onDismiss = { removingRoom = null },
+        )
+    }
+
+    removingNote?.let { note ->
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_note_confirm),
+            message = stringResource(R.string.prj_remove_note_confirm_body),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingNote = null
+                onRemoveNote(note)
+            },
+            onDismiss = { removingNote = null },
+        )
+    }
+
+    // Full size, because a site photo is taken to be looked at rather than thumbed past.
+    openPhoto?.let { photo ->
+        PhotoViewer(
+            photo = photo,
+            canRemove = isEmployer,
+            onRemove = {
+                onRemovePhoto(photo)
+                openPhoto = null
+            },
+            onDismiss = { openPhoto = null },
         )
     }
 
@@ -638,9 +805,21 @@ private fun AccentStat(label: String, value: String) {
     }
 }
 
+/**
+ * A floor, being added or being put right.
+ *
+ * Both at once because they are the same three fields, and a floor was add-only: a name typed
+ * wrong on the first morning stood for the life of the job.
+ */
 @Composable
-private fun AddFloorSheet(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
-    var name by remember { mutableStateOf("") }
+private fun FloorSheet(
+    initialName: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+    onRemove: (() -> Unit)?,
+) {
+    val isNew = initialName.isBlank()
+    var name by remember { mutableStateOf(initialName) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -651,17 +830,34 @@ private fun AddFloorSheet(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = stringResource(R.string.prj_add_floor_action), style = MaterialTheme.typography.headlineMedium)
+            SheetHeader(
+                title = stringResource(if (isNew) R.string.prj_add_floor_action else R.string.prj_edit_floor),
+                onRemove = onRemove,
+                removeDescription = stringResource(R.string.prj_remove_floor),
+            )
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_floor_name)) }, modifier = Modifier.fillMaxWidth())
-            PrimaryButton(text = stringResource(R.string.prj_add_floor_action), onClick = { onAdd(name) }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth())
+            PrimaryButton(
+                text = stringResource(if (isNew) R.string.prj_add_floor_action else R.string.action_save),
+                onClick = { onSave(name) },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
+/** A room, being added or re-measured — a bay gets paced out again once somebody has a tape on it. */
 @Composable
-private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var area by remember { mutableStateOf("") }
+private fun RoomSheet(
+    initialName: String,
+    initialArea: String,
+    onDismiss: () -> Unit,
+    onSave: (String, Double) -> Unit,
+    onRemove: (() -> Unit)?,
+) {
+    val isNew = initialName.isBlank()
+    var name by remember { mutableStateOf(initialName) }
+    var area by remember { mutableStateOf(initialArea) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -672,15 +868,160 @@ private fun AddRoomSheet(onDismiss: () -> Unit, onAdd: (String, Double) -> Unit)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = stringResource(R.string.prj_add_room_action), style = MaterialTheme.typography.headlineMedium)
+            SheetHeader(
+                title = stringResource(if (isNew) R.string.prj_add_room_action else R.string.prj_edit_room),
+                onRemove = onRemove,
+                removeDescription = stringResource(R.string.prj_remove_room),
+            )
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_room_name)) }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text(stringResource(R.string.prj_room_area)) }, modifier = Modifier.fillMaxWidth())
             PrimaryButton(
-                text = stringResource(R.string.prj_add_room_action),
-                onClick = { onAdd(name, area.toNumberOrNull() ?: 0.0) },
+                text = stringResource(if (isNew) R.string.prj_add_room_action else R.string.action_save),
+                onClick = { onSave(name, area.toNumberOrNull() ?: 0.0) },
                 enabled = name.isNotBlank() && area.toNumberOrNull() != null,
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+    }
+}
+
+/**
+ * What a coat is laid at: the rate, and how many passes of it.
+ *
+ * A coat could be added and taken off but not corrected, so a rate typed as 300 instead of 3000
+ * meant removing it and starting again — and with it the colour that had been set on it.
+ */
+@Composable
+private fun EditCoatSheet(
+    coat: CoatMix,
+    onDismiss: () -> Unit,
+    onSave: (Double, Double) -> Unit,
+) {
+    var dose by remember { mutableStateOf(formatDecimal(coat.doseGramsPerM2, 2)) }
+    var quantity by remember { mutableStateOf(formatDecimal(coat.layer.quantity, 2)) }
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(text = stringResource(R.string.prj_edit_coat), style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = coat.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedTextField(
+                value = dose,
+                onValueChange = { dose = it },
+                label = { Text(stringResource(R.string.prj_coat_coverage)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = quantity,
+                onValueChange = { quantity = it },
+                label = { Text(stringResource(R.string.calc_coats)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            PrimaryButton(
+                text = stringResource(R.string.action_save),
+                onClick = { onSave(dose.toNumberOr(0.0), quantity.toNumberOr(1.0)) },
+                enabled = dose.toNumberOrNull() != null && quantity.toNumberOrNull() != null,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/**
+ * One site photo, full width, with the date it was taken and a way to take it off.
+ *
+ * The strip on the Layout tab is thumbnails: a crack or a colour reference read at 84 dp is no
+ * use to anybody, and there was nothing to tap.
+ */
+@Composable
+private fun PhotoViewer(
+    photo: PhotoEntity,
+    canRemove: Boolean,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var confirming by remember { mutableStateOf(false) }
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ContentImage(
+                uri = photo.uri,
+                targetSize = 320.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = photo.takenAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (canRemove) {
+                    Text(
+                        text = stringResource(R.string.action_remove),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.tappableText { confirming = true },
+                    )
+                }
+            }
+        }
+    }
+
+    if (confirming) {
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_photo_confirm),
+            message = stringResource(R.string.prj_remove_photo_confirm_body),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                confirming = false
+                onRemove()
+            },
+            onDismiss = { confirming = false },
+        )
+    }
+}
+
+/** A sheet's title with the way out of it — kept away from the save button, as everywhere else. */
+@Composable
+private fun SheetHeader(title: String, onRemove: (() -> Unit)?, removeDescription: String) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.weight(1f),
+        )
+        if (onRemove != null) {
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = Icons.Filled.DeleteOutline,
+                    contentDescription = removeDescription,
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }
