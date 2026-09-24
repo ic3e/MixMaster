@@ -151,10 +151,17 @@ fun BuildUpDiagram(rows: List<BuildUpRow>, modifier: Modifier = Modifier) {
     }
 }
 
-/** One flat face of a slab. */
-private fun slab(vararg corners: Offset): Path = Path().apply {
-    moveTo(corners[0].x, corners[0].y)
-    for (index in 1 until corners.size) lineTo(corners[index].x, corners[index].y)
+/**
+ * One flat face of a slab.
+ *
+ * Four corners spelled out rather than a vararg: Offset is a value class, and Kotlin will not
+ * take those by vararg.
+ */
+private fun slab(first: Offset, second: Offset, third: Offset, fourth: Offset): Path = Path().apply {
+    moveTo(first.x, first.y)
+    lineTo(second.x, second.y)
+    lineTo(third.x, third.y)
+    lineTo(fourth.x, fourth.y)
     close()
 }
 

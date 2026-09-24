@@ -76,6 +76,8 @@ Everything is compiled blind, so check by hand what the compiler would have caug
   second. Same reason the clock is passed into the ring as a lambda.
 - No composable call behind `?.` — write the `if`, or lift the calls into a small
   `remember…()` that returns null early.
+- No `vararg` of a value class (`Offset`, `Dp`, `Color`, `TextUnit`) — Kotlin refuses it. Spell
+  the parameters out.
 
 ## The model, in one paragraph
 
