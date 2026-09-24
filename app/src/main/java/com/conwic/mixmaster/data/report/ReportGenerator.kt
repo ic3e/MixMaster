@@ -63,18 +63,18 @@ object ReportGenerator {
             }
         }
 
-        // 10 for anything a client reads, with the headings a step above it and the small print
-        // a step below. The letterhead keeps its own size: it is the only part of the page that
-        // is meant to be seen from across a desk.
-        val titlePaint = textPaint(size = 12f, bold = true)
-        val bodyPaint = textPaint(size = 10f, bold = false)
-        val dimPaint = textPaint(size = 9f, bold = false, colorHex = "#6B6259")
+        // 9 for anything a client reads, with the headings a step above it and the small print a
+        // step below — about as far down as a printed page stays comfortable. The letterhead
+        // keeps its own size: it is the only part meant to be seen from across a desk.
+        val titlePaint = textPaint(size = 11f, bold = true)
+        val bodyPaint = textPaint(size = 9f, bold = false)
+        val dimPaint = textPaint(size = 8f, bold = false, colorHex = "#6B6259")
 
-        y += 11f
+        y += 10f
         canvas.drawText(context.getString(R.string.report_client, project.clientName), MARGIN, y, bodyPaint)
-        y += 15f
+        y += 13f
         canvas.drawText(context.getString(R.string.report_site, project.address), MARGIN, y, bodyPaint)
-        y += 15f
+        y += 13f
         canvas.drawText(
             context.getString(
                 R.string.report_dates,
@@ -85,32 +85,32 @@ object ReportGenerator {
             y,
             bodyPaint,
         )
-        y += 21f
-
-        canvas.drawText(context.getString(R.string.report_scope), MARGIN, y, titlePaint)
-        y += 15f
-        y = drawWrapped(canvas, project.scopeNotes.ifBlank { context.getString(R.string.report_no_scope) }, MARGIN, y, PAGE_WIDTH - 2 * MARGIN, bodyPaint)
         y += 18f
 
-        newPageIfNeeded(24f)
-        canvas.drawText(context.getString(R.string.report_rooms), MARGIN, y, titlePaint)
+        canvas.drawText(context.getString(R.string.report_scope), MARGIN, y, titlePaint)
+        y += 13f
+        y = drawWrapped(canvas, project.scopeNotes.ifBlank { context.getString(R.string.report_no_scope) }, MARGIN, y, PAGE_WIDTH - 2 * MARGIN, bodyPaint)
         y += 16f
+
+        newPageIfNeeded(20f)
+        canvas.drawText(context.getString(R.string.report_rooms), MARGIN, y, titlePaint)
+        y += 14f
         val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
         val usedProductIds = roomCoats.values.flatten()
             .flatMap { coat -> coat.parts.map { it.productId } }
             .toSet()
         for (room in rooms) {
-            newPageIfNeeded(30f)
+            newPageIfNeeded(26f)
             val coats = roomCoats[room.id].orEmpty()
             canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
-            y += 14f
+            y += 12f
             if (coats.isEmpty()) {
                 canvas.drawText(context.getString(R.string.prj_unassigned), MARGIN + 12f, y, dimPaint)
-                y += 16f
+                y += 14f
             } else {
                 // A floor is a build-up, so the report reads as one: every coat, in order.
                 coats.forEachIndexed { index, coat ->
-                    newPageIfNeeded(16f)
+                    newPageIfNeeded(14f)
                     val detail = "${index + 1}. ${coat.title} · ${quantityFromGrams(coat.totalGrams).text} (" +
                         coat.result.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
                     canvas.drawText(
@@ -119,7 +119,7 @@ object ReportGenerator {
                         y,
                         dimPaint,
                     )
-                    y += 12f
+                    y += 11f
                 }
                 y += 5f
                 // And then as a picture of itself: the coats pulled apart the way a system
@@ -130,7 +130,7 @@ object ReportGenerator {
                     val artRows = stack.map { coat ->
                         ReportCoat(coat.number, coat.title, "", coat.millimetres, coat.weight, coat.brand, null)
                     }
-                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 26f)
+                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 22f)
                     val slabs = stack.map { coat ->
                         val rate = context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
                         ReportCoat(
@@ -147,7 +147,7 @@ object ReportGenerator {
                     buildUpMillimetres(stack)?.let { millimetres ->
                         // A baseline, not a top edge: without this the line sat on the bottom of
                         // the drawing and its letters climbed back into the strip.
-                        y += 12f
+                        y += 11f
                         canvas.drawText(
                             context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 2)),
                             MARGIN + 12f,
@@ -157,36 +157,36 @@ object ReportGenerator {
                     }
                     // Clear of the drawing whether or not the total was printed: the next room's
                     // name is set from the left margin and would otherwise pass under the scale.
-                    y += 11f
+                    y += 10f
                 }
                 y += 4f
             }
         }
-        newPageIfNeeded(20f)
-        canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 10f, bold = true))
-        y += 22f
+        newPageIfNeeded(17f)
+        canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 9f, bold = true))
+        y += 19f
 
         // What was planned is above. This is what went down — the receipts written at the mixer,
         // which is the half of the report a client actually argues about.
         if (mixes.isNotEmpty()) {
-            newPageIfNeeded(24f)
+            newPageIfNeeded(20f)
             canvas.drawText(context.getString(R.string.prj_mixed_so_far), MARGIN, y, titlePaint)
-            y += 16f
+            y += 14f
             val perMaterial = linkedMapOf<String, Double>()
             mixes.flatMap { it.parts }.forEach { part ->
                 perMaterial[part.label] = (perMaterial[part.label] ?: 0.0) + part.grams
             }
             perMaterial.forEach { (label, grams) ->
-                newPageIfNeeded(16f)
+                newPageIfNeeded(14f)
                 canvas.drawText(
                     "$label — ${quantityFromGrams(grams).text}",
                     MARGIN,
                     y,
                     bodyPaint,
                 )
-                y += 14f
+                y += 12f
             }
-            newPageIfNeeded(18f)
+            newPageIfNeeded(16f)
             canvas.drawText(
                 context.getString(
                     R.string.report_mixed_total,
@@ -195,9 +195,9 @@ object ReportGenerator {
                 ),
                 MARGIN,
                 y,
-                textPaint(size = 10f, bold = true),
+                textPaint(size = 9f, bold = true),
             )
-            y += 22f
+            y += 19f
         }
 
         // The paperwork, named on the report itself: a client reading this is the one who asks
@@ -213,11 +213,11 @@ object ReportGenerator {
                 )
             }
         if (sheets.isNotEmpty()) {
-            newPageIfNeeded(24f)
+            newPageIfNeeded(20f)
             canvas.drawText(context.getString(R.string.prj_sheets), MARGIN, y, titlePaint)
-            y += 16f
+            y += 14f
             sheets.forEach { (name, kind, value) ->
-                newPageIfNeeded(15f)
+                newPageIfNeeded(13f)
                 val where = if (value.startsWith("file://")) {
                     context.getString(R.string.report_sheet_on_file)
                 } else {
@@ -229,16 +229,16 @@ object ReportGenerator {
                     y,
                     dimPaint,
                 )
-                y += 12f
+                y += 11f
             }
-            y += 12f
+            y += 11f
         }
 
-        newPageIfNeeded(24f)
+        newPageIfNeeded(20f)
         canvas.drawText(context.getString(R.string.report_tasks), MARGIN, y, titlePaint)
-        y += 16f
+        y += 14f
         for (task in tasks.sortedBy { it.dueDate }) {
-            newPageIfNeeded(16f)
+            newPageIfNeeded(14f)
             val status = if (task.isDone) context.getString(R.string.report_task_done) else ""
             canvas.drawText(
                 context.getString(
@@ -251,7 +251,7 @@ object ReportGenerator {
                 y,
                 bodyPaint,
             )
-            y += 14f
+            y += 12f
         }
 
         pdf.finishPage(page)
@@ -368,7 +368,7 @@ object ReportGenerator {
             val candidate = if (line.isEmpty()) word else "$line $word"
             if (paint.measureText(candidate) > maxWidth && line.isNotEmpty()) {
                 canvas.drawText(line.toString(), x, y, paint)
-                y += 14f
+                y += 12f
                 line = StringBuilder(word)
             } else {
                 line = StringBuilder(candidate)
@@ -376,7 +376,7 @@ object ReportGenerator {
         }
         if (line.isNotEmpty()) {
             canvas.drawText(line.toString(), x, y, paint)
-            y += 14f
+            y += 12f
         }
         return y
     }
