@@ -616,6 +616,7 @@
     <string name="mix_part_batch_of">Osaline kogus · %1$d / %2$d</string>
     <string name="mix_goes_in">Segistisse</string>
     <string name="mix_start">Käivita segisti</string>
+    <string name="mix_time_label">Segamisaeg</string>
     <string name="mix_running_note">Hoia käimas, kuni aeg saab täis.</string>
     <string name="mix_stop_early">Segatud — järgmine</string>
     <string name="mix_ready">Valmis valamiseks</string>

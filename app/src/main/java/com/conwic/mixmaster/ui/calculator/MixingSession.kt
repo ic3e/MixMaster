@@ -9,6 +9,8 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -16,18 +18,28 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,14 +52,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.conwic.mixmaster.R
@@ -61,14 +80,23 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.theme.Accent2
+import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Ok
 import kotlinx.coroutines.delay
+import kotlin.math.ceil
+import kotlin.math.cos
+import kotlin.math.sin
 
 /** One trip to the mixer: what goes in, and whether it is the odd smaller one at the end. */
 data class MixingStep(val amounts: List<ComponentAmount>, val isPartBatch: Boolean)
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
+
+/** What one press of the arrows is worth, and as far as the time can be taken. */
+const val MixStepSeconds = 15
+const val MaxMixSeconds = 900
 
 /**
  * The batches of a plan, in the order they get mixed.
@@ -126,7 +154,9 @@ fun MixingSession(
     var finished by remember { mutableStateOf(false) }
     var finishedAt by remember { mutableStateOf(0L) }
 
-    val seconds = if (mixSeconds > 0) mixSeconds else DefaultMixSeconds
+    // Starts at what the mix carries and can be nudged on the spot: a cold morning, a stiff
+    // batch or a worn paddle all want another half minute, and that is decided at the mixer.
+    var seconds by remember { mutableStateOf(if (mixSeconds > 0) mixSeconds else DefaultMixSeconds) }
     val step = steps.getOrNull(stepIndex)
 
     // The clock, not the frames: a countdown built out of ticks drifts, and this one is being
@@ -271,24 +301,34 @@ fun MixingSession(
                     }
                 }
 
-                val remaining = if (phase == MixPhase.RUNNING) {
-                    ((deadline - now).coerceAtLeast(0L) / 1000.0).toInt()
-                } else if (phase == MixPhase.DONE) {
-                    0
-                } else {
-                    seconds
+                val remainingMillis = when (phase) {
+                    MixPhase.RUNNING -> (deadline - now).coerceAtLeast(0L)
+                    MixPhase.DONE -> 0L
+                    MixPhase.READY -> seconds * 1000L
                 }
-                val fraction = if (seconds > 0) remaining.toFloat() / seconds.toFloat() else 0f
+                // Rounded up, so a run of two minutes opens on 2:00 and the last second is 0:01
+                // rather than a zero that sits there while the drill is still turning.
+                val shown = ceil(remainingMillis / 1000.0).toInt()
                 TimerRing(
-                    fraction = fraction,
-                    label = clock(remaining),
+                    fraction = if (seconds > 0) remainingMillis / (seconds * 1000f) else 0f,
+                    label = clock(shown),
                     running = phase == MixPhase.RUNNING,
                     done = phase == MixPhase.DONE,
                 )
 
+                // Only before it starts: a countdown that can be argued with while it runs is
+                // not a countdown.
+                if (phase == MixPhase.READY) {
+                    TimeStepper(
+                        label = stringResource(R.string.mix_time_label),
+                        onLess = { seconds = (seconds - MixStepSeconds).coerceAtLeast(MixStepSeconds) },
+                        onMore = { seconds = (seconds + MixStepSeconds).coerceAtMost(MaxMixSeconds) },
+                    )
+                }
+
                 when (phase) {
                     MixPhase.READY -> {
-                        PrimaryButton(
+                        BigButton(
                             text = stringResource(R.string.mix_start),
                             onClick = {
                                 stepStartedAt = System.currentTimeMillis()
@@ -296,7 +336,6 @@ fun MixingSession(
                                 now = stepStartedAt
                                 phase = MixPhase.RUNNING
                             },
-                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                     MixPhase.RUNNING -> {
@@ -304,14 +343,17 @@ fun MixingSession(
                             text = stringResource(R.string.mix_running_note),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
                         )
-                        GhostButton(
+                        // As big as the others so a glove can find it, but outlined rather than
+                        // filled: ending the mixing early is an override, not the way through.
+                        BigButton(
                             text = stringResource(R.string.mix_stop_early),
                             onClick = {
                                 phase = MixPhase.READY
                                 recordAndAdvance()
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            filled = false,
                         )
                     }
                     MixPhase.DONE -> {
@@ -321,7 +363,7 @@ fun MixingSession(
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold,
                         )
-                        PrimaryButton(
+                        BigButton(
                             text = if (stepIndex + 1 < steps.size) {
                                 stringResource(R.string.mix_next_batch)
                             } else {
@@ -331,7 +373,6 @@ fun MixingSession(
                                 phase = MixPhase.READY
                                 recordAndAdvance()
                             },
-                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -355,30 +396,171 @@ private enum class MixPhase { READY, RUNNING, DONE }
 
 @Composable
 private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Boolean) {
-    val pulse = rememberInfiniteTransition(label = "pulse")
-    val scale by pulse.animateFloat(
-        initialValue = 1f,
-        targetValue = if (running || done) 1.03f else 1f,
-        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "scale",
+    val spin = rememberInfiniteTransition(label = "spin")
+    // A slow turn inside the ring while the paddle is turning — the one thing on the screen
+    // that says the drill should still be in the bucket.
+    val angle by spin.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(3600, easing = LinearEasing)),
+        label = "angle",
     )
-    val track = MaterialTheme.colorScheme.surfaceVariant
-    val arc = if (done) Ok else MaterialTheme.colorScheme.primary
+    val breathe by spin.animateFloat(
+        initialValue = 1f,
+        targetValue = if (running) 1.02f else 1f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "breathe",
+    )
+    val halo by spin.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing)),
+        label = "halo",
+    )
+    // The sweep is eased rather than snapped so the last seconds do not stutter as the clock
+    // and the frames fall out of step.
+    val sweep by animateFloatAsState(
+        targetValue = fraction.coerceIn(0f, 1f),
+        animationSpec = tween(220, easing = LinearEasing),
+        label = "sweep",
+    )
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 6.dp)) {
-        Canvas(modifier = Modifier.size(220.dp).scale(scale)) {
-            val stroke = Stroke(width = 18.dp.toPx(), cap = StrokeCap.Round)
+    val track = MaterialTheme.colorScheme.surfaceVariant
+    val primary = MaterialTheme.colorScheme.primary
+    // Amber for the last fifth — the point where someone standing over it starts looking.
+    val arcColour = when {
+        done -> Ok
+        sweep <= 0.2f -> Accent2
+        else -> primary
+    }
+    val arc by animateColorAsState(targetValue = arcColour, animationSpec = tween(400), label = "arc")
+
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
+        Canvas(modifier = Modifier.size(280.dp).scale(breathe)) {
+            val width = 22.dp.toPx()
+            val stroke = Stroke(width = width, cap = StrokeCap.Round)
+            val radius = (size.minDimension - width) / 2f
+
+            if (done) {
+                // A ring of light going out, over and over, until somebody taps.
+                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.30f), radius = radius * (1f + halo * 0.22f))
+            }
             drawArc(color = track, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = stroke)
             drawArc(
                 color = arc,
                 startAngle = -90f,
-                // Wound down as the time goes, so what is left is what is drawn.
-                sweepAngle = 360f * fraction.coerceIn(0f, 1f),
+                // Wound down as the time goes, so what is left on the ring is what is left.
+                sweepAngle = 360f * sweep,
                 useCenter = false,
                 style = stroke,
             )
+            if (running && sweep > 0f) {
+                // The head of the arc, so the eye has something to follow between the digits.
+                val head = Math.toRadians((-90f + 360f * sweep).toDouble())
+                drawCircle(
+                    color = arc,
+                    radius = width * 0.62f,
+                    center = Offset(
+                        x = center.x + (cos(head) * radius).toFloat(),
+                        y = center.y + (sin(head) * radius).toFloat(),
+                    ),
+                )
+            }
+            if (running) {
+                inset(width * 1.9f) {
+                    rotate(angle) {
+                        drawArc(
+                            color = arc.copy(alpha = 0.35f),
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(
+                                width = 4.dp.toPx(),
+                                cap = StrokeCap.Round,
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 26f)),
+                            ),
+                        )
+                    }
+                }
+            }
         }
-        Text(text = label, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.ExtraBold)
+        Text(
+            text = label,
+            // Read at arm's length, over a bucket, in daylight.
+            fontSize = 74.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.displayLarge,
+        )
+    }
+}
+
+/** Nudges the mixing time before a batch starts. Big targets: this is done in gloves. */
+@Composable
+private fun TimeStepper(label: String, onLess: () -> Unit, onMore: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        StepperKey(add = false, onClick = onLess)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        StepperKey(add = true, onClick = onMore)
+    }
+}
+
+@Composable
+private fun StepperKey(add: Boolean, onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(72.dp)
+            .clip(CardShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick),
+    ) {
+        Icon(
+            imageVector = if (add) Icons.Filled.Add else Icons.Filled.Remove,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(34.dp),
+        )
+    }
+}
+
+/**
+ * The one button that matters on this screen.
+ *
+ * Tall and full width because it is pressed with a gloved thumb, at the mixer, in the seconds
+ * between one batch going out and the next going in.
+ */
+@Composable
+private fun BigButton(text: String, onClick: () -> Unit, filled: Boolean = true) {
+    Button(
+        onClick = onClick,
+        shape = CardShape,
+        colors = if (filled) {
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+        },
+        border = if (filled) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        modifier = Modifier.fillMaxWidth().height(88.dp),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

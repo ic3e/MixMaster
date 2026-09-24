@@ -616,6 +616,7 @@
     <string name="mix_part_batch_of">Osittainen erä · %1$d / %2$d</string>
     <string name="mix_goes_in">Sekoittimeen</string>
     <string name="mix_start">Käynnistä sekoitin</string>
+    <string name="mix_time_label">Sekoitusaika</string>
     <string name="mix_running_note">Pidä käynnissä, kunnes aika on täynnä.</string>
     <string name="mix_stop_early">Sekoitettu — seuraava</string>
     <string name="mix_ready">Valmis kaadettavaksi</string>
