@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - '.ci-logs/**'
       - 'dist/**'
+      # Notes for whoever works on this next are not a release.
+      - 'CLAUDE.md'
+      - 'README.md'
   workflow_dispatch: {}
 
 permissions:
