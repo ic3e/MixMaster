@@ -103,7 +103,12 @@ object ReportGenerator {
                     newPageIfNeeded(16f)
                     val detail = "${index + 1}. ${coat.title} · ${quantityFromGrams(coat.totalGrams).text} (" +
                         coat.result.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
-                    canvas.drawText(detail, MARGIN + 12f, y, dimPaint)
+                    canvas.drawText(
+                        fitText(detail, dimPaint, PAGE_WIDTH - 2 * MARGIN - 12f),
+                        MARGIN + 12f,
+                        y,
+                        dimPaint,
+                    )
                     y += 14f
                 }
                 y += 6f
@@ -115,7 +120,7 @@ object ReportGenerator {
                     val artRows = stack.map { coat ->
                         ReportCoat(coat.number, coat.title, "", coat.millimetres, coat.weight, coat.brand, null)
                     }
-                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 18f)
+                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 26f)
                     val slabs = stack.map { coat ->
                         val rate = context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
                         ReportCoat(
@@ -130,14 +135,19 @@ object ReportGenerator {
                     }
                     y = BuildUpArt.draw(canvas, slabs, MARGIN + 12f, y, artWidth)
                     buildUpMillimetres(stack)?.let { millimetres ->
+                        // A baseline, not a top edge: without this the line sat on the bottom of
+                        // the drawing and its letters climbed back into the strip.
+                        y += 13f
                         canvas.drawText(
                             context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 2)),
                             MARGIN + 12f,
                             y,
                             dimPaint,
                         )
-                        y += 14f
                     }
+                    // Clear of the drawing whether or not the total was printed: the next room's
+                    // name is set from the left margin and would otherwise pass under the scale.
+                    y += 12f
                 }
                 y += 4f
             }

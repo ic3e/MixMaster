@@ -8,6 +8,21 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import com.conwic.mixmaster.domain.rulerStep
 
+/**
+ * As much of a line as fits, and an ellipsis where it does not.
+ *
+ * Nothing on this page wraps: a name that is too long runs into the figure beside it or off the
+ * edge of the paper, and both look like a broken report rather than a long name.
+ */
+internal fun fitText(text: String, paint: Paint, maxWidth: Float): String {
+    if (text.isEmpty() || maxWidth <= 0f) return ""
+    if (paint.measureText(text) <= maxWidth) return text
+    val room = maxWidth - paint.measureText("…")
+    if (room <= 0f) return "…"
+    val kept = paint.breakText(text, true, room, null)
+    return text.take(kept.coerceAtLeast(0)).trimEnd() + "…"
+}
+
 /** One coat of the build-up as the report draws it. */
 internal data class ReportCoat(
     val number: Int,
@@ -103,7 +118,7 @@ internal object BuildUpArt {
             while (mark <= total + 0.0005) {
                 val y = bottom - (mark * perMm).toFloat()
                 canvas.drawLine(stripLeft - 7f, y, stripLeft - 1.5f, y, rulePaint)
-                canvas.drawText(formatMark(mark), stripLeft - 9f, y + 2.6f, markPaint)
+                canvas.drawText(formatMark(mark), stripLeft - 9f, y + 2.2f, markPaint)
                 val half = mark + step / 2.0
                 if (half <= total + 0.0005) {
                     val halfY = bottom - (half * perMm).toFloat()
@@ -168,8 +183,11 @@ internal object BuildUpArt {
             } else {
                 Color.parseColor("#6B6259")
             }
-            canvas.drawText("${row.number} · ${row.title}", rowsLeft + 10f, y + 11f, namePaint)
-            canvas.drawText(row.detail, rowsLeft + 10f, y + 21f, detailPaint)
+            // The name stops where the figure starts. A long product name used to run under it.
+            val figureWidth = figurePaint.measureText(row.mmText ?: "—")
+            val textRoom = rowsWidth - 20f - figureWidth - 10f
+            canvas.drawText(fitText("${row.number} · ${row.title}", namePaint, textRoom), rowsLeft + 10f, y + 11f, namePaint)
+            canvas.drawText(fitText(row.detail, detailPaint, textRoom), rowsLeft + 10f, y + 21f, detailPaint)
             canvas.drawText(row.mmText ?: "—", rowsLeft + rowsWidth - 10f, y + 17f, figurePaint)
             y += RowHeight + RowGap
 

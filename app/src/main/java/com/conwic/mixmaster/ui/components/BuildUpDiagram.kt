@@ -49,6 +49,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -256,18 +257,22 @@ private fun Band(row: BuildUpRow, appear: Animatable<Float, *>) {
             )
         }
         Column(modifier = Modifier.weight(1f)) {
+            // One line each, cut with an ellipsis: a long product name must not push the
+            // millimetres off the end of the band.
             Text(
                 text = row.title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (laidIn) Charcoal else ink,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = row.detail,
                 style = MaterialTheme.typography.labelSmall,
                 color = if (laidIn) MaterialTheme.colorScheme.onSurfaceVariant else dim,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
