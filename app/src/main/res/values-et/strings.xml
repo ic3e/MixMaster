@@ -480,6 +480,16 @@
     <string name="report_scope">Töö maht</string>
     <string name="report_no_scope">Töö mahu märkmeid pole.</string>
     <string name="report_rooms">Ruumid ja materjalid</string>
+    <string name="report_buildup_caption">Põranda ülesehitus</string>
+    <string name="report_buildup_note">Võrk ja liiv töötatakse ümbritsevatesse kihtidesse ega anna oma paksust — skaalal on need joontena, mitte ribadena. Paksus on märgpaksus, arvutatud iga segu tiheduse järgi.</string>
+    <plurals name="report_buildup_coats">
+        <item quantity="one">%d kiht</item>
+        <item quantity="other">%d kihti</item>
+    </plurals>
+    <plurals name="report_buildup_systems">
+        <item quantity="one">%d süsteem</item>
+        <item quantity="other">%d süsteemi</item>
+    </plurals>
     <string name="report_total_material">Materjali kõigi ruumide peale kokku: %1$s</string>
     <string name="report_tasks">Ülesanded</string>
     <string name="report_task_done">[tehtud] </string>
@@ -587,6 +597,8 @@
     </plurals>
     <string name="prj_buildup_tinted">%1$s · toonitud %2$s</string>
     <string name="prj_buildup_total">≈ %1$s mm kilet, märjalt</string>
+    <string name="prj_buildup_mm">%1$s mm</string>
+    <string name="prj_buildup_hint">Puuduta, et kihid avada</string>
     <string name="prj_set_colour">Määra värv</string>
     <string name="prj_colour">Värv</string>
     <string name="prj_colour_line">%1$s · %2$s %3$s kohta</string>

@@ -12,6 +12,13 @@ import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -117,6 +124,14 @@ const val DefaultMixSeconds = 120
  */
 private val Alert = Color(0xFFFFB300)
 private val AlertPale = Color(0xFFFFF3D6)
+
+/**
+ * The curve the middle of the screen changes on: quick off the mark, long and soft into place.
+ *
+ * Deliberately not the same shape both ways — what is leaving goes on a straight line, because
+ * a fade that eases out lingers, and the ring cannot arrive until the list has actually gone.
+ */
+private val StageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 /**
  * What one press of the arrows is worth, and as far as the time can be taken.
@@ -454,52 +469,81 @@ fun MixingSession(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (phase == MixPhase.RUNNING) {
-                        // Square, and never taller than the room it has been left.
-                        val side = minOf(maxWidth, maxHeight)
-                        // Keyed on the batch, so every one of them gets the wind-up rather than
-                        // only the first: the ring arriving is what says a new batch is up.
-                        key(stepIndex) {
-                            TimerRing(
-                                remaining = remaining,
-                                total = total,
-                                running = true,
-                                done = false,
-                                calm = calm,
-                                modifier = Modifier.size(side),
-                            )
-                        }
-                    } else {
-                        // Scrolls inside its own space rather than taking the page with it —
-                        // a recipe of ten parts is rare, and when it happens the buttons stay
-                        // where they are.
-                        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                            CardFlat {
-                                SectionLabel(text = stringResource(R.string.mix_goes_in))
-                                step.amounts.forEach { amount ->
-                                    val part = parts.firstOrNull { it.label == amount.label }
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Text(
-                                            text = amount.label,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                                        )
-                                        Column(horizontalAlignment = Alignment.End) {
+                    // Square, and never taller than the room it has been left.
+                    val side = minOf(maxWidth, maxHeight)
+                    // The two of them trade places rather than cut: the one going away shrinks
+                    // back a little as it fades, and the one arriving grows into the same middle
+                    // once the first has cleared. Both fit the space exactly, so nothing is
+                    // resized on the way through — it is only opacity and scale, which the GPU
+                    // does without another layout pass.
+                    AnimatedContent(
+                        targetState = phase == MixPhase.RUNNING,
+                        transitionSpec = {
+                            if (calm) {
+                                fadeIn(animationSpec = snap()) togetherWith
+                                    fadeOut(animationSpec = snap())
+                            } else {
+                                (fadeIn(tween(200, delayMillis = 90, easing = StageEase)) +
+                                    scaleIn(
+                                        initialScale = 0.94f,
+                                        animationSpec = tween(260, delayMillis = 90, easing = StageEase),
+                                    )) togetherWith
+                                    (fadeOut(tween(120, easing = LinearEasing)) +
+                                        scaleOut(
+                                            targetScale = 0.97f,
+                                            animationSpec = tween(160, easing = StageEase),
+                                        ))
+                            }
+                        },
+                        contentAlignment = Alignment.Center,
+                        label = "mix-stage",
+                        modifier = Modifier.fillMaxSize(),
+                    ) { running ->
+                        if (running) {
+                            // Keyed on the batch, so every one of them gets the wind-up rather than
+                            // only the first: the ring arriving is what says a new batch is up.
+                            key(stepIndex) {
+                                TimerRing(
+                                    remaining = remaining,
+                                    total = total,
+                                    running = true,
+                                    done = false,
+                                    calm = calm,
+                                    modifier = Modifier.size(side),
+                                )
+                            }
+                        } else {
+                            // Scrolls inside its own space rather than taking the page with it —
+                            // a recipe of ten parts is rare, and when it happens the buttons stay
+                            // where they are.
+                            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                                CardFlat {
+                                    SectionLabel(text = stringResource(R.string.mix_goes_in))
+                                    step.amounts.forEach { amount ->
+                                        val part = parts.firstOrNull { it.label == amount.label }
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
                                             Text(
-                                                text = quantityFromGrams(amount.grams).text,
+                                                text = amount.label,
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.ExtraBold,
+                                                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
                                             )
-                                            packText(part, amount.grams)?.let { packs ->
+                                            Column(horizontalAlignment = Alignment.End) {
                                                 Text(
-                                                    text = packs,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    text = quantityFromGrams(amount.grams).text,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.ExtraBold,
                                                 )
+                                                packText(part, amount.grams)?.let { packs ->
+                                                    Text(
+                                                        text = packs,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                }
                                             }
                                         }
                                     }

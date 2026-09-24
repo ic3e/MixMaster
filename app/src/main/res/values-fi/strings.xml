@@ -480,6 +480,16 @@
     <string name="report_scope">Työn laajuus</string>
     <string name="report_no_scope">Laajuudesta ei ole muistiinpanoja.</string>
     <string name="report_rooms">Tilat ja materiaalit</string>
+    <string name="report_buildup_caption">Lattian rakenne</string>
+    <string name="report_buildup_note">Verkko ja hiekka upotetaan ympäröiviin kerroksiin eivätkä ne lisää omaa paksuutta — asteikolla ne on merkitty viivoina, ei palkkeina. Paksuus on märkäpaksuus, laskettu kunkin seoksen tiheydestä.</string>
+    <plurals name="report_buildup_coats">
+        <item quantity="one">%d kerros</item>
+        <item quantity="other">%d kerrosta</item>
+    </plurals>
+    <plurals name="report_buildup_systems">
+        <item quantity="one">%d järjestelmä</item>
+        <item quantity="other">%d järjestelmää</item>
+    </plurals>
     <string name="report_total_material">Materiaalia kaikissa tiloissa yhteensä: %1$s</string>
     <string name="report_tasks">Tehtävät</string>
     <string name="report_task_done">[tehty] </string>
@@ -587,6 +597,8 @@
     </plurals>
     <string name="prj_buildup_tinted">%1$s · sävytetty %2$s</string>
     <string name="prj_buildup_total">≈ %1$s mm kalvoa, märkänä</string>
+    <string name="prj_buildup_mm">%1$s mm</string>
+    <string name="prj_buildup_hint">Napauta avataksesi kerrokset</string>
     <string name="prj_set_colour">Aseta väri</string>
     <string name="prj_colour">Väri</string>
     <string name="prj_colour_line">%1$s · %2$s per %3$s</string>

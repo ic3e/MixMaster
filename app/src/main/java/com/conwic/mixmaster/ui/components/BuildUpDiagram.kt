@@ -76,21 +76,32 @@ data class BuildUpRow(
  * The two ends of the slab colouring: a light screed and a dark one.
  *
  * Fixed rather than themed. A build-up is a drawing of a physical thing — the same drawing goes
- * in the report, on paper — and it reads the same whichever way the phone is set.
+ * in the report, on paper — and it reads the same whichever way the phone is set. Which is also
+ * why the ink on the pale bands is spelled out here instead of taken from the colour scheme: a
+ * band that is always near-white needs a dark word on it in both settings of the phone.
  */
 private val SlabLight = Color(0xFFF2EBE0)
 private val SlabDark = Color(0xFF4C5154)
 private val StripEdge = Color(0xFFDCD6C9)
 private val Rule = Color(0xFF9C9488)
 private val RuleFaint = Color(0xFFCFC8BA)
+private val PaleInk = Color(0xFF6C6459)
+private val HatchGround = Color(0xFFFBFAF8)
+private val HatchLine = Color(0xFFEDEAE2)
 
 /** The one curve the app opens things with. */
 private val EaseOut = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 private val BandHeight = 44.dp
+/** A shade shorter, because it is not a layer of the floor in its own right. */
+private val BandHeightLaidIn = 40.dp
 private val BandGap = 6.dp
+private val BandRadius = 10.dp
+private val SystemRowHeight = 22.dp
 private val StripWidth = 18.dp
 private val RulerWidth = 26.dp
+/** Headroom above the strip, for the cap that says what the scale is counting in. */
+private val RulerCap = 14.dp
 
 /**
  * The floor, as a strip drawn to scale and a set of bands you can read.
@@ -104,12 +115,19 @@ private val RulerWidth = 26.dp
  * the strip where it sits, because that is what it is: something laid into the joint between
  * two coats, adding no height. Which is also what keeps the scale honest: every millimetre of
  * the strip is a millimetre of floor, so the numbers beside it land where they should.
+ *
+ * The line along the bottom stays in both states. Open used to take the total away with it,
+ * which is the one figure somebody reads the drawing for.
  */
 @Composable
 fun BuildUpPanel(
     rows: List<BuildUpRow>,
     summary: String,
     totalText: String?,
+    /** The small word along the bottom left — what to do with the panel, or what it is showing. */
+    footNote: String,
+    /** The total on the bottom right, written short: "2.03 mm". */
+    totalShort: String?,
     expanded: Boolean,
     onToggle: () -> Unit,
     openLabel: String,
@@ -188,15 +206,61 @@ fun BuildUpPanel(
                         LaunchedEffect(row.number) {
                             if (!calm) appear.animateTo(1f, tween(260, delayMillis = 35 * fromTop, easing = EaseOut))
                         }
-                        // The system's name where it changes: two brands in one floor is two
+                        Band(row = row, appear = appear)
+                        // The system's name under the bands that belong to it, the way a bracket
+                        // on a drawing names the group it spans. Two brands in one floor is two
                         // systems, and the joint between them is worth seeing.
                         val below = topDown.getOrNull(fromTop + 1)
-                        Band(row = row, appear = appear)
-                        if (below != null && below.brand.isNotBlank() && !below.brand.equals(row.brand, true)) {
-                            SystemLine(brand = below.brand, appear = appear)
+                        val lowestOfItsSystem = below == null || !below.brand.equals(row.brand, true)
+                        if (lowestOfItsSystem && row.brand.isNotBlank()) {
+                            SystemLine(brand = row.brand, appear = appear)
                         }
                     }
                 }
+            }
+        }
+
+        BuildUpFoot(note = footNote, total = totalShort)
+    }
+}
+
+/**
+ * The line along the bottom: what the panel is showing on the left, what it comes to on the right.
+ *
+ * The same in both states, so the total does not disappear at the moment somebody opens the
+ * drawing to look for it.
+ */
+@Composable
+private fun BuildUpFoot(note: String, total: String?) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 9.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = note,
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
+            )
+            total?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
         }
     }
@@ -209,25 +273,36 @@ private fun Band(row: BuildUpRow, appear: Animatable<Float, *>) {
     val ink = if (face.luminance() < 0.42f) Color.White else Charcoal
     val dim = ink.copy(alpha = 0.78f)
     val laidIn = row.millimetres == null
-    val shape = RoundedCornerShape(11.dp)
+    val shape = RoundedCornerShape(BandRadius)
     val dash = RuleFaint
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(BandHeight)
+            .height(if (laidIn) BandHeightLaidIn else BandHeight)
             .graphicsLayer {
                 alpha = appear.value
                 translationX = (1f - appear.value) * -14.dp.toPx()
             }
             .then(
                 if (laidIn) {
-                    // Dashed and pale: this one is laid into the coats around it, so it is not
-                    // drawn as a solid slab either.
-                    Modifier.clip(shape).background(SlabLight.copy(alpha = 0.45f)).drawBehind {
+                    // Hatched and dashed, the way a section drawing marks something that is not
+                    // a layer in its own right: this one is worked into the coats around it.
+                    Modifier.clip(shape).background(HatchGround).drawBehind {
+                        val step = 5.dp.toPx()
+                        var x = -size.height
+                        while (x < size.width + size.height) {
+                            drawLine(
+                                color = HatchLine,
+                                start = Offset(x, size.height),
+                                end = Offset(x + size.height, 0f),
+                                strokeWidth = 1.dp.toPx(),
+                            )
+                            x += step
+                        }
                         drawRoundRect(
                             color = dash,
-                            cornerRadius = CornerRadius(11.dp.toPx()),
+                            cornerRadius = CornerRadius(BandRadius.toPx()),
                             style = Stroke(
                                 width = 1.dp.toPx(),
                                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 5f)),
@@ -238,20 +313,27 @@ private fun Band(row: BuildUpRow, appear: Animatable<Float, *>) {
                     Modifier.clip(shape).background(face)
                 },
             )
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(20.dp)
+                .size(19.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(if (laidIn) Charcoal.copy(alpha = 0.08f) else ink.copy(alpha = 0.20f)),
+                .background(
+                    when {
+                        laidIn -> Charcoal.copy(alpha = 0.08f)
+                        ink == Color.White -> Color.White.copy(alpha = 0.28f)
+                        else -> Charcoal.copy(alpha = 0.12f)
+                    },
+                ),
         ) {
             Text(
                 text = "${row.number}",
                 style = MaterialTheme.typography.labelSmall,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = if (laidIn) Charcoal else ink,
             )
@@ -262,6 +344,7 @@ private fun Band(row: BuildUpRow, appear: Animatable<Float, *>) {
             Text(
                 text = row.title,
                 style = MaterialTheme.typography.bodyMedium,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (laidIn) Charcoal else ink,
                 maxLines = 1,
@@ -270,21 +353,24 @@ private fun Band(row: BuildUpRow, appear: Animatable<Float, *>) {
             Text(
                 text = row.detail,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (laidIn) MaterialTheme.colorScheme.onSurfaceVariant else dim,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (laidIn) PaleInk else dim,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
             text = row.mmText ?: "—",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (row.mmText == null) {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            } else if (laidIn) {
-                Charcoal
-            } else {
-                ink
+            // The figures in the display face, like every other number in the app that is meant
+            // to be read off rather than read through.
+            style = MaterialTheme.typography.titleMedium,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = when {
+                row.mmText == null -> Rule
+                laidIn -> Charcoal
+                else -> ink
             },
         )
     }
@@ -296,7 +382,7 @@ private fun SystemLine(brand: String, appear: Animatable<Float, *>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(20.dp)
+            .height(SystemRowHeight)
             .graphicsLayer { alpha = appear.value },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -310,7 +396,9 @@ private fun SystemLine(brand: String, appear: Animatable<Float, *>) {
         Text(
             text = brand.uppercase(),
             style = MaterialTheme.typography.labelSmall,
+            fontSize = 9.sp,
             fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.sp,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
         )
@@ -333,14 +421,20 @@ private fun BuildUpStrip(
     val films = rows.mapNotNull { it.millimetres }
     val total = films.sum()
     val labelStyle = TextStyle(fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Rule)
+    val capStyle = TextStyle(fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp, color = Rule)
     val primary = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier) {
         if (total <= 0.0) return@Canvas
         val stripLeft = if (ruler) RulerWidth.toPx() else 0f
         val stripWidth = StripWidth.toPx()
+        // Open, the top of the strip is held clear of the bands so the scale can be capped with
+        // what it counts in. Closed there is nothing to cap, so the thumbnail fills its row.
+        val cap = if (ruler) RulerCap.toPx() else 0f
         val height = size.height
-        val perMm = height / total.toFloat()
+        val top = cap
+        val stripHeight = height - cap
+        val perMm = stripHeight / total.toFloat()
 
         if (ruler) {
             // A real scale, not a decoration: 0 at the concrete, a mark at every step the
@@ -360,7 +454,7 @@ private fun BuildUpStrip(
                     textLayoutResult = text,
                     topLeft = Offset(
                         x = stripLeft - 9.dp.toPx() - text.size.width,
-                        y = (y - text.size.height / 2f).coerceIn(0f, height - text.size.height),
+                        y = (y - text.size.height / 2f).coerceIn(top, height - text.size.height),
                     ),
                 )
                 val half = mark + step / 2.0
@@ -375,6 +469,15 @@ private fun BuildUpStrip(
                 }
                 mark += step
             }
+            // What the figures on the scale are: millimetres, said once at the head of it.
+            val capText = measurer.measure("MM", capStyle)
+            drawText(
+                textLayoutResult = capText,
+                topLeft = Offset(
+                    x = stripLeft - 9.dp.toPx() - capText.size.width,
+                    y = (top - capText.size.height - 2.dp.toPx()).coerceAtLeast(0f),
+                ),
+            )
         }
 
         // Grows out of the closed row's thumbnail, from the bottom, like a floor does.
@@ -384,8 +487,8 @@ private fun BuildUpStrip(
                 addRoundRect(
                     androidx.compose.ui.geometry.RoundRect(
                         rect = androidx.compose.ui.geometry.Rect(
-                            offset = Offset(stripLeft, 0f),
-                            size = Size(stripWidth, height),
+                            offset = Offset(stripLeft, top),
+                            size = Size(stripWidth, stripHeight),
                         ),
                         cornerRadius = radius,
                     ),

@@ -471,6 +471,16 @@ fun LayoutTab(
                                 totalText = millimetres?.let {
                                     stringResource(R.string.prj_buildup_total, formatDecimal(it, 2))
                                 },
+                                // Closed it says what to do with it; open, where the count has
+                                // gone from the head of the panel, it carries the count instead.
+                                footNote = if (buildUpOpen) {
+                                    pluralStringResource(R.plurals.prj_buildup_coats, stack.size, stack.size)
+                                } else {
+                                    stringResource(R.string.prj_buildup_hint)
+                                },
+                                totalShort = millimetres?.let {
+                                    stringResource(R.string.prj_buildup_mm, formatDecimal(it, 2))
+                                },
                                 expanded = buildUpOpen,
                                 onToggle = { buildUpOpen = !buildUpOpen },
                                 openLabel = stringResource(

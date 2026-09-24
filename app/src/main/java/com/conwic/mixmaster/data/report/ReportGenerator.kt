@@ -102,13 +102,78 @@ object ReportGenerator {
         for (room in rooms) {
             newPageIfNeeded(26f)
             val coats = roomCoats[room.id].orEmpty()
-            canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
-            y += 12f
+            val stack = buildUp(coats, room.areaM2) { it.title }
+            val roomLine = "${room.name} — ${formatArea(room.areaM2)} m²"
+            // With a build-up to draw, the drawing carries the room's name in its own head. With
+            // nothing to draw, the room still has to say which room it is.
+            if (stack.isEmpty()) {
+                canvas.drawText(roomLine, MARGIN, y, bodyPaint)
+                y += 12f
+            }
             if (coats.isEmpty()) {
                 canvas.drawText(context.getString(R.string.prj_unassigned), MARGIN + 12f, y, dimPaint)
                 y += 14f
             } else {
-                // A floor is a build-up, so the report reads as one: every coat, in order.
+                if (stack.isNotEmpty()) {
+                    // The floor as a picture of itself: the coats pulled apart the way a system
+                    // datasheet draws them, so a client sees the floor rather than a list of bags.
+                    val artWidth = PAGE_WIDTH - 2 * MARGIN
+                    val slabs = stack.map { coat ->
+                        val rate = context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
+                        val tinted = coat.colourName
+                            ?.let { context.getString(R.string.prj_buildup_tinted, rate, it) }
+                            ?: rate
+                        ReportCoat(
+                            number = coat.number,
+                            title = coat.title,
+                            // The rate and what that comes to over this floor: the two figures
+                            // somebody checks a coat against, on the band itself.
+                            detail = "$tinted · ${quantityFromGrams(coat.gramsPerM2 * room.areaM2).text}",
+                            millimetres = coat.millimetres,
+                            weight = coat.weight,
+                            brand = coat.brand,
+                            mmText = coat.millimetres?.let { formatDecimal(it, 2) },
+                        )
+                    }
+                    val millimetres = buildUpMillimetres(stack)
+                    val systems = stack.map { it.brand }.filter { it.isNotBlank() }.distinct().size
+                    val block = ReportBuildUp(
+                        caption = context.getString(R.string.report_buildup_caption),
+                        title = roomLine,
+                        facts = listOfNotNull(
+                            context.resources.getQuantityString(
+                                R.plurals.report_buildup_coats,
+                                stack.size,
+                                stack.size,
+                            ),
+                            if (systems > 0) {
+                                context.resources.getQuantityString(
+                                    R.plurals.report_buildup_systems,
+                                    systems,
+                                    systems,
+                                )
+                            } else {
+                                null
+                            },
+                            millimetres?.let {
+                                context.getString(R.string.prj_buildup_total, formatDecimal(it, 2))
+                            },
+                        ).joinToString(" · "),
+                        totalLabel = millimetres?.let {
+                            context.getString(R.string.prj_buildup_mm, formatDecimal(it, 2))
+                        },
+                        note = context.getString(R.string.report_buildup_note),
+                        mark = context.getString(R.string.app_name),
+                    )
+                    // Clear of the descenders of whatever was set last: the block's own caption
+                    // starts a few points below the top it is handed.
+                    y += 2f
+                    newPageIfNeeded(BuildUpArt.height(slabs) + 8f)
+                    y = BuildUpArt.draw(canvas, slabs, block, MARGIN, y, artWidth)
+                    y += 6f
+                }
+                // And then what each coat is mixed from, which is the half of it somebody orders
+                // material against. The drawing says how thick; this says how many bags.
                 coats.forEachIndexed { index, coat ->
                     newPageIfNeeded(14f)
                     val detail = "${index + 1}. ${coat.title} · ${quantityFromGrams(coat.totalGrams).text} (" +
@@ -121,45 +186,7 @@ object ReportGenerator {
                     )
                     y += 11f
                 }
-                y += 5f
-                // And then as a picture of itself: the coats pulled apart the way a system
-                // datasheet draws them, so a client sees the floor rather than a list of bags.
-                val stack = buildUp(coats, room.areaM2) { it.title }
-                if (stack.isNotEmpty()) {
-                    val artWidth = PAGE_WIDTH - 2 * MARGIN - 12f
-                    val artRows = stack.map { coat ->
-                        ReportCoat(coat.number, coat.title, "", coat.millimetres, coat.weight, coat.brand, null)
-                    }
-                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 22f)
-                    val slabs = stack.map { coat ->
-                        val rate = context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
-                        ReportCoat(
-                            number = coat.number,
-                            title = coat.title,
-                            detail = coat.colourName?.let { context.getString(R.string.prj_buildup_tinted, rate, it) } ?: rate,
-                            millimetres = coat.millimetres,
-                            weight = coat.weight,
-                            brand = coat.brand,
-                            mmText = coat.millimetres?.let { formatDecimal(it, 2) },
-                        )
-                    }
-                    y = BuildUpArt.draw(canvas, slabs, MARGIN + 12f, y, artWidth)
-                    buildUpMillimetres(stack)?.let { millimetres ->
-                        // A baseline, not a top edge: without this the line sat on the bottom of
-                        // the drawing and its letters climbed back into the strip.
-                        y += 11f
-                        canvas.drawText(
-                            context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 2)),
-                            MARGIN + 12f,
-                            y,
-                            dimPaint,
-                        )
-                    }
-                    // Clear of the drawing whether or not the total was printed: the next room's
-                    // name is set from the left margin and would otherwise pass under the scale.
-                    y += 10f
-                }
-                y += 4f
+                y += 9f
             }
         }
         newPageIfNeeded(17f)

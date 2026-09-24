@@ -512,6 +512,16 @@
     <string name="report_scope">Scope</string>
     <string name="report_no_scope">No scope notes recorded.</string>
     <string name="report_rooms">Rooms &amp; materials</string>
+    <string name="report_buildup_caption">Floor build-up</string>
+    <string name="report_buildup_note">Mesh and sand are laid into the coats around them and add no thickness of their own — they are marked on the scale as lines, not bands. Thickness is wet, worked out from each mix\'s density.</string>
+    <plurals name="report_buildup_coats">
+        <item quantity="one">%d coat</item>
+        <item quantity="other">%d coats</item>
+    </plurals>
+    <plurals name="report_buildup_systems">
+        <item quantity="one">%d system</item>
+        <item quantity="other">%d systems</item>
+    </plurals>
     <string name="report_total_material">Total material across all rooms: %1$s</string>
     <string name="report_tasks">Tasks</string>
     <string name="report_task_done">[done] </string>
@@ -619,6 +629,8 @@
     </plurals>
     <string name="prj_buildup_tinted">%1$s · tinted %2$s</string>
     <string name="prj_buildup_total">≈ %1$s mm of film, wet</string>
+    <string name="prj_buildup_mm">%1$s mm</string>
+    <string name="prj_buildup_hint">Tap to open the coats</string>
     <string name="prj_set_colour">Set colour</string>
     <string name="prj_colour">Colour</string>
     <string name="prj_colour_line">%1$s · %2$s against %3$s</string>
