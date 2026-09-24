@@ -688,6 +688,11 @@
     <string name="task_delete_confirm_body">%1$s comes off the list for good.</string>
     <string name="product_delete_confirm">Delete this product?</string>
     <string name="product_delete_confirm_body">%1$s comes out of the catalogue. Mixes that use it will be missing a part.</string>
+    <string name="products_search">Search products and mixes</string>
+    <plurals name="product_delete_used_in">
+        <item quantity="one">%1$s comes out of the catalogue. It is in %2$d mix, which loses a part.</item>
+        <item quantity="other">%1$s comes out of the catalogue. It is in %2$d mixes, and each loses a part.</item>
+    </plurals>
     <string name="solution_delete_confirm">Remove this mix?</string>
     <string name="solution_delete_confirm_body">%1$s comes off the list. Jobs that already used it keep their figures.</string>
     <string name="part_remove_confirm">Remove this part?</string>

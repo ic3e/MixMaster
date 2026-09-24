@@ -298,6 +298,18 @@ class SolutionEditorViewModel(
 
     /** Writes one coat, and answers with the id it was written under. */
     private suspend fun persist(state: SolutionFormState): Long {
+        // Saving rewrites the recipe's lines from what the form holds, and the form only holds
+        // the ratio parts. Anything else on the recipe — a colour dosed off one of them — is
+        // carried across untouched rather than being wiped by a save that never showed it.
+        val keptOther = if (state.solutionId > 0L) {
+            solutionRepository.getAllWithLines()
+                .firstOrNull { it.solution.id == state.solutionId }
+                ?.lines
+                ?.filter { it.role != SolutionLineRole.BASE }
+                .orEmpty()
+        } else {
+            emptyList()
+        }
         val kept = state.lines.filter { it.productId > 0L }
         val typed = kept.map { it.partsText.toNumberOr(0.0) }
         // Typed by area, the figures are rates: the ratio is what they are to each other and
@@ -340,7 +352,7 @@ class SolutionEditorViewModel(
                     role = SolutionLineRole.BASE,
                     ratioParts = parts.getOrElse(index) { 0.0 },
                 )
-            },
+            } + keptOther,
         )
     }
 

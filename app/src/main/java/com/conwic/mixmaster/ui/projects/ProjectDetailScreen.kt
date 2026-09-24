@@ -191,6 +191,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                 jobLabel = "${project.name} · ${room.name}",
                                 projectId = project.id,
                                 roomId = room.id,
+                                layerId = coat.layer.id,
                             ),
                         )
                     },

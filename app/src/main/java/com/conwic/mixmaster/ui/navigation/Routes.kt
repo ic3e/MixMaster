@@ -14,7 +14,7 @@ object Routes {
      * jumped to the one actually asked for a beat later.
      */
     const val CALCULATOR = "calculator?solutionId={solutionId}&area={area}&dose={dose}" +
-        "&coats={coats}&job={job}&project={project}&room={room}"
+        "&coats={coats}&job={job}&project={project}&room={room}&layer={layer}"
     const val CALCULATOR_SOLUTION = "solutionId"
     const val CALCULATOR_AREA = "area"
     const val CALCULATOR_DOSE = "dose"
@@ -22,6 +22,7 @@ object Routes {
     const val CALCULATOR_JOB = "job"
     const val CALCULATOR_PROJECT = "project"
     const val CALCULATOR_ROOM = "room"
+    const val CALCULATOR_LAYER = "layer"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "product/{productId}"
     const val PRODUCT_ADD = "product/add"
@@ -53,9 +54,11 @@ object Routes {
         jobLabel: String,
         projectId: Long,
         roomId: Long,
+        /** The coat's own row, which is where its colour is kept. */
+        layerId: Long,
     ): String = "calculator?solutionId=$solutionId" +
         "&area=$areaM2&dose=$doseGramsPerM2&coats=$quantity&job=${Uri.encode(jobLabel)}" +
-        "&project=$projectId&room=$roomId"
+        "&project=$projectId&room=$roomId&layer=$layerId"
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"

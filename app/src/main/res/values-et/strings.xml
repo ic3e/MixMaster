@@ -640,6 +640,11 @@
     <string name="task_delete_confirm_body">%1$s kaob nimekirjast jäädavalt.</string>
     <string name="product_delete_confirm">Kas kustutada see toode?</string>
     <string name="product_delete_confirm_body">%1$s kaob kataloogist. Segudel, kus seda kasutatakse, jääb komponent puudu.</string>
+    <string name="products_search">Otsi tooteid ja segusid</string>
+    <plurals name="product_delete_used_in">
+        <item quantity="one">%1$s kaob kataloogist. See on %2$d segus, kust jääb komponent puudu.</item>
+        <item quantity="other">%1$s kaob kataloogist. See on %2$d segus ja igaühest jääb komponent puudu.</item>
+    </plurals>
     <string name="solution_delete_confirm">Kas eemaldada see segu?</string>
     <string name="solution_delete_confirm_body">%1$s kaob nimekirjast. Juba tehtud tööde arvud jäävad alles.</string>
     <string name="part_remove_confirm">Kas eemaldada see komponent?</string>

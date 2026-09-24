@@ -640,6 +640,11 @@
     <string name="task_delete_confirm_body">%1$s katoaa listalta lopullisesti.</string>
     <string name="product_delete_confirm">Poistetaanko tämä tuote?</string>
     <string name="product_delete_confirm_body">%1$s poistuu luettelosta. Sekoituksista, joissa sitä käytetään, puuttuu osa.</string>
+    <string name="products_search">Hae tuotteita ja seoksia</string>
+    <plurals name="product_delete_used_in">
+        <item quantity="one">%1$s poistuu luettelosta. Se on %2$d seoksessa, josta puuttuu jatkossa osa.</item>
+        <item quantity="other">%1$s poistuu luettelosta. Se on %2$d seoksessa, ja jokaisesta puuttuu jatkossa osa.</item>
+    </plurals>
     <string name="solution_delete_confirm">Poistetaanko tämä sekoitus?</string>
     <string name="solution_delete_confirm_body">%1$s poistuu listalta. Jo tehtyjen töiden luvut säilyvät.</string>
     <string name="part_remove_confirm">Poistetaanko tämä osa?</string>

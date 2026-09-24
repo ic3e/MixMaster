@@ -11,12 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -112,6 +115,25 @@ fun ProductsScreen(navController: NavHostController) {
                 }
             }
 
+            item {
+                // Above the filters and shared by both tabs: what you are looking for is a name
+                // you half remember, not a brand and a category you can pick off two lists.
+                OutlinedTextField(
+                    value = state.search,
+                    onValueChange = viewModel::setSearch,
+                    label = { Text(stringResource(R.string.products_search)) },
+                    singleLine = true,
+                    trailingIcon = {
+                        if (state.search.isNotBlank()) {
+                            IconButton(onClick = { viewModel.setSearch("") }) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_clear))
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
             if (tab == 0) {
             item {
                 // Dropdowns rather than chip rows: the brand and category lists grow with the
@@ -184,7 +206,10 @@ fun ProductsScreen(navController: NavHostController) {
                 }
                 // One row per mix: its coats live inside it, and listing them here would read
                 // as three products where the shed has one.
-                val mixes = solutions.filter { it.parentId == 0L }
+                val needle = state.search.trim()
+                val mixes = solutions
+                    .filter { it.parentId == 0L }
+                    .filter { needle.isBlank() || it.matches(needle) }
                 items(mixes) { solution ->
                     CardFlat(
                         modifier = Modifier

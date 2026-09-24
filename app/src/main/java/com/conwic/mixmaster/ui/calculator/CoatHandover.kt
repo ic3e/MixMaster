@@ -19,6 +19,8 @@ data class CoatHandover(
     /** Which job, so what gets mixed can be written back against it. 0 for none. */
     val projectId: Long = 0L,
     val roomId: Long = 0L,
+    /** The coat's row on the room — what the colour it is tinted with hangs off. */
+    val layerId: Long = 0L,
 ) {
     val isEmpty: Boolean
         get() = areaM2 == null && doseGramsPerM2 == null && quantity == null && jobLabel.isBlank()
@@ -34,6 +36,7 @@ data class CoatHandover(
             job: String?,
             projectId: Long,
             roomId: Long,
+            layerId: Long,
         ) = CoatHandover(
             areaM2 = area?.toNumberOrNull()?.takeIf { it > 0.0 },
             doseGramsPerM2 = dose?.toNumberOrNull()?.takeIf { it > 0.0 },
@@ -41,6 +44,7 @@ data class CoatHandover(
             jobLabel = readLabel(job),
             projectId = projectId,
             roomId = roomId,
+            layerId = layerId,
         )
 
         private val Escape = Regex("%[0-9A-Fa-f]{2}")

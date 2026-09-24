@@ -12,6 +12,10 @@ import com.conwic.mixmaster.domain.AddOnNeed
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.BatchPlan
 import com.conwic.mixmaster.domain.ImplausibleDensity
+import com.conwic.mixmaster.data.db.entity.ProductEntity
+import com.conwic.mixmaster.domain.MixAddOn
+import com.conwic.mixmaster.domain.MixPart
+import com.conwic.mixmaster.domain.colourAddOn
 import com.conwic.mixmaster.domain.MixCalculator
 import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
@@ -57,6 +61,22 @@ data class CalculatorUiState(
     val addOnNeeds: List<AddOnNeed> = emptyList(),
 )
 
+/**
+ * A colour as the coat's row records it, before it is worked out against a mix.
+ *
+ * Which part it is measured against only means something once there is a recipe on screen, so
+ * it is resolved late — [against] is what turns it into something the mix maths can use.
+ */
+data class ColourSpec(
+    val product: ProductEntity,
+    val amountPerKg: Double,
+    val unit: String,
+    val againstIndex: Int,
+) {
+    fun against(parts: List<MixPart>): MixAddOn =
+        colourAddOn(product, amountPerKg, unit, againstIndex, parts)
+}
+
 /** One room on a live project, offered to the calculator as a job it can be pointed at. */
 data class JobRoom(
     val projectId: Long,
@@ -72,6 +92,8 @@ data class JobCoat(
     val number: Int,
     val title: String,
     val solutionId: Long,
+    /** The coat's row, so the colour set on it comes across with the recipe. */
+    val layerId: Long,
     val doseGramsPerM2: Double,
     val quantity: Double,
 )
@@ -85,6 +107,8 @@ private data class CalculatorInputs(
     val mixerLitres: Double = 65.0,
     val headroomPercent: Double = 40.0,
     val maxBatchKg: Double = 25.0,
+    /** The coat's row on a room, when this was opened for one — what its colour hangs off. */
+    val layerId: Long = 0L,
 )
 
 class CalculatorViewModel(
@@ -138,8 +162,33 @@ class CalculatorViewModel(
         solutions.associate { it.solution.id to solutionMix(it.solution, it.lines, productsById) }
     }
 
+    /**
+     * The colour each coat on a project is tinted with.
+     *
+     * Kept by the coat's own row rather than by the recipe: the same topping goes down ocra in
+     * one bay and grey in the next. Opened for a coat, this screen used to work the mix out with
+     * no pigment in it at all, while the project's own build-up showed it — so a tinted batch
+     * came out of the calculator the wrong colour.
+     */
+    private val layerColours: StateFlow<Map<Long, ColourSpec>> = combine(
+        projectRepository.observeAllLayers(),
+        productRepository.observeAll(),
+    ) { layers, products ->
+        val productsById = products.associateBy { it.id }
+        layers.mapNotNull { layer ->
+            val colour = productsById[layer.colourProductId] ?: return@mapNotNull null
+            layer.id to ColourSpec(colour, layer.colourAmountPerKg, layer.colourUnit, layer.colourAgainstIndex)
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     val uiState: StateFlow<CalculatorUiState> =
-        combine(selectedSolutionId, mixes, inputs, solutionRepository.observeUsageLogs()) { id, byId, input, logs ->
+        combine(
+            selectedSolutionId,
+            mixes,
+            inputs,
+            solutionRepository.observeUsageLogs(),
+            layerColours,
+        ) { id, byId, input, logs, colours ->
             val mix = id?.let { byId[it] }
             val area = input.areaText.toNumberOrNull()
             val quantity = input.quantityText.toNumberOrNull() ?: 1.0
@@ -166,7 +215,11 @@ class CalculatorViewModel(
                 usableLitres = usableLitres(input.mixerLitres, input.headroomPercent),
                 maxBatchKg = input.maxBatchKg,
                 implausibleDensities = implausibleStoredDensities(parts),
-                addOnNeeds = result?.let { addOnNeeds(it, mix?.addOns.orEmpty()) }.orEmpty(),
+                addOnNeeds = result?.let {
+                    // What the recipe carries, plus what this coat is tinted with on the job.
+                    val colour = colours[input.layerId]?.against(parts)
+                    addOnNeeds(it, mix?.addOns.orEmpty() + listOfNotNull(colour))
+                }.orEmpty(),
                 batchPlan = result?.let {
                     planBatches(
                         it,
@@ -215,6 +268,7 @@ class CalculatorViewModel(
                             number = index + 1,
                             title = mix.coatLabel,
                             solutionId = mix.id,
+                            layerId = layer.id,
                             doseGramsPerM2 = layer.doseGramsPerM2.takeIf { it > 0.0 }
                                 ?: mix.typicalDoseGramsPerM2,
                             quantity = layer.quantity,
@@ -235,6 +289,7 @@ class CalculatorViewModel(
                 areaText = handover.areaM2?.let { formatDecimal(it, 2) } ?: current.areaText,
                 quantityText = handover.quantity?.let { formatDecimal(it, 2) } ?: current.quantityText,
                 coverageOverride = handover.doseGramsPerM2 ?: current.coverageOverride,
+                layerId = handover.layerId,
             )
         }
     }
@@ -252,6 +307,7 @@ class CalculatorViewModel(
                 areaText = formatDecimal(room.areaM2, 2),
                 quantityText = coat?.let { formatDecimal(it.quantity, 2) } ?: current.quantityText,
                 coverageOverride = coat?.doseGramsPerM2 ?: current.coverageOverride,
+                layerId = coat?.layerId ?: 0L,
             )
         }
     }

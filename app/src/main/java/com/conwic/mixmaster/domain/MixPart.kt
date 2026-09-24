@@ -119,12 +119,28 @@ fun colourAddOn(
 ): MixAddOn? {
     if (layer.colourProductId <= 0L) return null
     val colour = productsById[layer.colourProductId] ?: return null
-    val index = layer.colourAgainstIndex.coerceIn(0, (parts.size - 1).coerceAtLeast(0))
+    return colourAddOn(colour, layer.colourAmountPerKg, layer.colourUnit, layer.colourAgainstIndex, parts)
+}
+
+/**
+ * The same colour from loose figures rather than from the room's row.
+ *
+ * The calculator is handed a coat to mix, not the row it came from, and a tinted topping worked
+ * out with no pigment in it is a batch of the wrong colour.
+ */
+fun colourAddOn(
+    colour: ProductEntity,
+    amountPerKg: Double,
+    amountUnit: String,
+    againstIndex: Int,
+    parts: List<MixPart>,
+): MixAddOn {
+    val index = againstIndex.coerceIn(0, (parts.size - 1).coerceAtLeast(0))
     return MixAddOn(
         productId = colour.id,
         label = colour.name,
-        amountPerKg = layer.colourAmountPerKg,
-        amountUnit = layer.colourUnit,
+        amountPerKg = amountPerKg,
+        amountUnit = amountUnit,
         againstLabel = parts.getOrNull(index)?.label.orEmpty(),
         againstIndex = index,
         packageSize = colour.packageSize,
