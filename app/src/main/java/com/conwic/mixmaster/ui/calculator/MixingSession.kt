@@ -11,7 +11,10 @@ import android.view.WindowManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -47,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,9 +59,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -85,8 +89,6 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Ok
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
-import kotlin.math.cos
-import kotlin.math.sin
 
 /** One trip to the mixer: what goes in, and whether it is the odd smaller one at the end. */
 data class MixingStep(val amounts: List<ComponentAmount>, val isPartBatch: Boolean)
@@ -309,12 +311,16 @@ fun MixingSession(
                 // Rounded up, so a run of two minutes opens on 2:00 and the last second is 0:01
                 // rather than a zero that sits there while the drill is still turning.
                 val shown = ceil(remainingMillis / 1000.0).toInt()
-                TimerRing(
-                    fraction = if (seconds > 0) remainingMillis / (seconds * 1000f) else 0f,
-                    label = clock(shown),
-                    running = phase == MixPhase.RUNNING,
-                    done = phase == MixPhase.DONE,
-                )
+                // Keyed on the batch, so every one of them gets the wind-up rather than only
+                // the first: the ring arriving is what says a new batch is up.
+                key(stepIndex) {
+                    TimerRing(
+                        fraction = if (seconds > 0) remainingMillis / (seconds * 1000f) else 0f,
+                        label = clock(shown),
+                        running = phase == MixPhase.RUNNING,
+                        done = phase == MixPhase.DONE,
+                    )
+                }
 
                 // Only before it starts: a countdown that can be argued with while it runs is
                 // not a countdown.
@@ -396,56 +402,84 @@ private enum class MixPhase { READY, RUNNING, DONE }
 
 @Composable
 private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Boolean) {
-    val spin = rememberInfiniteTransition(label = "spin")
-    // A slow turn inside the ring while the paddle is turning — the one thing on the screen
-    // that says the drill should still be in the bucket.
-    val angle by spin.animateFloat(
+    val loop = rememberInfiniteTransition(label = "loop")
+    // Two rings turning against each other, slowly: a paddle in a bucket, not a loading spinner.
+    val turn by loop.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(3600, easing = LinearEasing)),
-        label = "angle",
+        animationSpec = infiniteRepeatable(tween(5200, easing = LinearEasing)),
+        label = "turn",
     )
-    val breathe by spin.animateFloat(
-        initialValue = 1f,
-        targetValue = if (running) 1.02f else 1f,
-        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "breathe",
+    val counterTurn by loop.animateFloat(
+        initialValue = 360f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(7600, easing = LinearEasing)),
+        label = "counterTurn",
     )
-    val halo by spin.animateFloat(
+    val glow by loop.animateFloat(
+        initialValue = 0.16f,
+        targetValue = 0.34f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "glow",
+    )
+    val halo by loop.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing)),
+        animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing)),
         label = "halo",
     )
-    // The sweep is eased rather than snapped so the last seconds do not stutter as the clock
-    // and the frames fall out of step.
+
+    // Winds up from nothing when a batch comes up, so the ring arrives rather than appears.
+    var wound by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { wound = true }
     val sweep by animateFloatAsState(
-        targetValue = fraction.coerceIn(0f, 1f),
-        animationSpec = tween(220, easing = LinearEasing),
+        targetValue = if (wound) fraction.coerceIn(0f, 1f) else 0f,
+        animationSpec = if (wound) tween(220, easing = LinearEasing) else tween(700, easing = FastOutSlowInEasing),
         label = "sweep",
     )
 
+    // A spring on every second: the number lands rather than flicks over.
+    val tick = remember { Animatable(1f) }
+    LaunchedEffect(label, running) {
+        if (running) {
+            tick.snapTo(1.10f)
+            tick.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        }
+    }
+
     val track = MaterialTheme.colorScheme.surfaceVariant
     val primary = MaterialTheme.colorScheme.primary
-    // Amber for the last fifth — the point where someone standing over it starts looking.
-    val arcColour = when {
-        done -> Ok
-        sweep <= 0.2f -> Accent2
-        else -> primary
-    }
-    val arc by animateColorAsState(targetValue = arcColour, animationSpec = tween(400), label = "arc")
+    // Runs warm as the time goes: full colour at the start, amber through the last third.
+    val heat = (sweep / 0.34f).coerceIn(0f, 1f)
+    val arc = if (done) Ok else lerp(Accent2, primary, heat)
+    // And thickens as it closes, so the last half minute reads from further away.
+    val width = (22f + 6f * (1f - heat)).dp
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
-        Canvas(modifier = Modifier.size(280.dp).scale(breathe)) {
-            val width = 22.dp.toPx()
-            val stroke = Stroke(width = width, cap = StrokeCap.Round)
-            val radius = (size.minDimension - width) / 2f
+        Canvas(modifier = Modifier.size(280.dp)) {
+            val strokePx = width.toPx()
+            val stroke = Stroke(width = strokePx, cap = StrokeCap.Round)
+            val radius = (size.minDimension - strokePx) / 2f
 
             if (done) {
                 // A ring of light going out, over and over, until somebody taps.
-                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.30f), radius = radius * (1f + halo * 0.22f))
+                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.35f), radius = radius * (1f + halo * 0.24f))
+                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.18f), radius = radius * (1f + halo * 0.45f))
             }
+
             drawArc(color = track, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = stroke)
+
+            if (running || done) {
+                // The glow sits under the arc and breathes, which is what gives it depth on a
+                // screen held at arm's length in daylight.
+                drawArc(
+                    color = arc.copy(alpha = glow),
+                    startAngle = -90f,
+                    sweepAngle = 360f * sweep,
+                    useCenter = false,
+                    style = Stroke(width = strokePx * 2.1f, cap = StrokeCap.Round),
+                )
+            }
             drawArc(
                 color = arc,
                 startAngle = -90f,
@@ -454,30 +488,34 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
                 useCenter = false,
                 style = stroke,
             )
-            if (running && sweep > 0f) {
-                // The head of the arc, so the eye has something to follow between the digits.
-                val head = Math.toRadians((-90f + 360f * sweep).toDouble())
-                drawCircle(
-                    color = arc,
-                    radius = width * 0.62f,
-                    center = Offset(
-                        x = center.x + (cos(head) * radius).toFloat(),
-                        y = center.y + (sin(head) * radius).toFloat(),
-                    ),
-                )
-            }
+
             if (running) {
-                inset(width * 1.9f) {
-                    rotate(angle) {
+                inset(strokePx * 1.7f) {
+                    rotate(turn) {
                         drawArc(
-                            color = arc.copy(alpha = 0.35f),
+                            color = arc.copy(alpha = 0.40f),
                             startAngle = 0f,
                             sweepAngle = 360f,
                             useCenter = false,
                             style = Stroke(
-                                width = 4.dp.toPx(),
+                                width = 5.dp.toPx(),
                                 cap = StrokeCap.Round,
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 26f)),
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 30f)),
+                            ),
+                        )
+                    }
+                }
+                inset(strokePx * 3.0f) {
+                    rotate(counterTurn) {
+                        drawArc(
+                            color = arc.copy(alpha = 0.22f),
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            style = Stroke(
+                                width = 3.dp.toPx(),
+                                cap = StrokeCap.Round,
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 24f)),
                             ),
                         )
                     }
@@ -489,8 +527,9 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
             // Read at arm's length, over a bucket, in daylight.
             fontSize = 74.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (done) Ok else MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.displayLarge,
+            modifier = Modifier.scale(if (done) 1f + halo * 0.06f else tick.value),
         )
     }
 }
