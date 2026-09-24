@@ -21,9 +21,6 @@ class SolutionRepository(
     fun observeById(id: Long): Flow<SolutionEntity?> = solutionDao.observeById(id)
 
     fun observeAllLines(): Flow<List<SolutionLineEntity>> = solutionDao.observeAllLines()
-        combine(solutionDao.observeById(id), solutionDao.observeLines(id)) { solution, lines ->
-            solution?.let { SolutionWithLines(it, lines) }
-        }
 
     fun observeAllWithLines(): Flow<List<SolutionWithLines>> =
         combine(solutionDao.observeAll(), solutionDao.observeAllLines()) { solutions, lines ->

@@ -121,6 +121,37 @@ def main():
                 continue
             if not re.search(r'\b' + re.escape(name) + r'\b', body):
                 problems.append(f'{path}: unused import {name}')
+        # An expression-bodied function whose body was left behind.
+        #
+        # Deleting `fun x(): T =` and its next lines by hand is easy to get wrong: the braces
+        # still balance, so nothing else here notices, and the orphaned block only fails in the
+        # compiler. This is what a member declaration followed by a deeper-indented statement
+        # looks like.
+        lines = body.split('\n')
+        for index, line in enumerate(lines[:-1]):
+            match = re.match(
+                r'^    (?:(?:private|internal|suspend|override|open) )*fun \w+\(.*\) *(?::[^=]*)?= *(\S.*)$',
+                line,
+            )
+            if not match:
+                continue
+            expression = match.group(1).strip()
+            # Only a body that finishes on its own line: anything opening a block or trailing an
+            # operator is a legitimate multi-line expression.
+            if expression.endswith(('{', '(', '[', '.', '+', '->', '=', ',')):
+                continue
+            if any(expression.count(a) != expression.count(b) for a, b in (('(', ')'), ('{', '}'), ('[', ']'))):
+                continue
+            for following in lines[index + 1:]:
+                if not following.strip():
+                    continue
+                if re.match(r'^\s{5,}\S', following) and not following.lstrip().startswith(('//', '*', '@', '}', ')', '.')):
+                    problems.append(
+                        f'{path}: line {index + 2} is indented under a one-line function '
+                        f'— an orphaned body? ({following.strip()[:48]})',
+                    )
+                break
+
         counted = strip_code(body)
         for opener, closer in (('{', '}'), ('(', ')'), ('[', ']')):
             if counted.count(opener) != counted.count(closer):
