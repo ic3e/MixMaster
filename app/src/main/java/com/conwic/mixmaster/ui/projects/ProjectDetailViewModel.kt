@@ -195,6 +195,7 @@ class ProjectDetailViewModel(
                 // Named with its coat, so a room reads "architop · 2nd coat" rather than the
                 // same line twice.
                 title = mix.solution.coatLabel,
+                brand = mix.solution.brand,
                 doseGramsPerM2 = dose,
                 doseUnitLabel = mix.solution.doseUnitLabel,
                 parts = mix.parts,
@@ -218,6 +219,7 @@ class ProjectDetailViewModel(
         return CoatMix(
             layer = layer,
             title = product.name,
+            brand = product.brand,
             doseGramsPerM2 = layer.doseGramsPerM2,
             doseUnitLabel = "",
             parts = parts,

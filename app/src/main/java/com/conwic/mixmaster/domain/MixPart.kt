@@ -94,6 +94,8 @@ fun solutionMix(
 data class CoatMix(
     val layer: RoomLayerEntity,
     val title: String,
+    /** Whose system this coat is part of: a change of brand is a change of system. */
+    val brand: String = "",
     val doseGramsPerM2: Double,
     val doseUnitLabel: String,
     val parts: List<MixPart>,

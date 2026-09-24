@@ -1,23 +1,34 @@
 package com.conwic.mixmaster.domain
 
+import kotlin.math.abs
 import kotlin.math.pow
 
 /**
- * A floor is not a product, it is a build-up: primer, mesh, screed, topping, sealer, in that
- * order, each laid at its own rate. This is that build-up as it gets drawn and written down —
- * the same figures behind the picture on the project page and the one in the report.
+ * A floor is not a product, it is a build-up: mesh, primer, sand, screed, topping, sealer, in
+ * that order, each laid at its own rate. This is that build-up as it gets drawn and written
+ * down — the same figures behind the picture on the project page and the one in the report.
  */
 data class BuildUpCoat(
     /** 1 is the first coat laid, which is the one at the bottom. */
     val number: Int,
     val title: String,
+    /** Whose system this coat belongs to. A change of brand is a change of system. */
+    val brand: String,
     val gramsPerM2: Double,
-    /** How thick it goes on, where the parts carry densities. Null where they do not. */
+    /**
+     * How thick it goes on, where the parts carry densities.
+     *
+     * Null for a coat that has no thickness the app can stand behind — a mesh laid dry, sand
+     * broadcast into a wet primer, or simply a product whose density is not on file. Those are
+     * drawn as a line across the strip rather than a band in it, and no figure is printed.
+     */
     val millimetres: Double?,
     val colourName: String?,
     /** How thick this one is drawn against the thickest in the stack, 0..1. */
     val weight: Float,
-)
+) {
+    val hasThickness: Boolean get() = millimetres != null
+}
 
 /**
  * The wet density of a mixed coat in kg/L, or null when any part of it has none on file.
@@ -54,11 +65,11 @@ fun coatMillimetres(gramsPerM2: Double, densityKgPerL: Double?): Double? {
 private const val ThinnestShare = 0.18f
 
 /**
- * How thick each coat is drawn.
+ * How dark each coat is drawn.
  *
  * Flattened on purpose: a 150 g/m² primer against a 5 kg/m² screed is one part in thirty, and
- * drawn to scale it is not there at all. The square-ish root keeps the order and the obvious
- * differences while leaving every coat something to see.
+ * to scale it is not there at all. The square-ish root keeps the order and the obvious
+ * differences. Thickness on the strip is true to life; this only decides the tone.
  */
 fun slabWeights(values: List<Double>): List<Float> {
     val largest = values.maxOrNull() ?: 0.0
@@ -72,8 +83,7 @@ fun slabWeights(values: List<Double>): List<Float> {
  * The build-up of one room, bottom coat first.
  *
  * [coats] arrive in laying order. Millimetres are worked out per coat where the recipe knows
- * its densities; where it does not, the drawing falls back to what the coat weighs — which is
- * for the picture only, and never printed as a figure.
+ * its densities; where it does not, the coat carries none and is drawn as a line.
  */
 fun buildUp(
     coats: List<CoatMix>,
@@ -85,14 +95,12 @@ fun buildUp(
     val millimetres = coats.mapIndexed { index, coat ->
         coatMillimetres(rates[index], mixDensityKgPerL(coat.parts, coat.result.components))
     }
-    // A middling 1.5 kg/L for anything with no density on file: enough to draw with, never
-    // enough to quote.
-    val drawn = rates.mapIndexed { index, rate -> millimetres[index] ?: (rate / 1000.0 / 1.5) }
-    val weights = slabWeights(drawn)
+    val weights = slabWeights(rates)
     return coats.mapIndexed { index, coat ->
         BuildUpCoat(
             number = index + 1,
             title = titleOf(coat),
+            brand = coat.brand,
             gramsPerM2 = rates[index],
             millimetres = millimetres[index],
             colourName = coat.colour?.name,
@@ -101,8 +109,29 @@ fun buildUp(
     }
 }
 
-/** The whole build-up in millimetres, or null unless every coat in it knows its own. */
+/**
+ * The film of the build-up in millimetres: every coat that has a thickness, added up.
+ *
+ * Null when not one of them knows its own. A coat without a thickness is not counted and not
+ * missed — a mesh and a broadcast sand are laid into the coats around them.
+ */
 fun buildUpMillimetres(coats: List<BuildUpCoat>): Double? {
-    if (coats.isEmpty() || coats.any { it.millimetres == null }) return null
-    return coats.sumOf { it.millimetres ?: 0.0 }
+    val known = coats.mapNotNull { it.millimetres }
+    return if (known.isEmpty()) null else known.sum()
 }
+
+/**
+ * How far apart to put the labelled marks on the millimetre scale beside the strip.
+ *
+ * Four or five labels is what a strip this size can hold, and the step has to be a figure
+ * somebody would actually write down — 0.5 mm, not 0.4064.
+ */
+fun rulerStep(totalMm: Double): Double {
+    if (totalMm <= 0.0) return 1.0
+    val steps = doubleArrayOf(0.05, 0.1, 0.2, 0.25, 0.5, 1.0, 2.0, 2.5, 5.0, 10.0, 20.0, 50.0)
+    val wanted = totalMm / 4.0
+    return steps.firstOrNull { it >= wanted } ?: steps.last()
+}
+
+/** True when two figures are the same to within a hair, used to place the marks. */
+fun sameMillimetre(a: Double, b: Double): Boolean = abs(a - b) < 0.0005

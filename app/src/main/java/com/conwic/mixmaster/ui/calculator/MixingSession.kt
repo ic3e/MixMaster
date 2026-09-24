@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
-import android.provider.Settings
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -96,6 +95,7 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.motionOff
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -1063,9 +1063,5 @@ private fun alertWarning(canNotify: Boolean, context: Context): String? = when {
     else -> null
 }
 
-/** Whether the phone has been told to keep still — animations off in accessibility settings. */
-private fun motionOff(context: Context): Boolean = runCatching {
-    Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-}.getOrDefault(false)
 
 

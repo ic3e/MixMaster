@@ -112,27 +112,26 @@ object ReportGenerator {
                 val stack = buildUp(coats, room.areaM2) { it.title }
                 if (stack.isNotEmpty()) {
                     val artWidth = PAGE_WIDTH - 2 * MARGIN - 12f
-                    newPageIfNeeded(BuildUpArt.height(stack.size, artWidth) + 18f)
+                    val artRows = stack.map { coat ->
+                        ReportCoat(coat.number, coat.title, "", coat.millimetres, coat.weight, coat.brand, null)
+                    }
+                    newPageIfNeeded(BuildUpArt.height(artRows, artWidth) + 18f)
                     val slabs = stack.map { coat ->
-                        val rate = if (coat.millimetres != null) {
-                            context.getString(
-                                R.string.prj_buildup_rate_mm,
-                                formatDecimal(coat.gramsPerM2, 0),
-                                formatDecimal(coat.millimetres, 2),
-                            )
-                        } else {
-                            context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
-                        }
-                        ReportSlab(
-                            title = "${coat.number}. ${coat.title}",
+                        val rate = context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
+                        ReportCoat(
+                            number = coat.number,
+                            title = coat.title,
                             detail = coat.colourName?.let { context.getString(R.string.prj_buildup_tinted, rate, it) } ?: rate,
+                            millimetres = coat.millimetres,
                             weight = coat.weight,
+                            brand = coat.brand,
+                            mmText = coat.millimetres?.let { formatDecimal(it, 2) },
                         )
                     }
                     y = BuildUpArt.draw(canvas, slabs, MARGIN + 12f, y, artWidth)
                     buildUpMillimetres(stack)?.let { millimetres ->
                         canvas.drawText(
-                            context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 1)),
+                            context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 2)),
                             MARGIN + 12f,
                             y,
                             dimPaint,

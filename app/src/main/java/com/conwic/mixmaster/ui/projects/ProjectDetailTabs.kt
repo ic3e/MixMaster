@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,7 +68,7 @@ import java.time.Instant
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
-import com.conwic.mixmaster.ui.components.BuildUpDiagram
+import com.conwic.mixmaster.ui.components.BuildUpPanel
 import com.conwic.mixmaster.ui.components.BuildUpRow
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.ConfirmDialog
@@ -92,6 +93,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.domain.toNumberOrNull
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.TaskPriority
@@ -390,33 +392,36 @@ fun LayoutTab(
                                 }
                             }
                         }
-                        // The floor as a floor, not as a list: the coats pulled apart the way a
-                        // system datasheet draws them, so what is being laid can be seen at a
-                        // glance — and checked against the datasheet it came from.
+                        // The floor as a floor, not as a list. Closed it is one line — the strip
+                        // at thumbnail size and the total — and it opens into the coats, drawn to
+                        // scale against a millimetre rule.
                         val stack = buildUp(coats, room.areaM2) { it.title }
                         if (stack.isNotEmpty()) {
-                            SectionLabel(
-                                text = stringResource(R.string.prj_buildup),
-                                modifier = Modifier.padding(top = 12.dp),
-                            )
-                            BuildUpDiagram(
+                            var buildUpOpen by rememberSaveable(room.id) { mutableStateOf(false) }
+                            val millimetres = buildUpMillimetres(stack)
+                            BuildUpPanel(
                                 rows = stack.map { coat ->
                                     BuildUpRow(
-                                        title = "${coat.number}. ${coat.title}",
+                                        number = coat.number,
+                                        title = coat.title,
                                         detail = buildUpDetail(coat),
+                                        millimetres = coat.millimetres,
                                         weight = coat.weight,
+                                        brand = coat.brand,
+                                        mmText = coat.millimetres?.let { formatDecimal(it, 2) },
                                     )
                                 },
-                                modifier = Modifier.padding(top = 6.dp),
+                                summary = pluralStringResource(R.plurals.prj_buildup_coats, stack.size, stack.size),
+                                totalText = millimetres?.let {
+                                    stringResource(R.string.prj_buildup_total, formatDecimal(it, 2))
+                                },
+                                expanded = buildUpOpen,
+                                onToggle = { buildUpOpen = !buildUpOpen },
+                                openLabel = stringResource(
+                                    if (buildUpOpen) R.string.prj_buildup_close else R.string.prj_buildup_open,
+                                ),
+                                modifier = Modifier.padding(top = 10.dp),
                             )
-                            buildUpMillimetres(stack)?.let { millimetres ->
-                                Text(
-                                    text = stringResource(R.string.prj_buildup_total, formatDecimal(millimetres, 1)),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
                         }
                         if (isEmployer) {
                             Text(
@@ -1232,23 +1237,13 @@ private fun MaterialRow(label: String, value: String, strong: Boolean = false) {
 }
 
 /**
- * The line under a coat's name in the build-up: how much goes on, how thick that comes out, and
- * what it is tinted with.
+ * The line under a coat's name in the build-up: how much goes on, and what it is tinted with.
  *
- * Millimetres only where the recipe knows its densities — a figure a client might read off the
- * drawing is not one to guess at.
+ * The thickness is not in here — it has a column of its own, where it lines up down the stack.
  */
 @Composable
 private fun buildUpDetail(coat: BuildUpCoat): String {
-    val rate = if (coat.millimetres != null) {
-        stringResource(
-            R.string.prj_buildup_rate_mm,
-            formatDecimal(coat.gramsPerM2, 0),
-            formatDecimal(coat.millimetres, 2),
-        )
-    } else {
-        stringResource(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
-    }
+    val rate = stringResource(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
     val colour = coat.colourName ?: return rate
     return stringResource(R.string.prj_buildup_tinted, rate, colour)
 }
