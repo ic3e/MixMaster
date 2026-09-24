@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import com.conwic.mixmaster.data.db.entity.familyId
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -178,7 +179,10 @@ fun ProductsScreen(navController: NavHostController) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                items(solutions) { solution ->
+                // One row per mix: its coats live inside it, and listing them here would read
+                // as three products where the shed has one.
+                val mixes = solutions.filter { it.parentId == 0L }
+                items(mixes) { solution ->
                     CardFlat(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -191,6 +195,14 @@ fun ProductsScreen(navController: NavHostController) {
                                     Text(text = solution.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                                 Text(text = solution.name, style = MaterialTheme.typography.titleMedium)
+                                val coats = solutions.count { it.familyId == solution.familyId }
+                                if (coats > 1) {
+                                    Text(
+                                        text = stringResource(R.string.solution_coat_count, coats),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.secondary,
+                                    )
+                                }
                             }
                             if (solution.ratioLabel.isNotBlank()) {
                                 RatioBadge(text = solution.ratioLabel, modifier = Modifier.align(Alignment.Top))

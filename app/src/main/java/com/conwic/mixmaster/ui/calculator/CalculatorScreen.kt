@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ChipRow
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +55,7 @@ import com.conwic.mixmaster.domain.BatchProblem
 import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.data.db.entity.familyId
 import com.conwic.mixmaster.domain.doseDecimals
 import com.conwic.mixmaster.domain.doseStep
 import com.conwic.mixmaster.domain.formatDecimal
@@ -66,11 +69,9 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
-import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
-import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.RatioBadge
@@ -124,7 +125,17 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     var loggedToast by remember { mutableStateOf(false) }
 
     val brands = listOf("All") + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
-    val visibleSolutions = allSolutions.filter { brandFilter == "All" || it.brand == brandFilter }
+    // The dropdown lists mixes, not coats: a second coat is a recipe of the same mix, and
+    // picking between them is the next question, not part of the same one.
+    val visibleSolutions = allSolutions
+        .filter { it.parentId == 0L }
+        .filter { brandFilter == "All" || it.brand == brandFilter }
+    // Every coat of whatever is selected, first coat first.
+    val chosen = state.selectedSolution?.solution
+    val coats = chosen?.let { current ->
+        allSolutions.filter { it.familyId == current.familyId }.sortedBy { it.id }
+    }.orEmpty()
+    val head = coats.firstOrNull { it.parentId == 0L } ?: chosen
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
@@ -158,7 +169,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                 )
                 DropdownField(
                     label = stringResource(R.string.calc_product),
-                    selected = state.selectedSolution?.solution
+                    selected = head
                         ?.let { productLabel(it.brand, it.name) }
                         ?: stringResource(R.string.calc_choose_product),
                     options = visibleSolutions.map { productLabel(it.brand, it.name) },
@@ -167,6 +178,23 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                             ?.let { viewModel.selectSolution(it.id) }
                     },
                     modifier = Modifier.weight(FieldWeightWide),
+                )
+            }
+        }
+
+        // Which coat is being mixed. Only asked where a mix has more than one, because most
+        // do not, and a question with one answer is a question not worth asking.
+        if (coats.size > 1) {
+            item {
+                ChipRow(
+                    options = coats.map { coat ->
+                        ChipOption(
+                            label = coat.coatName.ifBlank { coat.name },
+                            selected = coat.id == chosen?.id,
+                            onClick = { viewModel.selectSolution(coat.id) },
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }

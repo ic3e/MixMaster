@@ -598,4 +598,16 @@
     <string name="crew_remove_confirm_body">%1$s kaob meeskonna nimekirjast.</string>
     <string name="prj_archive_confirm">Kas arhiveerida see töö?</string>
     <string name="prj_archive_confirm_body">%1$s kaob aktiivsete nimekirjast ega broneeri enam materjali.</string>
+    <string name="solution_coats">Kihid</string>
+    <string name="solution_coats_explain">Kui andmeleht annab esimesele kihile ühe segu ja teisele teise, on vaja mõlemale oma kiht. Kalkulaator küsib, millist parasjagu segatakse.</string>
+    <string name="solution_add_coat">+ Lisa veel üks kiht</string>
+    <string name="solution_coat_name">See kiht</string>
+    <string name="solution_coat_name_hint">Nimi, mis on andmelehel</string>
+    <string name="solution_coat_number">%1$d. kiht</string>
+    <string name="solution_coat_count">%1$d kihti</string>
+    <string name="solution_by_ratio">Vahekorra järgi</string>
+    <string name="solution_by_area">m² järgi</string>
+    <string name="solution_by_area_hint">Iga komponent nii, nagu andmeleht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
+    <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_coverage_computed">Teeb kokku %1$s g/m²</string>
 </resources>

@@ -61,7 +61,7 @@ const val DATABASE_NAME = "mixmaster.db"
         RoomLayerEntity::class,
         DeliveryEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -486,9 +486,32 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Lets one mix hold more than one coat.
+         *
+         * A datasheet can give the same product two recipes — architop lays its first coat at
+         * 2.0 kg/m² of hardener to 0.48 of catalyst and its second at 1.5 to 0.24 — so a coat
+         * is a recipe of its own, tied to the others by the first one's id. Nothing already
+         * entered changes: every existing mix is a family of one.
+         */
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE solutions ADD COLUMN parentId INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE solutions ADD COLUMN coatName TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    MIGRATION_4_5,
+                    MIGRATION_5_6,
+                    MIGRATION_6_7,
+                    MIGRATION_7_8,
+                    MIGRATION_8_9,
+                )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
                 .fallbackToDestructiveMigration()

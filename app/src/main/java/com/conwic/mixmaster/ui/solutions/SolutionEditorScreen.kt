@@ -31,7 +31,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
@@ -43,6 +46,7 @@ import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.SuggestField
 import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.navigation.Routes
 
 /**
  * A recipe: which products go in, in what ratio, and how much of the result covers a square
@@ -125,6 +129,77 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
             }
         }
 
+        // A datasheet that gives one product two recipes — architop lays its first coat at
+        // 2.0 kg/m² of hardener and its second at 1.5 — needs a coat for each. Only shown once
+        // the mix exists, because a coat has to belong to something.
+        if (state.solutionId != 0L) {
+            item { SectionLabel(text = stringResource(R.string.solution_coats)) }
+
+            item {
+                CardFlat {
+                    Text(
+                        text = stringResource(R.string.solution_coats_explain),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 10.dp),
+                    )
+                    if (state.coats.size > 1) {
+                        state.coats.forEach { coat ->
+                            val isThisOne = coat.id == state.solutionId
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .tappableText {
+                                        if (!isThisOne) navController.navigate(Routes.solutionEdit(coat.id))
+                                    },
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(
+                                    text = coat.coatName.ifBlank { coat.name },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = if (isThisOne) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                )
+                                Text(
+                                    text = coat.ratioLabel,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                    if (state.coats.size > 1 || state.coatName.isNotBlank()) {
+                        FormTextField(
+                            value = state.coatName,
+                            onValueChange = viewModel::setCoatName,
+                            label = stringResource(R.string.solution_coat_name),
+                            hint = stringResource(R.string.solution_coat_name_hint),
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        )
+                    }
+                    // Named here, where the language is known — the view model only stores them.
+                    val firstName = stringResource(R.string.solution_coat_number, 1)
+                    val nextName = stringResource(R.string.solution_coat_number, state.coats.size.coerceAtLeast(1) + 1)
+                    Text(
+                        text = stringResource(R.string.solution_add_coat),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(top = 14.dp)
+                            .tappableText {
+                                viewModel.addCoat(firstName, nextName) { id ->
+                                    navController.navigate(Routes.solutionEdit(id))
+                                }
+                            },
+                    )
+                }
+            }
+        }
+
         item { SectionLabel(text = stringResource(R.string.solution_whats_in_it)) }
 
         item {
@@ -135,6 +210,29 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 10.dp),
                 )
+                // Some datasheets never give a ratio at all — architop lists each part's own
+                // rate per square metre. Typed that way, the ratio and the coverage both fall
+                // out of the figures instead of being worked out by hand.
+                ChipRow(
+                    options = listOf(EntryMode.RATIO, EntryMode.PER_AREA).map { mode ->
+                        ChipOption(
+                            label = stringResource(
+                                if (mode == EntryMode.RATIO) R.string.solution_by_ratio else R.string.solution_by_area,
+                            ),
+                            selected = mode == state.entry,
+                            onClick = { viewModel.setEntry(mode) },
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                )
+                if (state.entry == EntryMode.PER_AREA) {
+                    Text(
+                        text = stringResource(R.string.solution_by_area_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 10.dp),
+                    )
+                }
                 state.lines.forEachIndexed { index, line ->
                     Column(modifier = Modifier.fillMaxWidth().padding(top = if (index == 0) 0.dp else 14.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -180,7 +278,13 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                             FormTextField(
                                 value = line.partsText,
                                 onValueChange = { viewModel.setLineParts(index, it) },
-                                label = stringResource(R.string.product_parts),
+                                label = stringResource(
+                                    if (state.entry == EntryMode.PER_AREA) {
+                                        R.string.solution_line_rate
+                                    } else {
+                                        R.string.product_parts
+                                    },
+                                ),
                                 keyboardType = KeyboardType.Decimal,
                                 modifier = Modifier.weight(FieldWeightNarrow),
                             )
@@ -214,21 +318,35 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 10.dp),
                 )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    FormTextField(
-                        value = state.minDoseText,
-                        onValueChange = viewModel::setMinDose,
-                        label = stringResource(R.string.product_min),
-                        keyboardType = KeyboardType.Decimal,
-                        modifier = Modifier.weight(FieldWeightNarrow),
+                if (state.entry == EntryMode.PER_AREA) {
+                    Text(
+                        text = stringResource(
+                            R.string.solution_coverage_computed,
+                            formatDecimal(state.perAreaTotal, 1),
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 4.dp),
                     )
-                    FormTextField(
-                        value = state.maxDoseText,
-                        onValueChange = viewModel::setMaxDose,
-                        label = stringResource(R.string.product_max),
-                        keyboardType = KeyboardType.Decimal,
-                        modifier = Modifier.weight(FieldWeightNarrow),
-                    )
+                }
+                // Typed by area, the coverage is the sum of the rates — asking for it as
+                // well would be asking the same question twice, in a way that can disagree.
+                if (state.entry == EntryMode.RATIO) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        FormTextField(
+                            value = state.minDoseText,
+                            onValueChange = viewModel::setMinDose,
+                            label = stringResource(R.string.product_min),
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(FieldWeightNarrow),
+                        )
+                        FormTextField(
+                            value = state.maxDoseText,
+                            onValueChange = viewModel::setMaxDose,
+                            label = stringResource(R.string.product_max),
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(FieldWeightNarrow),
+                        )
+                    }
                 }
                 // Resolved above the callback — onSelect is never composable.
                 val modeLabels = DosingMode.entries.map { stringResource(dosingLabel(it)) }

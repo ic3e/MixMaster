@@ -10,6 +10,7 @@ import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
+import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.repository.ProductRepository
@@ -191,7 +192,9 @@ class ProjectDetailViewModel(
             val result = MixCalculator.compute(mix.parts, areaM2, layer.quantity, dose)
             return CoatMix(
                 layer = layer,
-                title = mix.solution.name,
+                // Named with its coat, so a room reads "architop · 2nd coat" rather than the
+                // same line twice.
+                title = mix.solution.coatLabel,
                 doseGramsPerM2 = dose,
                 doseUnitLabel = mix.solution.doseUnitLabel,
                 parts = mix.parts,

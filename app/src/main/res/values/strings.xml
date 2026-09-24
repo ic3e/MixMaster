@@ -646,4 +646,16 @@
     <string name="crew_remove_confirm_body">%1$s comes off the crew list.</string>
     <string name="prj_archive_confirm">Archive this job?</string>
     <string name="prj_archive_confirm_body">%1$s comes off the active list and stops booking material.</string>
+    <string name="solution_coats">Coats</string>
+    <string name="solution_coats_explain">A datasheet that gives one mix for the first coat and another for the second needs a coat for each. The calculator asks which one is being mixed.</string>
+    <string name="solution_add_coat">+ Add another coat</string>
+    <string name="solution_coat_name">This coat</string>
+    <string name="solution_coat_name_hint">What it is called on the datasheet</string>
+    <string name="solution_coat_number">Coat %1$d</string>
+    <string name="solution_coat_count">%1$d coats</string>
+    <string name="solution_by_ratio">By ratio</string>
+    <string name="solution_by_area">By m²</string>
+    <string name="solution_by_area_hint">Each part as the datasheet gives it, in kg/m². The ratio and the coverage are worked out from them.</string>
+    <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_coverage_computed">Works out at %1$s g/m²</string>
 </resources>

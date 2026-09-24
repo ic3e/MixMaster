@@ -57,6 +57,7 @@ import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.domain.CoatMix
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
+import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import java.time.Instant
@@ -755,9 +756,15 @@ private fun CoatPickerSheet(
                     modifier = Modifier.padding(bottom = 10.dp),
                 )
                 SectionLabel(text = stringResource(R.string.prj_solutions))
+                // Every coat, not every mix: a room takes architop's first coat and then its
+                // second, and they are different recipes at different rates.
                 solutions.forEach { solution ->
                     Text(
-                        text = if (solution.brand.isBlank()) solution.name else "${solution.brand} — ${solution.name}",
+                        text = if (solution.brand.isBlank()) {
+                            solution.coatLabel
+                        } else {
+                            "${solution.brand} — ${solution.coatLabel}"
+                        },
                         modifier = Modifier.fillMaxWidth().clickable { onPickSolution(solution) }.padding(vertical = 12.dp),
                     )
                 }

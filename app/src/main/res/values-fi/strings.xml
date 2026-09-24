@@ -598,4 +598,16 @@
     <string name="crew_remove_confirm_body">%1$s poistuu työryhmästä.</string>
     <string name="prj_archive_confirm">Arkistoidaanko tämä työ?</string>
     <string name="prj_archive_confirm_body">%1$s poistuu aktiivisista eikä varaa enää materiaalia.</string>
+    <string name="solution_coats">Kerrokset</string>
+    <string name="solution_coats_explain">Jos datalehti antaa ensimmäiselle kerrokselle yhden seoksen ja toiselle toisen, molemmille tarvitaan oma kerros. Laskuri kysyy, kumpaa ollaan sekoittamassa.</string>
+    <string name="solution_add_coat">+ Lisää toinen kerros</string>
+    <string name="solution_coat_name">Tämä kerros</string>
+    <string name="solution_coat_name_hint">Nimi datalehdellä</string>
+    <string name="solution_coat_number">%1$d. kerros</string>
+    <string name="solution_coat_count">%1$d kerrosta</string>
+    <string name="solution_by_ratio">Suhteen mukaan</string>
+    <string name="solution_by_area">m² mukaan</string>
+    <string name="solution_by_area_hint">Jokainen osa niin kuin datalehti antaa — kg/m². Suhde ja menekki lasketaan niistä.</string>
+    <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_coverage_computed">Tekee yhteensä %1$s g/m²</string>
 </resources>

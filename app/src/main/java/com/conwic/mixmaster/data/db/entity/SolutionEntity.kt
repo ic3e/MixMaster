@@ -35,7 +35,25 @@ data class SolutionEntity(
     /** Denormalised "100:35", so a list card needs no join. */
     val ratioLabel: String = "",
     val isArchived: Boolean = false,
+    /**
+     * The first coat of the mix this one belongs to, or 0 when it is that first coat.
+     *
+     * A datasheet can give one product two recipes: architop's first coat is 2.0 kg/m² of
+     * hardener to 0.48 of catalyst, its second 1.5 to 0.24 — different ratio, different
+     * coverage, same tin. Each coat is a recipe of its own, and this is what ties them
+     * together so the calculator can offer them side by side.
+     */
+    @ColumnInfo(defaultValue = "0") val parentId: Long = 0L,
+    /** What this coat is called — "1st coat". Blank when the mix has only the one. */
+    @ColumnInfo(defaultValue = "") val coatName: String = "",
 )
+
+/** The mix a coat belongs to: itself, when it is the first coat. */
+val SolutionEntity.familyId: Long get() = if (parentId > 0L) parentId else id
+
+/** "architop · 2nd coat", or just the name when there is only one coat. */
+val SolutionEntity.coatLabel: String
+    get() = if (coatName.isBlank()) name else "$name · $coatName"
 
 /** What a line of a solution is for. */
 object SolutionLineRole {
