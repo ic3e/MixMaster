@@ -34,11 +34,11 @@ is in one script — run it before every push:
 python3 tools/preflight.py
 ```
 
-It checks the five things this app has actually shipped broken: a string that exists in one
+It checks the six things this app has actually shipped broken: a string that exists in one
 language only, a `Modifier.x()` whose import was never added, an import nothing uses, a bracket
-that never closes, and the body left behind when a one-line function is deleted by hand — the
-braces still balance, so nothing else notices. It exits non-zero when it finds any. The rest
-still needs a person:
+that never closes, the body left behind when a one-line function is deleted by hand, and a
+`@Composable` left stranded on a class when a declaration was inserted above the function it
+belonged to. It exits non-zero when it finds any. The rest still needs a person:
 
 - **Strings.** Every `R.string` / `R.plurals` / `R.array` reference must exist in
   `values/strings.xml`, and every new key needs `values-et` and `values-fi` as well. `app_name` is

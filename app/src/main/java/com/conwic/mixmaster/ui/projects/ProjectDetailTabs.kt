@@ -1528,14 +1528,6 @@ fun MaterialsTab(
     }
 }
 
-/**
- * What to load out of the shed for this job.
- *
- * Packs, not kilos: the van is loaded in bags and canisters, and 1446.67 kg is not something
- * anyone can act on standing in front of a pallet. The exact figure stays beside it, because
- * that is what the mix will actually take, and the list can be sent to whoever is loading.
- */
-@Composable
 /** One sheet behind one product on the job. */
 data class JobSheet(val productName: String, @StringRes val kindRes: Int, val value: String)
 
@@ -1669,6 +1661,14 @@ private fun sheetsShareIntent(
     }.let { Intent.createChooser(it, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
 }
 
+/**
+ * What to load out of the shed for this job.
+ *
+ * Packs, not kilos: the van is loaded in bags and canisters, and 1446.67 kg is not something
+ * anyone can act on standing in front of a pallet. The exact figure stays beside it, because
+ * that is what the mix will actually take, and the list can be sent to whoever is loading.
+ */
+@Composable
 private fun PickupSheet(
     projectName: String,
     materials: List<ProjectMaterial>,

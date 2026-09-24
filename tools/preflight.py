@@ -152,6 +152,29 @@ def main():
                     )
                 break
 
+        # A @Composable that lost its function.
+        #
+        # Inserting a declaration above an existing one is easy to do between an annotation and
+        # the thing it annotates: the annotation then sits on a class, which Kotlin rejects, and
+        # the function it belonged to silently stops being composable.
+        for index, line in enumerate(lines):
+            if line.strip() != '@Composable':
+                continue
+            for following in lines[index + 1:]:
+                stripped = following.strip()
+                if not stripped or stripped.startswith(('//', '/*', '*', '@')):
+                    continue
+                if re.match(
+                    r'^\s*(?:(?:private|internal|public|abstract|open|sealed|data|value|enum) )*'
+                    r'(?:class|object|interface)\b',
+                    following,
+                ):
+                    problems.append(
+                        f'{path}: line {index + 1} @Composable sits on a declaration that '
+                        f'cannot be one ({stripped[:48]})',
+                    )
+                break
+
         counted = strip_code(body)
         for opener, closer in (('{', '}'), ('(', ')'), ('[', ']')):
             if counted.count(opener) != counted.count(closer):
