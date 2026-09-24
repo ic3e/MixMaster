@@ -64,7 +64,7 @@ const val DATABASE_NAME = "mixmaster.db"
         DeliveryEntity::class,
         MaterialUseEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -548,6 +548,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds pot life to a recipe: how long the mixed material stays workable.
+         *
+         * It is on the datasheet of everything this firm lays and was nowhere in the app, so
+         * the one figure that decides how big a batch should be was carried in somebody's head.
+         */
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE solutions ADD COLUMN potLifeMinutes INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 .addMigrations(
@@ -560,6 +572,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_8_9,
                     MIGRATION_9_10,
                     MIGRATION_10_11,
+                    MIGRATION_11_12,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

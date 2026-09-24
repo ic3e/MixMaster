@@ -22,12 +22,12 @@ import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.domain.CoatMix
 import com.conwic.mixmaster.domain.MixCalculator
-import com.conwic.mixmaster.data.db.entity.UsedAmount
 import com.conwic.mixmaster.data.db.entity.usedAmounts
 import com.conwic.mixmaster.domain.addOnNeeds
 import com.conwic.mixmaster.domain.colourAddOn
 import com.conwic.mixmaster.domain.MixPart
 import com.conwic.mixmaster.domain.ProductStock
+import com.conwic.mixmaster.domain.RecordedMix
 import com.conwic.mixmaster.domain.SolutionMix
 import com.conwic.mixmaster.domain.bookingsByProduct
 import com.conwic.mixmaster.domain.needsByProduct
@@ -60,16 +60,6 @@ data class ProjectDetailData(
     val progressPercent: Int get() = if (tasks.isEmpty()) 0 else (tasks.count { it.isDone } * 100) / tasks.size
 }
 
-/** One mix that was actually made on this job, with its parts read out of the receipt. */
-data class RecordedMix(
-    val id: Long,
-    val title: String,
-    val jobLabel: String,
-    val batches: Int,
-    val totalGrams: Double,
-    val parts: List<UsedAmount>,
-    val mixedAt: Long,
-)
 
 /** One bought item this job needs, set against what the warehouse can spare. */
 data class ProjectMaterial(

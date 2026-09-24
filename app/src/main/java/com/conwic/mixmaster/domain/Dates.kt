@@ -60,3 +60,18 @@ fun shortWeekdayNames(locale: Locale = AppLocale.current): List<String> =
         day.getDisplayName(java.time.format.TextStyle.SHORT, locale)
             .replaceFirstChar { it.uppercase(locale) }
     }
+
+/**
+ * A moment, in the app's own language.
+ *
+ * Note and receipt stamps were built with a bare pattern, which falls through to the phone's
+ * locale — so with the app in English on an Estonian phone the weekday and month came out
+ * Estonian, against a settings screen that promises dates follow the app.
+ */
+fun formatStamp(at: java.time.Instant, locale: Locale = AppLocale.current): String =
+    at.atZone(java.time.ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", locale))
+
+/** The long form under the greeting: "Wednesday, 24 September". */
+fun formatGreetingDay(date: LocalDate, locale: Locale = AppLocale.current): String =
+    date.formatIn("EEEE, d MMMM", locale)

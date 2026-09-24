@@ -5,9 +5,6 @@ import com.conwic.mixmaster.data.db.dao.ProductWithComponents
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 
 class ProductRepository(private val productDao: ProductDao) {
 
@@ -38,22 +35,6 @@ class ProductRepository(private val productDao: ProductDao) {
     fun observeComponentLabels(): Flow<List<String>> = productDao.observeComponentLabels()
 
     fun observeCount(): Flow<Int> = productDao.observeCount()
-
-    fun observeWithComponents(productId: Long): Flow<ProductWithComponents?> =
-        productDao.observeById(productId).flatMapLatest { product ->
-            if (product == null) {
-                flowOf(null)
-            } else {
-                productDao.observeComponents(productId).map { components ->
-                    ProductWithComponents(product, components)
-                }
-            }
-        }
-
-    suspend fun getWithComponents(productId: Long): ProductWithComponents? {
-        val product = productDao.getById(productId) ?: return null
-        return ProductWithComponents(product, productDao.getComponents(productId))
-    }
 
     suspend fun getAllWithComponents(): List<ProductWithComponents> = productDao.getAllWithComponents()
 

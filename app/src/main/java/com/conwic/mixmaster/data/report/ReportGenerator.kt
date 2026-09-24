@@ -20,6 +20,8 @@ import com.conwic.mixmaster.domain.buildUp
 import com.conwic.mixmaster.domain.buildUpMillimetres
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.formatDueDate
+import com.conwic.mixmaster.domain.RecordedMix
 import com.conwic.mixmaster.domain.quantityFromGrams
 import java.io.File
 import java.io.FileOutputStream
@@ -42,6 +44,8 @@ object ReportGenerator {
         roomCoats: Map<Long, List<CoatMix>>,
         products: List<ProductEntity>,
         tasks: List<TaskEntity>,
+        /** What has actually been mixed on the job, newest first. */
+        mixes: List<RecordedMix> = emptyList(),
     ): Uri {
         val pdf = PdfDocument()
         var pageNumber = 1
@@ -71,8 +75,8 @@ object ReportGenerator {
         canvas.drawText(
             context.getString(
                 R.string.report_dates,
-                project.startDate?.toString() ?: "—",
-                project.targetFinishDate?.toString() ?: "—",
+                project.startDate?.let { formatDueDate(it) } ?: "—",
+                project.targetFinishDate?.let { formatDueDate(it) } ?: "—",
             ),
             MARGIN,
             y,
@@ -156,6 +160,40 @@ object ReportGenerator {
         canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 10f, bold = true))
         y += 26f
 
+        // What was planned is above. This is what went down — the receipts written at the mixer,
+        // which is the half of the report a client actually argues about.
+        if (mixes.isNotEmpty()) {
+            newPageIfNeeded(24f)
+            canvas.drawText(context.getString(R.string.prj_mixed_so_far), MARGIN, y, titlePaint)
+            y += 18f
+            val perMaterial = linkedMapOf<String, Double>()
+            mixes.flatMap { it.parts }.forEach { part ->
+                perMaterial[part.label] = (perMaterial[part.label] ?: 0.0) + part.grams
+            }
+            perMaterial.forEach { (label, grams) ->
+                newPageIfNeeded(16f)
+                canvas.drawText(
+                    "$label — ${quantityFromGrams(grams).text}",
+                    MARGIN,
+                    y,
+                    bodyPaint,
+                )
+                y += 15f
+            }
+            newPageIfNeeded(18f)
+            canvas.drawText(
+                context.getString(
+                    R.string.report_mixed_total,
+                    quantityFromGrams(mixes.sumOf { it.totalGrams }).text,
+                    mixes.size,
+                ),
+                MARGIN,
+                y,
+                textPaint(size = 10f, bold = true),
+            )
+            y += 26f
+        }
+
         newPageIfNeeded(24f)
         canvas.drawText(context.getString(R.string.report_tasks), MARGIN, y, titlePaint)
         y += 18f
@@ -167,7 +205,7 @@ object ReportGenerator {
                     R.string.report_task_line,
                     status,
                     task.title,
-                    task.dueDate?.toString() ?: context.getString(R.string.report_no_due),
+                    task.dueDate?.let { formatDueDate(it) } ?: context.getString(R.string.report_no_due),
                 ),
                 MARGIN,
                 y,

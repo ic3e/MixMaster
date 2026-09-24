@@ -21,8 +21,6 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dueDate = :epochDay")
     fun observeForDay(epochDay: Long): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE dueDate = :epochDay ORDER BY priority")
-    suspend fun getForDay(epochDay: Long): List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getById(taskId: Long): TaskEntity?

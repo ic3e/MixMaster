@@ -3,7 +3,6 @@
     <string name="settings_language">Kieli</string>
     <string name="settings_language_note">Valikot, painikkeet ja päivämäärät noudattavat tätä. Aluksi käytössä on puhelimen kieli, sen jälkeen valitsemasi.</string>
 
-    <string name="date_today">Tänään</string>
     <string name="date_today_with_week">Tänään · %1$s</string>
 
     <!-- Home screen greeting and the line under it -->
@@ -21,6 +20,10 @@
         <item>Saappaat jalkaan, pää käyntiin.</item>
         <item>Säkit eivät nouse itsestään — mutta laskut on tehty.</item>
         <item>Suorat linjat, vahva kahvi.</item>
+        <item>Jossain odottaa laatta juuri sinua.</item>
+        <item>Päivän ennuste: pölyä, mahdollisia ylitöitä.</item>
+        <item>Betonia ei kiinnosta, että olet väsynyt.</item>
+        <item>Tehdään jotain tasaista ja pysyvää.</item>
     </string-array>
     <string-array name="quips_afternoon">
         <item>Puoli päivää menty, puoli lattiaa jäljellä.</item>
@@ -31,6 +34,10 @@
         <item>Pölyä nyt, tyytyväisyyttä myöhemmin.</item>
         <item>Laatta ei tasoita itseään.</item>
         <item>Vieläkö pystyssä? Hyvä. Jatka.</item>
+        <item>Asiakas muuttaa mielensä puoli viideltä. Varaudu.</item>
+        <item>Mikään ei kovetu nopeammin siksi, että sinulla on kiire.</item>
+        <item>Pölyä nyt, tyytyväisyys myöhemmin.</item>
+        <item>Sekoita kunnolla, niin teet sen vain kerran.</item>
     </string-array>
     <string-array name="quips_evening">
         <item>Työkalut pian pois. Ensin numerot.</item>
@@ -41,6 +48,10 @@
         <item>Hyvää työtä. Pese vielä sekoitin.</item>
         <item>Lattia jää. Särky menee ohi.</item>
         <item>Illan laskut voittaa aamun arvailun.</item>
+        <item>Huominen sinä kiittäisi, jos tämänpäiväinen kirjaisi sen ylös.</item>
+        <item>Lattia jää. Särky menee ohi.</item>
+        <item>Päivän viimeinen seos — tee se kunnolla.</item>
+        <item>Vielä yksi kerros vai jätetäänkö huomiseen?</item>
     </string-array>
     <string-array name="quips_night">
         <item>Vielä hereillä? Niin on betonikin.</item>
@@ -51,10 +62,13 @@
         <item>Sekoitatko tähän aikaan? Tarkista käyttöaika.</item>
         <item>Ainoa mikä tässä kovettuu olet sinä, hitaasti.</item>
         <item>Ulkona pimeää, sisällä tasaista.</item>
+        <item>Hiljainen työmaa, puhdas seos.</item>
+        <item>Mene kotiin. Laatta on huomennakin siinä.</item>
+        <item>Tähän aikaan sekoittaessa tarkista käyttöaika.</item>
+        <item>Ulkona pimeää, sisällä tasaista.</item>
     </string-array>
 
     <string name="nav_home">Etusivu</string>
-    <string name="nav_calculate">Laske</string>
     <string name="nav_products">Tuotteet</string>
     <string name="nav_projects">Projektit</string>
     <string name="nav_settings">Asetukset</string>
@@ -171,10 +185,6 @@
     <string name="calc_set_pack_to_count">Aseta pakkauskoko, jotta pakkaukset voidaan laskea</string>
     <string name="calc_total_mix">Massaa yhteensä</string>
     <string name="calc_colour_additives">Väri ja lisäaineet</string>
-    <string name="calc_addons_all_used">Kaikki lisäaineeksi merkityt ovat jo tässä työssä.</string>
-    <string name="calc_add_to_mix">Lisää tähän massaan</string>
-    <string name="calc_choose_addon">Valitse väri tai lisäaine</string>
-    <string name="calc_addon_brand_note">Merkillä ei ole väliä — ratkaisevaa on, mitä massan osaa vasten se mitataan.</string>
     <string name="calc_measured_against">Mitataan tätä vasten</string>
     <string name="calc_addon_rate">%1$s · %2$s tässä työssä</string>
     <string name="action_remove">Poista</string>
@@ -244,57 +254,20 @@
     <string name="product_per_what">Mitä kohti</string>
     <string name="product_per_what_hint">esim. kerrosta kohti, millimetriä kohti</string>
     <string name="product_notes">Muistiinpanot</string>
-    <string name="product_card_note">Näkyy tuotekortilla</string>
-    <string name="product_source_note">Mistä nämä luvut ovat peräisin</string>
     <string name="product_datasheet_link">Tuotetiedon linkki (valinnainen)</string>
-    <string name="product_addon_section">Lisätään toiseen massaan</string>
-    <string name="product_addon_toggle">Väri tai lisäaine</string>
-    <string name="product_addon_toggle_note">Menee toisen tuotteen massaan, ei sekoiteta omanaan.</string>
-    <string name="product_addon_explain">Paljonko menee sisään ja kuinka suurta osaa kohti se mitataan — väri annostellaan yleensä nesteen mukaan, ei koko massan. Tuotetiedosta: 28 g / 1 kg tai 1 L / 25 kg.</string>
-    <string name="product_amount">Määrä</string>
     <string name="product_unit">Yksikkö</string>
-    <string name="product_per_this_many_kg">Näin monta kiloa kohti</string>
-    <string name="product_mix_section">Mitä massaan tulee</string>
-    <string name="product_mix_explain">Lisää alle jokainen osa ja montako osaa sitä menee. 100 jauhetta 21 veteen tarkoittaa juuri sitä, millä yksiköllä tahansa punnitset.</string>
-    <string name="product_mixed_at">Sekoitussuhde</string>
-    <string name="product_mix_optional_note">Tiheys ja pakkauskoko ovat valinnaisia, mutta juuri ne antavat laskurin laskea säkit ja tarkistaa, mahtuuko erä sekoittimeen.</string>
     <string name="product_add_part">+ Lisää toinen osa</string>
     <string name="product_save">Tallenna tuote</string>
-    <string name="product_no_density_yet">Ei vielä tiheyttä eikä pakkauskokoa</string>
     <string name="product_part_n">Osa %1$d</string>
-    <string name="product_remove_part_n">Poista osa %1$d</string>
     <string name="product_parts">Osia</string>
-    <string name="product_measured_by">Mitataan</string>
-    <string name="product_density_packaging">Tiheys ja pakkaus</string>
     <string name="product_density">Tiheys (kg/L)</string>
     <string name="product_density_hint">Paljonko yksi litra painaa</string>
-    <string name="product_pot_life">Käyttöaika</string>
     <string name="product_pack_size">Pakkauskoko</string>
     <string name="product_container">Pakkaus</string>
-    <string name="product_addon_summary_unset">Aseta määrä, jotta tätä voi käyttää lisäaineena.</string>
-    <string name="product_addon_summary">%1$s %2$s jokaista %3$s kohti, mihin se menee</string>
-    <string name="product_kg_amount">%1$s kg</string>
     <string name="dosing_per_coat">Kerrosta kohti</string>
     <string name="dosing_per_pour">Valua kohti</string>
     <string name="dosing_per_mm">Paksuusmillimetriä kohti</string>
-    <string name="dosing_explain_coats">Grammaa neliötä kohti jokaiselle kerrokselle — kaksi kerrosta kuluttaa näistä luvuista kaksinkertaisesti.</string>
-    <string name="dosing_explain_pour">Grammaa neliötä kohti koko valulle, yhdellä kertaa.</string>
-    <string name="dosing_explain_mm">Grammaa neliötä kohti jokaista paksuusmillimetriä kohden — 10 mm kuluttaa näistä luvuista kymmenkertaisesti.</string>
 
-    <plurals name="save_blockers_heading">
-        <item quantity="one">Ennen tallennusta puuttuu yksi asia</item>
-        <item quantity="other">Ennen tallennusta puuttuu %1$d asiaa</item>
-    </plurals>
-    <string name="blocker_brand">Merkki on tyhjä</string>
-    <string name="blocker_name">Tuotteen nimi on tyhjä</string>
-    <string name="blocker_type">Tyyppi on tyhjä</string>
-    <string name="blocker_minmax_blank">Sekä min- että maks-menekki tarvitsevat luvun — jos tuotetieto antaa yhden, laita se molempiin</string>
-    <string name="blocker_min_nan">Min-menekki ei ole luku</string>
-    <string name="blocker_max_nan">Maks-menekki ei ole luku</string>
-    <string name="blocker_min_zero">Min-menekin on oltava suurempi kuin nolla</string>
-    <string name="blocker_max_lt_min">Maks-menekki on pienempi kuin min-menekki</string>
-    <string name="blocker_no_part">Vähintään yhdellä osalla on oltava nimi ja osien määrä</string>
-    <string name="blocker_part_density">Osan %1$d tiheys — %2$s</string>
 
     <string name="density_problem_nan">Pitää olla luku, esimerkiksi 1.35</string>
     <string name="density_problem_zero">Pitää olla suurempi kuin nolla</string>
@@ -312,18 +285,7 @@
     <string name="action_open">Avaa</string>
     <string name="action_close">Sulje</string>
     <string name="action_more">Lisää</string>
-    <string name="pd_mix_ratio">Sekoitussuhde</string>
-    <string name="pd_coverage">Menekki</string>
-    <string name="pd_field_data">Työmaalta kertynyt tieto</string>
-    <string name="pd_datasheet_typical">Tuotetiedon tyypillinen</string>
-    <string name="pd_site_average">Oma työmaakeskiarvo</string>
-    <string name="pd_site_average_value">%1$s g/m² (%2$d kirjattu)</string>
-    <string name="pd_components">Osat</string>
-    <string name="pd_edit_product">Muokkaa tuotetta</string>
     <string name="pd_use_in_calculator">Käytä laskurissa</string>
-    <string name="pd_parts_line">%1$s · %2$s osaa</string>
-    <string name="pd_sold_in">Myydään %1$s %2$s erissä</string>
-    <string name="pd_no_pack_size">Pakkauskokoa ei ole asetettu</string>
     <string name="pd_density">Tiheys</string>
 
     <string name="tab_overview">Yleiskatsaus</string>
@@ -367,14 +329,13 @@
     <string name="prj_no_scope">Laajuudesta ei ole vielä muistiinpanoja.</string>
     <string name="prj_no_due_date">Ei määräpäivää</string>
     <string name="prj_photo_copy_failed">Kuvan tuonti ei onnistunut — yritä uudelleen tai valitse toinen.</string>
-    <string name="prj_worker_note">Katselet työntekijänä — tilat, alat ja tuotteiden määritykset tekee toimisto. Voit silti lisätä kuvia ja muistiinpanoja alle.</string>
+    <string name="prj_worker_note">Katselet työntekijänä — tilat, pinta-alat ja kerrokset määrittää toimisto. Voit silti lisätä kuvia ja muistiinpanoja.</string>
     <string name="prj_total_area">Ala yhteensä</string>
     <string name="prj_rooms_floors">Tiloja · kerroksia</string>
     <string name="prj_est_material">Arvioitu materiaali</string>
     <string name="prj_floors_rooms">Kerrokset ja tilat</string>
     <string name="prj_add_floor">+ Lisää kerros</string>
     <string name="prj_add_room">+ Lisää tila</string>
-    <string name="prj_assign">Määritä ›</string>
     <string name="prj_unassigned">Määrittämätön</string>
     <string name="prj_photos">Kuvat · %1$d</string>
     <string name="prj_add_photo">+ Lisää kuva</string>
@@ -394,18 +355,16 @@
     <string name="prj_room_name">Tilan nimi</string>
     <string name="prj_room_area">Ala (m²)</string>
     <string name="prj_add_room_action">Lisää tila</string>
-    <string name="prj_assign_product">Määritä tuote</string>
-    <string name="prj_no_product">Ei tuotetta</string>
-    <string name="prj_total_used">Materiaalia yhteensä</string>
-    <string name="prj_materials_logged">Kirjatut materiaalit</string>
-    <string name="prj_no_assigned">Yhteenkään tilaan ei ole vielä määritetty tuotetta.</string>
+    <string name="prj_total_used">Materiaalia suunniteltu</string>
+    <string name="prj_materials_logged">Suunniteltu tiloittain</string>
+    <string name="prj_no_assigned">Yhdessäkään tilassa ei ole vielä kerrosta.</string>
     <string name="tab_layout">Pohja</string>
     <string name="prj_no_scheduled">Ei vielä aikataulutettuja tehtäviä.</string>
 
     <string name="signin_who">Kuka kirjautuu?</string>
     <string name="signin_note">MixMaster toimii roolin mukaan eri tavoin — voit vaihtaa roolia milloin tahansa asetuksista.</string>
     <string name="signin_employer">Työnantaja / toimisto</string>
-    <string name="signin_employer_sub">Järjestää projektit, tuotteet ja hinnat</string>
+    <string name="signin_employer_sub">Määritä projektit, tuotteet ja työryhmä</string>
     <string name="signin_employer_b1">Luo ja muokkaa projekteja, asiakkaita ja tuotekirjastoa</string>
     <string name="signin_employer_b2">Määritä tehtäviä ja tiloja työryhmälle</string>
     <string name="signin_employer_b3">Luo raportteja ja hallitse työryhmää</string>
@@ -423,7 +382,7 @@
     <string name="onboarding_2_title">Koko tuotekirjasto yhdessä paikassa</string>
     <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex ja kaikki muu, minkä itse lisäät — oikeilla suhteilla ja menekeillä tuotetiedoista, haettavissa merkin ja tyypin mukaan.</string>
     <string name="onboarding_3_title">Projektit, tilat, tehtävät ja kalenteri</string>
-    <string name="onboarding_3_body">Jaa projekti kerroksiin ja tiloihin, määritä kullekin tilalle tuote, seuraa tehtäviä määräpäivän mukaan — kaikki näkyy yhdessä yhteisessä kalenterissa.</string>
+    <string name="onboarding_3_body">Jaa projekti kerroksiin ja tiloihin, rakenna jokainen tila kerros kerrokselta, seuraa tehtäviä eräpäivän mukaan — kaikki näkyy yhdessä yhteisessä kalenterissa.</string>
 
     <string name="lock_unlock_title">Avaa MixMaster</string>
     <string name="lock_unlock_subtitle">Massat, työt ja asiakastiedot ovat puhelimen lukituksen takana.</string>
@@ -474,8 +433,6 @@
     <string name="status_on_hold">Odottaa</string>
     <string name="status_completed">Valmis</string>
 
-    <string name="addon_no_dose">Tuotteelle %1$s ei ole asetettu määrää — aseta se tuotteen kohdasta "Lisätään toiseen massaan".</string>
-    <string name="addon_pick_part">Valitse, mitä massan osaa vasten tämä mitataan.</string>
     <string name="addon_rate_label">%1$s %2$s jokaista %3$s kiloa kohti</string>
 
     <string name="image_cant_open">Ei voi avata</string>
@@ -516,7 +473,6 @@
     <string name="wh_to_order_sub">Varattuna on enemmän kuin hyllyssä riittää</string>
     <string name="wh_on_the_shelf">Hyllyssä</string>
     <string name="wh_empty">Ei vielä tuotteita. Lisää ne Tuotteet-välilehdeltä.</string>
-    <string name="wh_no_parts">Tällä tuotteella ei ole vielä osia.</string>
     <string name="wh_booked_for">Varattu: %1$s</string>
     <string name="wh_short_by">Puuttuu %1$s</string>
     <string name="wh_in_stock">%1$s varastossa</string>
@@ -564,7 +520,7 @@
     <string name="prj_mix_stamp">%1$s · %2$d erää</string>
     <string name="prj_mix_remove_confirm">Poistetaanko tämä projektilta?</string>
     <string name="prj_mix_remove_confirm_body">%1$s · %2$s ei enää lasketa käytetyksi.</string>
-    <string name="prj_no_materials_yet">Liitä huoneeseen tuote, niin työn materiaalit näkyvät tässä.</string>
+    <string name="prj_no_materials_yet">Lisää tilaan kerros, niin tämän työn materiaali näkyy tässä.</string>
     <string name="prj_need">Tähän työhön tarvitaan</string>
     <string name="prj_in_stock">Varastossa</string>
     <string name="prj_to_order">Tilattavaa</string>
@@ -598,7 +554,6 @@
 
     <!-- Coat colour -->
     <string name="prj_no_colour">Ei väriä</string>
-    <string name="prj_buildup">Rakenne</string>
     <string name="prj_buildup_rate">%1$s g/m²</string>
     <string name="prj_buildup_open">Avaa rakenne</string>
     <string name="prj_buildup_close">Sulje rakenne</string>
@@ -694,6 +649,12 @@
     <string name="mix_default_time">Tälle seokselle ei ole sekoitusaikaa — lasketaan kaksi minuuttia.</string>
     <string name="solution_mix_time">Sekoitusaika (min)</string>
     <string name="solution_mix_time_hint">Kuinka kauan datalehti käskee sekoittaa</string>
+    <string name="solution_pot_life">Käyttöaika (minuuttia)</string>
+    <string name="solution_pot_life_hint">Kuinka kauan seos pysyy työstettävänä sekoituksen jälkeen. Jätä tyhjäksi, jos tuotetiedoissa ei sanota.</string>
+    <string name="calc_pot_life">Pysyy työstettävänä noin %1$d min sekoituksen jälkeen</string>
+    <string name="mix_pot_life">Työstettävissä noin %1$d min</string>
+    <string name="prj_report_share">Lähetä</string>
+    <string name="report_mixed_total">Sekoitettu ja käytetty: %1$s, %2$d seosta</string>
     <string name="mix_channel">Sekoitusajastin</string>
     <string name="mix_channel_why">Soi, kun erä on sekoitettu aikansa, myös silloin kun sovellus ei ole näytöllä.</string>
 </resources>

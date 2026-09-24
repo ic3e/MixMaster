@@ -53,6 +53,11 @@ data class SolutionEntity(
      * nobody times — the drill comes out when the lumps go, which is usually early.
      */
     @ColumnInfo(defaultValue = "0") val mixSeconds: Int = 0,
+    /**
+     * How long the mixed material stays workable, in minutes. 0 means the datasheet does not
+     * say — or nobody has typed it in yet.
+     */
+    @ColumnInfo(defaultValue = "0") val potLifeMinutes: Int = 0,
 )
 
 /** The mix a coat belongs to: itself, when it is the first coat. */

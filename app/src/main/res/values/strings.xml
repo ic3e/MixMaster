@@ -12,7 +12,6 @@
     <string name="settings_language_note">Menus, buttons and dates all follow this. It starts on your phone\'s language and stays on whatever you pick.</string>
 
     <!-- Dates -->
-    <string name="date_today">Today</string>
     <!-- "Today · W38" — %1$s is the week, already formatted. -->
     <string name="date_today_with_week">Today · %1$s</string>
 
@@ -81,7 +80,6 @@
 
     <!-- Bottom navigation -->
     <string name="nav_home">Home</string>
-    <string name="nav_calculate">Calculate</string>
     <string name="nav_products">Products</string>
     <string name="nav_projects">Projects</string>
     <string name="nav_settings">Settings</string>
@@ -205,10 +203,6 @@
     <string name="calc_set_pack_to_count">Set a pack size to count containers</string>
     <string name="calc_total_mix">Total mix</string>
     <string name="calc_colour_additives">Colour &amp; additives</string>
-    <string name="calc_addons_all_used">Everything set up as an add-on is already on this job.</string>
-    <string name="calc_add_to_mix">Add to this mix</string>
-    <string name="calc_choose_addon">Choose a colour or additive</string>
-    <string name="calc_addon_brand_note">Any brand — what matters is which part of this mix it\'s measured against.</string>
     <string name="calc_measured_against">Measured against</string>
     <string name="calc_addon_rate">%1$s · %2$s in this job</string>
     <string name="action_remove">Remove</string>
@@ -279,58 +273,21 @@
     <string name="product_per_what">Per what</string>
     <string name="product_per_what_hint">e.g. per coat, per mm</string>
     <string name="product_notes">Notes</string>
-    <string name="product_card_note">Shown on the product card</string>
-    <string name="product_source_note">Where these figures came from</string>
     <string name="product_datasheet_link">Datasheet link (optional)</string>
-    <string name="product_addon_section">Added to another mix</string>
-    <string name="product_addon_toggle">A colour or additive</string>
-    <string name="product_addon_toggle_note">Goes into another product\'s mix rather than being mixed on its own.</string>
-    <string name="product_addon_explain">How much goes in, and per how much of the part it\'s measured against — colour is normally dosed off the liquid, not the whole batch. Off the datasheet: 28 g per 1 kg, or 1 L per 25 kg.</string>
-    <string name="product_amount">Amount</string>
     <string name="product_unit">Unit</string>
-    <string name="product_per_this_many_kg">Per this many kg</string>
-    <string name="product_mix_section">What goes in the mix</string>
-    <string name="product_mix_explain">Add each part below and how many parts of it go in. 100 powder to 21 water means exactly that, in whatever you weigh in.</string>
-    <string name="product_mixed_at">Mixed at</string>
-    <string name="product_mix_optional_note">Density and pack size are optional, but they\'re what let the calculator count bags and check a batch fits the mixer.</string>
     <string name="product_add_part">+ Add another part</string>
     <string name="product_save">Save product</string>
-    <string name="product_no_density_yet">No density or pack size yet</string>
     <string name="product_part_n">Part %1$d</string>
-    <string name="product_remove_part_n">Remove part %1$d</string>
     <string name="product_parts">Parts</string>
-    <string name="product_measured_by">Measured by</string>
-    <string name="product_density_packaging">Density &amp; packaging</string>
     <string name="product_density">Density (kg/L)</string>
     <string name="product_density_hint">What one litre weighs</string>
-    <string name="product_pot_life">Pot life</string>
     <string name="product_pack_size">Pack size</string>
     <string name="product_container">Container</string>
-    <string name="product_addon_summary_unset">Set an amount to use this as an add-on.</string>
-    <string name="product_addon_summary">%1$s %2$s per %3$s of whatever it goes into</string>
-    <string name="product_kg_amount">%1$s kg</string>
     <string name="dosing_per_coat">Per coat</string>
     <string name="dosing_per_pour">Per pour</string>
     <string name="dosing_per_mm">Per mm of thickness</string>
-    <string name="dosing_explain_coats">Grams per m² for each coat — two coats uses twice these figures.</string>
-    <string name="dosing_explain_pour">Grams per m² for the whole pour, laid in one go.</string>
-    <string name="dosing_explain_mm">Grams per m² for every millimetre of thickness — 10 mm uses ten times these figures.</string>
 
     <!-- Why a product won\'t save -->
-    <plurals name="save_blockers_heading">
-        <item quantity="one">One thing left before this saves</item>
-        <item quantity="other">%1$d things left before this saves</item>
-    </plurals>
-    <string name="blocker_brand">Brand is empty</string>
-    <string name="blocker_name">Product name is empty</string>
-    <string name="blocker_type">Type is empty</string>
-    <string name="blocker_minmax_blank">Min and max cover both need a figure — put the same one in both if the datasheet gives one</string>
-    <string name="blocker_min_nan">Min cover isn\'t a number</string>
-    <string name="blocker_max_nan">Max cover isn\'t a number</string>
-    <string name="blocker_min_zero">Min cover has to be more than zero</string>
-    <string name="blocker_max_lt_min">Max cover is smaller than min cover</string>
-    <string name="blocker_no_part">At least one part needs a name and a number of parts</string>
-    <string name="blocker_part_density">Part %1$d density — %2$s</string>
 
     <!-- Density checks -->
     <string name="density_problem_nan">Needs to be a number, like 1.35</string>
@@ -350,18 +307,7 @@
     <string name="action_open">Open</string>
     <string name="action_close">Close</string>
     <string name="action_more">More</string>
-    <string name="pd_mix_ratio">Mix ratio</string>
-    <string name="pd_coverage">Coverage</string>
-    <string name="pd_field_data">Field data</string>
-    <string name="pd_datasheet_typical">Datasheet typical</string>
-    <string name="pd_site_average">Your site average</string>
-    <string name="pd_site_average_value">%1$s g/m² (%2$d logged)</string>
-    <string name="pd_components">Components</string>
-    <string name="pd_edit_product">Edit product</string>
     <string name="pd_use_in_calculator">Use in calculator</string>
-    <string name="pd_parts_line">%1$s · %2$s parts</string>
-    <string name="pd_sold_in">Sold in %1$s %2$s</string>
-    <string name="pd_no_pack_size">No pack size set</string>
     <string name="pd_density">Density</string>
 
     <!-- Project detail -->
@@ -406,14 +352,13 @@
     <string name="prj_no_scope">No scope notes yet.</string>
     <string name="prj_no_due_date">No due date</string>
     <string name="prj_photo_copy_failed">Couldn\'t copy that photo in — try again, or pick a different one.</string>
-    <string name="prj_worker_note">Viewing as Worker — rooms, areas and product assignments are set up by your office. You can still add photos and notes below.</string>
+    <string name="prj_worker_note">Viewing as Worker — rooms, areas and coats are set up by your office. You can still add photos and notes below.</string>
     <string name="prj_total_area">Total area</string>
     <string name="prj_rooms_floors">Rooms · floors</string>
     <string name="prj_est_material">Est. material</string>
     <string name="prj_floors_rooms">Floors &amp; rooms</string>
     <string name="prj_add_floor">+ Add floor</string>
     <string name="prj_add_room">+ Add room</string>
-    <string name="prj_assign">Assign ›</string>
     <string name="prj_unassigned">Unassigned</string>
     <string name="prj_photos">Photos · %1$d</string>
     <string name="prj_add_photo">+ Add photo</string>
@@ -433,11 +378,9 @@
     <string name="prj_room_name">Room name</string>
     <string name="prj_room_area">Area (m²)</string>
     <string name="prj_add_room_action">Add room</string>
-    <string name="prj_assign_product">Assign a product</string>
-    <string name="prj_no_product">No product</string>
-    <string name="prj_total_used">Total material used</string>
-    <string name="prj_materials_logged">Materials logged</string>
-    <string name="prj_no_assigned">No rooms have an assigned product yet.</string>
+    <string name="prj_total_used">Material planned</string>
+    <string name="prj_materials_logged">Planned, room by room</string>
+    <string name="prj_no_assigned">No room has a coat on it yet.</string>
     <string name="tab_layout">Layout</string>
     <string name="prj_no_scheduled">No scheduled tasks yet.</string>
 
@@ -445,7 +388,7 @@
     <string name="signin_who">Who\'s signing in?</string>
     <string name="signin_note">MixMaster works differently depending on your role — you can switch anytime from Settings.</string>
     <string name="signin_employer">Employer / Office</string>
-    <string name="signin_employer_sub">Set up projects, products &amp; pricing</string>
+    <string name="signin_employer_sub">Set up projects, products &amp; the crew</string>
     <string name="signin_employer_b1">Create and edit projects, clients &amp; the product library</string>
     <string name="signin_employer_b2">Assign tasks and rooms to the crew</string>
     <string name="signin_employer_b3">Generate reports and manage the team</string>
@@ -464,7 +407,7 @@
     <string name="onboarding_2_title">Your whole product library, in one place</string>
     <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex and anything else you add — with real ratios and coverage from the datasheets, searchable by brand and category.</string>
     <string name="onboarding_3_title">Projects, rooms, tasks &amp; the calendar</string>
-    <string name="onboarding_3_body">Break a project into floors and rooms, assign a product per room, track tasks against a due date, and everything shows up on one shared calendar.</string>
+    <string name="onboarding_3_body">Break a project into floors and rooms, build each room up coat by coat, track tasks against a due date, and everything shows up on one shared calendar.</string>
 
     <!-- App lock -->
     <string name="lock_unlock_title">Unlock MixMaster</string>
@@ -520,8 +463,6 @@
     <string name="status_completed">Completed</string>
 
     <!-- Add-ons -->
-    <string name="addon_no_dose">No dose set on %1$s — set it on the product under "Added to another mix".</string>
-    <string name="addon_pick_part">Pick which part of the mix this is measured against.</string>
     <string name="addon_rate_label">%1$s %2$s per kg of %3$s</string>
 
     <string name="image_cant_open">Can\'t open</string>
@@ -564,7 +505,6 @@
     <string name="wh_to_order_sub">More is booked than the shelf holds</string>
     <string name="wh_on_the_shelf">On the shelf</string>
     <string name="wh_empty">No products yet. Add one under Products.</string>
-    <string name="wh_no_parts">No parts on this product yet.</string>
     <string name="wh_booked_for">Booked for %1$s</string>
     <string name="wh_short_by">Short by %1$s</string>
     <string name="wh_in_stock">%1$s in stock</string>
@@ -612,7 +552,7 @@
     <string name="prj_mix_stamp">%1$s · %2$d batches</string>
     <string name="prj_mix_remove_confirm">Take this off the project?</string>
     <string name="prj_mix_remove_confirm_body">%1$s · %2$s stops counting as used.</string>
-    <string name="prj_no_materials_yet">Put a product on a room and the material for this job shows up here.</string>
+    <string name="prj_no_materials_yet">Put a coat on a room and the material for this job shows up here.</string>
     <string name="prj_need">This job needs</string>
     <string name="prj_in_stock">In stock</string>
     <string name="prj_to_order">To order</string>
@@ -646,7 +586,6 @@
 
     <!-- Coat colour -->
     <string name="prj_no_colour">No colour</string>
-    <string name="prj_buildup">Build-up</string>
     <string name="prj_buildup_rate">%1$s g/m²</string>
     <string name="prj_buildup_open">Open the build-up</string>
     <string name="prj_buildup_close">Close the build-up</string>
@@ -742,6 +681,12 @@
     <string name="mix_default_time">No mixing time on this mix — counting down two minutes.</string>
     <string name="solution_mix_time">Mixing time (min)</string>
     <string name="solution_mix_time_hint">What the datasheet says to mix it for</string>
+    <string name="solution_pot_life">Pot life (minutes)</string>
+    <string name="solution_pot_life_hint">How long it stays workable once mixed. Leave empty if the datasheet doesn\'t say.</string>
+    <string name="calc_pot_life">Stays workable about %1$d min once mixed</string>
+    <string name="mix_pot_life">Workable for about %1$d min</string>
+    <string name="prj_report_share">Send</string>
+    <string name="report_mixed_total">Mixed and used so far: %1$s across %2$d mixes</string>
     <string name="mix_channel">Mixing timer</string>
     <string name="mix_channel_why">Sounds when a batch has had its mixing time, even with the app off screen.</string>
 </resources>

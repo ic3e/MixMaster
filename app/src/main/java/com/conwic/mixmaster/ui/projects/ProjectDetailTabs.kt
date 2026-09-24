@@ -71,6 +71,8 @@ import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import java.time.Instant
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.RecordedMix
+import com.conwic.mixmaster.domain.formatStamp
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.components.BuildUpPanel
@@ -84,7 +86,6 @@ import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -103,7 +104,6 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.TaskPriority
 
-private val noteTimestampFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
 @Composable
 fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
@@ -575,7 +575,7 @@ fun LayoutTab(
                 ) {
                     Text(
                         modifier = Modifier.weight(1f, fill = false),
-                        text = note.createdAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
+                        text = formatStamp(note.createdAt),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -975,7 +975,7 @@ private fun PhotoViewer(
             ) {
                 Text(
                     modifier = Modifier.weight(1f, fill = false),
-                    text = photo.takenAt.atZone(ZoneId.systemDefault()).format(noteTimestampFormatter),
+                    text = formatStamp(photo.takenAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1313,9 +1313,7 @@ fun MaterialsTab(
                             modifier = Modifier.weight(1f, fill = false),
                             text = stringResource(
                                 R.string.prj_mix_stamp,
-                                Instant.ofEpochMilli(mix.mixedAt)
-                                    .atZone(ZoneId.systemDefault())
-                                    .format(noteTimestampFormatter),
+                                formatStamp(Instant.ofEpochMilli(mix.mixedAt)),
                                 mix.batches,
                             ),
                             style = MaterialTheme.typography.labelSmall,

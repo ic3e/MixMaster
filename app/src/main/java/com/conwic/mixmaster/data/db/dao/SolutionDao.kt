@@ -40,8 +40,6 @@ interface SolutionDao {
     @Query("SELECT * FROM solutions WHERE id = :id")
     suspend fun getById(id: Long): SolutionEntity?
 
-    @Query("SELECT * FROM solution_lines WHERE solutionId = :solutionId ORDER BY sortOrder")
-    suspend fun getLines(solutionId: Long): List<SolutionLineEntity>
 
     @Query("SELECT DISTINCT brand FROM solutions WHERE isArchived = 0 AND brand != '' ORDER BY brand")
     fun observeBrands(): Flow<List<String>>

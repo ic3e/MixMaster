@@ -19,8 +19,6 @@ interface RoomAreaDao {
     @Query("SELECT * FROM room_areas ORDER BY projectId, sortOrder")
     fun observeAll(): Flow<List<RoomAreaEntity>>
 
-    @Query("SELECT * FROM room_areas WHERE floorId = :floorId ORDER BY sortOrder")
-    fun observeForFloor(floorId: Long): Flow<List<RoomAreaEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(room: RoomAreaEntity): Long
@@ -28,8 +26,6 @@ interface RoomAreaDao {
     @Update
     suspend fun update(room: RoomAreaEntity)
 
-    @Query("UPDATE room_areas SET assignedProductId = :productId WHERE id = :roomId")
-    suspend fun assignProduct(roomId: Long, productId: Long?)
 
     @Delete
     suspend fun delete(room: RoomAreaEntity)

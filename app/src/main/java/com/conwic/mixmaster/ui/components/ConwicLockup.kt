@@ -24,8 +24,6 @@ private const val Gap = 37f
 private const val WordmarkWidth = 1459f
 private const val WordmarkHeight = 245f
 
-/** How wide the whole lockup sits for a given [height] — useful for laying a report page out. */
-fun lockupWidthFor(height: Float): Float = height * (BadgeWidth + Gap + WordmarkWidth) / LogoHeight
 
 /**
  * The full ConWiC lockup: the badge, then CONWIC over FLOORS FOR LIVING.

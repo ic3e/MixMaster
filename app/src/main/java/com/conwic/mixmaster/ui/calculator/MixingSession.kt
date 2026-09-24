@@ -406,6 +406,16 @@ fun MixingSession(
                     color = inkAccent,
                     fontWeight = FontWeight.Bold,
                 )
+                if (run.potLifeMinutes > 0) {
+                    // The clock that matters after this one: how long what is in the drum stays
+                    // workable. Said here rather than left on a datasheet in the van.
+                    Text(
+                        text = stringResource(R.string.mix_pot_life, run.potLifeMinutes),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = inkAccent,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
                 if (run.batchSize.isNotBlank()) {
                     Text(
                         text = run.batchSize,

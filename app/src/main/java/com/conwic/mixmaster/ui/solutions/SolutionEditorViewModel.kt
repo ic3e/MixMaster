@@ -58,6 +58,7 @@ data class SolutionFormState(
     val doseUnitLabel: String = "",
     /** Minutes, as it is typed — the datasheet says "at least 2 minutes", not "120". */
     val mixMinutesText: String = "",
+    val potLifeText: String = "",
     val datasheetUrl: String = "",
     val lines: List<LineDraft> = listOf(LineDraft(), LineDraft()),
     val entry: EntryMode = EntryMode.RATIO,
@@ -130,6 +131,7 @@ class SolutionEditorViewModel(
                         maxDoseText = if (solution.maxDoseGramsPerM2 > 0.0) formatDecimal(solution.maxDoseGramsPerM2, 1) else "",
                         doseUnitLabel = solution.doseUnitLabel,
                         mixMinutesText = if (solution.mixSeconds > 0) formatDecimal(solution.mixSeconds / 60.0, 2) else "",
+                        potLifeText = if (solution.potLifeMinutes > 0) "${solution.potLifeMinutes}" else "",
                         datasheetUrl = solution.datasheetUrl,
                         parentId = solution.parentId,
                         coatName = solution.coatName,
@@ -183,6 +185,8 @@ class SolutionEditorViewModel(
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
     fun setCoatName(value: String) = _formState.update { it.copy(coatName = value) }
     fun setMixMinutes(value: String) = _formState.update { it.copy(mixMinutesText = value) }
+
+    fun setPotLife(value: String) = _formState.update { it.copy(potLifeText = value) }
     /**
      * Switches how the parts are typed, carrying the figures over.
      *
@@ -341,6 +345,9 @@ class SolutionEditorViewModel(
                 // countdown nobody can sit through and a screen held awake all afternoon.
                 mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt()
                     .coerceIn(0, MaxMixSeconds),
+                // Capped at a working day: a pot life is minutes, and a mistyped 9000 would
+                // read as three days of workable material.
+                potLifeMinutes = state.potLifeText.toNumberOr(0.0).roundToInt().coerceIn(0, 600),
                 parentId = state.parentId,
                 coatName = state.coatName.trim(),
             ),

@@ -46,16 +46,3 @@ fun ChipRow(options: List<ChipOption>, modifier: Modifier = Modifier) {
         }
     }
 }
-
-/** Status/role pills, e.g. "Active", "Employer", "Worker". */
-@Composable
-fun StatusPill(text: String, background: Color, foreground: Color, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        color = foreground,
-        style = MaterialTheme.typography.labelSmall,
-        modifier = modifier
-            .background(background, ChipShape)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    )
-}

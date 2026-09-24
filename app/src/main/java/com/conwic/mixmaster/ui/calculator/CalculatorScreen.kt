@@ -879,6 +879,7 @@ fun CalculatorScreen(
                             title = data.solution.coatLabel,
                             batchSize = batchWords,
                             mixSeconds = data.solution.mixSeconds,
+                            potLifeMinutes = data.solution.potLifeMinutes,
                             parts = data.parts,
                             steps = mixingSteps(plan),
                             // Carried into the run so that when it finishes, what went in the
@@ -907,6 +908,17 @@ fun CalculatorScreen(
                         if (data.solution.mixSeconds <= 0) {
                             Text(
                                 text = stringResource(R.string.mix_default_time),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = OnAccentCard.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
+                        // How long the batch stays workable. It is on every datasheet and was
+                        // nowhere in the app, which is what makes somebody mix the whole lot at
+                        // once and then throw half of it away.
+                        if (data.solution.potLifeMinutes > 0) {
+                            Text(
+                                text = stringResource(R.string.calc_pot_life, data.solution.potLifeMinutes),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = OnAccentCard.copy(alpha = 0.7f),
                                 modifier = Modifier.padding(top = 6.dp),

@@ -128,13 +128,10 @@ class ProjectRepository(
 
     suspend fun removeRoom(room: RoomAreaEntity) = roomAreaDao.delete(room)
 
-    suspend fun assignProduct(roomId: Long, productId: Long?) = roomAreaDao.assignProduct(roomId, productId)
 
     fun observeTasks(projectId: Long): Flow<List<TaskEntity>> = taskDao.observeForProject(projectId)
 
     fun observeAllTasks(): Flow<List<TaskEntity>> = taskDao.observeAll()
-
-    fun observeTasksForDay(epochDay: Long): Flow<List<TaskEntity>> = taskDao.observeForDay(epochDay)
 
     suspend fun addTask(task: TaskEntity): Long = taskDao.insert(task)
 

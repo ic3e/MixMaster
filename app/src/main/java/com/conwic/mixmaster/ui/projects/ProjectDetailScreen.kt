@@ -133,6 +133,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                             roomCoats = roomCoats,
                                             products = data.products,
                                             tasks = data.tasks,
+                                            mixes = recordedMixes,
                                         )
                                     },
                                 )
@@ -244,6 +245,24 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
         AlertDialog(
             onDismissRequest = { generatedReportUri = null },
             confirmButton = {
+                // Sending it is what the report is for. It could only be opened, which left
+                // everyone digging the file out of the app's folder to get it to a client.
+                TextButton(onClick = {
+                    val send = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        putExtra(Intent.EXTRA_SUBJECT, project.name)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    runCatching {
+                        context.startActivity(
+                            Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                    generatedReportUri = null
+                }) { Text(stringResource(R.string.prj_report_share)) }
+            },
+            dismissButton = {
                 TextButton(onClick = {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(uri, "application/pdf")
@@ -253,7 +272,6 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     generatedReportUri = null
                 }) { Text(stringResource(R.string.action_open)) }
             },
-            dismissButton = { TextButton(onClick = { generatedReportUri = null }) { Text(stringResource(R.string.action_close)) } },
             title = { Text(stringResource(R.string.prj_report_generated)) },
             text = { Text(stringResource(R.string.prj_report_saved, project.name)) },
         )

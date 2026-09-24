@@ -51,6 +51,7 @@ import com.conwic.mixmaster.domain.formatDayWithWeek
 import com.conwic.mixmaster.domain.formatShortWeekday
 import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.domain.formatDueDate
+import com.conwic.mixmaster.domain.formatGreetingDay
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.OnAccentCard
@@ -69,7 +70,6 @@ import com.conwic.mixmaster.ui.tasks.toDraft
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import com.conwic.mixmaster.ui.components.CrashReportCard
 import com.conwic.mixmaster.ui.settings.UpdateBanner
 
@@ -119,7 +119,7 @@ fun HomeScreen(navController: NavHostController) {
                     Column(modifier = Modifier.padding(start = 12.dp)) {
                         Text(text = stringResource(greetingRes(dayPart)), style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            text = today.format(DateTimeFormatter.ofPattern("EEEE, d MMMM")),
+                            text = formatGreetingDay(today),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

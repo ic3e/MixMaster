@@ -379,6 +379,16 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     keyboardType = KeyboardType.Decimal,
                     modifier = Modifier.padding(top = 10.dp),
                 )
+                // How long it stays workable once it is mixed. Every datasheet gives it, and
+                // it is what decides whether a batch should be half the size.
+                FormTextField(
+                    value = state.potLifeText,
+                    onValueChange = viewModel::setPotLife,
+                    label = stringResource(R.string.solution_pot_life),
+                    hint = stringResource(R.string.solution_pot_life_hint),
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
                 state.doseProblem?.let { problem ->
                     Text(
                         text = stringResource(problem),

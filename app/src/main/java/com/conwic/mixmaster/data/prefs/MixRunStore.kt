@@ -17,6 +17,8 @@ data class SavedMixRun(
     val title: String,
     val batchSize: String,
     val mixSeconds: Int,
+    /** How long the batch stays workable once it is mixed, in minutes. 0 when unknown. */
+    val potLifeMinutes: Int = 0,
     val parts: List<MixPart>,
     val steps: List<MixingStep>,
     /** The job it was started for, so what gets mixed can be written against it. 0 for none. */
@@ -141,6 +143,7 @@ object MixRunStore {
             title = json.optString("title"),
             batchSize = json.optString("batchSize"),
             mixSeconds = json.optInt("mixSeconds"),
+            potLifeMinutes = json.optInt("potLifeMinutes"),
             parts = json.optJSONArray("parts").map { readPart(it) },
             steps = json.optJSONArray("steps").map { step ->
                 MixingStep(
@@ -163,6 +166,7 @@ object MixRunStore {
         put("title", run.title)
         put("batchSize", run.batchSize)
         put("mixSeconds", run.mixSeconds)
+        put("potLifeMinutes", run.potLifeMinutes)
         put("projectId", run.projectId)
         put("roomId", run.roomId)
         put("solutionId", run.solutionId)
