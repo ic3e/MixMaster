@@ -1,8 +1,8 @@
 {
-  "versionCode": 103,
-  "versionName": "1.0.103",
-  "apk": "MixMaster_1.0.103.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.103.apk",
-  "sizeBytes": 20359919,
-  "notes": "Spell the corners out"
+  "versionCode": 104,
+  "versionName": "1.0.104",
+  "apk": "MixMaster_1.0.104.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.104.apk",
+  "sizeBytes": 20393531,
+  "notes": "Draw the floor to scale, and put a rule beside it"
 }
