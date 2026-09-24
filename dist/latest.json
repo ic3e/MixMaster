@@ -1,8 +1,8 @@
 {
-  "versionCode": 117,
-  "versionName": "1.0.117",
-  "apk": "MixMaster_1.0.117.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.117.apk",
+  "versionCode": 118,
+  "versionName": "1.0.118",
+  "apk": "MixMaster_1.0.118.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.118.apk",
   "sizeBytes": 20512019,
-  "notes": "Set the report's body a step smaller, and leave the letterhead alone"
+  "notes": "Take the report's body down one more step"
 }
