@@ -4,6 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +17,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -25,9 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -47,6 +57,7 @@ import com.conwic.mixmaster.domain.doseDecimals
 import com.conwic.mixmaster.domain.doseStep
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.snapDose
+import com.conwic.mixmaster.domain.snapToDoseStep
 import com.conwic.mixmaster.domain.openableUrl
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.domain.quantityFromLitres
@@ -179,7 +190,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                             R.string.calc_datasheet_typical_full,
                             formatDecimal(
                                 product.typicalDoseGramsPerM2,
-                                doseDecimals(doseStep(product.minDoseGramsPerM2, product.maxDoseGramsPerM2)),
+                                doseDecimals(doseStep(product.typicalDoseGramsPerM2)),
                             ),
                             perLabel(product.dosingMode),
                         ),
@@ -245,10 +256,19 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                 // recomputed when the finger lifts.
                 var dragCoverage by remember(product.id) { mutableStateOf<Float?>(null) }
                 // Snapped to the same step it is shown in, so the rate on screen is the rate the
-                // mix below was worked out from.
-                val step = doseStep(product.minDoseGramsPerM2, product.maxDoseGramsPerM2)
+                // mix below was worked out from. The step comes from the figure being set, so a
+                // 2700 g/m² pour moves in fifties and a 6 g/m² primer in tenths.
+                val live = dragCoverage?.toDouble() ?: state.coverageValue
+                val step = doseStep(live)
                 val decimals = doseDecimals(step)
-                val snapped = snapDose(dragCoverage?.toDouble() ?: state.coverageValue, step)
+                val typical = product.typicalDoseGramsPerM2
+                // The datasheet figure is a stop of its own, even where it does not sit on the
+                // step grid: the marker has to land on the number it is pointing at.
+                val snapped = if (typical > 0.0 && abs(live - typical) <= step / 2.0) {
+                    typical
+                } else {
+                    snapDose(live, step)
+                }
                 // Kept inside the range the slider was given: snapping can land a hair past the
                 // end of it, and a product with no range at all has nothing to clamp to.
                 val shownCoverage = if (product.maxDoseGramsPerM2 > product.minDoseGramsPerM2) {
@@ -273,11 +293,49 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                     }
 
                     if (product.maxDoseGramsPerM2 > product.minDoseGramsPerM2) {
+                        // Where the datasheet says to be, marked on the track and tappable:
+                        // once the slider has been nudged for a porous slab, finding the way
+                        // back to the recommended figure was a matter of dragging and squinting.
+                        if (typical > 0.0) {
+                            val span = product.maxDoseGramsPerM2 - product.minDoseGramsPerM2
+                            val fraction = ((typical - product.minDoseGramsPerM2) / span)
+                                .coerceIn(0.0, 1.0)
+                                .toFloat()
+                            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                                val markerWidth = 56.dp
+                                val x = (maxWidth * fraction - markerWidth / 2)
+                                    .coerceIn(0.dp, (maxWidth - markerWidth).coerceAtLeast(0.dp))
+                                Column(
+                                    modifier = Modifier
+                                        .width(markerWidth)
+                                        .offset(x = x)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            dragCoverage = null
+                                            viewModel.setCoverage(typical)
+                                        },
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Text(
+                                        text = formatDecimal(typical, doseDecimals(doseStep(typical))),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowDropDown,
+                                        contentDescription = stringResource(R.string.calc_back_to_typical),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                        }
                         Slider(
                             value = shownCoverage.toFloat(),
                             onValueChange = { dragCoverage = it },
                             onValueChangeFinished = {
-                                dragCoverage?.let { viewModel.setCoverage(snapDose(it.toDouble(), step)) }
+                                dragCoverage?.let { viewModel.setCoverage(snapToDoseStep(it.toDouble())) }
                             },
                             valueRange = product.minDoseGramsPerM2.toFloat()..product.maxDoseGramsPerM2.toFloat(),
                             colors = SliderDefaults.colors(

@@ -196,6 +196,7 @@
     <string name="calc_your_average">Your average: %1$s</string>
     <string name="calc_no_logged">No logged jobs yet</string>
     <string name="calc_range_note">The datasheet gives a range — nudge it for porous, textured or uneven substrates on the day.</string>
+    <string name="calc_back_to_typical">Back to the datasheet figure</string>
     <string name="calc_no_range_note">No published range for this product — using the datasheet figure as-is.</string>
     <string name="calc_youll_need">You\'ll need</string>
     <string name="calc_ratio_parts">ratio %1$s parts</string>

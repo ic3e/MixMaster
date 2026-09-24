@@ -162,6 +162,7 @@
     <string name="calc_your_average">Sinu keskmine: %1$s</string>
     <string name="calc_no_logged">Salvestatud töid veel pole</string>
     <string name="calc_range_note">Tehniline leht annab vahemiku — kohanda seda poorse, tekstuurse või ebaühtlase aluspinna järgi.</string>
+    <string name="calc_back_to_typical">Tagasi andmelehe väärtusele</string>
     <string name="calc_no_range_note">Sellel tootel avaldatud vahemikku pole — kasutame tehnilise lehe numbrit nii nagu on.</string>
     <string name="calc_youll_need">Sul on vaja</string>
     <string name="calc_ratio_parts">suhe %1$s osa</string>

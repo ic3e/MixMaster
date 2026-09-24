@@ -162,6 +162,7 @@
     <string name="calc_your_average">Oma keskiarvo: %1$s</string>
     <string name="calc_no_logged">Ei vielä kirjattuja töitä</string>
     <string name="calc_range_note">Tuotetieto antaa vaihteluvälin — säädä sitä huokoisen, karkean tai epätasaisen alustan mukaan.</string>
+    <string name="calc_back_to_typical">Takaisin datalehden arvoon</string>
     <string name="calc_no_range_note">Tälle tuotteelle ei ole julkaistua vaihteluväliä — käytetään tuotetiedon lukua sellaisenaan.</string>
     <string name="calc_youll_need">Tarvitset</string>
     <string name="calc_ratio_parts">suhde %1$s osaa</string>
