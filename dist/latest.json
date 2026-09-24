@@ -1,8 +1,8 @@
 {
-  "versionCode": 110,
-  "versionName": "1.0.110",
-  "apk": "MixMaster_1.0.110.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.110.apk",
-  "sizeBytes": 20494135,
-  "notes": "Let a job be put right after it was written down"
+  "versionCode": 111,
+  "versionName": "1.0.111",
+  "apk": "MixMaster_1.0.111.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.111.apk",
+  "sizeBytes": 20511691,
+  "notes": "Carry a coat's colour into the calculator, and find a product by name"
 }
