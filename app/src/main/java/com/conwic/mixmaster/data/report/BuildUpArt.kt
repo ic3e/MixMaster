@@ -45,15 +45,15 @@ internal data class ReportCoat(
  */
 internal object BuildUpArt {
 
-    // Tightened once the report was read on paper: the drawing was taking a third of a page
-    // per room and pushing the figures a client actually reads onto the next one.
-    private const val RowHeight = 20f
-    private const val RowGap = 5f
-    private const val SystemGap = 12f
-    private const val StripWidth = 18f
-    private const val RulerWidth = 26f
-    private const val ColumnGap = 10f
-    private const val Pad = 5f
+    // Tightened twice once the report was read on paper: the drawing was taking a third of a
+    // page per room and pushing the figures a client actually reads onto the next one.
+    private const val RowHeight = 18f
+    private const val RowGap = 4f
+    private const val SystemGap = 11f
+    private const val StripWidth = 16f
+    private const val RulerWidth = 24f
+    private const val ColumnGap = 9f
+    private const val Pad = 4f
 
     /** How tall the drawing will be, asked before there is a page to put it on. */
     fun height(rows: List<ReportCoat>, width: Float): Float {
@@ -72,19 +72,19 @@ internal object BuildUpArt {
         val rowsWidth = width - (rowsLeft - left)
 
         val namePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#262322"); textSize = 9f
+            color = Color.parseColor("#262322"); textSize = 8.5f
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         }
         val detailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#6B6259"); textSize = 7.5f; typeface = Typeface.SANS_SERIF
+            color = Color.parseColor("#6B6259"); textSize = 7f; typeface = Typeface.SANS_SERIF
         }
         val figurePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#262322"); textSize = 9.5f
+            color = Color.parseColor("#262322"); textSize = 9f
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
         }
         val markPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#6B6259"); textSize = 7f
+            color = Color.parseColor("#6B6259"); textSize = 6.5f
             typeface = Typeface.SANS_SERIF; textAlign = Paint.Align.RIGHT
         }
         val rulePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -105,7 +105,7 @@ internal object BuildUpArt {
             color = Color.parseColor("#8A5A2E"); strokeWidth = 1.1f
         }
         val systemText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#8A5A2E"); textSize = 7f
+            color = Color.parseColor("#8A5A2E"); textSize = 6.5f
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD); textAlign = Paint.Align.RIGHT
         }
         val facePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -187,10 +187,10 @@ internal object BuildUpArt {
             }
             // The name stops where the figure starts. A long product name used to run under it.
             val figureWidth = figurePaint.measureText(row.mmText ?: "—")
-            val textRoom = rowsWidth - 18f - figureWidth - 9f
-            canvas.drawText(fitText("${row.number} · ${row.title}", namePaint, textRoom), rowsLeft + 9f, y + 9f, namePaint)
-            canvas.drawText(fitText(row.detail, detailPaint, textRoom), rowsLeft + 9f, y + 17.5f, detailPaint)
-            canvas.drawText(row.mmText ?: "—", rowsLeft + rowsWidth - 9f, y + 13.5f, figurePaint)
+            val textRoom = rowsWidth - 16f - figureWidth - 8f
+            canvas.drawText(fitText("${row.number} · ${row.title}", namePaint, textRoom), rowsLeft + 8f, y + 8f, namePaint)
+            canvas.drawText(fitText(row.detail, detailPaint, textRoom), rowsLeft + 8f, y + 15.5f, detailPaint)
+            canvas.drawText(row.mmText ?: "—", rowsLeft + rowsWidth - 8f, y + 12f, figurePaint)
             y += RowHeight + RowGap
 
             val below = topDown.getOrNull(fromTop + 1)
