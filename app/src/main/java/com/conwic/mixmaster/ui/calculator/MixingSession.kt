@@ -31,6 +31,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -63,8 +65,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -79,7 +79,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -104,6 +103,7 @@ import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
+import kotlin.math.min
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
@@ -568,7 +568,17 @@ private fun phaseNamed(name: String): MixPhase =
 
 /** How long the ring takes to wind up when a batch comes up, and how big the number is drawn. */
 private const val WindUpMillis = 800
-private val RingSize = 300.dp
+
+/**
+ * The ring itself, and the square it is drawn in.
+ *
+ * They are not the same size on purpose. The rings of light going out when a batch is up need
+ * somewhere to go, and what they do not have they used to take anyway — off the edge of the
+ * canvas, which is a rectangle, so the pulse came out as a box around the clock. The square is
+ * now as wide as the screen allows and the ring keeps its own size inside it.
+ */
+private val RingRadius = 130.dp
+private val RingMax = 340.dp
 private val CountdownSize = 74.sp
 
 /** The four things that move on the ring, together, so they share one frame loop. */
@@ -628,9 +638,9 @@ private fun rememberRingMotion(calm: Boolean): RingMotion? {
  *
  * A thick stroke has two hard edges and reads as a painted ring; what is wanted is something
  * that glows. So every arc here is laid down as a stack of strokes, widest and faintest first,
- * with a thin bright core on top — the edges fall away instead of stopping. Phones from
- * Android 12 get a real blur over the glow on top of that; older ones keep the stack, which is
- * soft enough on its own.
+ * with a thin bright core on top — the edges fall away instead of stopping. There is no blur
+ * over it: the stack is soft enough on its own, and a blur means a layer, and a layer has four
+ * corners for the glow to be cut on.
  *
  * Everything that moves is read inside the draw pass rather than while composing: this runs for
  * up to an hour with the screen held awake, and a countdown that recomposes the screen sixty
@@ -696,16 +706,21 @@ private fun TimerRing(
     val onSurface = MaterialTheme.colorScheme.onSurface
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
-        // One layer, all of it soft: the countdown is light on the page, not a ring drawn on it.
-        Canvas(modifier = Modifier.size(RingSize).blurCompat(2.dp)) {
+        // All of it soft: the countdown is light on the page, not a ring drawn on it. Drawn
+        // straight onto the page rather than into a layer of its own — a layer has edges, and
+        // anything reaching them comes back with corners.
+        Canvas(modifier = Modifier.widthIn(max = RingMax).fillMaxWidth().aspectRatio(1f)) {
             val core = 14.dp.toPx()
             val spread = 26.dp.toPx()
-            // Squared off first: on a narrow phone the box came out wider than it was tall and
-            // the ring was drawn as an ellipse while the rings going out stayed circles.
-            val side = size.minDimension
+            // A square to draw in, whatever shape the box ended up, and a ring of its own size
+            // inside it — smaller only where the screen is too narrow to hold it.
+            val half = size.minDimension / 2f
             val edge = (core + spread) / 2f
-            inset((size.width - side) / 2f + edge, (size.height - side) / 2f + edge) {
-                val radius = size.minDimension / 2f
+            val radius = min(RingRadius.toPx(), half - edge)
+            // What is left over outside the ring, as a share of it: how far the rings going out
+            // may go, so that they fade out in open space rather than run into an edge.
+            val room = ((half - radius - 2.dp.toPx()) / radius).coerceIn(0f, 0.25f)
+            inset(horizontal = size.width / 2f - radius, vertical = size.height / 2f - radius) {
                 // Runs warm as the time goes: the brand colour for most of the run, hi-vis
                 // amber through the last third. Amber rather than the second accent, which in a
                 // dark theme is the primary itself — the ring read the same all the way down.
@@ -717,8 +732,8 @@ private fun TimerRing(
                     // Rings of light going out, over and over, until somebody taps. Held
                     // half-way out, once, when the phone is keeping still.
                     val out = halo?.value ?: 0.30f
-                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.22f), radius = radius * (1f + out * 0.20f))
-                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.11f), radius = radius * (1f + out * 0.42f))
+                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.22f), radius = radius * (1f + out * room * 0.45f))
+                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.11f), radius = radius * (1f + out * room))
                 }
                 // The path the countdown runs on, barely there.
                 drawArc(
@@ -814,20 +829,6 @@ private fun DrawScope.softArc(
         )
     }
 }
-
-/**
- * A real blur where the platform has one, and nothing where it does not.
- *
- * Unbounded, because the default treatment clips the blur to the edge of what it is blurring —
- * and the rings going out when a batch is up reach well past the ring itself, so they were
- * being cut off square.
- */
-private fun Modifier.blurCompat(radius: Dp): Modifier =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        this.blur(radius, BlurredEdgeTreatment.Unbounded)
-    } else {
-        this
-    }
 
 /** Nudges the mixing time before a batch starts. Big targets: this is done in gloves. */
 @Composable
