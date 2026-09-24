@@ -27,7 +27,16 @@ There is **no Android SDK in this sandbox** — never try to run Gradle. The bui
 
 ## Before pushing
 
-Everything is compiled blind, so check by hand what the compiler would have caught:
+Everything is compiled blind, so check by hand what the compiler would have caught. Most of it
+is in one script — run it before every push:
+
+```
+python3 tools/preflight.py
+```
+
+It checks the four things this app has actually shipped broken: a string that exists in one
+language only, a `Modifier.x()` whose import was never added, an import nothing uses, and a
+bracket that never closes. It exits non-zero when it finds any. The rest still needs a person:
 
 - **Strings.** Every `R.string` / `R.plurals` / `R.array` reference must exist in
   `values/strings.xml`, and every new key needs `values-et` and `values-fi` as well. `app_name` is

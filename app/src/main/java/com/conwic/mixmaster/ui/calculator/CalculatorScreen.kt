@@ -53,7 +53,6 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.data.prefs.MixRunStore
 import com.conwic.mixmaster.data.prefs.SavedMixRun
-import com.conwic.mixmaster.domain.AddOnProblem
 import com.conwic.mixmaster.domain.BatchProblem
 import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis

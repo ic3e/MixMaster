@@ -2,7 +2,6 @@ package com.conwic.mixmaster.ui.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,10 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -53,7 +50,6 @@ import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.security.canLockApp
 import com.conwic.mixmaster.ui.theme.CardShape
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
 
 @Composable
 fun SettingsScreen(navController: NavHostController) {

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +48,6 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.data.report.PickupLine
 import com.conwic.mixmaster.data.report.PickupList
-import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.domain.quantityOf

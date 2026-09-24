@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +31,6 @@ import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 
 @Composable

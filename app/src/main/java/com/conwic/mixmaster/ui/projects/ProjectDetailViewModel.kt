@@ -22,7 +22,6 @@ import com.conwic.mixmaster.domain.MixCalculator
 import com.conwic.mixmaster.domain.addOnNeeds
 import com.conwic.mixmaster.domain.colourAddOn
 import com.conwic.mixmaster.domain.MixPart
-import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.SolutionMix
 import com.conwic.mixmaster.domain.bookingsByProduct
@@ -31,10 +30,8 @@ import com.conwic.mixmaster.domain.productStock
 import com.conwic.mixmaster.domain.solutionMix
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.toEntity
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
