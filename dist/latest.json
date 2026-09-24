@@ -1,8 +1,8 @@
 {
-  "versionCode": 119,
-  "versionName": "1.0.119",
-  "apk": "MixMaster_1.0.119.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.119.apk",
-  "sizeBytes": 20512019,
-  "notes": "Show one thing at a time on the mixing screen"
+  "versionCode": 120,
+  "versionName": "1.0.120",
+  "apk": "MixMaster_1.0.120.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.120.apk",
+  "sizeBytes": 20531411,
+  "notes": "Draw the build-up the way the boards draw it, and fade the mixing screen"
 }
