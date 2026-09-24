@@ -1,8 +1,8 @@
 {
-  "versionCode": 97,
-  "versionName": "1.0.97",
-  "apk": "MixMaster_1.0.97.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.97.apk",
+  "versionCode": 98,
+  "versionName": "1.0.98",
+  "apk": "MixMaster_1.0.98.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.98.apk",
   "sizeBytes": 20321675,
-  "notes": "Come back to the batch, not to the front door"
+  "notes": "Write down what this project expects, so it is not learned twice"
 }
