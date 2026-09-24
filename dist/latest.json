@@ -1,8 +1,8 @@
 {
-  "versionCode": 86,
-  "versionName": "1.0.86",
-  "apk": "MixMaster_1.0.86.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.86.apk",
+  "versionCode": 87,
+  "versionName": "1.0.87",
+  "apk": "MixMaster_1.0.87.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.87.apk",
   "sizeBytes": 20219700,
-  "notes": "Never let the print button end in a crash"
+  "notes": "Print from the one context the language wrapper does not replace"
 }
