@@ -604,6 +604,11 @@
 
     <!-- Coat colour -->
     <string name="prj_no_colour">No colour</string>
+    <string name="prj_buildup">Build-up</string>
+    <string name="prj_buildup_rate">%1$s g/m²</string>
+    <string name="prj_buildup_rate_mm">%1$s g/m² · %2$s mm</string>
+    <string name="prj_buildup_tinted">%1$s · tinted %2$s</string>
+    <string name="prj_buildup_total">≈ %1$s mm in total, wet</string>
     <string name="prj_set_colour">Set colour</string>
     <string name="prj_colour">Colour</string>
     <string name="prj_colour_line">%1$s · %2$s against %3$s</string>

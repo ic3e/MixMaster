@@ -55,7 +55,10 @@ import com.conwic.mixmaster.domain.quantityOf
 import androidx.compose.ui.text.input.KeyboardType
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.domain.toNumberOr
+import com.conwic.mixmaster.domain.BuildUpCoat
 import com.conwic.mixmaster.domain.CoatMix
+import com.conwic.mixmaster.domain.buildUp
+import com.conwic.mixmaster.domain.buildUpMillimetres
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
@@ -64,6 +67,8 @@ import java.time.Instant
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
+import com.conwic.mixmaster.ui.components.BuildUpDiagram
+import com.conwic.mixmaster.ui.components.BuildUpRow
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.OnAccentCard
@@ -383,6 +388,34 @@ fun LayoutTab(
                                         modifier = Modifier.tappableText { colourCoat = coat },
                                     )
                                 }
+                            }
+                        }
+                        // The floor as a floor, not as a list: the coats pulled apart the way a
+                        // system datasheet draws them, so what is being laid can be seen at a
+                        // glance — and checked against the datasheet it came from.
+                        val stack = buildUp(coats, room.areaM2) { it.title }
+                        if (stack.isNotEmpty()) {
+                            SectionLabel(
+                                text = stringResource(R.string.prj_buildup),
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                            BuildUpDiagram(
+                                rows = stack.map { coat ->
+                                    BuildUpRow(
+                                        title = "${coat.number}. ${coat.title}",
+                                        detail = buildUpDetail(coat),
+                                        weight = coat.weight,
+                                    )
+                                },
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                            buildUpMillimetres(stack)?.let { millimetres ->
+                                Text(
+                                    text = stringResource(R.string.prj_buildup_total, formatDecimal(millimetres, 1)),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    fontWeight = FontWeight.Bold,
+                                )
                             }
                         }
                         if (isEmployer) {
@@ -1196,4 +1229,26 @@ private fun MaterialRow(label: String, value: String, strong: Boolean = false) {
             fontWeight = if (strong) FontWeight.ExtraBold else FontWeight.Bold,
         )
     }
+}
+
+/**
+ * The line under a coat's name in the build-up: how much goes on, how thick that comes out, and
+ * what it is tinted with.
+ *
+ * Millimetres only where the recipe knows its densities — a figure a client might read off the
+ * drawing is not one to guess at.
+ */
+@Composable
+private fun buildUpDetail(coat: BuildUpCoat): String {
+    val rate = if (coat.millimetres != null) {
+        stringResource(
+            R.string.prj_buildup_rate_mm,
+            formatDecimal(coat.gramsPerM2, 0),
+            formatDecimal(coat.millimetres, 2),
+        )
+    } else {
+        stringResource(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
+    }
+    val colour = coat.colourName ?: return rate
+    return stringResource(R.string.prj_buildup_tinted, rate, colour)
 }

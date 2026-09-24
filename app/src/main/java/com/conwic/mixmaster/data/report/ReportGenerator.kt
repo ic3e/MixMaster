@@ -16,7 +16,10 @@ import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.domain.CoatMix
+import com.conwic.mixmaster.domain.buildUp
+import com.conwic.mixmaster.domain.buildUpMillimetres
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.quantityFromGrams
 import java.io.File
 import java.io.FileOutputStream
@@ -102,6 +105,40 @@ object ReportGenerator {
                         coat.result.components.joinToString(" / ") { "${quantityFromGrams(it.grams).text} ${it.label}" } + ")"
                     canvas.drawText(detail, MARGIN + 12f, y, dimPaint)
                     y += 14f
+                }
+                y += 6f
+                // And then as a picture of itself: the coats pulled apart the way a system
+                // datasheet draws them, so a client sees the floor rather than a list of bags.
+                val stack = buildUp(coats, room.areaM2) { it.title }
+                if (stack.isNotEmpty()) {
+                    val artWidth = PAGE_WIDTH - 2 * MARGIN - 12f
+                    newPageIfNeeded(BuildUpArt.height(stack.size, artWidth) + 18f)
+                    val slabs = stack.map { coat ->
+                        val rate = if (coat.millimetres != null) {
+                            context.getString(
+                                R.string.prj_buildup_rate_mm,
+                                formatDecimal(coat.gramsPerM2, 0),
+                                formatDecimal(coat.millimetres, 2),
+                            )
+                        } else {
+                            context.getString(R.string.prj_buildup_rate, formatDecimal(coat.gramsPerM2, 0))
+                        }
+                        ReportSlab(
+                            title = "${coat.number}. ${coat.title}",
+                            detail = coat.colourName?.let { context.getString(R.string.prj_buildup_tinted, rate, it) } ?: rate,
+                            weight = coat.weight,
+                        )
+                    }
+                    y = BuildUpArt.draw(canvas, slabs, MARGIN + 12f, y, artWidth)
+                    buildUpMillimetres(stack)?.let { millimetres ->
+                        canvas.drawText(
+                            context.getString(R.string.prj_buildup_total, formatDecimal(millimetres, 1)),
+                            MARGIN + 12f,
+                            y,
+                            dimPaint,
+                        )
+                        y += 14f
+                    }
                 }
                 y += 4f
             }

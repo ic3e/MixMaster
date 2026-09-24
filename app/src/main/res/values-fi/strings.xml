@@ -556,6 +556,11 @@
 
     <!-- Coat colour -->
     <string name="prj_no_colour">Ei väriä</string>
+    <string name="prj_buildup">Rakenne</string>
+    <string name="prj_buildup_rate">%1$s g/m²</string>
+    <string name="prj_buildup_rate_mm">%1$s g/m² · %2$s mm</string>
+    <string name="prj_buildup_tinted">%1$s · sävytetty %2$s</string>
+    <string name="prj_buildup_total">≈ %1$s mm yhteensä, märkänä</string>
     <string name="prj_set_colour">Aseta väri</string>
     <string name="prj_colour">Väri</string>
     <string name="prj_colour_line">%1$s · %2$s per %3$s</string>

@@ -556,6 +556,11 @@
 
     <!-- Coat colour -->
     <string name="prj_no_colour">Värvita</string>
+    <string name="prj_buildup">Ülesehitus</string>
+    <string name="prj_buildup_rate">%1$s g/m²</string>
+    <string name="prj_buildup_rate_mm">%1$s g/m² · %2$s mm</string>
+    <string name="prj_buildup_tinted">%1$s · toonitud %2$s</string>
+    <string name="prj_buildup_total">≈ %1$s mm kokku, märjalt</string>
     <string name="prj_set_colour">Määra värv</string>
     <string name="prj_colour">Värv</string>
     <string name="prj_colour_line">%1$s · %2$s %3$s kohta</string>
