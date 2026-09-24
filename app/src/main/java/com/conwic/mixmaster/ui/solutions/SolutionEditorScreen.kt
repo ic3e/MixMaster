@@ -156,6 +156,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text(
+                                    modifier = Modifier.weight(1f, fill = false),
                                     text = coat.coatName.ifBlank { coat.name },
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (isThisOne) {
@@ -237,6 +238,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     Column(modifier = Modifier.fillMaxWidth().padding(top = if (index == 0) 0.dp else 14.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
+                                modifier = Modifier.weight(1f, fill = false),
                                 text = stringResource(R.string.product_part_n, index + 1),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -467,8 +467,7 @@
     <string name="upd_err_installer">Couldn\'t open the installer.</string>
 
     <!-- Home -->
-    <string name="home_projects">Projects</string>
-    <string name="home_projects_value">%1$d active</string>
+    <string name="home_projects">Active projects</string>
     <string name="home_open_today">Open today</string>
     <string name="home_products">Products</string>
     <string name="home_quick_calculate">Quick calculate</string>

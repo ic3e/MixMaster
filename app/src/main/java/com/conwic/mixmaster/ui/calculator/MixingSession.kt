@@ -413,7 +413,7 @@ fun MixingSession(
                             Text(
                                 text = amount.label,
                                 style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(end = 8.dp),
+                                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
                             )
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
@@ -939,7 +939,7 @@ private fun MixingSummary(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = material.label, style = MaterialTheme.typography.bodyMedium)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = material.label, style = MaterialTheme.typography.bodyMedium)
                     Column(horizontalAlignment = Alignment.End) {
                         Text(text = material.amount, style = MaterialTheme.typography.titleMedium)
                         material.packs?.let {
@@ -967,7 +967,7 @@ private fun SummaryRow(label: String, value: String) {
         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(modifier = Modifier.weight(1f, fill = false), text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }

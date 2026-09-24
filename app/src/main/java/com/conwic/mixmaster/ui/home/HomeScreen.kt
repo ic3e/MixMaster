@@ -5,10 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -208,24 +210,32 @@ fun HomeScreen(navController: NavHostController) {
         item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Three cards of one height, whatever the language does to the words: sized to
+            // the tallest of them, so a label that takes two lines in Finnish lifts all three
+            // instead of leaving one standing proud.
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 // Each figure opens what it counts — a number on its own only raises the
-                // question of where to go and see it.
+                // question of where to go and see it. The figure is the figure: the word that
+                // used to ride along with it ("1 active") is in the label, where a long
+                // translation can wrap without pushing anything out of the card.
                 StatCard(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                     label = stringResource(R.string.home_projects),
-                    value = stringResource(R.string.home_projects_value, state.activeProjectCount),
+                    value = "${state.activeProjectCount}",
                     onClick = { navController.navigateToTopLevel(Routes.PROJECTS) },
                 )
                 StatCard(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                     label = stringResource(R.string.home_open_today),
                     value = "${state.todayTaskCount}",
                     valueColor = MaterialTheme.colorScheme.secondary,
                     onClick = { navController.navigate(Routes.CALENDAR) },
                 )
                 StatCard(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                     label = stringResource(R.string.home_products),
                     value = "${state.productCount}",
                     onClick = { navController.navigateToTopLevel(Routes.PRODUCTS) },

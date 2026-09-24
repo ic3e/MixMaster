@@ -115,7 +115,7 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth().clickable(onClick = onAddressClick).padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = stringResource(R.string.prj_site_address), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.prj_site_address), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row {
                         Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Text(text = project.address.ifBlank { "—" }, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 4.dp))
@@ -146,7 +146,7 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(modifier = Modifier.weight(1f, fill = false), text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(text = value, style = MaterialTheme.typography.titleMedium)
     }
 }
@@ -304,7 +304,7 @@ fun LayoutTab(
         items(data.floors) { floor ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = floor.name, style = MaterialTheme.typography.titleMedium)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = floor.name, style = MaterialTheme.typography.titleMedium)
                     if (isEmployer) {
                         Text(text = stringResource(R.string.prj_add_room), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
                     }
@@ -313,7 +313,7 @@ fun LayoutTab(
                     val coats = roomCoats[room.id].orEmpty()
                     Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(text = room.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                            Text(modifier = Modifier.weight(1f, fill = false), text = room.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                             Text(
                                 text = "${formatArea(room.areaM2)} m²" +
                                     if (coats.isNotEmpty()) " · ${quantityFromGrams(coats.sumOf { it.totalGrams }).text}" else "",
@@ -500,7 +500,7 @@ fun LayoutTab(
         items(data.notes) { note ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = note.authorName, style = MaterialTheme.typography.titleMedium)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = note.authorName, style = MaterialTheme.typography.titleMedium)
                     Text(text = note.authorRole.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
                 Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
@@ -859,7 +859,7 @@ fun MaterialsTab(
         item {
             CardAccent {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = stringResource(R.string.prj_total_used), color = OnAccentCard)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.prj_total_used), color = OnAccentCard)
                     Text(text = quantityFromGrams(totalGrams).text, style = MaterialTheme.typography.headlineMedium, color = OnAccentCard, fontWeight = FontWeight.ExtraBold)
                 }
             }
@@ -879,7 +879,7 @@ fun MaterialsTab(
         items(materials) { material ->
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = material.name, style = MaterialTheme.typography.titleMedium)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = material.name, style = MaterialTheme.typography.titleMedium)
                     if (material.stock.brand.isNotBlank()) {
                         Text(
                             text = material.stock.brand,
@@ -957,7 +957,7 @@ fun MaterialsTab(
             val coats = roomCoats[room.id].orEmpty()
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = room.name, style = MaterialTheme.typography.titleMedium)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = room.name, style = MaterialTheme.typography.titleMedium)
                     Text(text = quantityFromGrams(coats.sumOf { it.totalGrams }).text, style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
@@ -1182,6 +1182,7 @@ fun CalendarTab(data: ProjectDetailData) {
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
+                        modifier = Modifier.weight(1f, fill = false),
                         text = task.dueDate?.let { formatDueDate(it) } ?: stringResource(R.string.task_no_date),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1226,7 +1227,7 @@ private fun MaterialRow(label: String, value: String, strong: Boolean = false) {
         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(modifier = Modifier.weight(1f, fill = false), text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,

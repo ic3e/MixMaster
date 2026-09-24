@@ -104,7 +104,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = stringResource(R.string.pd_sold_as), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.pd_sold_as), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = if (current.packageSize > 0.0) {
                             "${formatDecimal(current.packageSize, 2)} ${current.packageUnit} ${current.packageType}"
@@ -118,7 +118,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = stringResource(R.string.pd_density), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.pd_density), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = if (current.densityKgPerL > 0.0) {
                             "${formatDecimal(current.densityKgPerL, 3)} kg/L"

@@ -423,8 +423,7 @@
     <string name="upd_err_generic">Jokin meni pieleen.</string>
     <string name="upd_err_installer">Asennusohjelmaa ei voitu avata.</string>
 
-    <string name="home_projects">Projektit</string>
-    <string name="home_projects_value">%1$d aktiivista</string>
+    <string name="home_projects">Aktiiviset projektit</string>
     <string name="home_open_today">Tänään auki</string>
     <string name="home_products">Tuotteet</string>
     <string name="home_quick_calculate">Pikalaskenta</string>

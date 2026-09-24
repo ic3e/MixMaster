@@ -423,8 +423,7 @@
     <string name="upd_err_generic">Midagi läks valesti.</string>
     <string name="upd_err_installer">Paigaldajat ei õnnestunud avada.</string>
 
-    <string name="home_projects">Projektid</string>
-    <string name="home_projects_value">%1$d aktiivset</string>
+    <string name="home_projects">Aktiivsed projektid</string>
     <string name="home_open_today">Täna lahtised</string>
     <string name="home_products">Tooted</string>
     <string name="home_quick_calculate">Kiire arvutus</string>

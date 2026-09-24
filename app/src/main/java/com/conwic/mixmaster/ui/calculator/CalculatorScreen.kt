@@ -382,6 +382,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
+                                modifier = Modifier.weight(1f, fill = false),
                                 text = stringResource(R.string.calc_datasheet_typical, formatDecimal(product.typicalDoseGramsPerM2, decimals)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -480,6 +481,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
+                        modifier = Modifier.weight(1f, fill = false),
                         text = stringResource(R.string.calc_total_mix),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
@@ -603,7 +605,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = stringResource(R.string.calc_mixer_bucket), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.calc_mixer_bucket), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${formatDecimal(state.mixerLitres, 0)} L", style = MaterialTheme.typography.titleMedium)
                             }
                             Stepper(
@@ -619,7 +621,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = stringResource(R.string.calc_keep_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.calc_keep_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
                                     text = stringResource(R.string.calc_headroom_value, formatDecimal(state.headroomPercent, 0), formatDecimal(state.usableLitres, 1)),
                                     style = MaterialTheme.typography.titleMedium,
@@ -652,7 +654,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text(text = stringResource(R.string.calc_max_per_batch), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.calc_max_per_batch), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${formatDecimal(state.maxBatchKg, 1)} kg", style = MaterialTheme.typography.titleMedium)
                             }
                             Stepper(
@@ -756,7 +758,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                     modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(modifier = Modifier.weight(1f, fill = false), text = part.label, style = MaterialTheme.typography.bodyMedium)
                                     Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
@@ -775,7 +777,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(modifier = Modifier.weight(1f, fill = false), text = part.label, style = MaterialTheme.typography.bodyMedium)
                                     Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
@@ -799,7 +801,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(text = part.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(modifier = Modifier.weight(1f, fill = false), text = part.label, style = MaterialTheme.typography.bodyMedium)
                                     Text(text = quantityFromGrams(part.grams).text, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
