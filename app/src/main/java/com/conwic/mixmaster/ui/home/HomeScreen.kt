@@ -53,12 +53,12 @@ import com.conwic.mixmaster.domain.formatWeek
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.formatGreetingDay
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
-import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import com.conwic.mixmaster.ui.warehouse.ArrivalDialog
@@ -273,11 +273,9 @@ fun HomeScreen(navController: NavHostController) {
                         Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.home_next_week))
                     }
                     Box(modifier = Modifier.weight(1f))
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.home_full_calendar),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.tappableText { navController.navigate(Routes.CALENDAR) },
+                        onClick = { navController.navigate(Routes.CALENDAR) },
                     )
                 }
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {

@@ -15,9 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.data.docs.SheetStore
-import com.conwic.mixmaster.ui.components.tappableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +31,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
@@ -262,22 +261,18 @@ private fun SheetField(
             FormTextField(value = value, onValueChange = onValueChange, label = label)
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
+            ActionLink(
                 text = stringResource(if (stored) R.string.product_sheet_replace else R.string.product_sheet_attach),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.tappableText(onClick = onAttach),
+                onClick = onAttach,
             )
             if (value.isNotBlank()) {
-                Text(
+                ActionLink(
                     text = stringResource(R.string.action_clear),
-                    style = MaterialTheme.typography.labelSmall,
+                    onClick = onClear,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.tappableText(onClick = onClear),
                 )
             }
         }

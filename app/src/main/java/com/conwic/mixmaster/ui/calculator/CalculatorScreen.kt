@@ -72,6 +72,7 @@ import com.conwic.mixmaster.domain.quantityFromLitres
 import com.conwic.mixmaster.domain.quantityOf
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.OnAccentCard
@@ -89,7 +90,6 @@ import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
 import com.conwic.mixmaster.ui.theme.CardShape
 import java.time.LocalDate
 import kotlin.random.Random
-import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.domain.toNumberOrNull
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
@@ -227,13 +227,7 @@ fun CalculatorScreen(
         // The other way in. Until this line the calculator knew nothing about the projects:
         // the area was read off the Layout tab and typed in here, and the coat's rate with it.
         item {
-            Text(
-                text = stringResource(R.string.calc_pick_job),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.tappableText { jobPickOpen = true },
-            )
+            ActionLink(text = stringResource(R.string.calc_pick_job), onClick = { jobPickOpen = true })
         }
 
         // Which coat is being mixed. Only asked where a mix has more than one, because most
@@ -284,14 +278,10 @@ fun CalculatorScreen(
                     // free text, and handing "test datasheet" to the browser took the app down.
                     val datasheetLink = openableUrl(product.datasheetUrl)
                     if (datasheetLink != null) {
-                        Text(
+                        ActionLink(
                             text = stringResource(R.string.calc_view_datasheet),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .tappableText { runCatching { uriHandler.openUri(datasheetLink) } },
+                            onClick = { runCatching { uriHandler.openUri(datasheetLink) } },
+                            modifier = Modifier.padding(top = 4.dp),
                         )
                     }
                 }

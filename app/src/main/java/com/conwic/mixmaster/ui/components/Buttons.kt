@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -73,4 +75,32 @@ fun GhostButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
     ) {
         ButtonLabel(text)
     }
+}
+
+/**
+ * An action worded as a link — "Mix", "Edit", "+ Add coat", "Attach a PDF".
+ *
+ * Sized for a thumb rather than for the label beside it. These were set at labelSmall with the
+ * tap area ending exactly where the letters did, which is a miss on a phone held in one hand
+ * with gloves on. The padding sits inside the clickable, which is what makes the target bigger
+ * than the word: outside it, it only pushes the neighbours away.
+ */
+@Composable
+fun ActionLink(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    enabled: Boolean = true,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        color = if (enabled) color else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+            .clip(ChipShape)
+            .tappableText(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 9.dp),
+    )
 }

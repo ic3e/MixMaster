@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -41,7 +40,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.RatioBadge
-import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -202,14 +201,10 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 // Straight to the batch. The route has always taken a mix; nothing in the app
                 // ever handed it one, so the calculator had to be found from the home screen
                 // and the product picked out of a dropdown again.
-                Text(
+                ActionLink(
                     text = stringResource(R.string.pd_use_in_calculator),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .tappableText { navController.navigate(Routes.calculator(solution.id)) },
+                    onClick = { navController.navigate(Routes.calculator(solution.id)) },
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
@@ -256,13 +251,7 @@ private fun SheetRow(label: String, value: String, onOpen: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            Text(
-                text = stringResource(R.string.product_sheet_open),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.tappableText(onClick = onOpen),
-            )
+            ActionLink(text = stringResource(R.string.product_sheet_open), onClick = onOpen)
         }
     }
 }

@@ -36,6 +36,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.ConfirmDialog
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
@@ -185,17 +186,14 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     // Named here, where the language is known — the view model only stores them.
                     val firstName = stringResource(R.string.solution_coat_number, 1)
                     val nextName = stringResource(R.string.solution_coat_number, state.coats.size.coerceAtLeast(1) + 1)
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.solution_add_coat),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .padding(top = 14.dp)
-                            .tappableText {
-                                viewModel.addCoat(firstName, nextName) { id ->
-                                    navController.navigate(Routes.solutionEdit(id))
-                                }
-                            },
+                        onClick = {
+                            viewModel.addCoat(firstName, nextName) { id ->
+                                navController.navigate(Routes.solutionEdit(id))
+                            }
+                        },
+                        modifier = Modifier.padding(top = 10.dp),
                     )
                 }
             }
@@ -244,11 +242,10 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (state.lines.size > 1) {
-                                Text(
+                                ActionLink(
                                     text = stringResource(R.string.action_remove),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    onClick = { confirmRemoveLine = index },
                                     color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.tappableText { confirmRemoveLine = index },
                                 )
                             }
                         }
@@ -293,11 +290,10 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                         }
                     }
                 }
-                Text(
+                ActionLink(
                     text = stringResource(R.string.product_add_part),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 14.dp).tappableText { viewModel.addLine() },
+                    onClick = { viewModel.addLine() },
+                    modifier = Modifier.padding(top = 10.dp),
                 )
                 state.linesProblem?.let { problem ->
                     Text(

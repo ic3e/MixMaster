@@ -32,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,7 +39,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.ui.LocalAppContainer
-import com.conwic.mixmaster.ui.components.tappableText
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
@@ -140,15 +139,13 @@ fun ProjectsScreen(navController: NavHostController) {
             // receipts with it.
             if (archived.isNotEmpty()) {
                 item {
-                    Text(
+                    ActionLink(
                         text = stringResource(
                             if (archivedOpen) R.string.projects_archived_hide else R.string.projects_archived_show,
                             archived.size,
                         ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 10.dp).tappableText { archivedOpen = !archivedOpen },
+                        onClick = { archivedOpen = !archivedOpen },
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 }
             }
@@ -170,12 +167,9 @@ fun ProjectsScreen(navController: NavHostController) {
                                     )
                                 }
                             }
-                            Text(
+                            ActionLink(
                                 text = stringResource(R.string.projects_restore),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.tappableText { viewModel.unarchive(project) },
+                                onClick = { viewModel.unarchive(project) },
                             )
                         }
                     }

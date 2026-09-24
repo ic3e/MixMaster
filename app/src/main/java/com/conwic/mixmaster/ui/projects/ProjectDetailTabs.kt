@@ -79,6 +79,7 @@ import com.conwic.mixmaster.domain.RecordedMix
 import com.conwic.mixmaster.domain.formatStamp
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.quantityFromGrams
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.BuildUpPanel
 import com.conwic.mixmaster.ui.components.BuildUpRow
 import com.conwic.mixmaster.ui.components.CardAccent
@@ -323,7 +324,7 @@ fun LayoutTab(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 SectionLabel(text = stringResource(R.string.prj_floors_rooms))
                 if (isEmployer) {
-                    Text(text = stringResource(R.string.prj_add_floor), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addFloorOpen = true })
+                    ActionLink(text = stringResource(R.string.prj_add_floor), onClick = { addFloorOpen = true })
                 }
             }
         }
@@ -341,7 +342,7 @@ fun LayoutTab(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     if (isEmployer) {
-                        Text(text = stringResource(R.string.prj_add_room), color = MaterialTheme.colorScheme.primary, modifier = Modifier.tappableText { addRoomForFloor = floor.id })
+                        ActionLink(text = stringResource(R.string.prj_add_room), onClick = { addRoomForFloor = floor.id })
                     }
                 }
                 data.rooms.filter { it.floorId == floor.id }.forEach { room ->
@@ -374,86 +375,76 @@ fun LayoutTab(
                             )
                         }
                         coats.forEachIndexed { index, coat ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
+                            // The coat, then what it is tinted with, then what can be done to
+                            // it. The actions used to sit beside the name at label size with a
+                            // tap area the width of the word — three of them, a thumb apart.
+                            Column(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                                Text(
+                                    text = "${index + 1}. ${coat.title}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.prj_coat_rate,
+                                        formatDecimal(coat.doseGramsPerM2, 1),
+                                        quantityFromGrams(coat.totalGrams).text,
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                val colour = coat.colour
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
                                     Text(
-                                        text = "${index + 1}. ${coat.title}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                    Text(
-                                        text = stringResource(
-                                            R.string.prj_coat_rate,
-                                            formatDecimal(coat.doseGramsPerM2, 1),
-                                            quantityFromGrams(coat.totalGrams).text,
-                                        ),
+                                        text = if (colour == null) {
+                                            stringResource(R.string.prj_no_colour)
+                                        } else {
+                                            stringResource(
+                                                R.string.prj_colour_line,
+                                                colour.name,
+                                                quantityOf(colour.amount, colour.unit).text,
+                                                colour.againstLabel,
+                                            )
+                                        },
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = if (colour == null) {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        } else {
+                                            MaterialTheme.colorScheme.secondary
+                                        },
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp),
                                     )
+                                    if (isEmployer) {
+                                        ActionLink(
+                                            text = stringResource(R.string.prj_set_colour),
+                                            onClick = { colourCoat = coat },
+                                        )
+                                    }
                                 }
-                                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                     // Only where there is something to mix: a coat laid as a
                                     // single ready product has no recipe for the calculator to
                                     // work out.
                                     if (coat.layer.solutionId > 0L) {
-                                        Text(
+                                        ActionLink(
                                             text = stringResource(R.string.prj_mix_coat),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.tappableText { onMixCoat(room, coat) },
+                                            onClick = { onMixCoat(room, coat) },
                                         )
                                     }
                                     if (isEmployer) {
-                                        Text(
+                                        ActionLink(
                                             text = stringResource(R.string.action_edit),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.tappableText { editingCoat = coat },
+                                            onClick = { editingCoat = coat },
                                         )
-                                        Text(
+                                        ActionLink(
                                             text = stringResource(R.string.action_remove),
-                                            style = MaterialTheme.typography.labelSmall,
+                                            onClick = { removingCoat = coat },
                                             color = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.tappableText { removingCoat = coat },
                                         )
                                     }
-                                }
-                            }
-                            val colour = coat.colour
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(start = 14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(
-                                    text = if (colour == null) {
-                                        stringResource(R.string.prj_no_colour)
-                                    } else {
-                                        stringResource(
-                                            R.string.prj_colour_line,
-                                            colour.name,
-                                            quantityOf(colour.amount, colour.unit).text,
-                                            colour.againstLabel,
-                                        )
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (colour == null) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.secondary
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                )
-                                if (isEmployer) {
-                                    Text(
-                                        text = stringResource(R.string.prj_set_colour),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.tappableText { colourCoat = coat },
-                                    )
                                 }
                             }
                         }
@@ -489,11 +480,10 @@ fun LayoutTab(
                             )
                         }
                         if (isEmployer) {
-                            Text(
+                            ActionLink(
                                 text = stringResource(R.string.prj_add_coat),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 8.dp).tappableText { pickerRoom = room },
+                                onClick = { pickerRoom = room },
+                                modifier = Modifier.padding(top = 4.dp),
                             )
                         }
                     }
@@ -504,10 +494,9 @@ fun LayoutTab(
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 SectionLabel(text = stringResource(R.string.prj_photos, data.photos.size))
-                Text(
+                ActionLink(
                     text = stringResource(R.string.prj_add_photo),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.tappableText {
+                    onClick = {
                         photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                 )
@@ -586,11 +575,10 @@ fun LayoutTab(
                     // A note was write-only: a wrong one, or one meant for another job, stayed
                     // on the record for good.
                     if (isEmployer) {
-                        Text(
+                        ActionLink(
                             text = stringResource(R.string.action_remove),
-                            style = MaterialTheme.typography.labelSmall,
+                            onClick = { removingNote = note },
                             color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.tappableText { removingNote = note },
                         )
                     }
                 }
@@ -766,10 +754,9 @@ private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBl
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SectionLabel(text = stringResource(R.string.prj_blueprint))
             if (isEmployer) {
-                Text(
+                ActionLink(
                     text = if (blueprintUri == null) stringResource(R.string.prj_attach) else stringResource(R.string.prj_replace),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.tappableText { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
+                    onClick = { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
                 )
             }
         }
@@ -984,11 +971,10 @@ private fun PhotoViewer(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (canRemove) {
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.action_remove),
-                        style = MaterialTheme.typography.labelSmall,
+                        onClick = { confirming = true },
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.tappableText { confirming = true },
                     )
                 }
             }
@@ -1340,11 +1326,10 @@ fun MaterialsTab(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         if (isEmployer) {
-                            Text(
+                            ActionLink(
                                 text = stringResource(R.string.action_remove),
-                                style = MaterialTheme.typography.labelSmall,
+                                onClick = { removingMix = mix },
                                 color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.tappableText { removingMix = mix },
                             )
                         }
                     }
@@ -1452,12 +1437,10 @@ fun MaterialsTab(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (jobSheets.isNotEmpty()) {
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.prj_sheets_pick),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp).tappableText { sheetsOpen = true },
+                        onClick = { sheetsOpen = true },
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
             }
@@ -1595,12 +1578,9 @@ private fun JobSheetsSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.action_open),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.tappableText { SheetStore.open(screenContext, sheet.value) },
+                        onClick = { SheetStore.open(screenContext, sheet.value) },
                     )
                 }
             }

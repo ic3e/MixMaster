@@ -40,6 +40,7 @@ import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.components.ChipOption
@@ -47,7 +48,6 @@ import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
-import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.security.canLockApp
 import com.conwic.mixmaster.ui.theme.CardShape
 
@@ -200,11 +200,9 @@ fun SettingsScreen(navController: NavHostController) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SectionLabel(text = stringResource(R.string.settings_crew, state.team.size))
-                        Text(
+                        ActionLink(
                             text = stringResource(R.string.settings_add_member),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.tappableText {
+                            onClick = {
                                 editingMember = TeamMemberEntity(name = "", email = "", role = Role.WORKER)
                             },
                         )
@@ -332,12 +330,10 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_help))
                 CardFlat {
-                    Text(
+                    ActionLink(
                         text = stringResource(R.string.settings_replay_tour),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .tappableText { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
+                        onClick = { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
