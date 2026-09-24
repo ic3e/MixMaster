@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 /** One line of the recipe as it is being edited. */
 data class LineDraft(
@@ -176,7 +177,67 @@ class SolutionEditorViewModel(
     fun setDoseUnitLabel(value: String) = _formState.update { it.copy(doseUnitLabel = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
     fun setCoatName(value: String) = _formState.update { it.copy(coatName = value) }
-    fun setEntry(mode: EntryMode) = _formState.update { it.copy(entry = mode) }
+    /**
+     * Switches how the parts are typed, carrying the figures over.
+     *
+     * The two are the same recipe said differently — 100:2:24 at 2700 g/m² is 2.1429 kg/m² of
+     * powder, 0.0429 of finish and 0.5143 of polymer — so switching works them out rather than
+     * leaving numbers on screen that quietly mean something else. Four decimals on a rate is
+     * a tenth of a gram per square metre, which is enough to come back the other way unchanged.
+     *
+     * Where there is nothing to work from — a ratio with no coverage typed yet — the figures
+     * are left alone rather than thrown away, and the coverage line under the parts shows what
+     * they would come to.
+     */
+    fun setEntry(mode: EntryMode) = _formState.update { state ->
+        if (mode == state.entry) return@update state
+        val typed = state.lines.map { it.partsText.toNumberOrNull() ?: 0.0 }
+        when (mode) {
+            EntryMode.PER_AREA -> {
+                val parts = typed.sum()
+                val min = state.minDoseText.toNumberOrNull() ?: 0.0
+                val max = state.maxDoseText.toNumberOrNull() ?: min
+                // The middle of the range is where the calculator starts, so it is the figure
+                // the rates are worked out from.
+                val coverageKg = ((min + max) / 2.0) / 1000.0
+                if (parts <= 0.0 || coverageKg <= 0.0) {
+                    state.copy(entry = mode)
+                } else {
+                    state.copy(
+                        entry = mode,
+                        lines = state.lines.mapIndexed { index, line ->
+                            val rate = typed.getOrElse(index) { 0.0 } / parts * coverageKg
+                            line.copy(partsText = if (rate > 0.0) formatDecimal(rate, 4) else "")
+                        },
+                    )
+                }
+            }
+            EntryMode.RATIO -> {
+                val top = typed.maxOrNull() ?: 0.0
+                if (top <= 0.0) {
+                    state.copy(entry = mode)
+                } else {
+                    val coverage = typed.sum() * 1000.0
+                    val min = state.minDoseText.toNumberOrNull() ?: 0.0
+                    val max = state.maxDoseText.toNumberOrNull() ?: min
+                    val middle = (min + max) / 2.0
+                    // A range that already agrees with these rates is left as it is. Otherwise
+                    // a look at the m² figures and back would flatten 2400–3000 to a single
+                    // 2700, which is the range the slider is there for.
+                    val agrees = middle > 0.0 && abs(middle - coverage) <= coverage * 0.005
+                    state.copy(
+                        entry = mode,
+                        lines = state.lines.mapIndexed { index, line ->
+                            val part = typed.getOrElse(index) { 0.0 } / top * 100.0
+                            line.copy(partsText = if (part > 0.0) formatDecimal(part, 2) else "")
+                        },
+                        minDoseText = if (agrees) state.minDoseText else formatDecimal(coverage, 1),
+                        maxDoseText = if (agrees) state.maxDoseText else formatDecimal(coverage, 1),
+                    )
+                }
+            }
+        }
+    }
 
     fun setLineProduct(index: Int, productId: Long) = updateLine(index) { it.copy(productId = productId) }
 
