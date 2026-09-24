@@ -680,4 +680,6 @@
     <string name="mix_default_time">No mixing time on this mix — counting down two minutes.</string>
     <string name="solution_mix_time">Mixing time (min)</string>
     <string name="solution_mix_time_hint">What the datasheet says to mix it for</string>
+    <string name="mix_channel">Mixing timer</string>
+    <string name="mix_channel_why">Sounds when a batch has had its mixing time, even with the app off screen.</string>
 </resources>

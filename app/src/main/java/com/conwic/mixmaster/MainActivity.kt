@@ -1,6 +1,8 @@
 package com.conwic.mixmaster
 
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -18,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import com.conwic.mixmaster.data.prefs.LanguageStore
 import com.conwic.mixmaster.domain.AppLanguage
+import com.conwic.mixmaster.ui.calculator.MixAlarm
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
@@ -53,6 +56,26 @@ class MainActivity : FragmentActivity() {
         super.attachBaseContext(LanguageStore.wrap(newBase))
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        wakeForAlarm(intent)
+    }
+
+    /**
+     * Opened by the mixing alarm: over the lock screen, with the screen lit.
+     *
+     * Asked for only when the alarm is what brought the app up, so the app does not sit over
+     * the keyguard the rest of the time — it has a lock of its own for a reason.
+     */
+    private fun wakeForAlarm(intent: Intent?) {
+        if (intent?.getBooleanExtra(MixAlarm.EXTRA_FROM_ALARM, false) != true) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+    }
+
     override fun onDestroy() {
         unwrappedBase?.let { ActivityBaseContext.clear(it) }
         super.onDestroy()
@@ -60,6 +83,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        wakeForAlarm(intent)
         val container = (application as MixMasterApp).container
 
         // Looks once per app start, and stays quiet unless there's something newer — a failed

@@ -12,6 +12,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- The mixing timer buzzes when a batch is done: a site is too loud for sound alone. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- The mixing timer has to land even with the app off screen: it books the end of a batch
+         with the system clock and comes back as a full-screen alert. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -51,6 +57,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <receiver
+            android:name=".ui.calculator.MixAlarmReceiver"
+            android:exported="false" />
 
     </application>
 

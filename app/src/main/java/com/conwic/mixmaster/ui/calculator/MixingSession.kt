@@ -1,6 +1,8 @@
 package com.conwic.mixmaster.ui.calculator
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
@@ -8,7 +10,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.WindowManager
-import androidx.compose.animation.animateColorAsState
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.Animatable
@@ -74,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.BatchPlan
 import com.conwic.mixmaster.domain.ComponentAmount
@@ -86,8 +90,8 @@ import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.theme.Accent2
+import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.CardShape
-import com.conwic.mixmaster.ui.theme.Ok
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
 
@@ -96,6 +100,15 @@ data class MixingStep(val amounts: List<ComponentAmount>, val isPartBatch: Boole
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
+
+/**
+ * The two ends of the alert strobe: hi-vis amber against a pale wash of it.
+ *
+ * Fixed rather than themed, and always light, so the dark text over it reads the same whichever
+ * way the phone is set — and so the colour is the one a site already reads as "look at me".
+ */
+private val Alert = Color(0xFFFFB300)
+private val AlertPale = Color(0xFFFFF3D6)
 
 /** What one press of the arrows is worth, and as far as the time can be taken. */
 const val MixStepSeconds = 15
@@ -144,6 +157,18 @@ fun MixingSession(
     val context = LocalContext.current
     val activity = LocalAppActivity.current
 
+    // Asked for here rather than at startup: this is the one screen that needs it, and the
+    // reason is on screen when it is asked.
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            runCatching { askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) }
+        }
+    }
+
     var stepIndex by remember { mutableStateOf(0) }
     var phase by remember { mutableStateOf(MixPhase.READY) }
     var deadline by remember { mutableStateOf(0L) }
@@ -189,6 +214,8 @@ fun MixingSession(
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose {
             runCatching { ringtone?.stop() }
+            // Nothing left to ring about once the screen is gone.
+            MixAlarm.cancel(context)
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
@@ -217,18 +244,13 @@ fun MixingSession(
         val flashAlpha by flash.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(420, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            animationSpec = infiniteRepeatable(tween(430, easing = LinearEasing), RepeatMode.Reverse),
             label = "flashAlpha",
         )
-        val background by animateColorAsState(
-            targetValue = if (flashing) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.10f + 0.5f * flashAlpha)
-                    .compositeOn(MaterialTheme.colorScheme.background)
-            } else {
-                MaterialTheme.colorScheme.background
-            },
-            label = "background",
-        )
+        // Hi-vis, and the same either way the phone is themed: a batch going off in a room with
+        // a grinder running has to be caught out of the corner of an eye, and brown on cream is
+        // not what catches it.
+        val background = if (flashing) lerp(AlertPale, Alert, flashAlpha) else MaterialTheme.colorScheme.background
 
         Surface(color = background, modifier = Modifier.fillMaxSize()) {
             Column(
@@ -342,6 +364,10 @@ fun MixingSession(
                                 deadline = stepStartedAt + seconds * 1000L
                                 now = stepStartedAt
                                 phase = MixPhase.RUNNING
+                                // Booked with the system clock as well as ticked here: a phone
+                                // in a pocket, a call, a screen gone black — the batch is still
+                                // up when it is up.
+                                MixAlarm.schedule(context, deadline, title)
                             },
                         )
                     }
@@ -357,6 +383,7 @@ fun MixingSession(
                         BigButton(
                             text = stringResource(R.string.mix_stop_early),
                             onClick = {
+                                MixAlarm.cancel(context)
                                 phase = MixPhase.READY
                                 recordAndAdvance()
                             },
@@ -366,8 +393,8 @@ fun MixingSession(
                     MixPhase.DONE -> {
                         Text(
                             text = stringResource(R.string.mix_ready),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Charcoal,
                             fontWeight = FontWeight.ExtraBold,
                         )
                         BigButton(
@@ -377,9 +404,12 @@ fun MixingSession(
                                 stringResource(R.string.mix_last_done)
                             },
                             onClick = {
+                                MixAlarm.dismiss(context)
                                 phase = MixPhase.READY
                                 recordAndAdvance()
                             },
+                            container = Charcoal,
+                            content = Color.White,
                         )
                     }
                 }
@@ -389,6 +419,7 @@ fun MixingSession(
                 GhostButton(
                     text = stringResource(R.string.mix_finish),
                     onClick = {
+                        MixAlarm.cancel(context)
                         finishedAt = System.currentTimeMillis()
                         finished = true
                     },
@@ -453,15 +484,16 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
 
     val track = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
     val primary = MaterialTheme.colorScheme.primary
-    // Runs warm as the time goes: full colour at the start, amber through the last third.
+    // Runs warm as the time goes: full colour at the start, amber through the last third. Once
+    // it is up the screen behind has gone hi-vis, so the ring goes dark to sit on it.
     val heat = (sweep / 0.34f).coerceIn(0f, 1f)
-    val colour = if (done) Ok else lerp(Accent2, primary, heat)
+    val colour = if (done) Charcoal else lerp(Accent2, primary, heat)
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
         // One layer, all of it soft: the countdown is light on the page, not a ring drawn on it.
-        Canvas(modifier = Modifier.size(300.dp).blurCompat(6.dp)) {
-            val core = 9.dp.toPx()
-            val spread = 42.dp.toPx()
+        Canvas(modifier = Modifier.size(300.dp).blurCompat(2.dp)) {
+            val core = 14.dp.toPx()
+            val spread = 26.dp.toPx()
             inset((core + spread) / 2f) {
                 val radius = size.minDimension / 2f
                 if (done) {
@@ -496,8 +528,8 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
                     sweepDegrees = 360f * sweep,
                     corePx = core,
                     spreadPx = spread,
-                    coreAlpha = 0.70f,
-                    glowAlpha = 0.26f * (if (running || done) breathe else 0.85f),
+                    coreAlpha = 0.92f,
+                    glowAlpha = 0.22f * (if (running || done) breathe else 0.85f),
                 )
             }
         }
@@ -506,7 +538,7 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
             // Read at arm's length, over a bucket, in daylight.
             fontSize = 74.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (done) Ok else MaterialTheme.colorScheme.onSurface,
+            color = if (done) Charcoal else MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.displayLarge,
             modifier = Modifier.scale(if (done) 1f + halo * 0.06f else tick.value),
         )
@@ -600,17 +632,23 @@ private fun StepperKey(add: Boolean, onClick: () -> Unit) {
  * between one batch going out and the next going in.
  */
 @Composable
-private fun BigButton(text: String, onClick: () -> Unit, filled: Boolean = true) {
+private fun BigButton(
+    text: String,
+    onClick: () -> Unit,
+    filled: Boolean = true,
+    container: Color? = null,
+    content: Color? = null,
+) {
     Button(
         onClick = onClick,
         shape = CardShape,
         colors = if (filled) {
             ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = container ?: MaterialTheme.colorScheme.primary,
+                contentColor = content ?: MaterialTheme.colorScheme.onPrimary,
             )
         } else {
-            ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+            ButtonDefaults.outlinedButtonColors(contentColor = content ?: MaterialTheme.colorScheme.onSurface)
         },
         border = if (filled) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.fillMaxWidth().height(88.dp),
@@ -752,13 +790,4 @@ private fun buzz(context: Context) {
     }
 }
 
-/** Lays one colour over another, since a translucent flash over a page has to land on something. */
-private fun Color.compositeOn(background: Color): Color {
-    val a = alpha
-    return Color(
-        red = red * a + background.red * (1 - a),
-        green = green * a + background.green * (1 - a),
-        blue = blue * a + background.blue * (1 - a),
-        alpha = 1f,
-    )
-}
+

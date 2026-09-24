@@ -632,4 +632,6 @@
     <string name="mix_default_time">Tälle seokselle ei ole sekoitusaikaa — lasketaan kaksi minuuttia.</string>
     <string name="solution_mix_time">Sekoitusaika (min)</string>
     <string name="solution_mix_time_hint">Kuinka kauan datalehti käskee sekoittaa</string>
+    <string name="mix_channel">Sekoitusajastin</string>
+    <string name="mix_channel_why">Soi, kun erä on sekoitettu aikansa, myös silloin kun sovellus ei ole näytöllä.</string>
 </resources>

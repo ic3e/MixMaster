@@ -632,4 +632,6 @@
     <string name="mix_default_time">Sellel segul ei ole segamisaega — loeb kaks minutit.</string>
     <string name="solution_mix_time">Segamisaeg (min)</string>
     <string name="solution_mix_time_hint">Kui kaua andmeleht käsib segada</string>
+    <string name="mix_channel">Segamistaimer</string>
+    <string name="mix_channel_why">Heliseb, kui kogus on segamisaja täis saanud, ka siis kui rakendus ei ole ekraanil.</string>
 </resources>
