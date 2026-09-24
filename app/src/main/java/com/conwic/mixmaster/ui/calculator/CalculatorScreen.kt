@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,8 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.pluralStringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.DosingMode
+import com.conwic.mixmaster.data.prefs.MixRunStore
+import com.conwic.mixmaster.data.prefs.SavedMixRun
 import com.conwic.mixmaster.domain.AddOnProblem
 import com.conwic.mixmaster.domain.BatchProblem
 import com.conwic.mixmaster.domain.BatchSize
@@ -63,6 +66,7 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.snapDose
 import com.conwic.mixmaster.domain.snapToDoseStep
 import com.conwic.mixmaster.domain.openableUrl
+import com.conwic.mixmaster.domain.mixingSteps
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.domain.quantityFromLitres
 import com.conwic.mixmaster.domain.quantityOf
@@ -106,6 +110,7 @@ private fun perLabel(mode: DosingMode?): String =
 @Composable
 fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     val container = LocalAppContainer.current
+    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val viewModel: CalculatorViewModel = viewModel(
         factory = viewModelFactory {
@@ -126,7 +131,6 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
     var loggedToast by remember { mutableStateOf(false) }
-    var mixingOpen by remember { mutableStateOf(false) }
 
     val brands = listOf("All") + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
     // The dropdown lists mixes, not coats: a second coat is a recipe of the same mix, and
@@ -818,10 +822,23 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
             val plan = state.batchPlan
             if (plan != null && plan.problem == null && plan.totalMixes > 0) {
                 item {
+                    // Worked out and worded here, where there is a language to word it in, and
+                    // written down whole when mixing starts. From that moment the run belongs to
+                    // the app rather than to this screen — see [MixingHost].
+                    val batchWords = batchSizeText(plan.batchSize)
+                    val run = remember(plan, data, batchWords) {
+                        SavedMixRun(
+                            title = data.solution.coatLabel,
+                            batchSize = batchWords,
+                            mixSeconds = data.solution.mixSeconds,
+                            parts = data.parts,
+                            steps = mixingSteps(plan),
+                        )
+                    }
                     CardAccent(
                         modifier = Modifier
                             .clip(CardShape)
-                            .clickable { mixingOpen = true },
+                            .clickable { if (run.steps.isNotEmpty()) MixRunStore.start(context, run) },
                     ) {
                         Text(
                             text = stringResource(R.string.calc_start_mixing),
@@ -871,24 +888,6 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                     }
                 }
             }
-        }
-    }
-
-    val runPlan = state.batchPlan
-    val runMix = state.selectedSolution
-    if (mixingOpen && runPlan != null && runMix != null) {
-        val steps = remember(runPlan) { mixingSteps(runPlan) }
-        if (steps.isEmpty()) {
-            mixingOpen = false
-        } else {
-            MixingSession(
-                title = runMix.solution.coatLabel,
-                batchSize = batchSizeText(runPlan.batchSize),
-                steps = steps,
-                parts = runMix.parts,
-                mixSeconds = runMix.solution.mixSeconds,
-                onClose = { mixingOpen = false },
-            )
         }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.SideEffect
 import com.conwic.mixmaster.data.prefs.LanguageStore
 import com.conwic.mixmaster.domain.AppLanguage
 import com.conwic.mixmaster.ui.calculator.MixAlarm
+import com.conwic.mixmaster.ui.calculator.MixingHost
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
@@ -159,6 +160,10 @@ class MainActivity : FragmentActivity() {
                             AppLockGate(enabled = appLockEnabled == true) {
                                 val start = if (onboardingSeen == true) Routes.HOME else Routes.SIGN_IN
                                 com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
+                                // Above the whole app, not inside the calculator: a mix in the
+                                // mixer is the most important thing on the phone, and it has to
+                                // still be there when the app is opened again by its own alarm.
+                                MixingHost()
                             }
                         }
                     }

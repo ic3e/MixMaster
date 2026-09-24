@@ -17,6 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.conwic.mixmaster.MainActivity
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.prefs.LanguageStore
+import com.conwic.mixmaster.data.prefs.MixRunStore
 
 /**
  * The batch is done even when nobody is looking at the phone.
@@ -27,8 +28,9 @@ import com.conwic.mixmaster.data.prefs.LanguageStore
  * phone will not sleep through — and it comes back as a full-screen alert that lights the
  * screen and opens the app on the batch that finished.
  *
- * A reboot clears it, and nothing here puts it back: a batch is minutes long, and a phone that
- * restarts mid-mix has lost the bucket too.
+ * A restart clears the booking, and so does installing a new build of this app — which on this
+ * phone happens several times a day. [MixRestartReceiver] books it again from the run written
+ * down on disk.
  */
 object MixAlarm {
 
@@ -183,5 +185,25 @@ object MixAlarm {
 class MixAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         MixAlarm.alert(context, MixAlarm.titleFrom(intent))
+    }
+}
+
+/**
+ * Books the batch again after the phone restarts, or after this app is replaced under a run.
+ *
+ * Both of those throw away every alarm the app had booked, and the second one happens here
+ * whenever a new build is installed — which on the phone this is written for can be in the
+ * middle of mixing. The run itself is on disk, so the deadline is still known.
+ *
+ * A deadline that has already gone by is left alone: the screen shows the batch as up the moment
+ * the app is opened, and an alarm going off hours later says nothing true.
+ */
+class MixRestartReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val run = MixRunStore.read(context) ?: return
+        val progress = MixRunStore.progress(context)
+        if (progress.phase != "RUNNING") return
+        if (progress.deadline <= System.currentTimeMillis()) return
+        MixAlarm.schedule(context, progress.deadline, run.title)
     }
 }

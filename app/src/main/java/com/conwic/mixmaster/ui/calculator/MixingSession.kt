@@ -60,7 +60,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,9 +89,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.domain.BatchPlan
-import com.conwic.mixmaster.domain.ComponentAmount
+import com.conwic.mixmaster.data.prefs.MixProgress
+import com.conwic.mixmaster.data.prefs.SavedMixRun
 import com.conwic.mixmaster.domain.MixPart
+import com.conwic.mixmaster.domain.MixingStep
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.LocalAppActivity
@@ -104,9 +104,6 @@ import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
-
-/** One trip to the mixer: what goes in, and whether it is the odd smaller one at the end. */
-data class MixingStep(val amounts: List<ComponentAmount>, val isPartBatch: Boolean)
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
@@ -131,52 +128,34 @@ const val MixStepSeconds = 15
 const val MaxMixSeconds = 60 * 60
 
 /**
- * The batches of a plan, in the order they get mixed.
- *
- * A leftover too small for its own mixing was folded into the last full batch upstream, so it
- * is added to that batch here too rather than turning up as a trip of its own.
- */
-fun mixingSteps(plan: BatchPlan): List<MixingStep> {
-    val full = (0 until plan.batches).map { index ->
-        val isLast = index == plan.batches - 1
-        val extra = plan.lastBatchExtra
-        val amounts = if (isLast && extra != null) {
-            plan.perBatch.mapIndexed { part, amount ->
-                amount.copy(grams = amount.grams + (extra.getOrNull(part)?.grams ?: 0.0))
-            }
-        } else {
-            plan.perBatch
-        }
-        MixingStep(amounts, isPartBatch = false)
-    }
-    val remainder = plan.remainderBatch?.let { listOf(MixingStep(it, isPartBatch = true)) }.orEmpty()
-    return full + remainder
-}
-
-/**
  * Mixing, one batch at a time, with the clock running.
  *
  * Every datasheet says to mix for two or three minutes and nobody does: the drill comes out
  * when the lumps go, which is early, and an under-mixed topping cures patchy. So the app holds
  * the timer — what goes in this batch, a countdown that cannot be talked down, an alarm loud
  * enough for a site, and a tally at the end of what was actually mixed and how long it took.
+ *
+ * It is handed the run rather than owning it, and says where it has got to through [onProgress],
+ * so the whole thing can be picked up again by whoever shows this screen next — including a
+ * brand new process, opened by the alarm, with the calculator long gone. See [SavedMixRun].
  */
 @Composable
 fun MixingSession(
-    title: String,
-    batchSize: String,
-    steps: List<MixingStep>,
-    parts: List<MixPart>,
-    mixSeconds: Int,
+    run: SavedMixRun,
+    progress: MixProgress,
+    onProgress: (MixProgress) -> Unit,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = LocalAppActivity.current
+    val title = run.title
+    val steps = run.steps
+    val parts = run.parts
 
     // Asked for here rather than at startup: this is the one screen that needs it, and the
     // reason is on screen when it is asked. The answer is kept, because a "no" changes what
     // this screen is able to promise — see [alertWarning].
-    var canNotify by rememberSaveable { mutableStateOf(notificationsAllowed(context)) }
+    var canNotify by remember { mutableStateOf(notificationsAllowed(context)) }
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         canNotify = granted && notificationsAllowed(context)
     }
@@ -186,27 +165,65 @@ fun MixingSession(
         }
     }
 
-    // Saved rather than only remembered, so a batch survives the activity being rebuilt under
-    // it. (Turning the phone sideways no longer rebuilds it at all — the manifest handles that
-    // — and the app lock leaving a running mix alone is [MixRun]. This is the last line: the
-    // system taking the app apart while it is away.)
-    var stepIndex by rememberSaveable { mutableStateOf(0) }
-    var phase by rememberSaveable { mutableStateOf(MixPhase.READY) }
-    var deadline by rememberSaveable { mutableStateOf(0L) }
+    // Picked up from where the run had got to, which on a first start is the beginning. Nothing
+    // here is remembered across a restart by this screen: the run on disk is the copy that
+    // outlives it, and the deadline is a moment rather than a count, so a batch found again
+    // half a minute later has half a minute less to go.
+    var stepIndex by remember { mutableStateOf(progress.stepIndex) }
+    var phase by remember { mutableStateOf(phaseNamed(progress.phase)) }
+    var deadline by remember { mutableStateOf(progress.deadline) }
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
-    var stepStartedAt by rememberSaveable { mutableStateOf(0L) }
-    val sessionStartedAt = rememberSaveable { System.currentTimeMillis() }
+    var stepStartedAt by remember { mutableStateOf(progress.stepStartedAt) }
+    val sessionStartedAt = remember { if (progress.startedAt > 0L) progress.startedAt else System.currentTimeMillis() }
     // Only what was actually mixed counts — a session ended early has fewer batches in it than
     // the plan, which is the whole point of being able to end it.
-    val doneDurations = rememberSaveable { mutableListOf<Long>() }
-    var doneSteps by rememberSaveable { mutableStateOf(0) }
-    var finished by rememberSaveable { mutableStateOf(false) }
-    var finishedAt by rememberSaveable { mutableStateOf(0L) }
+    val doneDurations = remember { progress.durations.toMutableList() }
+    var doneSteps by remember { mutableStateOf(progress.doneSteps) }
+    var finished by remember { mutableStateOf(progress.finished) }
+    var finishedAt by remember { mutableStateOf(progress.finishedAt) }
 
     // Starts at what the mix carries and can be nudged on the spot: a cold morning, a stiff
     // batch or a worn paddle all want another half minute, and that is decided at the mixer.
-    var seconds by rememberSaveable { mutableStateOf(if (mixSeconds > 0) mixSeconds else DefaultMixSeconds) }
+    var seconds by remember {
+        mutableStateOf(
+            when {
+                progress.seconds > 0 -> progress.seconds
+                run.mixSeconds > 0 -> run.mixSeconds
+                else -> DefaultMixSeconds
+            },
+        )
+    }
     val step = steps.getOrNull(stepIndex)
+
+    // Written down whenever something happens, and never on the tick: starting a batch, counting
+    // one, nudging the time, ending the run. This is what somebody comes back to.
+    LaunchedEffect(stepIndex, phase, deadline, doneSteps, seconds, finished) {
+        onProgress(
+            MixProgress(
+                stepIndex = stepIndex,
+                phase = phase.name,
+                deadline = deadline,
+                stepStartedAt = stepStartedAt,
+                startedAt = sessionStartedAt,
+                durations = doneDurations.toList(),
+                doneSteps = doneSteps,
+                seconds = seconds,
+                finished = finished,
+                finishedAt = finishedAt,
+            ),
+        )
+    }
+
+    // Found mid-batch after the app was taken apart: the booking may have gone with it — an app
+    // being replaced takes its alarms — so it is made again. Same request, same moment, so where
+    // it did survive nothing changes. And the app lock is told, since it was only ever told in
+    // memory.
+    LaunchedEffect(Unit) {
+        if (phase == MixPhase.RUNNING && deadline > System.currentTimeMillis()) {
+            MixAlarm.schedule(context, deadline, title)
+            MixRun.started(deadline)
+        }
+    }
 
     // The clock, not the frames: a countdown built out of ticks drifts, and this one is being
     // trusted with whether a floor was mixed for long enough.
@@ -376,9 +393,9 @@ fun MixingSession(
                     color = inkAccent,
                     fontWeight = FontWeight.Bold,
                 )
-                if (batchSize.isNotBlank()) {
+                if (run.batchSize.isNotBlank()) {
                     Text(
-                        text = batchSize,
+                        text = run.batchSize,
                         style = MaterialTheme.typography.bodyMedium,
                         color = inkSoft,
                     )
@@ -544,6 +561,10 @@ fun MixingSession(
 }
 
 private enum class MixPhase { READY, RUNNING, DONE }
+
+/** The phase a saved run was left in. Anything unrecognised starts the batch over, not a crash. */
+private fun phaseNamed(name: String): MixPhase =
+    runCatching { MixPhase.valueOf(name) }.getOrDefault(MixPhase.READY)
 
 /** How long the ring takes to wind up when a batch comes up, and how big the number is drawn. */
 private const val WindUpMillis = 800

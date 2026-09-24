@@ -18,6 +18,9 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- A restart cancels every alarm the app had booked. A batch that is still due gets booked
+         again, so a phone that reboots mid-mix does not lose the mix. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -68,6 +71,16 @@
         <receiver
             android:name=".ui.calculator.MixAlarmReceiver"
             android:exported="false" />
+
+        <!-- Exported because these are system broadcasts; both are protected by the system. -->
+        <receiver
+            android:name=".ui.calculator.MixRestartReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
