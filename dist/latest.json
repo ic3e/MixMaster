@@ -1,8 +1,8 @@
 {
-  "versionCode": 101,
-  "versionName": "1.0.101",
-  "apk": "MixMaster_1.0.101.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.101.apk",
-  "sizeBytes": 20341155,
-  "notes": "Let the light go out in a circle"
+  "versionCode": 103,
+  "versionName": "1.0.103",
+  "apk": "MixMaster_1.0.103.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.103.apk",
+  "sizeBytes": 20359919,
+  "notes": "Spell the corners out"
 }
