@@ -1,8 +1,8 @@
 {
-  "versionCode": 88,
-  "versionName": "1.0.88",
-  "apk": "MixMaster_1.0.88.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.88.apk",
-  "sizeBytes": 20220228,
-  "notes": "Move the coverage slider in steps that suit the figure"
+  "versionCode": 89,
+  "versionName": "1.0.89",
+  "apk": "MixMaster_1.0.89.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.89.apk",
+  "sizeBytes": 20236660,
+  "notes": "Open the mixes a product turns up in"
 }
