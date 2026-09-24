@@ -3,6 +3,7 @@ package com.conwic.mixmaster.data.report
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -16,6 +17,7 @@ import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import java.io.File
+import androidx.core.content.FileProvider
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
@@ -36,21 +38,39 @@ data class PickupLine(val name: String, val amount: String, val short: String?)
  */
 object PickupList {
 
+    /**
+     * Writes the sheet and hands it to the printer.
+     *
+     * The print service takes a job only from an activity, and which context a bottom sheet
+     * hands you is not something to bet a button on — so the paper is made first, printing is
+     * attempted second, and if the service still refuses the PDF is opened instead. Every
+     * viewer on the phone can print it from there, so the button always ends in a sheet.
+     */
     fun print(context: Context, title: String, subtitle: String, lines: List<PickupLine>) {
-        // The print service will only take a job from an activity, and a sheet's context is the
-        // dialog window it lives in — asking that one to print throws. Unwrapped rather than
-        // passed in, so every caller does not have to know this.
-        val activity = context.findActivity() ?: return
-        val file = write(activity, title, subtitle, lines)
-        val printManager = activity.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
-        printManager.print(
-            title,
-            PdfFileAdapter(file, title),
-            PrintAttributes.Builder()
-                .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                .build(),
-        )
+        val file = write(context, title, subtitle, lines)
+        val activity = context.findActivity()
+        val started = activity != null && runCatching {
+            val printManager = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
+            printManager.print(
+                title,
+                PdfFileAdapter(file, title),
+                PrintAttributes.Builder()
+                    .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                    .build(),
+            )
+        }.isSuccess
+        if (!started) openPdf(context, file)
+    }
+
+    /** The fallback: the same sheet in whatever opens PDFs, where print sits in the menu. */
+    private fun openPdf(context: Context, file: File) {
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(intent) }
     }
 
     private fun write(context: Context, title: String, subtitle: String, lines: List<PickupLine>): File {

@@ -802,6 +802,9 @@ fun MaterialsTab(
     val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
     val laidRooms = data.rooms.filter { roomCoats[it.id].orEmpty().isNotEmpty() }
     var pickupOpen by remember { mutableStateOf(false) }
+    // Taken here rather than inside the sheet: printing has to be asked for from the screen's
+    // own context, and a sheet hands out the dialog window it lives in.
+    val screenContext = LocalContext.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -934,6 +937,7 @@ fun MaterialsTab(
         PickupSheet(
             projectName = data.project?.name.orEmpty(),
             materials = materials,
+            screenContext = screenContext,
             onDismiss = { pickupOpen = false },
         )
     }
@@ -950,6 +954,7 @@ fun MaterialsTab(
 private fun PickupSheet(
     projectName: String,
     materials: List<ProjectMaterial>,
+    screenContext: android.content.Context,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -1030,7 +1035,7 @@ private fun PickupSheet(
                     text = stringResource(R.string.prj_pickup_print),
                     onClick = {
                         PickupList.print(
-                            context = context,
+                            context = screenContext,
                             title = context.getString(R.string.prj_pickup_header, projectName),
                             subtitle = formatDueDate(LocalDate.now()),
                             lines = pickupLines(context, materials),
