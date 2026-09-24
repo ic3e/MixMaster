@@ -1,8 +1,8 @@
 {
-  "versionCode": 95,
-  "versionName": "1.0.95",
-  "apk": "MixMaster_1.0.95.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.95.apk",
-  "sizeBytes": 20303244,
-  "notes": "Draw the countdown as light, not as a ring with edges"
+  "versionCode": 96,
+  "versionName": "1.0.96",
+  "apk": "MixMaster_1.0.96.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.96.apk",
+  "sizeBytes": 20321659,
+  "notes": "Let the batch reach you off screen, and be seen when it does"
 }
