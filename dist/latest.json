@@ -1,8 +1,8 @@
 {
-  "versionCode": 108,
-  "versionName": "1.0.108",
-  "apk": "MixMaster_1.0.108.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.108.apk",
-  "sizeBytes": 20413539,
-  "notes": "Take a room's floor build-up straight into the calculator"
+  "versionCode": 109,
+  "versionName": "1.0.109",
+  "apk": "MixMaster_1.0.109.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.109.apk",
+  "sizeBytes": 20451843,
+  "notes": "Put the warehouse list on the same footing as the products list"
 }
