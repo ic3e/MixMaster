@@ -56,19 +56,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -400,32 +401,35 @@ fun MixingSession(
 
 private enum class MixPhase { READY, RUNNING, DONE }
 
+/**
+ * The countdown, drawn as light rather than as a band.
+ *
+ * A thick stroke has two hard edges and reads as a painted ring; what is wanted is something
+ * that glows. So every arc here is laid down as a stack of strokes, widest and faintest first,
+ * with a thin bright core on top — the edges fall away instead of stopping. Phones from
+ * Android 12 get a real blur over the glow on top of that; older ones keep the stack, which is
+ * soft enough on its own.
+ */
 @Composable
 private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Boolean) {
     val loop = rememberInfiniteTransition(label = "loop")
-    // Two rings turning against each other, slowly: a paddle in a bucket, not a loading spinner.
-    val turn by loop.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(5200, easing = LinearEasing)),
-        label = "turn",
+    val breathe by loop.animateFloat(
+        initialValue = 0.62f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "breathe",
     )
-    val counterTurn by loop.animateFloat(
-        initialValue = 360f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(7600, easing = LinearEasing)),
-        label = "counterTurn",
-    )
-    val glow by loop.animateFloat(
-        initialValue = 0.16f,
-        targetValue = 0.34f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "glow",
+    // One soft arc drifting round the inside, so something is moving while the paddle is.
+    val drift by loop.animateFloat(
+        initialValue = -90f,
+        targetValue = 270f,
+        animationSpec = infiniteRepeatable(tween(4200, easing = LinearEasing)),
+        label = "drift",
     )
     val halo by loop.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing)),
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing)),
         label = "halo",
     )
 
@@ -434,7 +438,7 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
     LaunchedEffect(Unit) { wound = true }
     val sweep by animateFloatAsState(
         targetValue = if (wound) fraction.coerceIn(0f, 1f) else 0f,
-        animationSpec = if (wound) tween(220, easing = LinearEasing) else tween(700, easing = FastOutSlowInEasing),
+        animationSpec = if (wound) tween(220, easing = LinearEasing) else tween(800, easing = FastOutSlowInEasing),
         label = "sweep",
     )
 
@@ -447,79 +451,54 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
         }
     }
 
-    val track = MaterialTheme.colorScheme.surfaceVariant
+    val track = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
     val primary = MaterialTheme.colorScheme.primary
     // Runs warm as the time goes: full colour at the start, amber through the last third.
     val heat = (sweep / 0.34f).coerceIn(0f, 1f)
-    val arc = if (done) Ok else lerp(Accent2, primary, heat)
-    // And thickens as it closes, so the last half minute reads from further away.
-    val width = (22f + 6f * (1f - heat)).dp
+    val colour = if (done) Ok else lerp(Accent2, primary, heat)
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
-        Canvas(modifier = Modifier.size(280.dp)) {
-            val strokePx = width.toPx()
-            val stroke = Stroke(width = strokePx, cap = StrokeCap.Round)
-            val radius = (size.minDimension - strokePx) / 2f
-
-            if (done) {
-                // A ring of light going out, over and over, until somebody taps.
-                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.35f), radius = radius * (1f + halo * 0.24f))
-                drawCircle(color = arc.copy(alpha = (1f - halo) * 0.18f), radius = radius * (1f + halo * 0.45f))
-            }
-
-            drawArc(color = track, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = stroke)
-
-            if (running || done) {
-                // The glow sits under the arc and breathes, which is what gives it depth on a
-                // screen held at arm's length in daylight.
+        // One layer, all of it soft: the countdown is light on the page, not a ring drawn on it.
+        Canvas(modifier = Modifier.size(300.dp).blurCompat(6.dp)) {
+            val core = 9.dp.toPx()
+            val spread = 42.dp.toPx()
+            inset((core + spread) / 2f) {
+                val radius = size.minDimension / 2f
+                if (done) {
+                    // Rings of light going out, over and over, until somebody taps.
+                    drawCircle(color = colour.copy(alpha = (1f - halo) * 0.22f), radius = radius * (1f + halo * 0.20f))
+                    drawCircle(color = colour.copy(alpha = (1f - halo) * 0.11f), radius = radius * (1f + halo * 0.42f))
+                }
+                // The path the countdown runs on, barely there.
                 drawArc(
-                    color = arc.copy(alpha = glow),
+                    color = track,
                     startAngle = -90f,
-                    sweepAngle = 360f * sweep,
+                    sweepAngle = 360f,
                     useCenter = false,
-                    style = Stroke(width = strokePx * 2.1f, cap = StrokeCap.Round),
+                    style = Stroke(width = core * 0.8f, cap = StrokeCap.Round),
                 )
-            }
-            drawArc(
-                color = arc,
-                startAngle = -90f,
-                // Wound down as the time goes, so what is left on the ring is what is left.
-                sweepAngle = 360f * sweep,
-                useCenter = false,
-                style = stroke,
-            )
-
-            if (running) {
-                inset(strokePx * 1.7f) {
-                    rotate(turn) {
-                        drawArc(
-                            color = arc.copy(alpha = 0.40f),
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            style = Stroke(
-                                width = 5.dp.toPx(),
-                                cap = StrokeCap.Round,
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 30f)),
-                            ),
-                        )
-                    }
+                if (running) {
+                    // One soft arc drifting round, so something is moving while the paddle is.
+                    softArc(
+                        colour = colour,
+                        startAngle = drift,
+                        sweepDegrees = 46f,
+                        corePx = core * 0.5f,
+                        spreadPx = spread * 0.55f,
+                        coreAlpha = 0.20f,
+                        glowAlpha = 0.14f,
+                    )
                 }
-                inset(strokePx * 3.0f) {
-                    rotate(counterTurn) {
-                        drawArc(
-                            color = arc.copy(alpha = 0.22f),
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            style = Stroke(
-                                width = 3.dp.toPx(),
-                                cap = StrokeCap.Round,
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 24f)),
-                            ),
-                        )
-                    }
-                }
+                softArc(
+                    colour = colour,
+                    startAngle = -90f,
+                    // Wound down as the time goes, so what is left on the ring is what is left.
+                    sweepDegrees = 360f * sweep,
+                    corePx = core,
+                    spreadPx = spread,
+                    coreAlpha = 0.70f,
+                    glowAlpha = 0.26f * (if (running || done) breathe else 0.85f),
+                )
             }
         }
         Text(
@@ -533,6 +512,48 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
         )
     }
 }
+
+/**
+ * An arc laid down as light: widest and faintest underneath, narrowing and brightening inwards.
+ *
+ * Ten passes is enough for the edge to fall away rather than stop, and cheap enough to redraw
+ * at sixty frames while a countdown runs.
+ */
+private fun DrawScope.softArc(
+    colour: Color,
+    startAngle: Float,
+    sweepDegrees: Float,
+    corePx: Float,
+    spreadPx: Float,
+    coreAlpha: Float,
+    glowAlpha: Float,
+    layers: Int = 10,
+) {
+    if (sweepDegrees <= 0f) return
+    for (layer in layers downTo 1) {
+        val out = layer / layers.toFloat()
+        drawArc(
+            color = colour.copy(alpha = glowAlpha * (1f - out) * (1f - out)),
+            startAngle = startAngle,
+            sweepAngle = sweepDegrees,
+            useCenter = false,
+            style = Stroke(width = corePx + spreadPx * out, cap = StrokeCap.Round),
+        )
+    }
+    if (coreAlpha > 0f) {
+        drawArc(
+            color = colour.copy(alpha = coreAlpha),
+            startAngle = startAngle,
+            sweepAngle = sweepDegrees,
+            useCenter = false,
+            style = Stroke(width = corePx, cap = StrokeCap.Round),
+        )
+    }
+}
+
+/** A real blur where the platform has one, and nothing where it does not. */
+private fun Modifier.blurCompat(radius: Dp): Modifier =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) this.blur(radius) else this
 
 /** Nudges the mixing time before a batch starts. Big targets: this is done in gloves. */
 @Composable
