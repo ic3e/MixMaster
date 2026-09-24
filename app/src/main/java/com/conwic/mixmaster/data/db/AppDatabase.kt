@@ -61,7 +61,7 @@ const val DATABASE_NAME = "mixmaster.db"
         RoomLayerEntity::class,
         DeliveryEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -501,6 +501,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the mixing time a datasheet gives, so it can be counted down rather than guessed. */
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE solutions ADD COLUMN mixSeconds INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 .addMigrations(
@@ -511,6 +518,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_6_7,
                     MIGRATION_7_8,
                     MIGRATION_8_9,
+                    MIGRATION_9_10,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

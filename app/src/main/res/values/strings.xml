@@ -658,4 +658,25 @@
     <string name="solution_by_area_hint">Each part as the datasheet gives it, in kg/m². The ratio and the coverage are worked out from them.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_coverage_computed">Works out at %1$s g/m²</string>
+    <string name="calc_start_mixing">Start mixing</string>
+    <string name="calc_start_mixing_sub">Batch by batch, with the mixing time counted down.</string>
+    <string name="mix_batch_of">Batch %1$d of %2$d</string>
+    <string name="mix_part_batch_of">Part batch · %1$d of %2$d</string>
+    <string name="mix_goes_in">Into the mixer</string>
+    <string name="mix_start">Start the mixer</string>
+    <string name="mix_running_note">Keep it turning until the timer is up.</string>
+    <string name="mix_stop_early">Mixed — next</string>
+    <string name="mix_ready">Ready to pour</string>
+    <string name="mix_next_batch">Next batch</string>
+    <string name="mix_last_done">That was the last one</string>
+    <string name="mix_finish">Finish mixing</string>
+    <string name="mix_summary">That is the lot</string>
+    <string name="mix_mixings">Mixings</string>
+    <string name="mix_total_time">Time from first to last</string>
+    <string name="mix_average_step">Average mixing</string>
+    <string name="mix_used">Material used</string>
+    <string name="mix_packs">%1$s %2$s</string>
+    <string name="mix_default_time">No mixing time on this mix — counting down two minutes.</string>
+    <string name="solution_mix_time">Mixing time (min)</string>
+    <string name="solution_mix_time_hint">What the datasheet says to mix it for</string>
 </resources>

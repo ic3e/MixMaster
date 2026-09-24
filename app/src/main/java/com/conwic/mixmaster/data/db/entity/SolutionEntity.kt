@@ -46,6 +46,13 @@ data class SolutionEntity(
     @ColumnInfo(defaultValue = "0") val parentId: Long = 0L,
     /** What this coat is called — "1st coat". Blank when the mix has only the one. */
     @ColumnInfo(defaultValue = "") val coatName: String = "",
+    /**
+     * How long the datasheet says to mix it for, in seconds. Zero when nobody has said.
+     *
+     * "Mix thoroughly for at least 2 minutes" is the line every datasheet carries and the one
+     * nobody times — the drill comes out when the lumps go, which is usually early.
+     */
+    @ColumnInfo(defaultValue = "0") val mixSeconds: Int = 0,
 )
 
 /** The mix a coat belongs to: itself, when it is the first coat. */

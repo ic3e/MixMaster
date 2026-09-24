@@ -610,4 +610,25 @@
     <string name="solution_by_area_hint">Jokainen osa niin kuin datalehti antaa — kg/m². Suhde ja menekki lasketaan niistä.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_coverage_computed">Tekee yhteensä %1$s g/m²</string>
+    <string name="calc_start_mixing">Aloita sekoitus</string>
+    <string name="calc_start_mixing_sub">Erä kerrallaan, sekoitusaika laskee alaspäin.</string>
+    <string name="mix_batch_of">Erä %1$d / %2$d</string>
+    <string name="mix_part_batch_of">Osittainen erä · %1$d / %2$d</string>
+    <string name="mix_goes_in">Sekoittimeen</string>
+    <string name="mix_start">Käynnistä sekoitin</string>
+    <string name="mix_running_note">Pidä käynnissä, kunnes aika on täynnä.</string>
+    <string name="mix_stop_early">Sekoitettu — seuraava</string>
+    <string name="mix_ready">Valmis kaadettavaksi</string>
+    <string name="mix_next_batch">Seuraava erä</string>
+    <string name="mix_last_done">Se oli viimeinen</string>
+    <string name="mix_finish">Lopeta sekoitus</string>
+    <string name="mix_summary">Yhteenveto</string>
+    <string name="mix_mixings">Sekoituksia</string>
+    <string name="mix_total_time">Aika ensimmäisestä viimeiseen</string>
+    <string name="mix_average_step">Keskimääräinen sekoitus</string>
+    <string name="mix_used">Materiaalia kului</string>
+    <string name="mix_packs">%1$s %2$s</string>
+    <string name="mix_default_time">Tälle seokselle ei ole sekoitusaikaa — lasketaan kaksi minuuttia.</string>
+    <string name="solution_mix_time">Sekoitusaika (min)</string>
+    <string name="solution_mix_time_hint">Kuinka kauan datalehti käskee sekoittaa</string>
 </resources>

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /** One line of the recipe as it is being edited. */
 data class LineDraft(
@@ -54,6 +55,8 @@ data class SolutionFormState(
     val minDoseText: String = "",
     val maxDoseText: String = "",
     val doseUnitLabel: String = "",
+    /** Minutes, as it is typed — the datasheet says "at least 2 minutes", not "120". */
+    val mixMinutesText: String = "",
     val datasheetUrl: String = "",
     val lines: List<LineDraft> = listOf(LineDraft(), LineDraft()),
     val entry: EntryMode = EntryMode.RATIO,
@@ -125,6 +128,7 @@ class SolutionEditorViewModel(
                         minDoseText = if (solution.minDoseGramsPerM2 > 0.0) formatDecimal(solution.minDoseGramsPerM2, 1) else "",
                         maxDoseText = if (solution.maxDoseGramsPerM2 > 0.0) formatDecimal(solution.maxDoseGramsPerM2, 1) else "",
                         doseUnitLabel = solution.doseUnitLabel,
+                        mixMinutesText = if (solution.mixSeconds > 0) formatDecimal(solution.mixSeconds / 60.0, 2) else "",
                         datasheetUrl = solution.datasheetUrl,
                         parentId = solution.parentId,
                         coatName = solution.coatName,
@@ -177,6 +181,7 @@ class SolutionEditorViewModel(
     fun setDoseUnitLabel(value: String) = _formState.update { it.copy(doseUnitLabel = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
     fun setCoatName(value: String) = _formState.update { it.copy(coatName = value) }
+    fun setMixMinutes(value: String) = _formState.update { it.copy(mixMinutesText = value) }
     /**
      * Switches how the parts are typed, carrying the figures over.
      *
@@ -319,6 +324,7 @@ class SolutionEditorViewModel(
                 sourceNote = "",
                 datasheetUrl = state.datasheetUrl.trim(),
                 ratioLabel = parts.joinToString(":") { formatDecimal(it, 2) },
+                mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt().coerceAtLeast(0),
                 parentId = state.parentId,
                 coatName = state.coatName.trim(),
             ),

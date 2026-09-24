@@ -610,4 +610,25 @@
     <string name="solution_by_area_hint">Iga komponent nii, nagu andmeleht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_coverage_computed">Teeb kokku %1$s g/m²</string>
+    <string name="calc_start_mixing">Alusta segamist</string>
+    <string name="calc_start_mixing_sub">Kogus korraga, segamisaeg loeb tagurpidi.</string>
+    <string name="mix_batch_of">Kogus %1$d / %2$d</string>
+    <string name="mix_part_batch_of">Osaline kogus · %1$d / %2$d</string>
+    <string name="mix_goes_in">Segistisse</string>
+    <string name="mix_start">Käivita segisti</string>
+    <string name="mix_running_note">Hoia käimas, kuni aeg saab täis.</string>
+    <string name="mix_stop_early">Segatud — järgmine</string>
+    <string name="mix_ready">Valmis valamiseks</string>
+    <string name="mix_next_batch">Järgmine kogus</string>
+    <string name="mix_last_done">See oli viimane</string>
+    <string name="mix_finish">Lõpeta segamine</string>
+    <string name="mix_summary">Kokkuvõte</string>
+    <string name="mix_mixings">Segamisi</string>
+    <string name="mix_total_time">Aeg esimesest viimaseni</string>
+    <string name="mix_average_step">Keskmine segamine</string>
+    <string name="mix_used">Materjali kulus</string>
+    <string name="mix_packs">%1$s %2$s</string>
+    <string name="mix_default_time">Sellel segul ei ole segamisaega — loeb kaks minutit.</string>
+    <string name="solution_mix_time">Segamisaeg (min)</string>
+    <string name="solution_mix_time_hint">Kui kaua andmeleht käsib segada</string>
 </resources>

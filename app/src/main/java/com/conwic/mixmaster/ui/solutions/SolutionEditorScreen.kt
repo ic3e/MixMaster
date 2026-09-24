@@ -367,6 +367,16 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     hint = stringResource(R.string.product_per_what_hint),
                     modifier = Modifier.padding(top = 10.dp),
                 )
+                // The line every datasheet carries and nobody times. Put it here and the mixer
+                // can be counted down instead of stopped when the lumps go.
+                FormTextField(
+                    value = state.mixMinutesText,
+                    onValueChange = viewModel::setMixMinutes,
+                    label = stringResource(R.string.solution_mix_time),
+                    hint = stringResource(R.string.solution_mix_time_hint),
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
                 state.doseProblem?.let { problem ->
                     Text(
                         text = stringResource(problem),

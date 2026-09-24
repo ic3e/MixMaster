@@ -55,6 +55,7 @@ import com.conwic.mixmaster.domain.BatchProblem
 import com.conwic.mixmaster.domain.BatchSize
 import com.conwic.mixmaster.domain.BatchBasis
 import com.conwic.mixmaster.domain.formatArea
+import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.db.entity.familyId
 import com.conwic.mixmaster.domain.doseDecimals
 import com.conwic.mixmaster.domain.doseStep
@@ -67,7 +68,9 @@ import com.conwic.mixmaster.domain.quantityFromLitres
 import com.conwic.mixmaster.domain.quantityOf
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.BrandPill
+import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightWide
@@ -123,6 +126,7 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
     var loggedToast by remember { mutableStateOf(false) }
+    var mixingOpen by remember { mutableStateOf(false) }
 
     val brands = listOf("All") + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
     // The dropdown lists mixes, not coats: a second coat is a recipe of the same mix, and
@@ -810,6 +814,37 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                 }
             }
 
+            // The plan is a list of batches; this walks them, one trip to the mixer at a time.
+            val plan = state.batchPlan
+            if (plan != null && plan.problem == null && plan.totalMixes > 0) {
+                item {
+                    CardAccent(
+                        modifier = Modifier
+                            .clip(CardShape)
+                            .clickable { mixingOpen = true },
+                    ) {
+                        Text(
+                            text = stringResource(R.string.calc_start_mixing),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = OnAccentCard,
+                        )
+                        Text(
+                            text = stringResource(R.string.calc_start_mixing_sub),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = OnAccentCard.copy(alpha = 0.85f),
+                        )
+                        if (data.solution.mixSeconds <= 0) {
+                            Text(
+                                text = stringResource(R.string.mix_default_time),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = OnAccentCard.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
+                    }
+                }
+            }
+
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     GhostButton(
@@ -836,6 +871,24 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                     }
                 }
             }
+        }
+    }
+
+    val runPlan = state.batchPlan
+    val runMix = state.selectedSolution
+    if (mixingOpen && runPlan != null && runMix != null) {
+        val steps = remember(runPlan) { mixingSteps(runPlan) }
+        if (steps.isEmpty()) {
+            mixingOpen = false
+        } else {
+            MixingSession(
+                title = runMix.solution.coatLabel,
+                batchSize = batchSizeText(runPlan.batchSize),
+                steps = steps,
+                parts = runMix.parts,
+                mixSeconds = runMix.solution.mixSeconds,
+                onClose = { mixingOpen = false },
+            )
         }
     }
 }
