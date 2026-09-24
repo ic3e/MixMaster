@@ -16,6 +16,9 @@ data class CoatHandover(
     val quantity: Double? = null,
     /** The job this was opened for, as the screen names it back. Blank when opened on its own. */
     val jobLabel: String = "",
+    /** Which job, so what gets mixed can be written back against it. 0 for none. */
+    val projectId: Long = 0L,
+    val roomId: Long = 0L,
 ) {
     val isEmpty: Boolean
         get() = areaM2 == null && doseGramsPerM2 == null && quantity == null && jobLabel.isBlank()
@@ -24,11 +27,20 @@ data class CoatHandover(
         val None = CoatHandover()
 
         /** Reads what the route carried. Anything missing or unreadable simply isn't handed over. */
-        fun fromRoute(area: String?, dose: String?, coats: String?, job: String?) = CoatHandover(
+        fun fromRoute(
+            area: String?,
+            dose: String?,
+            coats: String?,
+            job: String?,
+            projectId: Long,
+            roomId: Long,
+        ) = CoatHandover(
             areaM2 = area?.toNumberOrNull()?.takeIf { it > 0.0 },
             doseGramsPerM2 = dose?.toNumberOrNull()?.takeIf { it > 0.0 },
             quantity = coats?.toNumberOrNull()?.takeIf { it > 0.0 },
             jobLabel = readLabel(job),
+            projectId = projectId,
+            roomId = roomId,
         )
 
         private val Escape = Regex("%[0-9A-Fa-f]{2}")

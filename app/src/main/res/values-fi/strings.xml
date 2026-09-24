@@ -205,6 +205,11 @@
     <string name="calc_add_to_last_why">Liian vähän omaksi sekoitukseksi.</string>
     <string name="calc_log_usage">Kirjaa todellinen menekki</string>
     <string name="calc_save_to_project">Tallenna projektiin</string>
+    <!-- Sekoitus kirjattuna sille projektille, johon se meni. -->
+    <string name="mix_record">Lisää projektiin</string>
+    <string name="mix_record_note">Kirjataan kohteeseen %1$s käytettynä materiaalina</string>
+    <string name="mix_recorded">Lisätty: %1$s</string>
+    <string name="mix_record_no_job">Avaa laskuri projektista, niin menekin voi kirjata.</string>
     <!-- Laskuri avattuna projektin tilaa varten. -->
     <string name="calc_for_job">Seos kohteeseen %1$s</string>
     <string name="calc_for_job_note">Pinta-ala, menekki ja kerrosmäärä tulevat projektista. Muuta niitä tässä — projekti pysyy ennallaan.</string>
@@ -501,6 +506,7 @@
     <string name="wh_open_pack">Avatussa pakkauksessa jäljellä (%1$s)</string>
     <string name="wh_open_pack_hint">Jätä tyhjäksi, jos avattua ei ole</string>
     <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
+    <string name="wh_packs_only">%1$d %2$s</string>
     <string name="wh_order_packs">%1$d %2$s</string>
     <string name="wh_on_its_way">Tulossa</string>
     <string name="wh_on_order_label">Tulossa</string>
@@ -529,6 +535,15 @@
     <string name="wh_count_stock">Laske hylly</string>
     <string name="wh_open_product">Avaa tuote</string>
     <string name="prj_from_warehouse">Varastosta</string>
+    <string name="prj_mixed_so_far">Sekoitettu tähän mennessä</string>
+    <string name="prj_no_mixes_yet">Mitään ei ole vielä sekoitettu. Sekoitusnäyttö tarjoaa kirjausta, kun seos on valmis.</string>
+    <plurals name="prj_mixes_count">
+        <item quantity="one">%d seos</item>
+        <item quantity="other">%d seosta</item>
+    </plurals>
+    <string name="prj_mix_stamp">%1$s · %2$d erää</string>
+    <string name="prj_mix_remove_confirm">Poistetaanko tämä projektilta?</string>
+    <string name="prj_mix_remove_confirm_body">%1$s · %2$s ei enää lasketa käytetyksi.</string>
     <string name="prj_no_materials_yet">Liitä huoneeseen tuote, niin työn materiaalit näkyvät tässä.</string>
     <string name="prj_need">Tähän työhön tarvitaan</string>
     <string name="prj_in_stock">Varastossa</string>

@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
+import com.conwic.mixmaster.data.db.entity.UsedAmount
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.data.report.PickupLine
@@ -856,11 +857,28 @@ fun MaterialsTab(
     data: ProjectDetailData,
     roomCoats: Map<Long, List<CoatMix>>,
     materials: List<ProjectMaterial>,
+    /** What has actually been mixed on this job, newest first. */
+    mixes: List<RecordedMix>,
+    isEmployer: Boolean,
+    onRemoveMix: (Long) -> Unit,
     onTakeOutOfStock: () -> Unit,
 ) {
     val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
     val laidRooms = data.rooms.filter { roomCoats[it.id].orEmpty().isNotEmpty() }
     var pickupOpen by remember { mutableStateOf(false) }
+    var removingMix by remember { mutableStateOf<RecordedMix?>(null) }
+    // Every receipt added up per material. By product where there is one, so the same powder
+    // mixed under two recipes is one line.
+    val mixedTotals = remember(mixes) {
+        val totals = linkedMapOf<String, UsedAmount>()
+        mixes.flatMap { it.parts }.forEach { part ->
+            val key = if (part.productId > 0L) "p${part.productId}" else "l${part.label}"
+            val running = totals[key]
+            totals[key] = part.copy(grams = (running?.grams ?: 0.0) + part.grams)
+        }
+        totals.values.sortedByDescending { it.grams }
+    }
+    val mixedGrams = mixedTotals.sumOf { it.grams }
     // Taken here rather than inside the sheet: printing has to be asked for from the screen's
     // own context, and a sheet hands out the dialog window it lives in.
     val screenContext = LocalContext.current
@@ -878,6 +896,103 @@ fun MaterialsTab(
                 }
             }
         }
+        // What the plan says is above; this is what has gone down. Kept next to it because the
+        // question on site is the difference between the two.
+        item { SectionLabel(text = stringResource(R.string.prj_mixed_so_far)) }
+        if (mixes.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.prj_no_mixes_yet),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            item {
+                CardFlat {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = pluralStringResource(R.plurals.prj_mixes_count, mixes.size, mixes.size),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = quantityFromGrams(mixedGrams).text,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                    mixedTotals.forEach { part ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                modifier = Modifier.weight(1f, fill = false),
+                                text = part.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                text = quantityFromGrams(part.grams).text,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+            }
+            items(mixes, key = { it.id }) { mix ->
+                CardFlat {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = mix.title,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = quantityFromGrams(mix.totalGrams).text,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    if (mix.jobLabel.isNotBlank()) {
+                        Text(
+                            text = mix.jobLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = stringResource(
+                                R.string.prj_mix_stamp,
+                                Instant.ofEpochMilli(mix.mixedAt)
+                                    .atZone(ZoneId.systemDefault())
+                                    .format(noteTimestampFormatter),
+                                mix.batches,
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (isEmployer) {
+                            Text(
+                                text = stringResource(R.string.action_remove),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.tappableText { removingMix = mix },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         item { SectionLabel(text = stringResource(R.string.prj_from_warehouse)) }
 
         if (materials.isEmpty()) {
@@ -990,6 +1105,23 @@ fun MaterialsTab(
                 }
             }
         }
+    }
+
+    removingMix?.let { mix ->
+        ConfirmDialog(
+            title = stringResource(R.string.prj_mix_remove_confirm),
+            message = stringResource(
+                R.string.prj_mix_remove_confirm_body,
+                mix.title,
+                quantityFromGrams(mix.totalGrams).text,
+            ),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingMix = null
+                onRemoveMix(mix.id)
+            },
+            onDismiss = { removingMix = null },
+        )
     }
 
     if (pickupOpen) {

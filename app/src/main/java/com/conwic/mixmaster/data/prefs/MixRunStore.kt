@@ -19,6 +19,12 @@ data class SavedMixRun(
     val mixSeconds: Int,
     val parts: List<MixPart>,
     val steps: List<MixingStep>,
+    /** The job it was started for, so what gets mixed can be written against it. 0 for none. */
+    val projectId: Long = 0L,
+    val roomId: Long = 0L,
+    val solutionId: Long = 0L,
+    /** The project and the room, as the calculator named them. */
+    val jobLabel: String = "",
 )
 
 /**
@@ -39,6 +45,8 @@ data class MixProgress(
     val seconds: Int = 0,
     val finished: Boolean = false,
     val finishedAt: Long = 0L,
+    /** Whether what was mixed has been written against the project. Once only. */
+    val recorded: Boolean = false,
 )
 
 /**
@@ -60,7 +68,12 @@ object MixRunStore {
     private const val FILE = "mixmaster_mix_run"
     private const val KEY_RUN = "run"
     private const val KEY_PROGRESS = "progress"
-    /** Bumped if the shape below ever changes: a half-understood run is no run. */
+    /**
+     * Bumped if the shape below ever changes in a way that can be half-understood. Fields that
+     * are simply absent in an older run are not that: the job was added here, and a run written
+     * before it reads back with no job, which is exactly what it had. Bumping for that would
+     * throw away the batch somebody is standing over while the new build installs.
+     */
     private const val VERSION = 1
 
     private val state = MutableStateFlow<SavedMixRun?>(null)
@@ -135,6 +148,10 @@ object MixRunStore {
                     isPartBatch = step.optBoolean("part"),
                 )
             },
+            projectId = json.optLong("projectId"),
+            roomId = json.optLong("roomId"),
+            solutionId = json.optLong("solutionId"),
+            jobLabel = json.optString("jobLabel"),
         )
         // A run with no batches in it is not a run, and would leave the screen with nothing to
         // show and no way out.
@@ -146,6 +163,10 @@ object MixRunStore {
         put("title", run.title)
         put("batchSize", run.batchSize)
         put("mixSeconds", run.mixSeconds)
+        put("projectId", run.projectId)
+        put("roomId", run.roomId)
+        put("solutionId", run.solutionId)
+        put("jobLabel", run.jobLabel)
         put("parts", JSONArray().apply { run.parts.forEach { put(partJson(it)) } })
         put(
             "steps",
@@ -205,6 +226,7 @@ object MixRunStore {
         put("seconds", progress.seconds)
         put("finished", progress.finished)
         put("finishedAt", progress.finishedAt)
+        put("recorded", progress.recorded)
     }
 
     private fun readProgress(json: JSONObject) = MixProgress(
@@ -220,6 +242,7 @@ object MixRunStore {
         seconds = json.optInt("seconds"),
         finished = json.optBoolean("finished"),
         finishedAt = json.optLong("finishedAt"),
+        recorded = json.optBoolean("recorded"),
     )
 
     /** Every object in an array, or nothing where there is no array. */

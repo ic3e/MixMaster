@@ -85,6 +85,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     val data by viewModel.data.collectAsState()
     val roomCoats by viewModel.roomCoats.collectAsState()
     val materials by viewModel.materials.collectAsState()
+    val recordedMixes by viewModel.recordedMixes.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
     val project = data.project ?: return
 
@@ -167,6 +168,8 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                                 doseGramsPerM2 = coat.doseGramsPerM2,
                                 quantity = coat.layer.quantity,
                                 jobLabel = "${project.name} · ${room.name}",
+                                projectId = project.id,
+                                roomId = room.id,
                             ),
                         )
                     },
@@ -180,6 +183,9 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     data = data,
                     roomCoats = roomCoats,
                     materials = materials,
+                    mixes = recordedMixes,
+                    isEmployer = role == Role.EMPLOYER,
+                    onRemoveMix = viewModel::removeRecordedMix,
                     onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
                 )
                 4 -> CalendarTab(data = data)

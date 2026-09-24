@@ -111,6 +111,14 @@ fun MixMasterNavGraph(startDestination: String) {
                         type = NavType.StringType
                         defaultValue = ""
                     },
+                    navArgument(Routes.CALCULATOR_PROJECT) {
+                        type = NavType.LongType
+                        defaultValue = 0L
+                    },
+                    navArgument(Routes.CALCULATOR_ROOM) {
+                        type = NavType.LongType
+                        defaultValue = 0L
+                    },
                 ),
             ) { entry ->
                 val args = entry.arguments
@@ -123,6 +131,8 @@ fun MixMasterNavGraph(startDestination: String) {
                             dose = args?.getString(Routes.CALCULATOR_DOSE),
                             coats = args?.getString(Routes.CALCULATOR_COATS),
                             job = args?.getString(Routes.CALCULATOR_JOB),
+                            projectId = args?.getLong(Routes.CALCULATOR_PROJECT) ?: 0L,
+                            roomId = args?.getLong(Routes.CALCULATOR_ROOM) ?: 0L,
                         ),
                     )
                 }

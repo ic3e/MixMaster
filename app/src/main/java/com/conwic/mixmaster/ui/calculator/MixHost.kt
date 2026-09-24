@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.prefs.MixRunStore
+import com.conwic.mixmaster.ui.LocalAppContainer
+import kotlinx.coroutines.launch
 
 /**
  * Shows the mixing screen wherever the app happens to be, for as long as a run is under way.
@@ -25,10 +27,26 @@ fun MixingHost() {
     // where the clock is, and reading its own writes back would start the batch again.
     val progress = remember(current) { MixRunStore.progress(context) }
 
+    val container = LocalAppContainer.current
     MixingSession(
         run = current,
         progress = progress,
         onProgress = { MixRunStore.saveProgress(context, it) },
+        onRecord = { amounts, batches ->
+            // On the app's own scope, not this screen's: the next thing the worker does is
+            // close the summary, which takes this composition with it.
+            container.appScope.launch {
+                container.projectRepository.recordMaterialUse(
+                    projectId = current.projectId,
+                    roomId = current.roomId,
+                    solutionId = current.solutionId,
+                    title = current.title,
+                    jobLabel = current.jobLabel,
+                    batches = batches,
+                    amounts = amounts,
+                )
+            }
+        },
         onClose = { MixRunStore.clear(context) },
     )
 }

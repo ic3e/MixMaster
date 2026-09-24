@@ -205,6 +205,11 @@
     <string name="calc_add_to_last_why">Liiga vähe, et eraldi segada.</string>
     <string name="calc_log_usage">Salvesta tegelik kulu</string>
     <string name="calc_save_to_project">Salvesta projekti</string>
+    <!-- Segu, mis on kirjas projekti peal. -->
+    <string name="mix_record">Lisa projektile</string>
+    <string name="mix_record_note">Läheb objektile %1$s kulunud materjalina</string>
+    <string name="mix_recorded">Lisatud: %1$s</string>
+    <string name="mix_record_no_job">Ava kalkulaator projektist, et kulu kirja panna.</string>
     <!-- Kalkulaator, mis on avatud projekti ruumi jaoks. -->
     <string name="calc_for_job">Segu: %1$s</string>
     <string name="calc_for_job_note">Pindala, kulu ja kihtide arv tulid projektist. Muuda neid siin — projekt jääb samaks.</string>
@@ -501,6 +506,7 @@
     <string name="wh_open_pack">Avatud pakendis järel (%1$s)</string>
     <string name="wh_open_pack_hint">Jäta tühjaks, kui avatut ei ole</string>
     <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
+    <string name="wh_packs_only">%1$d %2$s</string>
     <string name="wh_order_packs">%1$d %2$s</string>
     <string name="wh_on_its_way">Teel</string>
     <string name="wh_on_order_label">Teel</string>
@@ -529,6 +535,15 @@
     <string name="wh_count_stock">Loe riiul üle</string>
     <string name="wh_open_product">Ava toode</string>
     <string name="prj_from_warehouse">Laost</string>
+    <string name="prj_mixed_so_far">Segatud seni</string>
+    <string name="prj_no_mixes_yet">Veel ei ole midagi segatud. Segamise ekraan pakub lisamist, kui segu on valmis.</string>
+    <plurals name="prj_mixes_count">
+        <item quantity="one">%d segu</item>
+        <item quantity="other">%d segu</item>
+    </plurals>
+    <string name="prj_mix_stamp">%1$s · %2$d partiid</string>
+    <string name="prj_mix_remove_confirm">Võtta see projektilt maha?</string>
+    <string name="prj_mix_remove_confirm_body">%1$s · %2$s ei lähe enam kulu hulka.</string>
     <string name="prj_no_materials_yet">Määra ruumile toode ja selle töö materjal ilmub siia.</string>
     <string name="prj_need">Sellele tööle vaja</string>
     <string name="prj_in_stock">Laos</string>

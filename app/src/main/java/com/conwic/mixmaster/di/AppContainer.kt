@@ -9,6 +9,9 @@ import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
 import com.conwic.mixmaster.data.repository.TeamRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * Minimal hand-rolled dependency container (no Hilt/Dagger) so the whole app builds with only
@@ -17,6 +20,13 @@ import com.conwic.mixmaster.data.repository.TeamRepository
 class AppContainer(context: Context) {
 
     val database: AppDatabase = AppDatabase.getInstance(context)
+
+    /**
+     * For work that has to finish even though whatever asked for it is going away — a mix being
+     * written against its project while the mixing screen is being closed over it. A scope
+     * belonging to a composition would be cancelled halfway through that.
+     */
+    val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val userPrefs: UserPrefs = UserPrefs(context)
 
     val productRepository: ProductRepository by lazy { ProductRepository(database.productDao()) }
@@ -30,6 +40,7 @@ class AppContainer(context: Context) {
             taskDao = database.taskDao(),
             noteDao = database.noteDao(),
             photoDao = database.photoDao(),
+            materialUseDao = database.materialUseDao(),
         )
     }
 

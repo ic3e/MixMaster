@@ -13,13 +13,15 @@ object Routes {
      * picked up on the other side, which raced: the screen came up on whatever was stored, then
      * jumped to the one actually asked for a beat later.
      */
-    const val CALCULATOR =
-        "calculator?solutionId={solutionId}&area={area}&dose={dose}&coats={coats}&job={job}"
+    const val CALCULATOR = "calculator?solutionId={solutionId}&area={area}&dose={dose}" +
+        "&coats={coats}&job={job}&project={project}&room={room}"
     const val CALCULATOR_SOLUTION = "solutionId"
     const val CALCULATOR_AREA = "area"
     const val CALCULATOR_DOSE = "dose"
     const val CALCULATOR_COATS = "coats"
     const val CALCULATOR_JOB = "job"
+    const val CALCULATOR_PROJECT = "project"
+    const val CALCULATOR_ROOM = "room"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "product/{productId}"
     const val PRODUCT_ADD = "product/add"
@@ -49,8 +51,11 @@ object Routes {
         doseGramsPerM2: Double,
         quantity: Double,
         jobLabel: String,
+        projectId: Long,
+        roomId: Long,
     ): String = "calculator?solutionId=$solutionId" +
-        "&area=$areaM2&dose=$doseGramsPerM2&coats=$quantity&job=${Uri.encode(jobLabel)}"
+        "&area=$areaM2&dose=$doseGramsPerM2&coats=$quantity&job=${Uri.encode(jobLabel)}" +
+        "&project=$projectId&room=$roomId"
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"

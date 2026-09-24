@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.conwic.mixmaster.data.db.dao.FloorDao
+import com.conwic.mixmaster.data.db.dao.MaterialUseDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProductDao
@@ -21,6 +22,7 @@ import com.conwic.mixmaster.data.db.dao.TaskDao
 import com.conwic.mixmaster.data.db.dao.TeamMemberDao
 import com.conwic.mixmaster.data.db.dao.UsageLogDao
 import com.conwic.mixmaster.data.db.entity.FloorEntity
+import com.conwic.mixmaster.data.db.entity.MaterialUseEntity
 import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
@@ -60,8 +62,9 @@ const val DATABASE_NAME = "mixmaster.db"
         SolutionLineEntity::class,
         RoomLayerEntity::class,
         DeliveryEntity::class,
+        MaterialUseEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -84,6 +87,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun photoDao(): PhotoDao
     abstract fun teamMemberDao(): TeamMemberDao
     abstract fun usageLogDao(): UsageLogDao
+
+    abstract fun materialUseDao(): MaterialUseDao
 
     companion object {
         @Volatile
@@ -508,6 +513,41 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds the receipts: what was actually mixed on a project, as against what the layout
+         * plans and the warehouse carries.
+         *
+         * The parts of a mix ride along as JSON in one column — nothing queries inside them,
+         * and they must not be recomputed from a recipe that has been edited since.
+         */
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `material_uses` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`projectId` INTEGER NOT NULL, " +
+                        "`roomId` INTEGER NOT NULL, " +
+                        "`solutionId` INTEGER NOT NULL, " +
+                        "`title` TEXT NOT NULL, " +
+                        "`jobLabel` TEXT NOT NULL, " +
+                        "`batches` INTEGER NOT NULL, " +
+                        "`totalGrams` REAL NOT NULL, " +
+                        "`parts` TEXT NOT NULL, " +
+                        "`mixedAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`projectId`) REFERENCES `projects`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_material_uses_projectId` " +
+                        "ON `material_uses` (`projectId`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_material_uses_roomId` " +
+                        "ON `material_uses` (`roomId`)",
+                )
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 .addMigrations(
@@ -519,6 +559,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_7_8,
                     MIGRATION_8_9,
                     MIGRATION_9_10,
+                    MIGRATION_10_11,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

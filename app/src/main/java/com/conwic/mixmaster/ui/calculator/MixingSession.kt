@@ -94,6 +94,7 @@ import com.conwic.mixmaster.domain.MixingStep
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.LocalAppActivity
+import com.conwic.mixmaster.data.db.entity.UsedAmount
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.motionOff
 import com.conwic.mixmaster.ui.components.GhostButton
@@ -144,6 +145,8 @@ fun MixingSession(
     run: SavedMixRun,
     progress: MixProgress,
     onProgress: (MixProgress) -> Unit,
+    /** Writes what actually went in against the job the run was started for. */
+    onRecord: (amounts: List<UsedAmount>, batches: Int) -> Unit,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -181,6 +184,9 @@ fun MixingSession(
     var doneSteps by remember { mutableStateOf(progress.doneSteps) }
     var finished by remember { mutableStateOf(progress.finished) }
     var finishedAt by remember { mutableStateOf(progress.finishedAt) }
+    // Written down with the run, not just held here: a summary found again after the app was
+    // taken apart would otherwise offer to record the same batches a second time.
+    var recorded by remember { mutableStateOf(progress.recorded) }
 
     // Starts at what the mix carries and can be nudged on the spot: a cold morning, a stiff
     // batch or a worn paddle all want another half minute, and that is decided at the mixer.
@@ -197,7 +203,7 @@ fun MixingSession(
 
     // Written down whenever something happens, and never on the tick: starting a batch, counting
     // one, nudging the time, ending the run. This is what somebody comes back to.
-    LaunchedEffect(stepIndex, phase, deadline, doneSteps, seconds, finished) {
+    LaunchedEffect(stepIndex, phase, deadline, doneSteps, seconds, finished, recorded) {
         onProgress(
             MixProgress(
                 stepIndex = stepIndex,
@@ -210,6 +216,7 @@ fun MixingSession(
                 seconds = seconds,
                 finished = finished,
                 finishedAt = finishedAt,
+                recorded = recorded,
             ),
         )
     }
@@ -377,6 +384,12 @@ fun MixingSession(
                         durations = doneDurations,
                         totalMillis = (if (finishedAt > 0L) finishedAt else System.currentTimeMillis()) - sessionStartedAt,
                         used = usedMaterial(steps.take(doneSteps), parts),
+                        jobLabel = run.jobLabel,
+                        recorded = recorded,
+                        onRecord = {
+                            onRecord(mixedAmounts(steps.take(doneSteps)), doneSteps)
+                            recorded = true
+                        },
                         onClose = close,
                     )
                     return@Column
@@ -914,6 +927,10 @@ private fun MixingSummary(
     durations: List<Long>,
     totalMillis: Long,
     used: List<UsedMaterial>,
+    /** The job this was mixed for, or blank where the run was started without one. */
+    jobLabel: String,
+    recorded: Boolean,
+    onRecord: () -> Unit,
     onClose: () -> Unit,
 ) {
     Text(text = title, style = MaterialTheme.typography.headlineSmall)
@@ -954,11 +971,67 @@ private fun MixingSummary(
             }
         }
     }
+    // What was mixed, written against the job. Offered here because this is the one moment the
+    // figures are the ones that went in rather than the ones that were planned — and once, so a
+    // summary read twice doesn't put the same batches on the project twice.
+    if (jobLabel.isBlank()) {
+        Text(
+            text = stringResource(R.string.mix_record_no_job),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    } else if (recorded) {
+        CardFlat {
+            Text(
+                text = stringResource(R.string.mix_recorded, jobLabel),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    } else {
+        GhostButton(
+            text = stringResource(R.string.mix_record),
+            onClick = onRecord,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = stringResource(R.string.mix_record_note, jobLabel),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
     PrimaryButton(
         text = stringResource(R.string.action_close),
         onClick = onClose,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/**
+ * What actually went in over the batches that were done, per part.
+ *
+ * Kept apart from [usedMaterial], which is the same figures worded for the screen: this one is
+ * what gets written down, so it stays in grams and keeps the product each part came from.
+ */
+private fun mixedAmounts(done: List<MixingStep>): List<UsedAmount> {
+    val totals = linkedMapOf<String, UsedAmount>()
+    done.forEach { step ->
+        step.amounts.forEach { amount ->
+            // By product where there is one; a part with no product of its own — water on an
+            // old recipe — is still one line rather than one per batch.
+            val key = if (amount.productId > 0L) "p${amount.productId}" else "l${amount.label}"
+            val running = totals[key]
+            totals[key] = UsedAmount(
+                productId = amount.productId,
+                label = amount.label,
+                grams = (running?.grams ?: 0.0) + amount.grams,
+            )
+        }
+    }
+    return totals.values.toList()
 }
 
 @Composable

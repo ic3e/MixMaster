@@ -138,6 +138,9 @@ fun CalculatorScreen(
     // Which job the figures on screen belong to: handed in by whoever opened the screen, or
     // chosen here. Kept so it survives the rotation that happens when the phone is put down.
     var job by rememberSaveable { mutableStateOf(handover.jobLabel) }
+    // Kept alongside the words: what gets mixed is written back against these.
+    var jobProjectId by rememberSaveable { mutableStateOf(handover.projectId) }
+    var jobRoomId by rememberSaveable { mutableStateOf(handover.roomId) }
 
     val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
@@ -871,13 +874,19 @@ fun CalculatorScreen(
                     // written down whole when mixing starts. From that moment the run belongs to
                     // the app rather than to this screen — see [MixingHost].
                     val batchWords = batchSizeText(plan.batchSize)
-                    val run = remember(plan, data, batchWords) {
+                    val run = remember(plan, data, batchWords, job, jobProjectId, jobRoomId) {
                         SavedMixRun(
                             title = data.solution.coatLabel,
                             batchSize = batchWords,
                             mixSeconds = data.solution.mixSeconds,
                             parts = data.parts,
                             steps = mixingSteps(plan),
+                            // Carried into the run so that when it finishes, what went in the
+                            // drum can be written against the job it went on.
+                            projectId = jobProjectId,
+                            roomId = jobRoomId,
+                            solutionId = data.solution.id,
+                            jobLabel = job,
                         )
                     }
                     CardAccent(
@@ -942,6 +951,8 @@ fun CalculatorScreen(
             onPick = { room, coat ->
                 viewModel.applyJob(room, coat)
                 job = "${room.projectName} · ${room.roomName}"
+                jobProjectId = room.projectId
+                jobRoomId = room.roomId
                 jobPickOpen = false
             },
             onDismiss = { jobPickOpen = false },

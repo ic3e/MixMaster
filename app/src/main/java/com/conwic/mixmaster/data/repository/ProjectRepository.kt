@@ -1,6 +1,7 @@
 package com.conwic.mixmaster.data.repository
 
 import com.conwic.mixmaster.data.db.dao.FloorDao
+import com.conwic.mixmaster.data.db.dao.MaterialUseDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
 import com.conwic.mixmaster.data.db.dao.PhotoDao
 import com.conwic.mixmaster.data.db.dao.ProjectDao
@@ -8,6 +9,9 @@ import com.conwic.mixmaster.data.db.dao.RoomAreaDao
 import com.conwic.mixmaster.data.db.dao.RoomLayerDao
 import com.conwic.mixmaster.data.db.dao.TaskDao
 import com.conwic.mixmaster.data.db.entity.FloorEntity
+import com.conwic.mixmaster.data.db.entity.MaterialUseEntity
+import com.conwic.mixmaster.data.db.entity.UsedAmount
+import com.conwic.mixmaster.data.db.entity.usedAmountsJson
 import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
@@ -24,8 +28,42 @@ class ProjectRepository(
     private val taskDao: TaskDao,
     private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
+    private val materialUseDao: MaterialUseDao,
 ) {
     fun observeAll(): Flow<List<ProjectEntity>> = projectDao.observeAll()
+
+    /** What has actually been mixed on this job, newest first. */
+    fun observeMaterialUses(projectId: Long): Flow<List<MaterialUseEntity>> =
+        materialUseDao.observeForProject(projectId)
+
+    /**
+     * Writes down a mix that was made. Called from the mixing screen when it is finished with,
+     * which is the only moment the amounts are known to be the ones that went in.
+     */
+    suspend fun recordMaterialUse(
+        projectId: Long,
+        roomId: Long,
+        solutionId: Long,
+        title: String,
+        jobLabel: String,
+        batches: Int,
+        amounts: List<UsedAmount>,
+    ): Long = materialUseDao.insert(
+        MaterialUseEntity(
+            projectId = projectId,
+            roomId = roomId,
+            solutionId = solutionId,
+            title = title,
+            jobLabel = jobLabel,
+            batches = batches,
+            totalGrams = amounts.sumOf { it.grams },
+            parts = usedAmountsJson(amounts),
+            mixedAt = System.currentTimeMillis(),
+        ),
+    )
+
+    /** Takes one back off: a batch recorded twice, or recorded against the wrong bay. */
+    suspend fun removeMaterialUse(id: Long) = materialUseDao.deleteById(id)
 
     fun observeById(id: Long): Flow<ProjectEntity?> = projectDao.observeById(id)
 
