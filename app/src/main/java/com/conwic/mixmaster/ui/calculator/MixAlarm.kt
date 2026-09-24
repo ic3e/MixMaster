@@ -78,7 +78,11 @@ object MixAlarm {
             context,
             REQUEST + 1,
             Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                // Brought forward, not rebuilt. Clearing the top of the task destroys the
+                // activity that is standing on the mixing screen, and with it the batch, the
+                // clock and everything typed into the calculator behind it — which is exactly
+                // what an alarm must not do.
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(EXTRA_FROM_ALARM, true)
                 putExtra(EXTRA_TITLE, title)
             },

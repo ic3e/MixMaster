@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,6 +79,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.BatchPlan
 import com.conwic.mixmaster.domain.ComponentAmount
@@ -199,10 +202,28 @@ fun MixingSession(
         }
     }
 
-    // Loud and long: a phone on a bucket in a room with a grinder going has to be noticed.
+    // Whether this screen is the one in front of somebody, which decides who does the shouting.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var onScreen by remember { mutableStateOf(true) }
+    DisposableEffect(lifecycleOwner) {
+        val watcher = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> onScreen = true
+                Lifecycle.Event.ON_PAUSE -> onScreen = false
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(watcher)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(watcher) }
+    }
+
+    // Loud and long: a phone on a bucket in a room with a grinder going has to be noticed. One
+    // alarm at a time, though — the notification rings while the app is away and hands over to
+    // this one the moment the screen comes back, rather than both going at once.
     val ringtone = remember { alarmSound(context) }
-    LaunchedEffect(phase) {
-        if (phase == MixPhase.DONE) {
+    LaunchedEffect(phase, onScreen) {
+        if (phase == MixPhase.DONE && onScreen) {
+            MixAlarm.dismiss(context)
             runCatching { ringtone?.play() }
             buzz(context)
         } else {
