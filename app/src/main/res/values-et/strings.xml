@@ -551,7 +551,7 @@
     <!-- Bought item -->
     <string name="pd_sold_as">Müüakse</string>
     <string name="pd_density_unknown">Määramata</string>
-    <string name="pd_used_in">Kasutusel segudes</string>
+    <string name="pd_used_in">See toode on kasutusel segudes</string>
     <string name="pd_used_in_nothing">Ükski segu ei kasuta seda veel.</string>
 
     <!-- Coat colour -->

@@ -599,7 +599,7 @@
     <!-- Bought item -->
     <string name="pd_sold_as">Sold as</string>
     <string name="pd_density_unknown">Not set</string>
-    <string name="pd_used_in">Used in</string>
+    <string name="pd_used_in">This product is used in</string>
     <string name="pd_used_in_nothing">No solution calls for this yet.</string>
 
     <!-- Coat colour -->

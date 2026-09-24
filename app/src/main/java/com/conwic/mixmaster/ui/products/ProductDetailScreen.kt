@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.products
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,7 +21,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,10 +36,12 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.BrandPill
+import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.theme.CardShape
 
 /**
  * A bought item: what it is, how it is sold, and which recipes call for it.
@@ -84,7 +89,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 
         item {
             CardFlat {
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     if (current.brand.isNotBlank()) BrandPill(text = current.brand)
                     if (current.category.isNotBlank()) {
                         Text(
@@ -140,11 +145,25 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 
         items(usedIn.size) { index ->
             val solution = usedIn[index]
-            CardFlat {
-                Text(
-                    text = if (solution.brand.isBlank()) solution.name else "${solution.brand} — ${solution.name}",
-                    style = MaterialTheme.typography.titleMedium,
-                )
+            // Opens the mix it is naming, the same way the solutions list does: seeing that a
+            // product is in architop raises the question of what else is, and the answer was
+            // three screens away.
+            CardFlat(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape)
+                    .clickable { navController.navigate(Routes.solutionEdit(solution.id)) },
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (solution.brand.isBlank()) solution.name else "${solution.brand} — ${solution.name}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                    )
+                    if (solution.ratioLabel.isNotBlank()) {
+                        RatioBadge(text = solution.ratioLabel)
+                    }
+                }
             }
         }
     }
