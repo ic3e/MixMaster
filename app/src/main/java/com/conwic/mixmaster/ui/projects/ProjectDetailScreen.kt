@@ -52,6 +52,7 @@ import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 
@@ -154,6 +155,21 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onAddRoom = viewModel::addRoom,
                     onAddCoat = viewModel::addCoat,
                     onRemoveCoat = viewModel::removeCoat,
+                    onMixCoat = { room, coat ->
+                        // Straight into the calculator on that coat, with the room's area, the
+                        // rate it is specified at and the number of passes already in. Nothing
+                        // is written back: the calculator is where the batch gets worked out,
+                        // the project is where the spec lives.
+                        navController.navigate(
+                            Routes.calculatorForCoat(
+                                solutionId = coat.layer.solutionId,
+                                areaM2 = room.areaM2,
+                                doseGramsPerM2 = coat.doseGramsPerM2,
+                                quantity = coat.layer.quantity,
+                                jobLabel = "${project.name} · ${room.name}",
+                            ),
+                        )
+                    },
                     onSetCoatColour = viewModel::setCoatColour,
                     onAddNote = viewModel::addNote,
                     onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },

@@ -239,6 +239,13 @@
     <string name="calc_add_to_last_why">Too little to be worth a mixing of its own.</string>
     <string name="calc_log_usage">Log actual usage</string>
     <string name="calc_save_to_project">Save to project</string>
+    <!-- The calculator pointed at a room of a project. -->
+    <string name="calc_for_job">Mixing for %1$s</string>
+    <string name="calc_for_job_note">Area, rate and coats came from the project. Change them here — the project stays as it is.</string>
+    <string name="calc_pick_job">Pick a room from a project</string>
+    <string name="calc_pick_job_hint">Tap a coat to take its recipe, rate and coats. Tap a room to take only its area.</string>
+    <string name="calc_pick_job_empty">No live projects with rooms yet.</string>
+    <string name="calc_pick_job_no_coats">No coats on this room yet</string>
     <string name="calc_logged">Logged — this will feed the product\'s site average.</string>
 
     <string-array name="mixing_reminders">
@@ -589,6 +596,7 @@
     <!-- Room coats -->
     <string name="prj_no_coats">No coats yet.</string>
     <string name="prj_add_coat">+ Add coat</string>
+    <string name="prj_mix_coat">Mix</string>
     <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
     <string name="prj_coat_pick_hint">A mix, or a product laid as it comes.</string>
     <string name="prj_solutions">Solutions</string>

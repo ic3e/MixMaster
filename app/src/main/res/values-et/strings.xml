@@ -205,6 +205,13 @@
     <string name="calc_add_to_last_why">Liiga vähe, et eraldi segada.</string>
     <string name="calc_log_usage">Salvesta tegelik kulu</string>
     <string name="calc_save_to_project">Salvesta projekti</string>
+    <!-- Kalkulaator, mis on avatud projekti ruumi jaoks. -->
+    <string name="calc_for_job">Segu: %1$s</string>
+    <string name="calc_for_job_note">Pindala, kulu ja kihtide arv tulid projektist. Muuda neid siin — projekt jääb samaks.</string>
+    <string name="calc_pick_job">Vali projektist ruum</string>
+    <string name="calc_pick_job_hint">Puuduta kihti, et võtta selle retsept, kulu ja kihtide arv. Puuduta ruumi, et võtta ainult pindala.</string>
+    <string name="calc_pick_job_empty">Ühtegi käimasolevat projekti ruumidega veel ei ole.</string>
+    <string name="calc_pick_job_no_coats">Sellel ruumil ei ole veel kihte</string>
     <string name="calc_logged">Salvestatud — see läheb toote objektikeskmisesse.</string>
 
     <string-array name="mixing_reminders">
@@ -541,6 +548,7 @@
     <!-- Room coats -->
     <string name="prj_no_coats">Kihte veel ei ole.</string>
     <string name="prj_add_coat">+ Lisa kiht</string>
+    <string name="prj_mix_coat">Sega</string>
     <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
     <string name="prj_coat_pick_hint">Segu või toode, mis läheb peale nii nagu on.</string>
     <string name="prj_solutions">Segud</string>

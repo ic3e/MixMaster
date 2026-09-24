@@ -219,6 +219,8 @@ fun LayoutTab(
     onAddRoom: (Long, String, Double) -> Unit,
     onAddCoat: (Long, Long, Long, Double, Double) -> Unit,
     onRemoveCoat: (RoomLayerEntity) -> Unit,
+    /** Takes one coat of one room into the calculator, with the room's figures. */
+    onMixCoat: (RoomAreaEntity, CoatMix) -> Unit,
     onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
     onAddNote: (String, String, Role) -> Unit,
     onAddPhoto: (String) -> Unit,
@@ -347,13 +349,27 @@ fun LayoutTab(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
-                                if (isEmployer) {
-                                    Text(
-                                        text = stringResource(R.string.action_remove),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.tappableText { removingCoat = coat },
-                                    )
+                                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                    // Only where there is something to mix: a coat laid as a
+                                    // single ready product has no recipe for the calculator to
+                                    // work out.
+                                    if (coat.layer.solutionId > 0L) {
+                                        Text(
+                                            text = stringResource(R.string.prj_mix_coat),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.tappableText { onMixCoat(room, coat) },
+                                        )
+                                    }
+                                    if (isEmployer) {
+                                        Text(
+                                            text = stringResource(R.string.action_remove),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.tappableText { removingCoat = coat },
+                                        )
+                                    }
                                 }
                             }
                             val colour = coat.colour

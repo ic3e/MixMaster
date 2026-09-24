@@ -205,6 +205,13 @@
     <string name="calc_add_to_last_why">Liian vähän omaksi sekoitukseksi.</string>
     <string name="calc_log_usage">Kirjaa todellinen menekki</string>
     <string name="calc_save_to_project">Tallenna projektiin</string>
+    <!-- Laskuri avattuna projektin tilaa varten. -->
+    <string name="calc_for_job">Seos kohteeseen %1$s</string>
+    <string name="calc_for_job_note">Pinta-ala, menekki ja kerrosmäärä tulevat projektista. Muuta niitä tässä — projekti pysyy ennallaan.</string>
+    <string name="calc_pick_job">Valitse projektista tila</string>
+    <string name="calc_pick_job_hint">Napauta kerrosta, niin saat sen reseptin, menekin ja kerrosmäärän. Napauta tilaa, niin saat vain pinta-alan.</string>
+    <string name="calc_pick_job_empty">Ei vielä käynnissä olevia projekteja, joissa on tiloja.</string>
+    <string name="calc_pick_job_no_coats">Tässä tilassa ei ole vielä kerroksia</string>
     <string name="calc_logged">Kirjattu — tämä menee tuotteen työmaakeskiarvoon.</string>
 
     <string-array name="mixing_reminders">
@@ -541,6 +548,7 @@
     <!-- Room coats -->
     <string name="prj_no_coats">Ei vielä kerroksia.</string>
     <string name="prj_add_coat">+ Lisää kerros</string>
+    <string name="prj_mix_coat">Sekoita</string>
     <string name="prj_coat_rate">%1$s g/m² · %2$s</string>
     <string name="prj_coat_pick_hint">Seos tai tuote sellaisenaan.</string>
     <string name="prj_solutions">Seokset</string>

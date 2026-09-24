@@ -3,8 +3,10 @@ package com.conwic.mixmaster.ui.calculator
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
+import com.conwic.mixmaster.data.db.entity.coatLabel
 import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.ProductRepository
+import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.domain.AddOnNeed
 import com.conwic.mixmaster.domain.BatchBasis
@@ -15,6 +17,7 @@ import com.conwic.mixmaster.domain.MixResult
 import com.conwic.mixmaster.domain.PackNeed
 import com.conwic.mixmaster.domain.SolutionMix
 import com.conwic.mixmaster.domain.addOnNeeds
+import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.implausibleStoredDensities
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
@@ -54,6 +57,25 @@ data class CalculatorUiState(
     val addOnNeeds: List<AddOnNeed> = emptyList(),
 )
 
+/** One room on a live project, offered to the calculator as a job it can be pointed at. */
+data class JobRoom(
+    val projectId: Long,
+    val projectName: String,
+    val roomId: Long,
+    val roomName: String,
+    val areaM2: Double,
+    val coats: List<JobCoat>,
+)
+
+/** One coat of a [JobRoom]: the recipe the project specified, at the rate it specified. */
+data class JobCoat(
+    val number: Int,
+    val title: String,
+    val solutionId: Long,
+    val doseGramsPerM2: Double,
+    val quantity: Double,
+)
+
 private data class CalculatorInputs(
     val areaText: String = "",
     val quantityText: String = "1",
@@ -68,9 +90,12 @@ private data class CalculatorInputs(
 class CalculatorViewModel(
     private val solutionRepository: SolutionRepository,
     private val productRepository: ProductRepository,
+    private val projectRepository: ProjectRepository,
     private val userPrefs: UserPrefs,
     /** The mix this screen was opened for, or 0 when opened on its own. */
     initialSolutionId: Long = 0L,
+    /** The room's coat it was opened for, when it was opened from a project. */
+    private val handover: CoatHandover = CoatHandover.None,
 ) : ViewModel() {
 
     /** Settings can turn the "leave the drum room" nudge off for people who've heard it. */
@@ -89,6 +114,9 @@ class CalculatorViewModel(
         if (initialSolutionId > 0L) {
             // Asked for by name. Nothing else gets to change it afterwards.
             selectSolution(initialSolutionId)
+            // Opened from a room's build-up, so the job's own figures stand rather than the
+            // datasheet's. Applied after the mix is chosen: choosing one clears the rate.
+            applyHandover()
         } else {
             // Opened on its own, so carry on with whatever was last worked on. Read once, not
             // followed: an echo of the stored id after the screen is up would pull it off
@@ -96,6 +124,7 @@ class CalculatorViewModel(
             viewModelScope.launch {
                 val remembered = userPrefs.lastSolutionId.first()
                 if (remembered > 0L && selectedSolutionId.value == null) selectSolution(remembered)
+                applyHandover()
             }
         }
     }
@@ -150,6 +179,82 @@ class CalculatorViewModel(
                 },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalculatorUiState())
+
+    /**
+     * Every room on a live project, with what the project says goes on it.
+     *
+     * There was no way back to a project from here: the area was read off the Layout tab and
+     * typed in again, and the coat's rate along with it, which is how the figure on the drum
+     * ends up disagreeing with the figure in the report.
+     */
+    val jobRooms: StateFlow<List<JobRoom>> = combine(
+        projectRepository.observeAll(),
+        projectRepository.observeAllRooms(),
+        projectRepository.observeAllLayers(),
+        solutions,
+    ) { projects, rooms, layers, recipes ->
+        val live = projects.filterNot { it.isArchived }.associateBy { it.id }
+        val recipesById = recipes.associateBy { it.id }
+        val layersByRoom = layers.groupBy { it.roomId }
+        rooms.mapNotNull { room ->
+            val project = live[room.projectId] ?: return@mapNotNull null
+            JobRoom(
+                projectId = project.id,
+                projectName = project.name,
+                roomId = room.id,
+                roomName = room.name,
+                areaM2 = room.areaM2,
+                // Already in the order they are laid — the query sorts by sortOrder, same as
+                // the Layout tab reads them. Numbered over every coat, skipped ones included,
+                // so the numbers are the ones on that tab. A coat laid as a single ready
+                // product is skipped: it has no recipe for this screen to work out.
+                coats = layersByRoom[room.id].orEmpty()
+                    .mapIndexedNotNull { index, layer ->
+                        val mix = recipesById[layer.solutionId] ?: return@mapIndexedNotNull null
+                        JobCoat(
+                            number = index + 1,
+                            title = mix.coatLabel,
+                            solutionId = mix.id,
+                            doseGramsPerM2 = layer.doseGramsPerM2.takeIf { it > 0.0 }
+                                ?: mix.typicalDoseGramsPerM2,
+                            quantity = layer.quantity,
+                        )
+                    },
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Fills in what the room already knows. A figure that wasn't handed over is left alone, so
+     * a coat with no rate of its own still comes up on the datasheet typical.
+     */
+    private fun applyHandover() {
+        if (handover.isEmpty) return
+        inputs.update { current ->
+            current.copy(
+                areaText = handover.areaM2?.let { formatDecimal(it, 2) } ?: current.areaText,
+                quantityText = handover.quantity?.let { formatDecimal(it, 2) } ?: current.quantityText,
+                coverageOverride = handover.doseGramsPerM2 ?: current.coverageOverride,
+            )
+        }
+    }
+
+    /**
+     * Takes a room from a project: its area, and where a coat was picked, that coat's recipe,
+     * rate and number of passes. The project is not written back — the spec lives there, the
+     * batch is worked out here.
+     */
+    fun applyJob(room: JobRoom, coat: JobCoat?) {
+        // Choosing a mix clears the rate, so the rate goes in after it.
+        coat?.let { selectSolution(it.solutionId) }
+        inputs.update { current ->
+            current.copy(
+                areaText = formatDecimal(room.areaM2, 2),
+                quantityText = coat?.let { formatDecimal(it.quantity, 2) } ?: current.quantityText,
+                coverageOverride = coat?.doseGramsPerM2 ?: current.coverageOverride,
+            )
+        }
+    }
 
     fun selectSolution(solutionId: Long) {
         if (selectedSolutionId.value == solutionId) return

@@ -17,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.conwic.mixmaster.ui.calculator.CalculatorScreen
+import com.conwic.mixmaster.ui.calculator.CoatHandover
 import com.conwic.mixmaster.ui.calendarscreen.CalendarScreen
 import com.conwic.mixmaster.ui.components.BottomNavBar
 import com.conwic.mixmaster.ui.home.HomeScreen
@@ -92,12 +93,37 @@ fun MixMasterNavGraph(startDestination: String) {
                         type = NavType.LongType
                         defaultValue = 0L
                     },
+                    // Carried as text rather than as numbers: a query argument that was never
+                    // given has to read as absent, and a missing float would arrive as 0.
+                    navArgument(Routes.CALCULATOR_AREA) {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument(Routes.CALCULATOR_DOSE) {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument(Routes.CALCULATOR_COATS) {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument(Routes.CALCULATOR_JOB) {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
                 ),
             ) { entry ->
+                val args = entry.arguments
                 Inset(insets) {
                     CalculatorScreen(
                         navController = navController,
-                        solutionId = entry.arguments?.getLong(Routes.CALCULATOR_SOLUTION) ?: 0L,
+                        solutionId = args?.getLong(Routes.CALCULATOR_SOLUTION) ?: 0L,
+                        handover = CoatHandover.fromRoute(
+                            area = args?.getString(Routes.CALCULATOR_AREA),
+                            dose = args?.getString(Routes.CALCULATOR_DOSE),
+                            coats = args?.getString(Routes.CALCULATOR_COATS),
+                            job = args?.getString(Routes.CALCULATOR_JOB),
+                        ),
                     )
                 }
             }

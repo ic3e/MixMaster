@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,7 +108,11 @@ private fun perLabel(mode: DosingMode?): String =
     perLabelRes(mode)?.let { stringResource(it) } ?: ""
 
 @Composable
-fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
+fun CalculatorScreen(
+    navController: NavHostController,
+    solutionId: Long = 0L,
+    handover: CoatHandover = CoatHandover.None,
+) {
     val container = LocalAppContainer.current
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -117,8 +122,10 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                 CalculatorViewModel(
                     container.solutionRepository,
                     container.productRepository,
+                    container.projectRepository,
                     container.userPrefs,
                     solutionId,
+                    handover,
                 )
             }
         },
@@ -126,6 +133,11 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
     val allSolutions by viewModel.solutions.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val showMixingReminders by viewModel.showMixingReminders.collectAsState()
+    val jobRooms by viewModel.jobRooms.collectAsState()
+    var jobPickOpen by remember { mutableStateOf(false) }
+    // Which job the figures on screen belong to: handed in by whoever opened the screen, or
+    // chosen here. Kept so it survives the rotation that happens when the phone is put down.
+    var job by rememberSaveable { mutableStateOf(handover.jobLabel) }
 
     val today = remember { LocalDate.now() }
     var brandFilter by remember { mutableStateOf("All") }
@@ -158,6 +170,26 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
             )
         }
 
+        // Which room's job this is. Said out loud because the fields below came up filled in,
+        // and the figures in them are that room's rather than the last job's.
+        if (job.isNotBlank()) {
+            item {
+                CardFlat {
+                    Text(
+                        text = stringResource(R.string.calc_for_job, job),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(R.string.calc_for_job_note),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        }
+
         item {
             // Side by side, as on the Products screen. Dropdowns rather than chip rows for the
             // same reason: the lists grow with the catalogue, and whatever is off the right
@@ -187,6 +219,18 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                     modifier = Modifier.weight(FieldWeightWide),
                 )
             }
+        }
+
+        // The other way in. Until this line the calculator knew nothing about the projects:
+        // the area was read off the Layout tab and typed in here, and the coat's rate with it.
+        item {
+            Text(
+                text = stringResource(R.string.calc_pick_job),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.tappableText { jobPickOpen = true },
+            )
         }
 
         // Which coat is being mixed. Only asked where a mix has more than one, because most
@@ -890,6 +934,18 @@ fun CalculatorScreen(navController: NavHostController, solutionId: Long = 0L) {
                 }
             }
         }
+    }
+
+    if (jobPickOpen) {
+        JobPickSheet(
+            rooms = jobRooms,
+            onPick = { room, coat ->
+                viewModel.applyJob(room, coat)
+                job = "${room.projectName} · ${room.roomName}"
+                jobPickOpen = false
+            },
+            onDismiss = { jobPickOpen = false },
+        )
     }
 }
 

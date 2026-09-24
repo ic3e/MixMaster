@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.navigation
 
+import android.net.Uri
+
 object Routes {
     const val SIGN_IN = "sign_in"
     const val ONBOARDING = "onboarding"
@@ -11,8 +13,13 @@ object Routes {
      * picked up on the other side, which raced: the screen came up on whatever was stored, then
      * jumped to the one actually asked for a beat later.
      */
-    const val CALCULATOR = "calculator?solutionId={solutionId}"
+    const val CALCULATOR =
+        "calculator?solutionId={solutionId}&area={area}&dose={dose}&coats={coats}&job={job}"
     const val CALCULATOR_SOLUTION = "solutionId"
+    const val CALCULATOR_AREA = "area"
+    const val CALCULATOR_DOSE = "dose"
+    const val CALCULATOR_COATS = "coats"
+    const val CALCULATOR_JOB = "job"
     const val PRODUCTS = "products"
     const val PRODUCT_DETAIL = "product/{productId}"
     const val PRODUCT_ADD = "product/add"
@@ -27,6 +34,23 @@ object Routes {
 
     fun calculator(solutionId: Long = 0L): String =
         if (solutionId > 0L) "calculator?solutionId=$solutionId" else "calculator"
+
+    /**
+     * The calculator opened for one coat of one room.
+     *
+     * The room already knows its area, the coat already knows the rate it goes on at and how
+     * many passes it takes — retyping all three into the calculator is how the figures drift
+     * apart. They travel in the route rather than in a preference so that going back and
+     * opening a different coat can't leave the screen showing the last one's numbers.
+     */
+    fun calculatorForCoat(
+        solutionId: Long,
+        areaM2: Double,
+        doseGramsPerM2: Double,
+        quantity: Double,
+        jobLabel: String,
+    ): String = "calculator?solutionId=$solutionId" +
+        "&area=$areaM2&dose=$doseGramsPerM2&coats=$quantity&job=${Uri.encode(jobLabel)}"
 
     fun productDetail(id: Long) = "product/$id"
     fun productEdit(id: Long) = "product/edit/$id"
