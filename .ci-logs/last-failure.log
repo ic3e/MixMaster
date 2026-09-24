@@ -16,13 +16,13 @@ Daemon will be stopped at the end of the build
 > Task :app:parseDebugLocalResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
+> Task :app:processDebugManifestForPackage
 > Task :app:desugarDebugFileDependencies
 > Task :app:mergeDebugStartupProfile
 > Task :app:mergeDebugJniLibFolders
@@ -31,20 +31,22 @@ Daemon will be stopped at the end of the build
 > Task :app:mergeLibDexDebug
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
-> Task :app:writeDebugSigningConfigVersions
 
 > Task :app:stripDebugDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so.
 
+> Task :app:writeDebugSigningConfigVersions
 > Task :app:processDebugResources
-> Task :app:mergeExtDexDebug
-> Task :app:kspDebugKotlin
 
-> Task :app:compileDebugKotlin
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/components/BuildUpDiagram.kt:155:18 Prohibited vararg parameter type 'androidx.compose.ui.geometry.Offset'.
+> Task :app:kspDebugKotlin
+e: The daemon has terminated unexpectedly on startup attempt #1 with error code: 0. The daemon process output:
+    1. Kotlin compile daemon is ready
+
+> Task :app:mergeExtDexDebug
 
 > Task :app:compileDebugKotlin FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1790253695043.json
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/home/HomeScreen.kt:217:37 Unresolved reference 'height'.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1790261460026.json
 
 FAILURE: Build failed with an exception.
 
@@ -253,5 +255,5 @@ Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilat
 	... 2 more
 
 
-BUILD FAILED in 41s
+BUILD FAILED in 52s
 31 actionable tasks: 31 executed
