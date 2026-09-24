@@ -158,7 +158,10 @@ fun ProductsScreen(navController: NavHostController) {
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(text = product.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                            // Water has no brand, and an empty line still takes a line's height.
+                            if (product.brand.isNotBlank()) {
+                                Text(text = product.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                            }
                             Text(text = product.name, style = MaterialTheme.typography.titleMedium)
                             if (product.packageSize > 0.0) {
                                 Text(

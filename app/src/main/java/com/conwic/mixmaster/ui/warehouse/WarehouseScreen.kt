@@ -95,10 +95,13 @@ fun WarehouseScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        // The same rhythm as the Products and Projects lists — this screen sat at its own
+        // spacing and its own title size, which is what made moving between them feel like
+        // moving between two apps. The room at the bottom keeps the last card off the nav bar.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 40.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineLarge) }
+        item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineMedium) }
 
         val toOrder = state.toOrder
         if (toOrder.isNotEmpty()) {
@@ -161,14 +164,44 @@ fun WarehouseScreen(navController: NavHostController) {
                     .clip(CardShape)
                     .clickable { detailId = item.productId },
             ) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    if (item.brand.isNotBlank()) BrandPill(text = item.brand)
-                    Text(
-                        text = item.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f).padding(start = if (item.brand.isNotBlank()) 10.dp else 0.dp),
-                    )
-                    Text(text = onHandText(item), style = MaterialTheme.typography.titleMedium)
+                // Laid out like a product on the Products screen — brand over the name, the
+                // figure on the right. It used to carry a dark brand pill beside the name at a
+                // size no other list uses, which read as a different app; it also left a long
+                // name and the amount fighting for the same line, and they met in the middle.
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
+                        if (item.brand.isNotBlank()) {
+                            Text(
+                                text = item.brand,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        Text(text = item.name, style = MaterialTheme.typography.titleMedium)
+                    }
+                    // Packs over kilos, as on the project's material list: on one line they came
+                    // to more than twenty characters and left "Microtopping® Base Coat Polymer"
+                    // four lines tall beside them.
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (item.isKnownPack) {
+                            Text(
+                                text = stringResource(R.string.wh_packs_only, item.fullPacks, item.packType),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = amountText(item.onHand, item.packUnit),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            Text(
+                                text = amountText(item.onHand, item.packUnit),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
                 }
                 if (item.bookings.isNotEmpty()) {
                     Text(
@@ -570,18 +603,6 @@ private fun CountDialog(item: ProductStock, onDismiss: () -> Unit, onSave: (Int,
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.action_cancel)) }
         },
-    )
-}
-
-/** "3 bags · 62.5 kg", or just the amount when nobody has said what a pack holds. */
-@Composable
-private fun onHandText(item: ProductStock): String = when {
-    !item.isKnownPack -> amountText(item.onHand, item.packUnit)
-    else -> stringResource(
-        R.string.wh_packs_and_amount,
-        item.fullPacks,
-        item.packType,
-        amountText(item.onHand, item.packUnit),
     )
 }
 
