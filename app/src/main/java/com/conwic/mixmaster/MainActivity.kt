@@ -41,9 +41,21 @@ class MainActivity : FragmentActivity() {
      * up left every menu and sheet in the phone's language while the screen behind them
      * followed the setting. Configuring the activity's own base context reaches all of them.
      */
+    /** Held so it can be handed back on the way out — see [ActivityBaseContext]. */
+    private var unwrappedBase: Context? = null
+
     override fun attachBaseContext(newBase: Context) {
         startedInLanguage = LanguageStore.chosenOrDevice(newBase)
+        // Kept before the wrapper goes on: the wrapped context belongs to no activity, and
+        // there are platform services that will not take one of those.
+        unwrappedBase = newBase
+        ActivityBaseContext.set(newBase)
         super.attachBaseContext(LanguageStore.wrap(newBase))
+    }
+
+    override fun onDestroy() {
+        unwrappedBase?.let { ActivityBaseContext.clear(it) }
+        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

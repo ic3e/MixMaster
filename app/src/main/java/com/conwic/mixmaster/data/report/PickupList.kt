@@ -18,6 +18,7 @@ import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import java.io.File
 import androidx.core.content.FileProvider
+import com.conwic.mixmaster.ActivityBaseContext
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
@@ -48,9 +49,11 @@ object PickupList {
      */
     fun print(context: Context, title: String, subtitle: String, lines: List<PickupLine>) {
         val file = write(context, title, subtitle, lines)
-        val activity = context.findActivity()
-        val started = activity != null && runCatching {
-            val printManager = activity.getSystemService(Context.PRINT_SERVICE) as PrintManager
+        // The activity's own base context, which is the only one the print service accepts —
+        // anything reachable from a screen goes through the language wrapper instead.
+        val printable = ActivityBaseContext.current() ?: context.findActivity()
+        val started = printable != null && runCatching {
+            val printManager = printable.getSystemService(Context.PRINT_SERVICE) as PrintManager
             printManager.print(
                 title,
                 PdfFileAdapter(file, title),
