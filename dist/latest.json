@@ -1,8 +1,8 @@
 {
-  "versionCode": 94,
-  "versionName": "1.0.94",
-  "apk": "MixMaster_1.0.94.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.94.apk",
+  "versionCode": 95,
+  "versionName": "1.0.95",
+  "apk": "MixMaster_1.0.95.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.95.apk",
   "sizeBytes": 20303244,
-  "notes": "Give the countdown some weight, and drop the blob off the arc"
+  "notes": "Draw the countdown as light, not as a ring with edges"
 }
