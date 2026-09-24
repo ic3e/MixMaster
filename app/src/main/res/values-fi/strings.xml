@@ -618,6 +618,11 @@
     <string name="mix_start">Käynnistä sekoitin</string>
     <string name="mix_time_label">Sekoitusaika</string>
     <string name="mix_running_note">Pidä käynnissä, kunnes aika on täynnä.</string>
+    <string name="mix_time_more">Enemmän sekoitusaikaa</string>
+    <string name="mix_time_less">Vähemmän sekoitusaikaa</string>
+    <string name="mix_alert_off">Ilmoitukset ovat pois päältä, joten hälytys soi vain kun tämä näyttö on auki.</string>
+    <string name="mix_alert_shade_only">Ilmoitus tavoittaa vain ilmoitusalueen, ei lukittua näyttöä.</string>
+    <string name="mix_alert_inexact">Kun sovellus ei ole näytöllä, hälytys voi tulla muutaman minuutin myöhässä.</string>
     <string name="mix_stop_early">Sekoitettu — seuraava</string>
     <string name="mix_ready">Valmis kaadettavaksi</string>
     <string name="mix_next_batch">Seuraava erä</string>

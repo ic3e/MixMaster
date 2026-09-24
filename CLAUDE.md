@@ -64,6 +64,18 @@ Everything is compiled blind, so check by hand what the compiler would have caug
   is `singleTop` and the alarm uses `SINGLE_TOP`.
 - Destructive actions all go through `ui/components/ConfirmDialog.kt`, and no delete sits under the
   save button.
+- The mixing alarm has one rule: the booking with the system clock is cancelled where the run
+  really ends (closed, ended early, last batch acknowledged), and **left standing** everywhere
+  else — including when the screen is disposed. Cancelling only the notification leaves it to go
+  off during the next batch; cancelling it on dispose loses the one alert that still works with
+  the app off screen.
+- The app lock asks `MixRun.underWay()` before re-locking. Re-locking drops everything composed
+  behind it, which mid-batch is the whole run.
+- Anything animating every frame is read inside `drawBehind` / `Canvas` / `graphicsLayer`, not in
+  composable scope: read while composing, one countdown recomposes the whole screen sixty times a
+  second. Same reason the clock is passed into the ring as a lambda.
+- No composable call behind `?.` — write the `if`, or lift the calls into a small
+  `remember…()` that returns null early.
 
 ## The model, in one paragraph
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
+import android.provider.Settings
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -12,6 +13,7 @@ import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.Animatable
@@ -22,6 +24,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
@@ -55,15 +58,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -78,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -92,7 +100,6 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
-import com.conwic.mixmaster.ui.theme.Accent2
 import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.delay
@@ -113,9 +120,15 @@ const val DefaultMixSeconds = 120
 private val Alert = Color(0xFFFFB300)
 private val AlertPale = Color(0xFFFFF3D6)
 
-/** What one press of the arrows is worth, and as far as the time can be taken. */
+/**
+ * What one press of the arrows is worth, and as far as the time can be taken.
+ *
+ * The ceiling is an hour rather than fifteen minutes: a datasheet asking for twenty would have
+ * had the "more time" arrow clamp it back down to the limit, which is the one thing that button
+ * must never do.
+ */
 const val MixStepSeconds = 15
-const val MaxMixSeconds = 900
+const val MaxMixSeconds = 60 * 60
 
 /**
  * The batches of a plan, in the order they get mixed.
@@ -161,33 +174,38 @@ fun MixingSession(
     val activity = LocalAppActivity.current
 
     // Asked for here rather than at startup: this is the one screen that needs it, and the
-    // reason is on screen when it is asked.
-    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    // reason is on screen when it is asked. The answer is kept, because a "no" changes what
+    // this screen is able to promise — see [alertWarning].
+    var canNotify by rememberSaveable { mutableStateOf(notificationsAllowed(context)) }
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        canNotify = granted && notificationsAllowed(context)
+    }
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!canNotify) {
             runCatching { askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) }
         }
     }
 
-    var stepIndex by remember { mutableStateOf(0) }
-    var phase by remember { mutableStateOf(MixPhase.READY) }
-    var deadline by remember { mutableStateOf(0L) }
+    // Saved rather than only remembered, so a batch survives the activity being rebuilt under
+    // it. (Turning the phone sideways no longer rebuilds it at all — the manifest handles that
+    // — and the app lock leaving a running mix alone is [MixRun]. This is the last line: the
+    // system taking the app apart while it is away.)
+    var stepIndex by rememberSaveable { mutableStateOf(0) }
+    var phase by rememberSaveable { mutableStateOf(MixPhase.READY) }
+    var deadline by rememberSaveable { mutableStateOf(0L) }
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
-    var stepStartedAt by remember { mutableStateOf(0L) }
-    val sessionStartedAt = remember { System.currentTimeMillis() }
+    var stepStartedAt by rememberSaveable { mutableStateOf(0L) }
+    val sessionStartedAt = rememberSaveable { System.currentTimeMillis() }
     // Only what was actually mixed counts — a session ended early has fewer batches in it than
     // the plan, which is the whole point of being able to end it.
-    val doneDurations = remember { mutableListOf<Long>() }
-    var doneSteps by remember { mutableStateOf(0) }
-    var finished by remember { mutableStateOf(false) }
-    var finishedAt by remember { mutableStateOf(0L) }
+    val doneDurations = rememberSaveable { mutableListOf<Long>() }
+    var doneSteps by rememberSaveable { mutableStateOf(0) }
+    var finished by rememberSaveable { mutableStateOf(false) }
+    var finishedAt by rememberSaveable { mutableStateOf(0L) }
 
     // Starts at what the mix carries and can be nudged on the spot: a cold morning, a stiff
     // batch or a worn paddle all want another half minute, and that is decided at the mixer.
-    var seconds by remember { mutableStateOf(if (mixSeconds > 0) mixSeconds else DefaultMixSeconds) }
+    var seconds by rememberSaveable { mutableStateOf(if (mixSeconds > 0) mixSeconds else DefaultMixSeconds) }
     val step = steps.getOrNull(stepIndex)
 
     // The clock, not the frames: a countdown built out of ticks drifts, and this one is being
@@ -218,16 +236,26 @@ fun MixingSession(
     }
 
     // Loud and long: a phone on a bucket in a room with a grinder going has to be noticed. One
-    // alarm at a time, though — the notification rings while the app is away and hands over to
-    // this one the moment the screen comes back, rather than both going at once.
+    // alarm at a time, though, and it follows whoever is there to hear it — the screen rings
+    // while the screen is up, the notification takes it back the moment the app goes away, and
+    // neither of them goes off alongside the other.
     val ringtone = remember { alarmSound(context) }
-    LaunchedEffect(phase, onScreen) {
-        if (phase == MixPhase.DONE && onScreen) {
-            MixAlarm.dismiss(context)
+    // A batch that is up and has not been dealt with. Ending the run closes it too: the summary
+    // used to come up with the alarm still going and the screen still flashing behind it.
+    val alerting = phase == MixPhase.DONE && !finished
+    LaunchedEffect(alerting, onScreen) {
+        if (alerting && onScreen) {
+            // The screen has it now, so the booking goes: cancelling only the notification left
+            // the alarm standing in the system clock, and it would then go off again in the
+            // middle of the next batch.
+            MixAlarm.cancel(context)
             runCatching { ringtone?.play() }
             buzz(context)
         } else {
             runCatching { ringtone?.stop() }
+            // Walked away from a batch that is up and not yet acknowledged: hand it back to the
+            // notification, or the ringing stops and nobody is being told at all.
+            if (alerting) MixAlarm.alert(context, title)
         }
     }
     DisposableEffect(Unit) {
@@ -235,10 +263,21 @@ fun MixingSession(
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose {
             runCatching { ringtone?.stop() }
-            // Nothing left to ring about once the screen is gone.
-            MixAlarm.cancel(context)
+            // The booking is deliberately left standing. This screen can go away for reasons
+            // that have nothing to do with the mix — the system taking the app apart while it
+            // is in the background, for one — and then the alarm is the only thing left that
+            // can say the mix is ready; it opens the app again by itself. It is cancelled where
+            // the run actually ends instead: [close], the early end, the last batch.
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+    }
+
+    // The way out, wherever it is taken from: nothing left ringing, nothing left booked, and
+    // the app lock free to do its job again.
+    val close = {
+        MixAlarm.cancel(context)
+        MixRun.ended()
+        onClose()
     }
 
     fun recordAndAdvance() {
@@ -257,23 +296,53 @@ fun MixingSession(
     }
 
     Dialog(
-        onDismissRequest = onClose,
+        onDismissRequest = close,
         properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
     ) {
-        val flashing = phase == MixPhase.DONE
-        val flash = rememberInfiniteTransition(label = "flash")
-        val flashAlpha by flash.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(430, easing = LinearEasing), RepeatMode.Reverse),
-            label = "flashAlpha",
-        )
+        val flashing = alerting
+        // A phone told to keep still keeps still: somebody who has turned animations off in
+        // accessibility settings is not going to thank a full-screen strobe for it, so the
+        // alert holds a steady hi-vis screen instead of pulsing.
+        val calm = remember { motionOff(context) }
+        // Started when the batch goes off rather than when the screen opens, so the strobe
+        // always begins at the pale end and eases both ways: coming in at whatever brightness
+        // a loop running since the session opened happened to be at read as a glitch.
+        val flashAlpha = if (flashing && !calm) {
+            val flash = rememberInfiniteTransition(label = "flash")
+            flash.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(tween(560, easing = EaseInOut), RepeatMode.Reverse),
+                label = "flashAlpha",
+            )
+        } else {
+            null
+        }
         // Hi-vis, and the same either way the phone is themed: a batch going off in a room with
         // a grinder running has to be caught out of the corner of an eye, and brown on cream is
         // not what catches it.
-        val background = if (flashing) lerp(AlertPale, Alert, flashAlpha) else MaterialTheme.colorScheme.background
+        val page = MaterialTheme.colorScheme.background
+        // Dark text while the wash is on. The wash is always light, whatever the theme, so a
+        // dark theme's pale text sat on it at around one and a half to one — unreadable at the
+        // exact moment it matters most.
+        val ink = if (flashing) Charcoal else MaterialTheme.colorScheme.onSurface
+        val inkSoft = if (flashing) Charcoal.copy(alpha = 0.72f) else MaterialTheme.colorScheme.onSurfaceVariant
+        val inkAccent = if (flashing) Charcoal else MaterialTheme.colorScheme.secondary
 
-        Surface(color = background, modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = Color.Transparent,
+            // Painted in the draw pass rather than handed to the surface as a colour: the strobe
+            // changes every frame, and as a parameter it recomposed the whole screen with it.
+            modifier = Modifier.fillMaxSize().drawBehind {
+                drawRect(
+                    when {
+                        !flashing -> page
+                        flashAlpha == null -> Alert
+                        else -> lerp(AlertPale, Alert, flashAlpha.value)
+                    },
+                )
+            },
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -291,12 +360,12 @@ fun MixingSession(
                         durations = doneDurations,
                         totalMillis = (if (finishedAt > 0L) finishedAt else System.currentTimeMillis()) - sessionStartedAt,
                         used = usedMaterial(steps.take(doneSteps), parts),
-                        onClose = onClose,
+                        onClose = close,
                     )
                     return@Column
                 }
 
-                Text(text = title, style = MaterialTheme.typography.headlineSmall)
+                Text(text = title, style = MaterialTheme.typography.headlineSmall, color = ink)
                 Text(
                     text = if (step.isPartBatch) {
                         stringResource(R.string.mix_part_batch_of, stepIndex + 1, steps.size)
@@ -304,14 +373,14 @@ fun MixingSession(
                         stringResource(R.string.mix_batch_of, stepIndex + 1, steps.size)
                     },
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = inkAccent,
                     fontWeight = FontWeight.Bold,
                 )
                 if (batchSize.isNotBlank()) {
                     Text(
                         text = batchSize,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = inkSoft,
                     )
                 }
 
@@ -347,22 +416,26 @@ fun MixingSession(
                     }
                 }
 
-                val remainingMillis = when (phase) {
-                    MixPhase.RUNNING -> (deadline - now).coerceAtLeast(0L)
-                    MixPhase.DONE -> 0L
-                    MixPhase.READY -> seconds * 1000L
+                val total = seconds * 1000L
+                // Read through a lambda so the clock lands inside the ring rather than up here:
+                // ticking ten times a second in this scope recomposed the batch list, the cards
+                // and the buttons along with it.
+                val remaining = {
+                    when (phase) {
+                        MixPhase.RUNNING -> (deadline - now).coerceAtLeast(0L)
+                        MixPhase.DONE -> 0L
+                        MixPhase.READY -> total
+                    }
                 }
-                // Rounded up, so a run of two minutes opens on 2:00 and the last second is 0:01
-                // rather than a zero that sits there while the drill is still turning.
-                val shown = ceil(remainingMillis / 1000.0).toInt()
                 // Keyed on the batch, so every one of them gets the wind-up rather than only
                 // the first: the ring arriving is what says a new batch is up.
                 key(stepIndex) {
                     TimerRing(
-                        fraction = if (seconds > 0) remainingMillis / (seconds * 1000f) else 0f,
-                        label = clock(shown),
+                        remaining = remaining,
+                        total = total,
                         running = phase == MixPhase.RUNNING,
                         done = phase == MixPhase.DONE,
+                        calm = calm,
                     )
                 }
 
@@ -372,7 +445,21 @@ fun MixingSession(
                     TimeStepper(
                         label = stringResource(R.string.mix_time_label),
                         onLess = { seconds = (seconds - MixStepSeconds).coerceAtLeast(MixStepSeconds) },
-                        onMore = { seconds = (seconds + MixStepSeconds).coerceAtMost(MaxMixSeconds) },
+                        // Never downwards: a mix that already asks for twenty minutes would
+                        // otherwise have "more time" clamp it back to the ceiling.
+                        onMore = { seconds = (seconds + MixStepSeconds).coerceAtMost(maxOf(MaxMixSeconds, seconds)) },
+                    )
+                }
+
+                // Said plainly rather than promised quietly: the alarm off screen depends on
+                // permissions the phone can refuse, and a worker who has turned notifications
+                // down needs to know the screen has to stay open.
+                alertWarning(canNotify, context)?.let { warning ->
+                    Text(
+                        text = warning,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = inkSoft,
+                        textAlign = TextAlign.Center,
                     )
                 }
 
@@ -389,6 +476,8 @@ fun MixingSession(
                                 // in a pocket, a call, a screen gone black — the batch is still
                                 // up when it is up.
                                 MixAlarm.schedule(context, deadline, title)
+                                // And said out loud, so the app lock leaves the mix alone.
+                                MixRun.started(deadline)
                             },
                         )
                     }
@@ -396,7 +485,7 @@ fun MixingSession(
                         Text(
                             text = stringResource(R.string.mix_running_note),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = inkSoft,
                             textAlign = TextAlign.Center,
                         )
                         // As big as the others so a glove can find it, but outlined rather than
@@ -405,7 +494,7 @@ fun MixingSession(
                             text = stringResource(R.string.mix_stop_early),
                             onClick = {
                                 MixAlarm.cancel(context)
-                                phase = MixPhase.READY
+                                MixRun.ended()
                                 recordAndAdvance()
                             },
                             filled = false,
@@ -425,8 +514,10 @@ fun MixingSession(
                                 stringResource(R.string.mix_last_done)
                             },
                             onClick = {
-                                MixAlarm.dismiss(context)
-                                phase = MixPhase.READY
+                                // Cancelled, not just taken off the shade: the booking outlives
+                                // the batch it was made for otherwise.
+                                MixAlarm.cancel(context)
+                                MixRun.ended()
                                 recordAndAdvance()
                             },
                             container = Charcoal,
@@ -441,6 +532,7 @@ fun MixingSession(
                     text = stringResource(R.string.mix_finish),
                     onClick = {
                         MixAlarm.cancel(context)
+                        MixRun.ended()
                         finishedAt = System.currentTimeMillis()
                         finished = true
                     },
@@ -453,6 +545,63 @@ fun MixingSession(
 
 private enum class MixPhase { READY, RUNNING, DONE }
 
+/** How long the ring takes to wind up when a batch comes up, and how big the number is drawn. */
+private const val WindUpMillis = 800
+private val RingSize = 300.dp
+private val CountdownSize = 74.sp
+
+/** The four things that move on the ring, together, so they share one frame loop. */
+private class RingMotion(
+    val breathe: State<Float>,
+    val drift: State<Float>,
+    val halo: State<Float>,
+    val pop: State<Float>,
+)
+
+/**
+ * The ring's movement, or nothing at all when the phone has been told to keep still.
+ *
+ * Nothing at all, rather than animations that run and are then ignored: a loop nobody reads
+ * still asks the phone for a frame sixty times a second, for as long as the batch takes.
+ */
+@Composable
+private fun rememberRingMotion(calm: Boolean): RingMotion? {
+    if (calm) return null
+    val loop = rememberInfiniteTransition(label = "loop")
+    return RingMotion(
+        // The glow swelling and falling back while the paddle turns.
+        breathe = loop.animateFloat(
+            initialValue = 0.62f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "breathe",
+        ),
+        // One soft arc drifting round the inside, so something is moving while the paddle is.
+        drift = loop.animateFloat(
+            initialValue = -90f,
+            targetValue = 270f,
+            animationSpec = infiniteRepeatable(tween(4200, easing = LinearEasing)),
+            label = "drift",
+        ),
+        // Rings going out when a batch is up: each one starts again from the middle, so this
+        // one runs one way only.
+        halo = loop.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing)),
+            label = "halo",
+        ),
+        // The number swelling under them, which has to come back down the way it went up:
+        // driven off the rings, it snapped back to nothing every time they started again.
+        pop = loop.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "pop",
+        ),
+    )
+}
+
 /**
  * The countdown, drawn as light rather than as a band.
  *
@@ -461,66 +610,94 @@ private enum class MixPhase { READY, RUNNING, DONE }
  * with a thin bright core on top — the edges fall away instead of stopping. Phones from
  * Android 12 get a real blur over the glow on top of that; older ones keep the stack, which is
  * soft enough on its own.
+ *
+ * Everything that moves is read inside the draw pass rather than while composing: this runs for
+ * up to an hour with the screen held awake, and a countdown that recomposes the screen sixty
+ * times a second is a countdown that warms the phone in somebody's pocket.
  */
 @Composable
-private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Boolean) {
-    val loop = rememberInfiniteTransition(label = "loop")
-    val breathe by loop.animateFloat(
-        initialValue = 0.62f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "breathe",
-    )
-    // One soft arc drifting round the inside, so something is moving while the paddle is.
-    val drift by loop.animateFloat(
-        initialValue = -90f,
-        targetValue = 270f,
-        animationSpec = infiniteRepeatable(tween(4200, easing = LinearEasing)),
-        label = "drift",
-    )
-    val halo by loop.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing)),
-        label = "halo",
-    )
+private fun TimerRing(
+    remaining: () -> Long,
+    total: Long,
+    running: Boolean,
+    done: Boolean,
+    calm: Boolean,
+) {
+    val motion = rememberRingMotion(calm)
+    val breathe = motion?.breathe
+    val drift = motion?.drift
+    val halo = motion?.halo
+    val pop = motion?.pop
+
+    val millis = remaining()
+    // Rounded up, so a run of two minutes opens on 2:00 and the last second is 0:01 rather than
+    // a zero that sits there while the drill is still turning.
+    val label = clock(ceil(millis / 1000.0).toInt())
+    val fraction = if (total > 0L) (millis / total.toFloat()).coerceIn(0f, 1f) else 0f
 
     // Winds up from nothing when a batch comes up, so the ring arrives rather than appears.
     var wound by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { wound = true }
-    val sweep by animateFloatAsState(
-        targetValue = if (wound) fraction.coerceIn(0f, 1f) else 0f,
-        animationSpec = if (wound) tween(220, easing = LinearEasing) else tween(800, easing = FastOutSlowInEasing),
+    // A spec chosen on the same value that sets the target is a spec that never runs: the
+    // wind-up was replaced by the countdown's own short step in the very recomposition that
+    // started it, and the arrival played as a fifth of a second of nothing. So the short one
+    // waits until the long one has had its turn.
+    var settled by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        wound = true
+        if (!calm) delay(WindUpMillis.toLong())
+        settled = true
+    }
+    val sweep = animateFloatAsState(
+        targetValue = if (wound) fraction else 0f,
+        animationSpec = when {
+            calm -> snap()
+            settled -> tween(220, easing = LinearEasing)
+            else -> tween(WindUpMillis, easing = FastOutSlowInEasing)
+        },
         label = "sweep",
     )
 
-    // A spring on every second: the number lands rather than flicks over.
+    // A spring on every second: the number lands rather than flicks over. Stiff enough to be
+    // finished well inside the second it belongs to — a soft one never came to rest before the
+    // next second knocked it again, and the countdown throbbed the whole way down.
     val tick = remember { Animatable(1f) }
-    LaunchedEffect(label, running) {
-        if (running) {
-            tick.snapTo(1.10f)
-            tick.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    LaunchedEffect(label, running, calm) {
+        if (running && !calm) {
+            tick.snapTo(1.08f)
+            tick.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium))
+        } else {
+            tick.snapTo(1f)
         }
     }
 
     val track = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
     val primary = MaterialTheme.colorScheme.primary
-    // Runs warm as the time goes: full colour at the start, amber through the last third. Once
-    // it is up the screen behind has gone hi-vis, so the ring goes dark to sit on it.
-    val heat = (sweep / 0.34f).coerceIn(0f, 1f)
-    val colour = if (done) Charcoal else lerp(Accent2, primary, heat)
+    val onSurface = MaterialTheme.colorScheme.onSurface
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 10.dp)) {
         // One layer, all of it soft: the countdown is light on the page, not a ring drawn on it.
-        Canvas(modifier = Modifier.size(300.dp).blurCompat(2.dp)) {
+        Canvas(modifier = Modifier.size(RingSize).blurCompat(2.dp)) {
             val core = 14.dp.toPx()
             val spread = 26.dp.toPx()
-            inset((core + spread) / 2f) {
+            // Squared off first: on a narrow phone the box came out wider than it was tall and
+            // the ring was drawn as an ellipse while the rings going out stayed circles.
+            val side = size.minDimension
+            val edge = (core + spread) / 2f
+            inset((size.width - side) / 2f + edge, (size.height - side) / 2f + edge) {
                 val radius = size.minDimension / 2f
+                // Runs warm as the time goes: the brand colour for most of the run, hi-vis
+                // amber through the last third. Amber rather than the second accent, which in a
+                // dark theme is the primary itself — the ring read the same all the way down.
+                // Once the batch is up the screen behind has gone hi-vis, so the ring goes dark
+                // to sit on it.
+                val heat = (sweep.value / 0.34f).coerceIn(0f, 1f)
+                val colour = if (done) Charcoal else lerp(Alert, primary, heat)
                 if (done) {
-                    // Rings of light going out, over and over, until somebody taps.
-                    drawCircle(color = colour.copy(alpha = (1f - halo) * 0.22f), radius = radius * (1f + halo * 0.20f))
-                    drawCircle(color = colour.copy(alpha = (1f - halo) * 0.11f), radius = radius * (1f + halo * 0.42f))
+                    // Rings of light going out, over and over, until somebody taps. Held
+                    // half-way out, once, when the phone is keeping still.
+                    val out = halo?.value ?: 0.30f
+                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.22f), radius = radius * (1f + out * 0.20f))
+                    drawCircle(color = colour.copy(alpha = (1f - out) * 0.11f), radius = radius * (1f + out * 0.42f))
                 }
                 // The path the countdown runs on, barely there.
                 drawArc(
@@ -530,11 +707,11 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
                     useCenter = false,
                     style = Stroke(width = core * 0.8f, cap = StrokeCap.Round),
                 )
-                if (running) {
+                if (running && drift != null) {
                     // One soft arc drifting round, so something is moving while the paddle is.
                     softArc(
                         colour = colour,
-                        startAngle = drift,
+                        startAngle = drift.value,
                         sweepDegrees = 46f,
                         corePx = core * 0.5f,
                         spreadPx = spread * 0.55f,
@@ -546,22 +723,35 @@ private fun TimerRing(fraction: Float, label: String, running: Boolean, done: Bo
                     colour = colour,
                     startAngle = -90f,
                     // Wound down as the time goes, so what is left on the ring is what is left.
-                    sweepDegrees = 360f * sweep,
+                    sweepDegrees = 360f * sweep.value,
                     corePx = core,
                     spreadPx = spread,
                     coreAlpha = 0.92f,
-                    glowAlpha = 0.22f * (if (running || done) breathe else 0.85f),
+                    glowAlpha = 0.22f * if (running || done) (breathe?.value ?: 0.85f) else 0.85f,
                 )
             }
         }
         Text(
             text = label,
-            // Read at arm's length, over a bucket, in daylight.
-            fontSize = 74.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (done) Charcoal else MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.scale(if (done) 1f + halo * 0.06f else tick.value),
+            // Read at arm's length, over a bucket, in daylight — and given a line to stand in
+            // that is taller than the digits, because the style's own is shorter than this size
+            // and cropped the tops and tails off the numbers.
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontSize = CountdownSize,
+                lineHeight = CountdownSize * 1.14f,
+                fontWeight = FontWeight.ExtraBold,
+            ),
+            color = if (done) Charcoal else onSurface,
+            // Scaled in a layer rather than by remeasuring: a spring that runs every second has
+            // no business laying the screen out again.
+            modifier = Modifier.graphicsLayer {
+                val scale = when {
+                    done -> 1f + (pop?.value ?: 0f) * 0.06f
+                    else -> tick.value
+                }
+                scaleX = scale
+                scaleY = scale
+            },
         )
     }
 }
@@ -604,9 +794,19 @@ private fun DrawScope.softArc(
     }
 }
 
-/** A real blur where the platform has one, and nothing where it does not. */
+/**
+ * A real blur where the platform has one, and nothing where it does not.
+ *
+ * Unbounded, because the default treatment clips the blur to the edge of what it is blurring —
+ * and the rings going out when a batch is up reach well past the ring itself, so they were
+ * being cut off square.
+ */
 private fun Modifier.blurCompat(radius: Dp): Modifier =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) this.blur(radius) else this
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        this.blur(radius, BlurredEdgeTreatment.Unbounded)
+    } else {
+        this
+    }
 
 /** Nudges the mixing time before a batch starts. Big targets: this is done in gloves. */
 @Composable
@@ -629,17 +829,19 @@ private fun TimeStepper(label: String, onLess: () -> Unit, onMore: () -> Unit) {
 
 @Composable
 private fun StepperKey(add: Boolean, onClick: () -> Unit) {
+    // Named, not just drawn: a plus on its own tells a screen reader nothing about what it adds.
+    val what = stringResource(if (add) R.string.mix_time_more else R.string.mix_time_less)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(72.dp)
             .clip(CardShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onClick),
+            .clickable(onClickLabel = what, onClick = onClick),
     ) {
         Icon(
             imageVector = if (add) Icons.Filled.Add else Icons.Filled.Remove,
-            contentDescription = null,
+            contentDescription = what,
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(34.dp),
         )
@@ -792,10 +994,9 @@ private fun clock(totalSeconds: Int): String {
     return "$minutes:${seconds.toString().padStart(2, '0')}"
 }
 
+/** The same sound the notification uses, so the screen and the shade ring alike. */
 private fun alarmSound(context: Context): Ringtone? = runCatching {
-    val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    RingtoneManager.getRingtone(context, uri)
+    RingtoneManager.getRingtone(context, MixAlarm.alarmSoundUri())
 }.getOrNull()
 
 private fun buzz(context: Context) {
@@ -807,8 +1008,42 @@ private fun buzz(context: Context) {
             @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
-        vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 250, 500, 250, 500), -1))
+        // The same long-short-long as the notification channel's.
+        vibrator?.vibrate(VibrationEffect.createWaveform(MixAlarm.VibratePattern, -1))
     }
 }
+
+/**
+ * Whether this phone will let the app put an alarm on the shade at all.
+ *
+ * The runtime permission is one half; the switch in the phone's own settings is the other, and
+ * either one being off means the off-screen alarm is not going to happen.
+ */
+private fun notificationsAllowed(context: Context): Boolean {
+    val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+        PackageManager.PERMISSION_GRANTED
+    return granted && runCatching { NotificationManagerCompat.from(context).areNotificationsEnabled() }.getOrDefault(true)
+}
+
+/**
+ * What this screen has to admit it cannot do, or null when it can do all of it.
+ *
+ * The off-screen alarm rests on three things the phone can each refuse: notifications at all,
+ * putting one over the lock screen, and landing it to the second. Whichever is missing, the
+ * worker is told here — a timer that quietly cannot ring is worse than one that says so.
+ */
+@Composable
+private fun alertWarning(canNotify: Boolean, context: Context): String? = when {
+    !canNotify -> stringResource(R.string.mix_alert_off)
+    !MixAlarm.canAlertOverLockScreen(context) -> stringResource(R.string.mix_alert_shade_only)
+    !MixAlarm.canBeExact(context) -> stringResource(R.string.mix_alert_inexact)
+    else -> null
+}
+
+/** Whether the phone has been told to keep still — animations off in accessibility settings. */
+private fun motionOff(context: Context): Boolean = runCatching {
+    Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+}.getOrDefault(false)
 
 

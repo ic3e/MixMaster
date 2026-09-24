@@ -66,13 +66,30 @@ class MainActivity : FragmentActivity() {
      * Opened by the mixing alarm: over the lock screen, with the screen lit.
      *
      * Asked for only when the alarm is what brought the app up, so the app does not sit over
-     * the keyguard the rest of the time — it has a lock of its own for a reason.
+     * the keyguard the rest of the time — it has a lock of its own for a reason. The extra is
+     * taken off the intent once it has been acted on: the intent is kept by the activity, and
+     * a sticky one would put the app back over the lock screen every time it came round again.
      */
     private fun wakeForAlarm(intent: Intent?) {
         if (intent?.getBooleanExtra(MixAlarm.EXTRA_FROM_ALARM, false) != true) return
+        intent.removeExtra(MixAlarm.EXTRA_FROM_ALARM)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
+        }
+    }
+
+    /**
+     * Handed back to the keyguard on the way out.
+     *
+     * By the time the app is off screen the alarm has been seen, and an app that keeps the
+     * right to show itself over a lock screen for the rest of the day is a hole in the lock.
+     */
+    override fun onStop() {
+        super.onStop()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(false)
+            setTurnScreenOn(false)
         }
     }
 

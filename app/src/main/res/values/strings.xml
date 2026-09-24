@@ -666,6 +666,11 @@
     <string name="mix_start">Start the mixer</string>
     <string name="mix_time_label">Mixing time</string>
     <string name="mix_running_note">Keep it turning until the timer is up.</string>
+    <string name="mix_time_more">More mixing time</string>
+    <string name="mix_time_less">Less mixing time</string>
+    <string name="mix_alert_off">Notifications are off, so the alarm only rings while this screen is open.</string>
+    <string name="mix_alert_shade_only">The alert can only reach the notification shade, not the locked screen.</string>
+    <string name="mix_alert_inexact">With the app off screen the alarm can land a few minutes late.</string>
     <string name="mix_stop_early">Mixed — next</string>
     <string name="mix_ready">Ready to pour</string>
     <string name="mix_next_batch">Next batch</string>

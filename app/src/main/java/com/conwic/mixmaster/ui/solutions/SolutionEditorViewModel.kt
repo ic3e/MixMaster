@@ -3,6 +3,7 @@ package com.conwic.mixmaster.ui.solutions
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.conwic.mixmaster.ui.calculator.MaxMixSeconds
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.SolutionEntity
@@ -324,7 +325,10 @@ class SolutionEditorViewModel(
                 sourceNote = "",
                 datasheetUrl = state.datasheetUrl.trim(),
                 ratioLabel = parts.joinToString(":") { formatDecimal(it, 2) },
-                mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt().coerceAtLeast(0),
+                // Capped where the timer's own arrows stop: a mistyped 900 minutes is a
+                // countdown nobody can sit through and a screen held awake all afternoon.
+                mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt()
+                    .coerceIn(0, MaxMixSeconds),
                 parentId = state.parentId,
                 coatName = state.coatName.trim(),
             ),

@@ -618,6 +618,11 @@
     <string name="mix_start">Käivita segisti</string>
     <string name="mix_time_label">Segamisaeg</string>
     <string name="mix_running_note">Hoia käimas, kuni aeg saab täis.</string>
+    <string name="mix_time_more">Rohkem segamisaega</string>
+    <string name="mix_time_less">Vähem segamisaega</string>
+    <string name="mix_alert_off">Teated on välja lülitatud, seega äratus heliseb ainult siis, kui see ekraan on lahti.</string>
+    <string name="mix_alert_shade_only">Teade jõuab ainult teateribale, mitte lukustatud ekraanile.</string>
+    <string name="mix_alert_inexact">Kui rakendus ei ole ekraanil, võib äratus mõne minuti hiljem tulla.</string>
     <string name="mix_stop_early">Segatud — järgmine</string>
     <string name="mix_ready">Valmis valamiseks</string>
     <string name="mix_next_batch">Järgmine kogus</string>

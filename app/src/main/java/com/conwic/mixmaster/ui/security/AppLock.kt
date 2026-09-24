@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.conwic.mixmaster.ui.LocalAppActivity
+import com.conwic.mixmaster.ui.calculator.MixRun
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.conwic.mixmaster.ui.components.ConwicLockup
@@ -87,7 +88,16 @@ fun AppLockGate(enabled: Boolean, content: @Composable () -> Unit) {
             when (event) {
                 Lifecycle.Event.ON_STOP -> leftAt = System.currentTimeMillis()
                 Lifecycle.Event.ON_START ->
-                    if (guarding && leftAt != 0L && System.currentTimeMillis() - leftAt > RelockAfterMillis) {
+                    // Not while a batch is in the mixer. Locking again drops everything composed
+                    // behind the prompt, and that is the running mix — its clock, its place in
+                    // the batch list and what it has counted so far. A phone that spent those
+                    // two minutes on a bucket next to the person mixing is not the phone this
+                    // lock is for.
+                    if (guarding &&
+                        leftAt != 0L &&
+                        System.currentTimeMillis() - leftAt > RelockAfterMillis &&
+                        !MixRun.underWay()
+                    ) {
                         unlocked = false
                     }
                 else -> Unit

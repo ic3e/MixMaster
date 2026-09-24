@@ -35,11 +35,17 @@
             configChanges: the app configures its own locale. Handling that change here, rather
             than being relaunched for it, means a disagreement with the system configuration can
             never turn into a relaunch loop.
+
+            The rest of the list is for the mixing timer. A relaunch throws away a running batch
+            — the clock, the tally, the calculator behind it — and turning the phone sideways at
+            the mixer is not a reason to lose a mix. Compose lays itself out again from the new
+            configuration on its own. Theme, font scale and display size are left off the list
+            deliberately: those are worth a clean rebuild, and nobody changes them mid-batch.
         -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="locale|layoutDirection"
+            android:configChanges="locale|layoutDirection|orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.MixMaster">
