@@ -1,8 +1,8 @@
 {
-  "versionCode": 93,
-  "versionName": "1.0.93",
-  "apk": "MixMaster_1.0.93.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.93.apk",
+  "versionCode": 94,
+  "versionName": "1.0.94",
+  "apk": "MixMaster_1.0.94.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.94.apk",
   "sizeBytes": 20303244,
-  "notes": "Make the mixing screen work in gloves"
+  "notes": "Give the countdown some weight, and drop the blob off the arc"
 }
