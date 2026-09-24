@@ -35,6 +35,8 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.domain.formatDecimal
+import androidx.compose.ui.platform.LocalContext
+import com.conwic.mixmaster.data.docs.SheetStore
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.BrandPill
@@ -55,6 +57,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 @Composable
 fun ProductDetailScreen(navController: NavHostController, productId: Long) {
     val container = LocalAppContainer.current
+    val context = LocalContext.current
     val viewModel: ProductDetailViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -137,6 +140,18 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
+                // The paperwork behind the product, where a client asking for it can be answered
+                // on the spot rather than from a supplier's website on a site with no signal.
+                SheetRow(
+                    label = stringResource(R.string.product_safety_sheet),
+                    value = current.safetySheetUrl,
+                    onOpen = { SheetStore.open(context, current.safetySheetUrl) },
+                )
+                SheetRow(
+                    label = stringResource(R.string.product_technical_sheet),
+                    value = current.technicalSheetUrl,
+                    onOpen = { SheetStore.open(context, current.technicalSheetUrl) },
+                )
                 // What the shed holds, on the page about the thing it holds.
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -219,4 +234,35 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
         )
     }
 
+}
+
+/** One sheet on the product page: openable where there is one, plainly absent where there isn't. */
+@Composable
+private fun SheetRow(label: String, value: String, onOpen: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f, fill = false),
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (value.isBlank()) {
+            Text(
+                text = stringResource(R.string.product_sheet_none),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.product_sheet_open),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.tappableText(onClick = onOpen),
+            )
+        }
+    }
 }

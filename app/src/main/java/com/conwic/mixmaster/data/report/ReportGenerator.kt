@@ -63,9 +63,11 @@ object ReportGenerator {
             }
         }
 
-        val titlePaint = textPaint(size = 12f, bold = true)
-        val bodyPaint = textPaint(size = 10f, bold = false)
-        val dimPaint = textPaint(size = 9f, bold = false, colorHex = "#6B6259")
+        // 11 for anything a client reads, with the headings a step above it and the small
+        // print a step below. The whole page used to be set a size down from a normal document.
+        val titlePaint = textPaint(size = 13f, bold = true)
+        val bodyPaint = textPaint(size = 11f, bold = false)
+        val dimPaint = textPaint(size = 9.5f, bold = false, colorHex = "#6B6259")
 
         y += 12f
         canvas.drawText(context.getString(R.string.report_client, project.clientName), MARGIN, y, bodyPaint)
@@ -93,11 +95,14 @@ object ReportGenerator {
         canvas.drawText(context.getString(R.string.report_rooms), MARGIN, y, titlePaint)
         y += 18f
         val totalGrams = roomCoats.values.flatten().sumOf { it.totalGrams }
+        val usedProductIds = roomCoats.values.flatten()
+            .flatMap { coat -> coat.parts.map { it.productId } }
+            .toSet()
         for (room in rooms) {
             newPageIfNeeded(30f)
             val coats = roomCoats[room.id].orEmpty()
             canvas.drawText("${room.name} — ${formatArea(room.areaM2)} m²", MARGIN, y, bodyPaint)
-            y += 13f
+            y += 15f
             if (coats.isEmpty()) {
                 canvas.drawText(context.getString(R.string.prj_unassigned), MARGIN + 12f, y, dimPaint)
                 y += 18f
@@ -113,9 +118,9 @@ object ReportGenerator {
                         y,
                         dimPaint,
                     )
-                    y += 14f
+                    y += 13f
                 }
-                y += 6f
+                y += 5f
                 // And then as a picture of itself: the coats pulled apart the way a system
                 // datasheet draws them, so a client sees the floor rather than a list of bags.
                 val stack = buildUp(coats, room.areaM2) { it.title }
@@ -157,7 +162,7 @@ object ReportGenerator {
             }
         }
         newPageIfNeeded(20f)
-        canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 10f, bold = true))
+        canvas.drawText(context.getString(R.string.report_total_material, quantityFromGrams(totalGrams).text), MARGIN, y, textPaint(size = 11f, bold = true))
         y += 26f
 
         // What was planned is above. This is what went down — the receipts written at the mixer,
@@ -189,9 +194,43 @@ object ReportGenerator {
                 ),
                 MARGIN,
                 y,
-                textPaint(size = 10f, bold = true),
+                textPaint(size = 11f, bold = true),
             )
             y += 26f
+        }
+
+        // The paperwork, named on the report itself: a client reading this is the one who asks
+        // for it, and a link they can follow beats a promise that the sheets exist somewhere.
+        val sheets = products
+            .filter { it.id in usedProductIds }
+            .flatMap { product ->
+                listOfNotNull(
+                    product.safetySheetUrl.takeIf { it.isNotBlank() }
+                        ?.let { Triple(product.name, context.getString(R.string.product_safety_sheet), it) },
+                    product.technicalSheetUrl.takeIf { it.isNotBlank() }
+                        ?.let { Triple(product.name, context.getString(R.string.product_technical_sheet), it) },
+                )
+            }
+        if (sheets.isNotEmpty()) {
+            newPageIfNeeded(24f)
+            canvas.drawText(context.getString(R.string.prj_sheets), MARGIN, y, titlePaint)
+            y += 18f
+            sheets.forEach { (name, kind, value) ->
+                newPageIfNeeded(15f)
+                val where = if (value.startsWith("file://")) {
+                    context.getString(R.string.report_sheet_on_file)
+                } else {
+                    value
+                }
+                canvas.drawText(
+                    fitText("$name — $kind: $where", dimPaint, PAGE_WIDTH - 2 * MARGIN),
+                    MARGIN,
+                    y,
+                    dimPaint,
+                )
+                y += 13f
+            }
+            y += 13f
         }
 
         newPageIfNeeded(24f)
@@ -268,8 +307,9 @@ object ReportGenerator {
         // size of its bounds, so asking for it at 34pt put a 34px image in the PDF: the logo
         // came out visibly chewed while the text next to it, which PdfDocument records as real
         // text, stayed sharp. drawPath is recorded as vector art and stays sharp at any zoom.
-        val logoHeight = 34f
-        val logoTop = 30f
+        // Smaller than it was: the lockup is a letterhead, not the subject of the page.
+        val logoHeight = 26f
+        val logoTop = 28f
         var cursorX = MARGIN
 
         val badgeW = context.resources.getInteger(R.integer.conwic_badge_viewport_w).toFloat()
@@ -294,21 +334,21 @@ object ReportGenerator {
             Color.parseColor("#262322"), evenOdd = true,
         )
 
-        val titlePaint = textPaint(size = 18f, bold = true)
-        canvas.drawText(project.name, MARGIN, 104f, titlePaint)
+        val titlePaint = textPaint(size = 14f, bold = true)
+        canvas.drawText(project.name, MARGIN, 78f, titlePaint)
 
-        val datePaint = textPaint(size = 9f, bold = false, colorHex = "#6C6459")
+        val datePaint = textPaint(size = 8.5f, bold = false, colorHex = "#6C6459")
         canvas.drawText(
-            context.getString(R.string.report_subtitle, java.time.LocalDate.now().toString()),
+            context.getString(R.string.report_subtitle, formatDueDate(java.time.LocalDate.now())),
             MARGIN,
-            120f,
+            92f,
             datePaint,
         )
 
         val rulePaint = Paint().apply { color = Color.parseColor("#8A5A2E") }
-        canvas.drawRect(MARGIN, 132f, PAGE_WIDTH - MARGIN, 134f, rulePaint)
+        canvas.drawRect(MARGIN, 102f, PAGE_WIDTH - MARGIN, 103.5f, rulePaint)
 
-        return 160f
+        return 126f
     }
 
     private fun textPaint(size: Float, bold: Boolean, colorHex: String = "#262322"): Paint = Paint().apply {
@@ -327,7 +367,7 @@ object ReportGenerator {
             val candidate = if (line.isEmpty()) word else "$line $word"
             if (paint.measureText(candidate) > maxWidth && line.isNotEmpty()) {
                 canvas.drawText(line.toString(), x, y, paint)
-                y += 14f
+                y += 15f
                 line = StringBuilder(word)
             } else {
                 line = StringBuilder(candidate)
@@ -335,7 +375,7 @@ object ReportGenerator {
         }
         if (line.isNotEmpty()) {
             canvas.drawText(line.toString(), x, y, paint)
-            y += 14f
+            y += 15f
         }
         return y
     }

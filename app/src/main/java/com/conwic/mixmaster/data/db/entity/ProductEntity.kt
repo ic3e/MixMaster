@@ -62,6 +62,15 @@ data class ProductEntity(
     @ColumnInfo(defaultValue = "bag") val packageType: String = "bag",
     /** kg per litre, for turning a weight into the litres a canister is sold in. 0 = unknown. */
     @ColumnInfo(defaultValue = "0") val densityKgPerL: Double = 0.0,
+    /**
+     * The safety data sheet and the technical data sheet for this item.
+     *
+     * Each holds either a link the manufacturer publishes or a `file://` URI of a PDF copied
+     * into the app — a site has no signal half the time, and a client asking for the safety
+     * sheets is not going to wait for a supplier's website to come up.
+     */
+    @ColumnInfo(defaultValue = "") val safetySheetUrl: String = "",
+    @ColumnInfo(defaultValue = "") val technicalSheetUrl: String = "",
 )
 
 @Entity(

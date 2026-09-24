@@ -8,6 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import com.conwic.mixmaster.data.docs.SheetStore
+import com.conwic.mixmaster.ui.components.tappableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +56,22 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
         factory = viewModelFactory { initializer { AddEditProductViewModel(container.productRepository, productId) } },
     )
     val state by viewModel.formState.collectAsState()
+    val context = LocalContext.current
+    // Which sheet the picker was opened for — the same picker serves both.
+    var pickingSafety by remember { mutableStateOf(true) }
+    var attachFailed by remember { mutableStateOf(false) }
+    val failedMessage = stringResource(R.string.product_sheet_failed)
+    val sheetPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            viewModel.attachSheet(
+                context = context,
+                source = uri,
+                name = uri.lastPathSegment?.substringAfterLast('/').orEmpty(),
+                safety = pickingSafety,
+                onFailed = { attachFailed = true },
+            )
+        }
+    }
     if (!state.isLoaded) return
 
     LazyColumn(
@@ -141,6 +167,49 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             }
         }
 
+        item { SectionLabel(text = stringResource(R.string.product_sheets)) }
+
+        item {
+            CardFlat {
+                Text(
+                    text = stringResource(R.string.product_sheets_explain),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                SheetField(
+                    label = stringResource(R.string.product_safety_sheet),
+                    value = state.safetySheet,
+                    onValueChange = viewModel::setSafetySheet,
+                    onAttach = {
+                        pickingSafety = true
+                        attachFailed = false
+                        sheetPicker.launch(arrayOf("application/pdf", "*/*"))
+                    },
+                    onClear = { viewModel.clearSheet(context, safety = true) },
+                )
+                SheetField(
+                    label = stringResource(R.string.product_technical_sheet),
+                    value = state.technicalSheet,
+                    onValueChange = viewModel::setTechnicalSheet,
+                    onAttach = {
+                        pickingSafety = false
+                        attachFailed = false
+                        sheetPicker.launch(arrayOf("application/pdf", "*/*"))
+                    },
+                    onClear = { viewModel.clearSheet(context, safety = false) },
+                    modifier = Modifier.padding(top = 14.dp),
+                )
+                if (attachFailed) {
+                    Text(
+                        text = failedMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        }
+
         item { SectionLabel(text = stringResource(R.string.product_notes)) }
 
         item {
@@ -160,6 +229,57 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                 enabled = state.isValid,
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+    }
+}
+
+/**
+ * One sheet: a link typed in, or a PDF taken off the phone.
+ *
+ * Both in one row because they are the same thing to whoever is looking for it later — the
+ * difference only matters when there is no signal, which is when the file wins.
+ */
+@Composable
+private fun SheetField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onAttach: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val stored = SheetStore.isStored(value)
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (stored) {
+            // A file has no address worth typing over, so it reads as what it is.
+            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = SheetStore.label(value),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        } else {
+            FormTextField(value = value, onValueChange = onValueChange, label = label)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = stringResource(if (stored) R.string.product_sheet_replace else R.string.product_sheet_attach),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.tappableText(onClick = onAttach),
+            )
+            if (value.isNotBlank()) {
+                Text(
+                    text = stringResource(R.string.action_clear),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.tappableText(onClick = onClear),
+                )
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -51,6 +54,7 @@ import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
 import com.conwic.mixmaster.data.db.entity.UsedAmount
+import com.conwic.mixmaster.data.docs.SheetStore
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.photos.PhotoStore
 import com.conwic.mixmaster.data.report.PickupLine
@@ -1208,6 +1212,22 @@ fun MaterialsTab(
     val laidRooms = data.rooms.filter { roomCoats[it.id].orEmpty().isNotEmpty() }
     var pickupOpen by remember { mutableStateOf(false) }
     var removingMix by remember { mutableStateOf<RecordedMix?>(null) }
+    var sheetsOpen by remember { mutableStateOf(false) }
+    // The paperwork behind what is going on this floor: the safety and technical sheets of
+    // every product the job books, whether they are links or files carried in the app.
+    val jobSheets = remember(materials, data.products) {
+        val used = materials.map { it.productId }.toSet()
+        data.products
+            .filter { it.id in used }
+            .flatMap { product ->
+                listOfNotNull(
+                    product.safetySheetUrl.takeIf { it.isNotBlank() }
+                        ?.let { JobSheet(product.name, R.string.product_safety_sheet, it) },
+                    product.technicalSheetUrl.takeIf { it.isNotBlank() }
+                        ?.let { JobSheet(product.name, R.string.product_technical_sheet, it) },
+                )
+            }
+    }
     // Every receipt added up per material. By product where there is one, so the same powder
     // mixed under two recipes is one line.
     val mixedTotals = remember(mixes) {
@@ -1417,6 +1437,32 @@ fun MaterialsTab(
             }
         }
 
+        // What a client asks for when the floor is down, and what the crew wants before it goes
+        // down. Kept on the job rather than left to be hunted for product by product.
+        item { SectionLabel(text = stringResource(R.string.prj_sheets)) }
+        item {
+            CardFlat {
+                Text(
+                    text = if (jobSheets.isEmpty()) {
+                        stringResource(R.string.prj_sheets_none)
+                    } else {
+                        pluralStringResource(R.plurals.prj_sheets_count, jobSheets.size, jobSheets.size)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (jobSheets.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.prj_sheets_pick),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp).tappableText { sheetsOpen = true },
+                    )
+                }
+            }
+        }
+
         item { SectionLabel(text = stringResource(R.string.prj_materials_logged)) }
         if (laidRooms.isEmpty()) {
             item { Text(text = stringResource(R.string.prj_no_assigned), style = MaterialTheme.typography.bodyMedium) }
@@ -1463,6 +1509,15 @@ fun MaterialsTab(
         )
     }
 
+    if (sheetsOpen) {
+        JobSheetsSheet(
+            projectName = data.project?.name.orEmpty(),
+            sheets = jobSheets,
+            screenContext = screenContext,
+            onDismiss = { sheetsOpen = false },
+        )
+    }
+
     if (pickupOpen) {
         PickupSheet(
             projectName = data.project?.name.orEmpty(),
@@ -1481,6 +1536,139 @@ fun MaterialsTab(
  * that is what the mix will actually take, and the list can be sent to whoever is loading.
  */
 @Composable
+/** One sheet behind one product on the job. */
+data class JobSheet(val productName: String, @StringRes val kindRes: Int, val value: String)
+
+/**
+ * Picks which safety and technical sheets go out, and sends them.
+ *
+ * A client asks for "the safety sheets", not for one — and it is never all of them either, so
+ * they are ticked. Files go as attachments; links go as text in the same message, because a
+ * sheet held as a link cannot be attached to anything.
+ */
+@Composable
+private fun JobSheetsSheet(
+    projectName: String,
+    sheets: List<JobSheet>,
+    screenContext: android.content.Context,
+    onDismiss: () -> Unit,
+) {
+    // Everything ticked to begin with: asking for all of them is the common case, and clearing
+    // two boxes is less work than ticking six.
+    val picked = remember(sheets) { mutableStateListOf<Int>().apply { addAll(sheets.indices) } }
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(text = stringResource(R.string.prj_sheets_title), style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = stringResource(R.string.prj_sheets_sub),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+            sheets.forEachIndexed { index, sheet ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable {
+                            if (index in picked) picked.remove(index) else picked.add(index)
+                        }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = index in picked,
+                        onCheckedChange = {
+                            if (index in picked) picked.remove(index) else picked.add(index)
+                        },
+                    )
+                    Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+                        Text(text = sheet.productName, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(sheet.kindRes) + " · " +
+                                if (SheetStore.isStored(sheet.value)) {
+                                    stringResource(R.string.prj_sheets_file)
+                                } else {
+                                    stringResource(R.string.prj_sheets_link)
+                                },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.action_open),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.tappableText { SheetStore.open(screenContext, sheet.value) },
+                    )
+                }
+            }
+            PrimaryButton(
+                text = stringResource(R.string.prj_sheets_send),
+                onClick = {
+                    val chosen = picked.sorted().mapNotNull { sheets.getOrNull(it) }
+                    sheetsShareIntent(screenContext, projectName, chosen)?.let { intent ->
+                        runCatching { screenContext.startActivity(intent) }
+                    }
+                    onDismiss()
+                },
+                enabled = picked.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            )
+        }
+    }
+}
+
+/**
+ * The message the sheets go out in.
+ *
+ * Files are attached and links are written into the body, so one send carries both — a client
+ * gets a single email with the PDFs the app holds and the addresses of the ones it doesn't.
+ */
+private fun sheetsShareIntent(
+    context: android.content.Context,
+    projectName: String,
+    sheets: List<JobSheet>,
+): Intent? {
+    if (sheets.isEmpty()) return null
+    val files = ArrayList<Uri>()
+    val lines = mutableListOf<String>()
+    sheets.forEach { sheet ->
+        val kind = context.getString(sheet.kindRes)
+        if (SheetStore.isStored(sheet.value)) {
+            SheetStore.shareable(context, sheet.value)?.let { files.add(it) }
+                ?: lines.add("${sheet.productName} — $kind")
+        } else {
+            lines.add("${sheet.productName} — $kind: ${sheet.value}")
+        }
+    }
+    val subject = context.getString(R.string.prj_sheets_subject, projectName)
+    val body = lines.joinToString("\n")
+    return when {
+        files.isEmpty() -> Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+        }
+        else -> Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+            type = "application/pdf"
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, files)
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            if (body.isNotBlank()) putExtra(Intent.EXTRA_TEXT, body)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }.let { Intent.createChooser(it, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+}
+
 private fun PickupSheet(
     projectName: String,
     materials: List<ProjectMaterial>,

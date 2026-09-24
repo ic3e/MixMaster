@@ -1,6 +1,9 @@
 package com.conwic.mixmaster.ui.products
 
 import androidx.annotation.StringRes
+import android.content.Context
+import android.net.Uri
+import com.conwic.mixmaster.data.docs.SheetStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.R
@@ -35,6 +38,9 @@ data class ProductFormState(
     val packType: String = "bag",
     val densityText: String = "",
     val datasheetUrl: String = "",
+    /** A link the manufacturer publishes, or a file:// URI of a PDF copied into the app. */
+    val safetySheet: String = "",
+    val technicalSheet: String = "",
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
 ) {
@@ -79,6 +85,8 @@ class AddEditProductViewModel(
                         packType = existing.packageType,
                         densityText = if (existing.densityKgPerL > 0.0) formatDecimal(existing.densityKgPerL, 3) else "",
                         datasheetUrl = existing.datasheetUrl,
+                        safetySheet = existing.safetySheetUrl,
+                        technicalSheet = existing.technicalSheetUrl,
                     )
                 }
             }
@@ -99,6 +107,38 @@ class AddEditProductViewModel(
     fun setPackType(value: String) = _formState.update { it.copy(packType = value) }
     fun setDensity(value: String) = _formState.update { it.copy(densityText = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
+
+    fun setSafetySheet(value: String) = _formState.update { it.copy(safetySheet = value) }
+
+    fun setTechnicalSheet(value: String) = _formState.update { it.copy(technicalSheet = value) }
+
+    /**
+     * Takes a sheet off, and the copy the app made of it with it.
+     *
+     * Done here rather than on save: a file dropped and then never saved would otherwise sit in
+     * the app's folder for the life of the install.
+     */
+    fun clearSheet(context: Context, safety: Boolean) {
+        val current = if (safety) _formState.value.safetySheet else _formState.value.technicalSheet
+        _formState.update { if (safety) it.copy(safetySheet = "") else it.copy(technicalSheet = "") }
+        if (SheetStore.isStored(current)) {
+            viewModelScope.launch { SheetStore.forget(context, current) }
+        }
+    }
+
+    /** Copies a picked PDF in and hangs it on the product. */
+    fun attachSheet(context: Context, source: Uri, name: String, safety: Boolean, onFailed: () -> Unit) {
+        viewModelScope.launch {
+            val stored = SheetStore.keep(context, source, name)
+            if (stored == null) {
+                onFailed()
+            } else {
+                _formState.update {
+                    if (safety) it.copy(safetySheet = stored) else it.copy(technicalSheet = stored)
+                }
+            }
+        }
+    }
 
     fun save(onSaved: () -> Unit) {
         val state = _formState.value
@@ -125,6 +165,8 @@ class AddEditProductViewModel(
                     packageUnit = state.packUnit,
                     packageType = state.packType,
                     densityKgPerL = state.densityText.toNumberOr(0.0),
+                    safetySheetUrl = state.safetySheet.trim(),
+                    technicalSheetUrl = state.technicalSheet.trim(),
                 ),
             )
             onSaved()

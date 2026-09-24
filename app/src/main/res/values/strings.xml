@@ -274,6 +274,30 @@
     <string name="product_per_what_hint">e.g. per coat, per mm</string>
     <string name="product_notes">Notes</string>
     <string name="product_datasheet_link">Datasheet link (optional)</string>
+    <!-- The paperwork behind a bought item: the safety sheet and the technical sheet. -->
+    <string name="product_sheets">Sheets</string>
+    <string name="product_sheets_explain">A link the manufacturer publishes, or the PDF itself — a shed has no signal, and a client asking for the safety sheet is standing in front of you.</string>
+    <string name="product_safety_sheet">Safety sheet</string>
+    <string name="product_technical_sheet">Technical sheet</string>
+    <string name="product_sheet_attach">Attach a PDF</string>
+    <string name="product_sheet_replace">Replace the PDF</string>
+    <string name="product_sheet_failed">Couldn\'t copy that file in — try again, or pick a different one.</string>
+    <string name="product_sheet_none">Not set</string>
+    <string name="product_sheet_open">Open ↗</string>
+    <string name="prj_sheets">Safety &amp; technical sheets</string>
+    <string name="prj_sheets_none">No sheets on the products this job uses yet. Add them under Products.</string>
+    <plurals name="prj_sheets_count">
+        <item quantity="one">%d sheet behind what goes on this floor</item>
+        <item quantity="other">%d sheets behind what goes on this floor</item>
+    </plurals>
+    <string name="prj_sheets_pick">Pick and send ↗</string>
+    <string name="prj_sheets_title">Sheets to send</string>
+    <string name="prj_sheets_sub">Files go as attachments, links go in the message.</string>
+    <string name="prj_sheets_file">PDF in the app</string>
+    <string name="prj_sheets_link">Link</string>
+    <string name="prj_sheets_send">Send the sheets</string>
+    <string name="prj_sheets_subject">%1$s — safety and technical sheets</string>
+    <string name="report_sheet_on_file">held in the app, sent on request</string>
     <string name="product_unit">Unit</string>
     <string name="product_add_part">+ Add another part</string>
     <string name="product_save">Save product</string>

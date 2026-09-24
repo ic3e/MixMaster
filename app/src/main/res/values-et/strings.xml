@@ -255,6 +255,30 @@
     <string name="product_per_what_hint">nt kihi kohta, mm kohta</string>
     <string name="product_notes">Märkmed</string>
     <string name="product_datasheet_link">Tehnilise lehe link (valikuline)</string>
+    <!-- Toote taga olev dokumentatsioon: ohutuskaart ja tehniline kaart. -->
+    <string name="product_sheets">Kaardid</string>
+    <string name="product_sheets_explain">Kas tootja avaldatud link või PDF ise — laos ei ole levi ja klient, kes ohutuskaarti küsib, seisab su ees.</string>
+    <string name="product_safety_sheet">Ohutuskaart</string>
+    <string name="product_technical_sheet">Tehniline kaart</string>
+    <string name="product_sheet_attach">Lisa PDF</string>
+    <string name="product_sheet_replace">Asenda PDF</string>
+    <string name="product_sheet_failed">Faili ei õnnestunud kopeerida — proovi uuesti või vali teine.</string>
+    <string name="product_sheet_none">Määramata</string>
+    <string name="product_sheet_open">Ava ↗</string>
+    <string name="prj_sheets">Ohutus- ja tehnilised kaardid</string>
+    <string name="prj_sheets_none">Selle töö toodetel ei ole veel kaarte. Lisa need toodete alt.</string>
+    <plurals name="prj_sheets_count">
+        <item quantity="one">%d kaart selle põranda materjalide kohta</item>
+        <item quantity="other">%d kaarti selle põranda materjalide kohta</item>
+    </plurals>
+    <string name="prj_sheets_pick">Vali ja saada ↗</string>
+    <string name="prj_sheets_title">Saadetavad kaardid</string>
+    <string name="prj_sheets_sub">Failid lähevad manusena, lingid kirja sisse.</string>
+    <string name="prj_sheets_file">PDF rakenduses</string>
+    <string name="prj_sheets_link">Link</string>
+    <string name="prj_sheets_send">Saada kaardid</string>
+    <string name="prj_sheets_subject">%1$s — ohutus- ja tehnilised kaardid</string>
+    <string name="report_sheet_on_file">hoitakse rakenduses, saadame soovi korral</string>
     <string name="product_unit">Ühik</string>
     <string name="product_add_part">+ Lisa veel üks osa</string>
     <string name="product_save">Salvesta toode</string>

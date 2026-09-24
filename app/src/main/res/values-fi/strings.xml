@@ -255,6 +255,30 @@
     <string name="product_per_what_hint">esim. kerrosta kohti, millimetriä kohti</string>
     <string name="product_notes">Muistiinpanot</string>
     <string name="product_datasheet_link">Tuotetiedon linkki (valinnainen)</string>
+    <!-- Tuotteen takana oleva dokumentaatio: käyttöturvallisuustiedote ja tekninen tiedote. -->
+    <string name="product_sheets">Tiedotteet</string>
+    <string name="product_sheets_explain">Joko valmistajan julkaisema linkki tai itse PDF — varastossa ei ole kenttää, ja tiedotetta kysyvä asiakas seisoo edessäsi.</string>
+    <string name="product_safety_sheet">Käyttöturvallisuustiedote</string>
+    <string name="product_technical_sheet">Tekninen tiedote</string>
+    <string name="product_sheet_attach">Liitä PDF</string>
+    <string name="product_sheet_replace">Korvaa PDF</string>
+    <string name="product_sheet_failed">Tiedostoa ei saatu kopioitua — yritä uudelleen tai valitse toinen.</string>
+    <string name="product_sheet_none">Ei asetettu</string>
+    <string name="product_sheet_open">Avaa ↗</string>
+    <string name="prj_sheets">Turvallisuus- ja tekniset tiedotteet</string>
+    <string name="prj_sheets_none">Tämän työn tuotteilla ei ole vielä tiedotteita. Lisää ne Tuotteet-osiossa.</string>
+    <plurals name="prj_sheets_count">
+        <item quantity="one">%d tiedote tämän lattian materiaaleista</item>
+        <item quantity="other">%d tiedotetta tämän lattian materiaaleista</item>
+    </plurals>
+    <string name="prj_sheets_pick">Valitse ja lähetä ↗</string>
+    <string name="prj_sheets_title">Lähetettävät tiedotteet</string>
+    <string name="prj_sheets_sub">Tiedostot menevät liitteinä, linkit viestin sisään.</string>
+    <string name="prj_sheets_file">PDF sovelluksessa</string>
+    <string name="prj_sheets_link">Linkki</string>
+    <string name="prj_sheets_send">Lähetä tiedotteet</string>
+    <string name="prj_sheets_subject">%1$s — turvallisuus- ja tekniset tiedotteet</string>
+    <string name="report_sheet_on_file">säilytetään sovelluksessa, lähetetään pyynnöstä</string>
     <string name="product_unit">Yksikkö</string>
     <string name="product_add_part">+ Lisää toinen osa</string>
     <string name="product_save">Tallenna tuote</string>
