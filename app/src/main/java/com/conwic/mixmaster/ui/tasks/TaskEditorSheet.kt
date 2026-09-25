@@ -42,6 +42,7 @@ import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ConfirmDialog
+import com.conwic.mixmaster.ui.components.FieldLabel
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.PickerField
@@ -160,10 +161,13 @@ fun TaskEditorSheet(
                 }
             }
 
+            // Not a FormTextField: the sheet opens with the keyboard already up on this one,
+            // and the focus request has to land on the field itself rather than on a column
+            // around it.
+            FieldLabel(text = stringResource(R.string.task_what))
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text(stringResource(R.string.task_what)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             )

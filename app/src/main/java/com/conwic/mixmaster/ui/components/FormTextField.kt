@@ -10,9 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -58,45 +61,73 @@ fun FormTextField(
     }
 
     val supporting = problem ?: hint
-    OutlinedTextField(
-        value = field,
-        onValueChange = {
-            field = it
-            onValueChange(it.text)
-        },
-        label = { Text(label) },
-        singleLine = singleLine,
-        isError = problem != null,
-        trailingIcon = if (trailing != null) {
-            {
-                Text(
-                    text = "▾",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(end = 12.dp).tappableText(onClick = trailing),
-                )
-            }
-        } else {
-            null
-        },
-        supportingText = if (supporting != null) {
-            { Text(supporting) }
-        } else {
-            null
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = FieldShape,
-        // Filled, not just outlined. On the cream page a hairline outline made every field blend
-        // into the background and into the text around it; a solid fill separates them.
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface,
-            errorContainerColor = MaterialTheme.colorScheme.surface,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        ),
-        modifier = modifier,
+    Column(modifier = modifier) {
+        FieldLabel(text = label, error = problem != null)
+        OutlinedTextField(
+            value = field,
+            onValueChange = {
+                field = it
+                onValueChange(it.text)
+            },
+            singleLine = singleLine,
+            isError = problem != null,
+            trailingIcon = if (trailing != null) {
+                {
+                    Text(
+                        text = "▾",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 12.dp).tappableText(onClick = trailing),
+                    )
+                }
+            } else {
+                null
+            },
+            supportingText = if (supporting != null) {
+                { Text(supporting) }
+            } else {
+                null
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            shape = FieldShape,
+            // Filled, not just outlined. On the cream page a hairline outline made every field
+            // blend into the background and into the text around it; a solid fill separates them.
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                errorContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * The word above a field, rather than the one Material floats across its top border.
+ *
+ * The floating one is what made the fields look like they had notes stuck to them. Material
+ * hangs the label half in and half out of the field and cuts the border away behind it, so on
+ * this app's cream page a small square of page colour sits inside the white fill — a pale patch
+ * with hard edges, which is exactly what a sticker looks like. Set above the field, the field
+ * stays one unbroken rounded shape and the word plainly belongs to it.
+ *
+ * Shared by every field in the app so that a form, a sheet and a picker all name their fields
+ * the same way and at the same height.
+ */
+@Composable
+fun FieldLabel(text: String, modifier: Modifier = Modifier, error: Boolean = false) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        // A shade over the small end of the scale: this is read in a van, in daylight, by
+        // somebody who is not looking for it.
+        fontSize = 11.5.sp,
+        color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        // Off the very edge, so it stands over the field's own text rather than over its corner.
+        modifier = modifier.padding(start = 4.dp, bottom = 5.dp),
     )
 }
 

@@ -33,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -549,7 +548,13 @@ fun LayoutTab(
                 // together and read as misaligned.
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedTextField(value = noteText, onValueChange = { noteText = it }, label = { Text(stringResource(R.string.prj_add_note)) }, modifier = Modifier.weight(1f))
+                FormTextField(
+                    value = noteText,
+                    onValueChange = { noteText = it },
+                    label = stringResource(R.string.prj_add_note),
+                    singleLine = false,
+                    modifier = Modifier.weight(1f),
+                )
                 // Resolved above the callback — onClick is never composable.
                 val employerName = stringResource(R.string.prj_you_employer)
                 val workerName = stringResource(R.string.prj_you_worker)
@@ -836,7 +841,13 @@ private fun FloorSheet(
                 onRemove = onRemove,
                 removeDescription = stringResource(R.string.prj_remove_floor),
             )
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_floor_name)) }, modifier = Modifier.fillMaxWidth())
+            FormTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = stringResource(R.string.prj_floor_name),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
             PrimaryButton(
                 text = stringResource(if (isNew) R.string.prj_add_floor_action else R.string.action_save),
                 onClick = { onSave(name) },
@@ -874,8 +885,20 @@ private fun RoomSheet(
                 onRemove = onRemove,
                 removeDescription = stringResource(R.string.prj_remove_room),
             )
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.prj_room_name)) }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = area, onValueChange = { area = it }, label = { Text(stringResource(R.string.prj_room_area)) }, modifier = Modifier.fillMaxWidth())
+            FormTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = stringResource(R.string.prj_room_name),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FormTextField(
+                value = area,
+                onValueChange = { area = it },
+                label = stringResource(R.string.prj_room_area),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
             PrimaryButton(
                 text = stringResource(if (isNew) R.string.prj_add_room_action else R.string.action_save),
                 onClick = { onSave(name, area.toNumberOrNull() ?: 0.0) },
@@ -916,16 +939,18 @@ private fun EditCoatSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedTextField(
+            FormTextField(
                 value = dose,
                 onValueChange = { dose = it },
-                label = { Text(stringResource(R.string.prj_coat_coverage)) },
+                label = stringResource(R.string.prj_coat_coverage),
+                singleLine = false,
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            FormTextField(
                 value = quantity,
                 onValueChange = { quantity = it },
-                label = { Text(stringResource(R.string.calc_coats)) },
+                label = stringResource(R.string.calc_coats),
+                singleLine = false,
                 modifier = Modifier.fillMaxWidth(),
             )
             PrimaryButton(

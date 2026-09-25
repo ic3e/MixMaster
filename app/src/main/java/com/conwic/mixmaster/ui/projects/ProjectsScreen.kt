@@ -21,7 +21,6 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
@@ -41,6 +40,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -213,25 +213,22 @@ private fun NewProjectSheet(onDismiss: () -> Unit, onCreate: (String, String, St
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(text = stringResource(R.string.projects_new), style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(
+            FormTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.project_name)) },
-                singleLine = true,
+                label = stringResource(R.string.project_name),
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            FormTextField(
                 value = client,
                 onValueChange = { client = it },
-                label = { Text(stringResource(R.string.project_client_optional)) },
-                singleLine = true,
+                label = stringResource(R.string.project_client_optional),
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            FormTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = { Text(stringResource(R.string.project_site_optional)) },
-                singleLine = true,
+                label = stringResource(R.string.project_site_optional),
                 modifier = Modifier.fillMaxWidth(),
             )
             PrimaryButton(

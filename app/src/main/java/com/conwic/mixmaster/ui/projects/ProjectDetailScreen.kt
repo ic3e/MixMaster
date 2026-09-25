@@ -41,7 +41,6 @@ import java.time.ZoneOffset
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,6 +61,7 @@ import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.data.report.ReportGenerator
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
+import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -361,10 +361,34 @@ private fun EditProjectSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(text = stringResource(R.string.prj_edit), style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.project_name)) }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = client, onValueChange = { client = it }, label = { Text(stringResource(R.string.prj_client)) }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text(stringResource(R.string.prj_site_address)) }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = scope, onValueChange = { scope = it }, label = { Text(stringResource(R.string.prj_scope)) }, modifier = Modifier.fillMaxWidth())
+            FormTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = stringResource(R.string.project_name),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FormTextField(
+                value = client,
+                onValueChange = { client = it },
+                label = stringResource(R.string.prj_client),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FormTextField(
+                value = address,
+                onValueChange = { address = it },
+                label = stringResource(R.string.prj_site_address),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FormTextField(
+                value = scope,
+                onValueChange = { scope = it },
+                label = stringResource(R.string.prj_scope),
+                singleLine = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             SectionLabel(text = stringResource(R.string.prj_status))
             ChipRow(

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -33,6 +32,7 @@ import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.components.ChipOption
 import com.conwic.mixmaster.ui.components.ConfirmDialog
+import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -85,19 +85,17 @@ fun TeamMemberSheet(
                     }
                 }
             }
-            OutlinedTextField(
+            FormTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.crew_name)) },
-                singleLine = true,
+                label = stringResource(R.string.crew_name),
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            FormTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text(stringResource(R.string.crew_contact)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Email),
+                label = stringResource(R.string.crew_contact),
+                keyboardType = KeyboardType.Email,
                 modifier = Modifier.fillMaxWidth(),
             )
 

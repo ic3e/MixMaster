@@ -121,7 +121,9 @@ fun ProductsScreen(navController: NavHostController) {
                 OutlinedTextField(
                     value = state.search,
                     onValueChange = viewModel::setSearch,
-                    label = { Text(stringResource(R.string.products_search)) },
+                    // A placeholder rather than a label: there is nothing to name here, and a
+                    // word floating on the border is what made the fields look stickered.
+                    placeholder = { Text(stringResource(R.string.products_search)) },
                     singleLine = true,
                     trailingIcon = {
                         if (state.search.isNotBlank()) {
