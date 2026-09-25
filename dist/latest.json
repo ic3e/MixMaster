@@ -1,8 +1,8 @@
 {
-  "versionCode": 122,
-  "versionName": "1.0.122",
-  "apk": "MixMaster_1.0.122.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.122.apk",
-  "sizeBytes": 20549779,
-  "notes": "Call the calculator's project button what it does"
+  "versionCode": 123,
+  "versionName": "1.0.123",
+  "apk": "MixMaster_1.0.123.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.123.apk",
+  "sizeBytes": 20549775,
+  "notes": "Take the field names off the borders"
 }
