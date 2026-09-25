@@ -37,7 +37,7 @@ fun SegmentedTabs(titles: List<String>, selectedIndex: Int, onSelect: (Int) -> U
                     .clip(ChipShape)
                     .background(if (selected) Charcoal else Color.Transparent)
                     .clickable { onSelect(index) }
-                    .padding(vertical = 9.dp),
+                    .padding(vertical = byHeight(tight = 6.dp, roomy = 9.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

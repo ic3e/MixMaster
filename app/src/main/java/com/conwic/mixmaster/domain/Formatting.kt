@@ -20,8 +20,15 @@ fun formatDecimal(value: Double, maxDecimals: Int): String {
     return if (fraction.isEmpty()) "$sign$whole" else "$sign$whole.$fraction"
 }
 
-/** Material quantities are shown to the nearest gram — a finer figure is noise on site. */
-fun formatKg(grams: Double): String = formatDecimal(grams / 1000.0, 3)
+/**
+ * Kilos to a tenth.
+ *
+ * They were shown to the gram, which on a total is three digits of noise: nobody orders
+ * 376.381 kg, and nobody can read it off a card at a glance either. A tenth of a kilo is the
+ * finest figure worth printing on a number that size, and anything under a kilo is given in
+ * grams to a tenth of a gram, where the precision belongs.
+ */
+fun formatKg(grams: Double): String = formatDecimal(grams / 1000.0, 1)
 
 fun formatArea(squareMetres: Double): String = formatDecimal(squareMetres, 2)
 
@@ -59,7 +66,6 @@ fun quantityFromGrams(grams: Double): Quantity {
     return if (abs(scaled) < 1000.0) {
         Quantity(formatDecimal(scaled, 1), "g")
     } else {
-        // Kilos stay at gram precision — that's what a site scale reads out.
         Quantity(formatKg(grams), "kg")
     }
 }

@@ -26,8 +26,11 @@ import com.conwic.mixmaster.ui.theme.TextOnDark
 @Composable
 fun CardFlat(
     modifier: Modifier = Modifier,
-    /** Drop this when the rows inside do their own insetting, so everything still lines up. */
-    contentPadding: Dp = 16.dp,
+    /**
+     * Drop this when the rows inside do their own insetting, so everything still lines up.
+     * Left alone, it is the card's usual room — and a little less of it on a short window.
+     */
+    contentPadding: Dp? = null,
     /**
      * A coloured band down the left edge, for a card whose state has to be seen from a scroll
      * rather than read. Null for the ordinary card, which is most of them — a page where every
@@ -53,7 +56,7 @@ fun CardFlat(
                 },
             )
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CardShape)
-            .padding(contentPadding)
+            .padding(contentPadding ?: byHeight(tight = 11.dp, roomy = 16.dp))
             .then(if (edge == null) Modifier else Modifier.padding(start = 5.dp)),
         content = content,
     )
@@ -69,14 +72,14 @@ fun CardFlat(
 @Composable
 fun CardSoft(
     modifier: Modifier = Modifier,
-    contentPadding: Dp = 16.dp,
+    contentPadding: Dp? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant, CardShape)
-            .padding(contentPadding),
+            .padding(contentPadding ?: byHeight(tight = 11.dp, roomy = 16.dp)),
         content = content,
     )
 }
@@ -97,7 +100,7 @@ fun CardAccent(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
         modifier = modifier
             .fillMaxWidth()
             .background(Charcoal, CardShape)
-            .padding(16.dp),
+            .padding(byHeight(tight = 11.dp, roomy = 16.dp)),
         content = content,
     )
 }

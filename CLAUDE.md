@@ -56,7 +56,7 @@ belonged to. It exits non-zero when it finds any. The rest still needs a person:
 - Comments say **why**, not what — usually the bug or the site reality that put the line there.
   Match the density of the file you are in.
 - No hard-coded user-visible text. Formatting lives in `domain/Formatting.kt`: grams show to
-  0.1 g (what the scale on the van reads), kilos to the gram.
+  0.1 g (what the scale on the van reads), kilos to 0.1 kg — three decimals on a total is noise.
 - The user's words are the product's words: coats, batches, bags, the shed. Not "items", "records".
 
 ## Things that already bit us
