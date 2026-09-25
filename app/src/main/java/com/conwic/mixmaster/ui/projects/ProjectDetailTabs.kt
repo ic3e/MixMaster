@@ -85,6 +85,7 @@ import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.CardSoft
 import com.conwic.mixmaster.ui.components.ContentImage
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -1293,7 +1294,9 @@ fun MaterialsTab(
             }
         } else {
             item {
-                CardFlat {
+                // Set back into the page, because this half of the tab is a record of what has
+                // happened. What is still to be fetched from the shed is on white below.
+                CardSoft {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(
                             modifier = Modifier.weight(1f, fill = false),
@@ -1303,7 +1306,7 @@ fun MaterialsTab(
                         )
                         Text(
                             text = quantityFromGrams(mixedGrams).text,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
                         )
                     }
@@ -1327,7 +1330,7 @@ fun MaterialsTab(
                 }
             }
             items(mixes, key = { it.id }) { mix ->
-                CardFlat {
+                CardSoft {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(
                             modifier = Modifier.weight(1f, fill = false),
@@ -1387,7 +1390,12 @@ fun MaterialsTab(
         }
 
         items(materials) { material ->
-            CardFlat {
+            // A red edge on the ones the shed cannot cover, nothing on the ones it can: the
+            // question this list is scrolled for is which lines need an order, and it was
+            // answered by reading three rows of every card down to the last figure.
+            CardFlat(
+                edge = if (material.shortfall > 0.0) MaterialTheme.colorScheme.error else null,
+            ) {
                 ProductIdentity(
                     name = material.name,
                     brand = material.stock.brand,
