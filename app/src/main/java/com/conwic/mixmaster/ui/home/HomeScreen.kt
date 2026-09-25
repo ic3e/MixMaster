@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.crash.CrashLog
+import com.conwic.mixmaster.data.update.AppUpdates
+import com.conwic.mixmaster.data.update.UpdateState
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.domain.formatDecimal
@@ -68,6 +72,7 @@ import com.conwic.mixmaster.ui.tasks.TaskEditorSheet
 import com.conwic.mixmaster.ui.tasks.TaskRow
 import com.conwic.mixmaster.ui.tasks.toDraft
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
 import com.conwic.mixmaster.ui.components.CrashReportCard
@@ -97,6 +102,14 @@ fun HomeScreen(navController: NavHostController) {
 
     // Non-null while the add/edit sheet is open; holds what the sheet starts from.
     var editing by remember { mutableStateOf<TaskDraft?>(null) }
+
+    // Asked here rather than inside the cards, so that a card with nothing to say is left out
+    // of the list altogether instead of standing in it as an empty slot — see the note by the
+    // first of them.
+    val context = LocalContext.current
+    val hasCrashReport = remember(context) { CrashLog.read(context) != null }
+    val updateState by AppUpdates.state.collectAsState()
+    val hasUpdate = updateState is UpdateState.Available || updateState is UpdateState.ReadyToInstall
 
     val alert by viewModel.shortOfMaterial.collectAsState()
     val due by viewModel.dueDeliveries.collectAsState()
@@ -135,12 +148,53 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
 
-        item { CrashReportCard() }
+        // The one thing somebody opens this app to do, right under the morning's line. It used
+        // to sit below three counters and a hole where the alerts would have been, which on a
+        // quiet day was most of a screen of nothing. And it is a button: the card's corners and
+        // a heading at 17pt had it reading as a banner about the calculator rather than as the
+        // way into it.
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(ChipShape)
+                    .background(Charcoal)
+                    .clickable { navController.navigate(Routes.calculator()) }
+                    .padding(horizontal = 18.dp, vertical = 11.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.home_quick_calculate),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = OnAccentCard,
+                    )
+                    Text(
+                        text = stringResource(R.string.home_quick_calculate_sub),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OnAccentCard.copy(alpha = 0.75f),
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = OnAccentCard.copy(alpha = 0.75f),
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+
+        // Each of these draws nothing when it has nothing to say — but an item that draws
+        // nothing is still an item, and the list puts 16dp between it and the next one either
+        // way. Four of them in a row on a quiet morning was 64dp of blank page between the
+        // greeting and the first thing worth reading. Asked out here instead, they are not
+        // added to the list at all.
+        if (hasCrashReport) item { CrashReportCard() }
 
         // Asked before the van is loaded, not after: a job with material assigned that the
         // shelf can't cover is the one thing worth interrupting the morning for.
-        item {
-            if (alert.items.isNotEmpty()) {
+        if (alert.items.isNotEmpty()) {
+            item {
                 CardAccent(
                     modifier = Modifier
                         .clip(CardShape)
@@ -208,7 +262,7 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
 
-        item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
+        if (hasUpdate) item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 
         item {
             // Three cards of one height, whatever the language does to the words: sized to
@@ -241,21 +295,6 @@ fun HomeScreen(navController: NavHostController) {
                     value = "${state.productCount}",
                     onClick = { navController.navigateToTopLevel(Routes.PRODUCTS) },
                 )
-            }
-        }
-
-        item {
-            CardAccent(modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.calculator()) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(R.string.home_quick_calculate), style = MaterialTheme.typography.titleLarge, color = OnAccentCard)
-                        Text(
-                            text = stringResource(R.string.home_quick_calculate_sub),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = OnAccentCard.copy(alpha = 0.85f),
-                        )
-                    }
-                }
             }
         }
 

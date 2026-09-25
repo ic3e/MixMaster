@@ -39,5 +39,3 @@ val PillHoldBg = BgSoft
 val PillHoldText = TextFaint
 val PillDoneBg = OkDim
 val PillDoneText = Ok
-val PillBrandBg = Charcoal
-val PillBrandText = Color(0xFFFFFFFF)

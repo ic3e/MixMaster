@@ -71,7 +71,6 @@ import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.domain.quantityFromLitres
 import com.conwic.mixmaster.domain.quantityOf
 import com.conwic.mixmaster.ui.LocalAppContainer
-import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -82,6 +81,7 @@ import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.Stepper
@@ -252,12 +252,11 @@ fun CalculatorScreen(
         if (product != null) {
             item {
                 CardFlat {
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        if (product.brand.isNotBlank()) BrandPill(text = product.brand)
-                        Text(
-                            text = product.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                        ProductIdentity(
+                            name = product.name,
+                            brand = product.brand,
+                            modifier = Modifier.weight(1f).padding(end = 10.dp),
                         )
                         RatioBadge(text = product.ratioLabel)
                     }

@@ -45,7 +45,6 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.ui.LocalAppContainer
-import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
@@ -53,6 +52,7 @@ import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.CardShape
@@ -169,16 +169,11 @@ fun WarehouseScreen(navController: NavHostController) {
                 // size no other list uses, which read as a different app; it also left a long
                 // name and the amount fighting for the same line, and they met in the middle.
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
-                        if (item.brand.isNotBlank()) {
-                            Text(
-                                text = item.brand,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                        Text(text = item.name, style = MaterialTheme.typography.titleMedium)
-                    }
+                    ProductIdentity(
+                        name = item.name,
+                        brand = item.brand,
+                        modifier = Modifier.weight(1f).padding(end = 10.dp),
+                    )
                     // Packs over kilos, as on the project's material list: on one line they came
                     // to more than twenty characters and left "Microtopping® Base Coat Polymer"
                     // four lines tall beside them.
@@ -341,14 +336,12 @@ private fun StockSheet(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (item.brand.isNotBlank()) BrandPill(text = item.brand)
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.weight(1f).padding(start = if (item.brand.isNotBlank()) 10.dp else 0.dp),
-                )
-            }
+            ProductIdentity(
+                name = item.name,
+                brand = item.brand,
+                large = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
             Text(
                 text = if (item.isKnownPack) {
                     stringResource(

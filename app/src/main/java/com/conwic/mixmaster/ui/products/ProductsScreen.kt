@@ -2,7 +2,6 @@ package com.conwic.mixmaster.ui.products
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.RatioBadge
+import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.draw.clip
 import com.conwic.mixmaster.ui.theme.CardShape
@@ -180,22 +180,16 @@ fun ProductsScreen(navController: NavHostController) {
                         .clip(CardShape)
                         .clickable { navController.navigate(Routes.productDetail(product.id)) },
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            // Water has no brand, and an empty line still takes a line's height.
-                            if (product.brand.isNotBlank()) {
-                                Text(text = product.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                            }
-                            Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-                            if (product.packageSize > 0.0) {
-                                Text(
-                                    text = "${formatDecimal(product.packageSize, 2)} ${product.packageUnit} ${product.packageType}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
+                    ProductIdentity(
+                        name = product.name,
+                        brand = product.brand,
+                        detail = if (product.packageSize > 0.0) {
+                            "${formatDecimal(product.packageSize, 2)} ${product.packageUnit} ${product.packageType}"
+                        } else {
+                            null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
             } else {
@@ -220,20 +214,13 @@ fun ProductsScreen(navController: NavHostController) {
                             .clickable { navController.navigate(Routes.solutionEdit(solution.id)) },
                     ) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                if (solution.brand.isNotBlank()) {
-                                    Text(text = solution.brand, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                                }
-                                Text(text = solution.name, style = MaterialTheme.typography.titleMedium)
-                                val coats = solutions.count { it.familyId == solution.familyId }
-                                if (coats > 1) {
-                                    Text(
-                                        text = stringResource(R.string.solution_coat_count, coats),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                    )
-                                }
-                            }
+                            val coats = solutions.count { it.familyId == solution.familyId }
+                            ProductIdentity(
+                                name = solution.name,
+                                brand = solution.brand,
+                                detail = if (coats > 1) stringResource(R.string.solution_coat_count, coats) else null,
+                                modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            )
                             if (solution.ratioLabel.isNotBlank()) {
                                 RatioBadge(text = solution.ratioLabel, modifier = Modifier.align(Alignment.Top))
                             }

@@ -88,6 +88,7 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ContentImage
 import com.conwic.mixmaster.ui.components.ProgressBarRow
 import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.components.ProductIdentity
 import java.time.LocalDate
 import java.time.ZoneId
 import com.conwic.mixmaster.ui.theme.CardShape
@@ -1178,23 +1179,24 @@ private fun CoatPickerSheet(
                 // Every coat, not every mix: a room takes architop's first coat and then its
                 // second, and they are different recipes at different rates.
                 solutions.forEach { solution ->
-                    Text(
-                        text = if (solution.brand.isBlank()) {
-                            solution.coatLabel
-                        } else {
-                            "${solution.brand} — ${solution.coatLabel}"
-                        },
-                        modifier = Modifier.fillMaxWidth().clickable { onPickSolution(solution) }.padding(vertical = 12.dp),
+                    ProductIdentity(
+                        name = solution.coatLabel,
+                        brand = solution.brand,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onPickSolution(solution) }
+                            .padding(vertical = 10.dp),
                     )
                 }
                 SectionLabel(text = stringResource(R.string.prj_straight_from_the_tin))
                 products.forEach { product ->
-                    Text(
-                        text = if (product.brand.isBlank()) product.name else "${product.brand} — ${product.name}",
+                    ProductIdentity(
+                        name = product.name,
+                        brand = product.brand,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { productFor = product; dose = "" }
-                            .padding(vertical = 12.dp),
+                            .padding(vertical = 10.dp),
                     )
                 }
             } else {
@@ -1386,16 +1388,11 @@ fun MaterialsTab(
 
         items(materials) { material ->
             CardFlat {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(modifier = Modifier.weight(1f, fill = false), text = material.name, style = MaterialTheme.typography.titleMedium)
-                    if (material.stock.brand.isNotBlank()) {
-                        Text(
-                            text = material.stock.brand,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                ProductIdentity(
+                    name = material.name,
+                    brand = material.stock.brand,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 MaterialRow(
                     label = stringResource(R.string.prj_need),
                     value = packAmountText(

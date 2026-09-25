@@ -38,8 +38,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.docs.SheetStore
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
-import com.conwic.mixmaster.ui.components.BrandPill
 import com.conwic.mixmaster.ui.components.RatioBadge
+import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.components.ActionLink
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
@@ -100,17 +100,13 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 
         item {
             CardFlat {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (current.brand.isNotBlank()) BrandPill(text = current.brand)
-                    if (current.category.isNotBlank()) {
-                        Text(
-                            text = current.category,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = if (current.brand.isNotBlank()) 10.dp else 0.dp),
-                        )
-                    }
-                }
+                ProductIdentity(
+                    name = current.name,
+                    brand = current.brand,
+                    detail = current.category.takeIf { it.isNotBlank() },
+                    large = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,10 +184,10 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                     .clip(CardShape)
                     .clickable { navController.navigate(Routes.solutionEdit(solution.id)) },
             ) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (solution.brand.isBlank()) solution.name else "${solution.brand} — ${solution.name}",
-                        style = MaterialTheme.typography.titleMedium,
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                    ProductIdentity(
+                        name = solution.name,
+                        brand = solution.brand,
                         modifier = Modifier.weight(1f).padding(end = 8.dp),
                     )
                     if (solution.ratioLabel.isNotBlank()) {
