@@ -116,7 +116,9 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
     val project = data.project ?: return
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        // The tab strip above already leaves its own room underneath, so this opens tight
+        // against it rather than adding a second gap on top of the first.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -175,7 +177,9 @@ fun TasksTab(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        // The tab strip above already leaves its own room underneath, so this opens tight
+        // against it rather than adding a second gap on top of the first.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (isEmployer) {
@@ -290,7 +294,9 @@ fun LayoutTab(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        // The tab strip above already leaves its own room underneath, so this opens tight
+        // against it rather than adding a second gap on top of the first.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (role == Role.WORKER) {
@@ -1270,7 +1276,9 @@ fun MaterialsTab(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        // The tab strip above already leaves its own room underneath, so this opens tight
+        // against it rather than adding a second gap on top of the first.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
@@ -1865,7 +1873,9 @@ fun CalendarTab(data: ProjectDetailData) {
     val sorted = data.tasks.sortedBy { it.dueDate }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        // The tab strip above already leaves its own room underneath, so this opens tight
+        // against it rather than adding a second gap on top of the first.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (sorted.isEmpty()) {

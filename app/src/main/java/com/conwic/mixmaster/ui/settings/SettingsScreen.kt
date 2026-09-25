@@ -83,7 +83,7 @@ fun SettingsScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium) }
 

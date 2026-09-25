@@ -69,7 +69,7 @@ fun CalendarScreen(navController: NavHostController) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             // Calendar isn't a bottom-nav destination, so the nav bar is hidden here — without
