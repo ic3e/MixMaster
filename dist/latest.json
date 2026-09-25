@@ -1,8 +1,8 @@
 {
-  "versionCode": 137,
-  "versionName": "1.0.137",
-  "apk": "MixMaster_1.0.137.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.137.apk",
+  "versionCode": 138,
+  "versionName": "1.0.138",
+  "apk": "MixMaster_1.0.138.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.138.apk",
   "sizeBytes": 20553103,
-  "notes": "Hold the page to a column a line can be read across"
+  "notes": "Put the project's name and its tabs on one line sideways"
 }
