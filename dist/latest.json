@@ -1,8 +1,8 @@
 {
-  "versionCode": 140,
-  "versionName": "1.0.140",
-  "apk": "MixMaster_1.0.140.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.140.apk",
+  "versionCode": 141,
+  "versionName": "1.0.141",
+  "apk": "MixMaster_1.0.141.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.141.apk",
   "sizeBytes": 20553103,
-  "notes": "Same gap either side of the tab strip"
+  "notes": "Let a page come over the one behind it"
 }
