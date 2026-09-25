@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Button
@@ -93,14 +94,22 @@ fun ActionLink(
     color: Color = MaterialTheme.colorScheme.primary,
     enabled: Boolean = true,
 ) {
+    val ink = if (enabled) color else MaterialTheme.colorScheme.onSurfaceVariant
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.Bold,
-        color = if (enabled) color else MaterialTheme.colorScheme.onSurfaceVariant,
+        color = ink,
         modifier = modifier
             .clip(ChipShape)
             .tappableText(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 9.dp),
+            // An outline round it, so a word you can press does not read as a word you cannot.
+            // Brown text on a card said "link" to whoever wrote it and "label" to everybody
+            // else — the Layout tab has "Mix", "Edit" and "Remove" sitting under a coat's rate
+            // and its colour, all four in the same ink. The pill is the one the app already
+            // uses for its badges and its ghost buttons, so it belongs here without inventing
+            // a shape; it takes the link's own colour, which puts a red ring round Remove.
+            .border(1.dp, ink.copy(alpha = 0.55f), ChipShape)
+            .padding(horizontal = 10.dp, vertical = 9.dp),
     )
 }
