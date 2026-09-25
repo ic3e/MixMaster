@@ -4,11 +4,12 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -257,13 +258,30 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.betweenTabs(): Boo
     initialState.destination.route in Routes.bottomNavRoutes &&
         targetState.destination.route in Routes.bottomNavRoutes
 
-/** A tab arriving: no direction, just a lift off the page. */
-private fun tabIn(): EnterTransition =
-    fadeIn(tween(PageMillis - 40)) +
-        slideInVertically(tween(PageMillis, easing = PageEase)) { it / 40 }
+/**
+ * A tab arriving, and the one it replaces leaving — one after the other, never at the same time.
+ *
+ * Matching the two transitions up was not enough. Navigation draws the arriving screen over the
+ * leaving one on the way in and the leaving one over the arriving on the way back, and with two
+ * screens crossfading through each other that reads as two different effects: the new page
+ * appearing over the old, against the old page dissolving to show the new. Since a tab switch
+ * gets classified as one or the other depending on which tab you started from, tapping along
+ * the bar and back again went through both.
+ *
+ * So they do not overlap at all. The old one is gone in [TabFadeMillis] and only then does the
+ * new one come up, growing the last fraction of the way in. Nothing is ever half-drawn over
+ * anything else, which leaves nothing for the stacking order to change.
+ */
+private const val TabFadeMillis = 90
 
-/** And the one it replaces, out of the way quickly so the two do not sit on top of each other. */
-private fun tabOut(): ExitTransition = fadeOut(tween(PageMillis - 120))
+private fun tabIn(): EnterTransition =
+    fadeIn(tween(PageMillis - TabFadeMillis, delayMillis = TabFadeMillis)) +
+        scaleIn(
+            initialScale = 0.94f,
+            animationSpec = tween(PageMillis - TabFadeMillis, delayMillis = TabFadeMillis, easing = PageEase),
+        )
+
+private fun tabOut(): ExitTransition = fadeOut(tween(TabFadeMillis, easing = LinearEasing))
 
 /** A page stepping in, from the right going deeper and from the left coming back. */
 private fun pushIn(forward: Boolean): EnterTransition =
