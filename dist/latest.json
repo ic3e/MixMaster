@@ -1,8 +1,8 @@
 {
-  "versionCode": 124,
-  "versionName": "1.0.124",
-  "apk": "MixMaster_1.0.124.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.124.apk",
-  "sizeBytes": 20533391,
-  "notes": "One way of naming a product, and a home screen that isn't half empty"
+  "versionCode": 125,
+  "versionName": "1.0.125",
+  "apk": "MixMaster_1.0.125.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.125.apk",
+  "sizeBytes": 20552399,
+  "notes": "A part can now be a share of the others, the way a datasheet writes water"
 }
