@@ -27,11 +27,10 @@ fun MixMasterTopBar(
 ) {
     Row(
         modifier = modifier
-            // Next to nothing: the row is already 48dp tall because of the back button's
-            // touch target, and the title sits in the middle of that with room to spare
-            // above and below it. Padding on top of that was a second gap under the
-            // first one.
-            .padding(horizontal = 12.dp, vertical = byHeight(tight = 0.dp, roomy = 2.dp)),
+            // None at all: the row is already 48dp tall because of the back button's touch
+            // target, and the title sits in the middle of that with about 11dp of room above
+            // and below it. Anything added here is a second gap under the first one.
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {

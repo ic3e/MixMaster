@@ -174,7 +174,15 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                         titles = tabTitles,
                         selectedIndex = selectedTab,
                         onSelect = { selectedTab = it },
-                        modifier = Modifier.padding(horizontal = pageSide(), vertical = 6.dp),
+                        // Nothing above it and 6dp below: the title row already leaves its own
+                        // 11dp over the strip, and the list under it opens with 6 of its own.
+                        // That puts the same gap either side of the tabs, which is what they
+                        // looked wrong without.
+                        modifier = Modifier.padding(
+                            start = pageSide(),
+                            end = pageSide(),
+                            bottom = 6.dp,
+                        ),
                     )
                 }
             }
