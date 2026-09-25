@@ -12,12 +12,6 @@ import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.LinearEasing
@@ -62,6 +56,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -126,12 +121,13 @@ private val Alert = Color(0xFFFFB300)
 private val AlertPale = Color(0xFFFFF3D6)
 
 /**
- * The curve the middle of the screen changes on: quick off the mark, long and soft into place.
+ * The curve the middle of the screen turns over on, and how long the turn takes.
  *
- * Deliberately not the same shape both ways — what is leaving goes on a straight line, because
- * a fade that eases out lingers, and the ring cannot arrive until the list has actually gone.
+ * Leans into the movement and settles out of it, the way a card does when it is flicked over:
+ * an even turn reads mechanical, and one that eases at both ends reads slow.
  */
-private val StageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
+private val FlipEase = CubicBezierEasing(0.45f, 0.05f, 0.2f, 1f)
+private const val FlipMillis = 460
 
 /**
  * What one press of the arrows is worth, and as far as the time can be taken.
@@ -471,85 +467,89 @@ fun MixingSession(
                 ) {
                     // Square, and never taller than the room it has been left.
                     val side = minOf(maxWidth, maxHeight)
-                    // The two of them trade places rather than cut: the one going away shrinks
-                    // back a little as it fades, and the one arriving grows into the same middle
-                    // once the first has cleared. Both fit the space exactly, so nothing is
-                    // resized on the way through — it is only opacity and scale, which the GPU
-                    // does without another layout pass.
-                    AnimatedContent(
-                        targetState = phase == MixPhase.RUNNING,
-                        transitionSpec = {
-                            if (calm) {
-                                fadeIn(animationSpec = snap()) togetherWith
-                                    fadeOut(animationSpec = snap())
-                            } else {
-                                (fadeIn(tween(200, delayMillis = 90, easing = StageEase)) +
-                                    scaleIn(
-                                        initialScale = 0.94f,
-                                        animationSpec = tween(260, delayMillis = 90, easing = StageEase),
-                                    )) togetherWith
-                                    (fadeOut(tween(120, easing = LinearEasing)) +
-                                        scaleOut(
-                                            targetScale = 0.97f,
-                                            animationSpec = tween(160, easing = StageEase),
-                                        ))
-                            }
-                        },
+                    // The two of them are the two faces of one card, and pressing start turns it
+                    // over: the list goes edge-on and the ring comes round behind it. One object
+                    // changing its mind rather than two things swapping — which is what the
+                    // screen is really doing, because it is the same batch either way.
+                    val flip = animateFloatAsState(
+                        targetValue = if (phase == MixPhase.RUNNING) 180f else 0f,
+                        animationSpec = if (calm) snap() else tween(FlipMillis, easing = FlipEase),
+                        label = "flip",
+                    )
+                    // Swapped at the halfway point, where the card is edge-on and neither face
+                    // has anything to show. Derived rather than read straight, so the turn costs
+                    // one recomposition at the halfway mark instead of one per frame — the angle
+                    // itself is only ever read inside the layer block.
+                    val showRing by remember(flip) { derivedStateOf { flip.value > 90f } }
+                    Box(
                         contentAlignment = Alignment.Center,
-                        label = "mix-stage",
-                        modifier = Modifier.fillMaxSize(),
-                    ) { running ->
-                        if (running) {
-                            // Keyed on the batch, so every one of them gets the wind-up rather than
-                            // only the first: the ring arriving is what says a new batch is up.
-                            key(stepIndex) {
-                                TimerRing(
-                                    remaining = remaining,
-                                    total = total,
-                                    running = true,
-                                    done = false,
-                                    calm = calm,
-                                    modifier = Modifier.size(side),
-                                )
-                            }
-                        } else {
-                            // Scrolls inside its own space rather than taking the page with it —
-                            // a recipe of ten parts is rare, and when it happens the buttons stay
-                            // where they are.
-                            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                                CardFlat {
-                                    SectionLabel(text = stringResource(R.string.mix_goes_in))
-                                    step.amounts.forEach { amount ->
-                                        val part = parts.firstOrNull { it.label == amount.label }
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Text(
-                                                text = amount.label,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                                            )
-                                            Column(horizontalAlignment = Alignment.End) {
+                        modifier = Modifier.fillMaxSize().graphicsLayer {
+                            rotationY = flip.value
+                            // Near enough for the turn to have some depth, far enough that the
+                            // leading edge does not balloon across the screen on the way past.
+                            cameraDistance = 16f * density
+                        },
+                    ) {
+                        // The back face carried round the other way, so it lands the right way
+                        // up rather than in mirror writing.
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer { rotationY = if (showRing) 180f else 0f },
+                        ) {
+                            if (showRing) {
+                                // Keyed on the batch, so every one of them gets the wind-up rather than
+                                // only the first: the ring arriving is what says a new batch is up.
+                                key(stepIndex) {
+                                    TimerRing(
+                                        remaining = remaining,
+                                        total = total,
+                                        running = true,
+                                        done = false,
+                                        calm = calm,
+                                        modifier = Modifier.size(side),
+                                    )
+                                }
+                            } else {
+                                // Scrolls inside its own space rather than taking the page with it —
+                                // a recipe of ten parts is rare, and when it happens the buttons stay
+                                // where they are.
+                                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                                    CardFlat {
+                                        SectionLabel(text = stringResource(R.string.mix_goes_in))
+                                        step.amounts.forEach { amount ->
+                                            val part = parts.firstOrNull { it.label == amount.label }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
                                                 Text(
-                                                    text = quantityFromGrams(amount.grams).text,
+                                                    text = amount.label,
                                                     style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.ExtraBold,
+                                                    modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
                                                 )
-                                                packText(part, amount.grams)?.let { packs ->
+                                                Column(horizontalAlignment = Alignment.End) {
                                                     Text(
-                                                        text = packs,
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        text = quantityFromGrams(amount.grams).text,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.ExtraBold,
                                                     )
+                                                    packText(part, amount.grams)?.let { packs ->
+                                                        Text(
+                                                            text = packs,
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
+                    }
                     }
                 }
 
@@ -1185,9 +1185,13 @@ private fun clock(totalSeconds: Int): String {
     return "$minutes:${seconds.toString().padStart(2, '0')}"
 }
 
-/** The same sound the notification uses, so the screen and the shade ring alike. */
+/**
+ * The same sound the notification uses, so the screen and the shade ring alike.
+ *
+ * Null where the alert has been set to silent in Settings — the buzz still goes.
+ */
 private fun alarmSound(context: Context): Ringtone? = runCatching {
-    RingtoneManager.getRingtone(context, MixAlarm.alarmSoundUri())
+    MixAlarm.alarmSoundUri(context)?.let { RingtoneManager.getRingtone(context, it) }
 }.getOrNull()
 
 private fun buzz(context: Context) {

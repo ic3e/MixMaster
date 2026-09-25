@@ -1,5 +1,10 @@
 package com.conwic.mixmaster.ui.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -37,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
+import com.conwic.mixmaster.data.prefs.AlertSoundStore
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
@@ -159,6 +165,8 @@ fun SettingsScreen(navController: NavHostController) {
                             onCheckedChange = viewModel::setMixingRemindersEnabled,
                         )
                     }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    AlertSoundRow()
                 }
             }
         }
@@ -371,3 +379,78 @@ fun SettingsScreen(navController: NavHostController) {
         )
     }
 }
+
+/**
+ * Which sound says the batch is up.
+ *
+ * The phone's own picker rather than a list of our own: it already knows every alarm and
+ * notification tone on the phone, it plays each one as you move down it, and it is the list
+ * somebody has already used to set their alarm clock. Silence is on it too — the buzz still
+ * goes, and a crew working somewhere that has to stay quiet is a real thing.
+ */
+@Composable
+private fun AlertSoundRow() {
+    val context = LocalContext.current
+    // Resolved up here: the summary is worked out in a remember block, which is not a place a
+    // string resource can be read from.
+    val silentLabel = stringResource(R.string.settings_alert_sound_silent)
+    val defaultLabel = stringResource(R.string.settings_alert_sound_default)
+    val pickerTitle = stringResource(R.string.settings_alert_sound)
+    // The store is SharedPreferences, so nothing tells the screen it has changed. Picking a
+    // sound turns this over, and the line under the setting is worked out again.
+    var revision by remember { mutableStateOf(0) }
+    val summary = remember(revision, silentLabel, defaultLabel) {
+        when {
+            AlertSoundStore.isSilent(context) -> silentLabel
+            else -> AlertSoundStore.title(context) ?: defaultLabel
+        }
+    }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // No URI at all is the picker's way of saying silent, not its way of failing.
+            @Suppress("DEPRECATION")
+            val picked = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            AlertSoundStore.write(context, picked)
+            revision++
+        }
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(text = pickerTitle, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        ActionLink(
+            text = stringResource(R.string.settings_alert_sound_pick),
+            // A phone with no picker on it would otherwise take the Settings screen down with
+            // it, which is a steep price for a tone.
+            onClick = { runCatching { picker.launch(alertSoundPicker(context, pickerTitle)) } },
+        )
+    }
+}
+
+private fun alertSoundPicker(context: Context, title: String): Intent =
+    Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+        // Alarms and notification tones both: an alarm tone is what a mixing timer wants, but
+        // on most phones the short ones are filed under notifications.
+        putExtra(
+            RingtoneManager.EXTRA_RINGTONE_TYPE,
+            RingtoneManager.TYPE_ALARM or RingtoneManager.TYPE_NOTIFICATION,
+        )
+        putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, title)
+        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+        // What "Default" on that list means here: whatever the phone's alarm clock is set to,
+        // which is where this app started before anybody touched the setting.
+        AlertSoundStore.deviceAlarm()?.let { putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, it) }
+        AlertSoundStore.uri(context)?.let { putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it) }
+    }

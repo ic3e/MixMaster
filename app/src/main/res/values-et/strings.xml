@@ -109,6 +109,10 @@
     <string name="settings_on_site">Objektil</string>
     <string name="settings_mixing_reminders">Segamise meeldetuletused</string>
     <string name="settings_mixing_reminders_note">Meeldetuletus jätta nõusse ruumi, et segu saaks ringi käia.</string>
+    <string name="settings_alert_sound">Helisignaal</string>
+    <string name="settings_alert_sound_pick">Muuda</string>
+    <string name="settings_alert_sound_default">Telefoni äratuse heli</string>
+    <string name="settings_alert_sound_silent">Hääletu — telefon siiski väriseb</string>
     <string name="settings_using_as">Kasutan rakendust kui</string>
     <string name="role_employer">Panen töö paika</string>
     <string name="role_worker">Teen tööd</string>

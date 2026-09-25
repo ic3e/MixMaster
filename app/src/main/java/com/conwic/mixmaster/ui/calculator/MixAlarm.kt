@@ -9,13 +9,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.conwic.mixmaster.MainActivity
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.prefs.AlertSoundStore
 import com.conwic.mixmaster.data.prefs.LanguageStore
 import com.conwic.mixmaster.data.prefs.MixRunStore
 
@@ -36,6 +36,12 @@ object MixAlarm {
 
     const val EXTRA_FROM_ALARM = "com.conwic.mixmaster.FROM_MIX_ALARM"
     private const val EXTRA_TITLE = "com.conwic.mixmaster.MIX_TITLE"
+    /**
+     * The head of the channel's id; the sound picked in Settings makes up the rest of it.
+     *
+     * A channel keeps the sound it was made with for good, so changing the sound has to mean a
+     * new channel. The old ones are dropped when the new one is made — see [alert].
+     */
     private const val CHANNEL = "mixing"
     private const val NOTIFICATION_ID = 4711
     private const val REQUEST = 8801
@@ -100,11 +106,10 @@ object MixAlarm {
         return runCatching { manager.canUseFullScreenIntent() }.getOrDefault(false)
     }
 
-    /** The phone's alarm sound, or its notification sound where there is none. */
-    fun alarmSoundUri(): Uri? = runCatching {
-        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    }.getOrNull()
+    /** What was picked in Settings, or the phone's own alarm sound where nothing was. */
+    fun alarmSoundUri(context: Context): Uri? = AlertSoundStore.uri(context)
+
+    private fun channelId(context: Context): String = "$CHANNEL.${AlertSoundStore.key(context)}"
 
     private fun alarmIntent(context: Context, title: String): PendingIntent =
         PendingIntent.getBroadcast(
@@ -139,8 +144,9 @@ object MixAlarm {
         // The app's own language, not the phone's: this runs in a receiver, whose context knows
         // nothing about the setting, and an Estonian site does not want an English alarm.
         val words = LanguageStore.wrap(context)
+        val id = channelId(context)
         val channel = NotificationChannel(
-            CHANNEL,
+            id,
             words.getString(R.string.mix_channel),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
@@ -149,7 +155,7 @@ object MixAlarm {
             vibrationPattern = VibratePattern
             setBypassDnd(true)
             setSound(
-                alarmSoundUri(),
+                alarmSoundUri(context),
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -157,9 +163,17 @@ object MixAlarm {
             )
         }
         notifications.createNotificationChannel(channel)
+        // Every mixing channel but this one, gone: the sound was changed, and leaving the old
+        // channel standing leaves the old sound in the phone's own notification settings for
+        // somebody to wonder about.
+        runCatching {
+            notifications.notificationChannels
+                .filter { it.id != id && (it.id == CHANNEL || it.id.startsWith("$CHANNEL.")) }
+                .forEach { notifications.deleteNotificationChannel(it.id) }
+        }
 
         val open = openAppIntent(context, title)
-        val notification = NotificationCompat.Builder(context, CHANNEL)
+        val notification = NotificationCompat.Builder(context, id)
             .setSmallIcon(R.drawable.ic_mix_timer)
             .setContentTitle(words.getString(R.string.mix_ready))
             .setContentText(title.ifBlank { words.getString(R.string.mix_channel) })
