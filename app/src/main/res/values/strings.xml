@@ -190,6 +190,7 @@
     <string name="calc_per_mm">per mm</string>
     <string name="calc_datasheet_typical_full">Datasheet typical: %1$s g/m² %2$s.</string>
     <string name="calc_view_datasheet">View official datasheet ↗</string>
+    <string name="calc_open_recipe">Open the recipe</string>
     <string name="calc_area">Area to cover</string>
     <string name="calc_thickness">Thickness (mm)</string>
     <string name="calc_coats">Coats</string>

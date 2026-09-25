@@ -10,13 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.SectionLabel
 
 /**
@@ -42,6 +45,11 @@ fun JobPickSheet(
     onPick: (JobRoom, JobCoat?) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // The rooms arrive project by project; this is where one job stops and the next starts.
+    // Two jobs can share a name, so they are told apart by id rather than by what they are
+    // called — "New project" twice over is exactly what a morning of quick estimates leaves.
+    val byProject = remember(rooms) { rooms.groupBy { it.projectId }.values.toList() }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -77,73 +85,80 @@ fun JobPickSheet(
                 }
             }
 
-            // Grouped by project, with the name carried only on the first of its rooms: a crew
-            // works one site at a time, and the site's name on every line is noise to scroll past.
-            itemsIndexed(rooms, key = { _, room -> room.roomId }) { index, room ->
-                // The rooms arrive project by project, so the heading goes on the first of each.
-                val first = index == 0 || rooms[index - 1].projectId != room.projectId
-                if (first) {
-                    SectionLabel(
-                        text = room.projectName,
-                        modifier = Modifier.padding(top = 14.dp, bottom = 2.dp),
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onPick(room, null) }
-                        .padding(vertical = 8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            modifier = Modifier.weight(1f, fill = false),
-                            text = room.roomName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = "${formatArea(room.areaM2)} m²",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (room.coats.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.calc_pick_job_no_coats),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                room.coats.forEach { coat ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onPick(room, coat) }
-                            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = "${coat.number}. ${coat.title}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            // The rate, and how many of it — as "× 2" rather than a word,
-                            // because for a self-levelling mix the same figure is millimetres.
-                            text = "${formatDecimal(coat.doseGramsPerM2, 1)} g/m²" +
-                                (if (coat.quantity != 1.0) " · × ${formatDecimal(coat.quantity, 1)}" else ""),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+            // A box to a project, with a line between its rooms. Run together as one list, four
+            // jobs and eleven rooms were a wall of names in one colour, and picking the right
+            // Bay 2 meant counting back up to the heading to see whose site it was on.
+            items(byProject, key = { it.first().projectId }) { project ->
+                SectionLabel(
+                    text = project.first().projectName,
+                    modifier = Modifier.padding(top = 14.dp, bottom = 2.dp),
+                )
+                CardFlat(contentPadding = 6.dp) {
+                    project.forEachIndexed { index, room ->
+                        if (index > 0) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { onPick(room, null) }
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    text = room.roomName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = "${formatArea(room.areaM2)} m²",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (room.coats.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.calc_pick_job_no_coats),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        room.coats.forEach { coat ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { onPick(room, coat) }
+                                    .padding(start = 22.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    modifier = Modifier.weight(1f),
+                                    text = "${coat.number}. ${coat.title}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    // The rate, and how many of it — as "× 2" rather than a word,
+                                    // because for a self-levelling mix the same figure is millimetres.
+                                    text = "${formatDecimal(coat.doseGramsPerM2, 1)} g/m²" +
+                                        (if (coat.quantity != 1.0) " · × ${formatDecimal(coat.quantity, 1)}" else ""),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -172,6 +172,7 @@
     <string name="calc_per_mm">millimetriä kohti</string>
     <string name="calc_datasheet_typical_full">Tuotetiedon tyypillinen: %1$s g/m² %2$s.</string>
     <string name="calc_view_datasheet">Katso virallinen tuotetieto ↗</string>
+    <string name="calc_open_recipe">Avaa resepti</string>
     <string name="calc_area">Peitettävä ala</string>
     <string name="calc_thickness">Paksuus (mm)</string>
     <string name="calc_coats">Kerroksia</string>

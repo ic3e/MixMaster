@@ -276,12 +276,23 @@ fun CalculatorScreen(
                     // Only offered when it's something the system can actually open — the field is
                     // free text, and handing "test datasheet" to the browser took the app down.
                     val datasheetLink = openableUrl(product.datasheetUrl)
-                    if (datasheetLink != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        // The card sat there saying what the mix is and gave no way to go and
+                        // look at it. A ratio that reads wrong on site is the moment somebody
+                        // wants the recipe, and the only way in was back out to Products.
                         ActionLink(
-                            text = stringResource(R.string.calc_view_datasheet),
-                            onClick = { runCatching { uriHandler.openUri(datasheetLink) } },
-                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(R.string.calc_open_recipe),
+                            onClick = { navController.navigate(Routes.solutionEdit(product.id)) },
                         )
+                        if (datasheetLink != null) {
+                            ActionLink(
+                                text = stringResource(R.string.calc_view_datasheet),
+                                onClick = { runCatching { uriHandler.openUri(datasheetLink) } },
+                            )
+                        }
                     }
                 }
             }

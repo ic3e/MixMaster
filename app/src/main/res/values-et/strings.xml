@@ -172,6 +172,7 @@
     <string name="calc_per_mm">mm kohta</string>
     <string name="calc_datasheet_typical_full">Tehnilise lehe tüüpiline: %1$s g/m² %2$s.</string>
     <string name="calc_view_datasheet">Vaata ametlikku tehnilist lehte ↗</string>
+    <string name="calc_open_recipe">Ava retsept</string>
     <string name="calc_area">Kaetav pind</string>
     <string name="calc_thickness">Paksus (mm)</string>
     <string name="calc_coats">Kihte</string>
