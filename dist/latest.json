@@ -1,8 +1,8 @@
 {
-  "versionCode": 130,
-  "versionName": "1.0.130",
-  "apk": "MixMaster_1.0.130.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.130.apk",
+  "versionCode": 131,
+  "versionName": "1.0.131",
+  "apk": "MixMaster_1.0.131.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.131.apk",
   "sizeBytes": 20553107,
-  "notes": "Say which drum the litres were measured against"
+  "notes": "Set the drum line in bold"
 }
