@@ -202,6 +202,7 @@
     <string name="calc_no_range_note">No published range for this product — using the datasheet figure as-is.</string>
     <string name="calc_youll_need">You\'ll need</string>
     <string name="calc_ratio_parts">ratio %1$s parts</string>
+    <string name="calc_ratio_percent">%1$s%% of the rest</string>
     <string name="calc_packs">%1$d × %2$s</string>
     <string name="calc_add_density_to_count">Add a density (kg/L) to count containers</string>
     <string name="calc_set_pack_to_count">Set a pack size to count containers</string>
@@ -693,6 +694,10 @@
     <string name="solution_by_area">By m²</string>
     <string name="solution_by_area_hint">Each part as the datasheet gives it, in kg/m². The ratio and the coverage are worked out from them.</string>
     <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_line_percent" formatted="false">% of the rest</string>
+    <string name="solution_line_as_percent" formatted="false">Measure as % of the rest</string>
+    <string name="solution_line_as_parts">Measure as parts</string>
+    <string name="solution_line_percent_hint" formatted="false">A share of everything else in the drum — water at 10% of (A+B).</string>
     <string name="solution_coverage_computed">Works out at %1$s g/m²</string>
     <string name="calc_start_mixing">Start mixing</string>
     <string name="calc_start_mixing_sub">Batch by batch, with the mixing time counted down.</string>

@@ -29,6 +29,12 @@ data class LineDraft(
     val productId: Long = 0L,
     val label: String = "",
     val partsText: String = "",
+    /**
+     * Whether [partsText] is a percentage of everything else in the drum rather than a ratio
+     * part or a rate of its own — "water at 10% of (A+B)", which is how a good few datasheets
+     * word the water and the thinner.
+     */
+    val percentOfRest: Boolean = false,
 )
 
 /** How the parts of a coat are typed in. */
@@ -79,7 +85,10 @@ data class SolutionFormState(
     val linesProblem: Int?
         get() = when {
             lines.none { it.productId > 0L } -> R.string.solution_problem_no_parts
-            lines.filter { it.productId > 0L }.none { (it.partsText.toNumberOrNull() ?: 0.0) > 0.0 } ->
+            // A share needs something to be a share of, so a recipe that is nothing but
+            // percentages has no ratio either.
+            lines.filter { it.productId > 0L && !it.percentOfRest }
+                .none { (it.partsText.toNumberOrNull() ?: 0.0) > 0.0 } ->
                 R.string.solution_problem_no_ratio
             else -> null
         }
@@ -94,9 +103,20 @@ data class SolutionFormState(
             else -> R.string.solution_problem_no_dose
         }
 
-    /** What the typed rates come to, in g/m² — the coverage, when the parts carry their own. */
+    /**
+     * What the typed rates come to, in g/m² — the coverage, when the parts carry their own.
+     *
+     * A share line's box holds a percentage rather than a rate, so it is worked out off the
+     * others instead of being added in as if it were kilos.
+     */
     val perAreaTotal: Double
-        get() = lines.filter { it.productId > 0L }.sumOf { it.partsText.toNumberOrNull() ?: 0.0 } * 1000.0
+        get() {
+            val used = lines.filter { it.productId > 0L }
+            val fixed = used.filterNot { it.percentOfRest }.sumOf { it.partsText.toNumberOrNull() ?: 0.0 }
+            val shares = used.filter { it.percentOfRest }
+                .sumOf { fixed * (it.partsText.toNumberOrNull() ?: 0.0) / 100.0 }
+            return (fixed + shares) * 1000.0
+        }
 
     val isValid: Boolean get() = nameProblem == null && linesProblem == null && doseProblem == null
 }
@@ -142,7 +162,14 @@ class SolutionEditorViewModel(
                                 LineDraft(
                                     productId = it.productId,
                                     label = it.label,
-                                    partsText = formatDecimal(it.ratioParts, 2),
+                                    // The percentage is what was typed; the parts it came to
+                                    // are worked out again on the way back out.
+                                    partsText = if (it.percentOfRest > 0.0) {
+                                        formatDecimal(it.percentOfRest, 2)
+                                    } else {
+                                        formatDecimal(it.ratioParts, 2)
+                                    },
+                                    percentOfRest = it.percentOfRest > 0.0,
                                 )
                             }
                             .ifEmpty { listOf(LineDraft(), LineDraft()) },
@@ -201,7 +228,9 @@ class SolutionEditorViewModel(
      */
     fun setEntry(mode: EntryMode) = _formState.update { state ->
         if (mode == state.entry) return@update state
-        val typed = state.lines.map { it.partsText.toNumberOrNull() ?: 0.0 }
+        // The share lines already worked out, so the ones that are not shares are divided by a
+        // total that has the water in it rather than by each other alone.
+        val typed = resolvedParts(state.lines)
         when (mode) {
             EntryMode.PER_AREA -> {
                 val parts = typed.sum()
@@ -216,6 +245,9 @@ class SolutionEditorViewModel(
                     state.copy(
                         entry = mode,
                         lines = state.lines.mapIndexed { index, line ->
+                            // A percentage is a percentage whichever way the parts are typed:
+                            // 10% of the rest is 10% of the rest in parts and in kg/m² alike.
+                            if (line.percentOfRest) return@mapIndexed line
                             val rate = typed.getOrElse(index) { 0.0 } / parts * coverageKg
                             line.copy(partsText = if (rate > 0.0) formatDecimal(rate, 4) else "")
                         },
@@ -223,7 +255,12 @@ class SolutionEditorViewModel(
                 }
             }
             EntryMode.RATIO -> {
-                val top = typed.maxOrNull() ?: 0.0
+                // Off a fixed line, never off a share: scaling the ratio to a figure that is
+                // itself a tenth of the others would put the whole recipe out.
+                val top = state.lines.indices
+                    .filterNot { state.lines[it].percentOfRest }
+                    .mapNotNull { typed.getOrNull(it) }
+                    .maxOrNull() ?: 0.0
                 if (top <= 0.0) {
                     state.copy(entry = mode)
                 } else {
@@ -238,6 +275,7 @@ class SolutionEditorViewModel(
                     state.copy(
                         entry = mode,
                         lines = state.lines.mapIndexed { index, line ->
+                            if (line.percentOfRest) return@mapIndexed line
                             val part = typed.getOrElse(index) { 0.0 } / top * 100.0
                             line.copy(partsText = if (part > 0.0) formatDecimal(part, 2) else "")
                         },
@@ -254,6 +292,35 @@ class SolutionEditorViewModel(
     fun setLineLabel(index: Int, label: String) = updateLine(index) { it.copy(label = label) }
 
     fun setLineParts(index: Int, parts: String) = updateLine(index) { it.copy(partsText = parts) }
+
+    /**
+     * What each line comes to, with any "a share of the others" line worked out.
+     *
+     * The fixed lines are settled first and the share is taken off their total, because that is
+     * what the datasheet says: ten parts A plus two parts B plus ten per cent *of those two*.
+     * Taking it off the total including itself would be nine per cent, and on a thousand-kilo
+     * job that is nine kilos of water.
+     *
+     * Works the same whichever way the parts are typed — parts of a ratio or kg/m² each.
+     */
+    private fun resolvedParts(lines: List<LineDraft>): List<Double> {
+        val typed = lines.map { it.partsText.toNumberOr(0.0) }
+        val fixed = lines.mapIndexed { index, line -> if (line.percentOfRest) 0.0 else typed[index] }.sum()
+        return lines.mapIndexed { index, line ->
+            if (line.percentOfRest) fixed * typed[index] / 100.0 else typed[index]
+        }
+    }
+
+    /**
+     * Switches one part between a figure of its own and a share of the others.
+     *
+     * The box is cleared on the way through: 10 parts and 10% of the rest are different
+     * amounts, and a figure left standing under a changed label is how somebody mixes the
+     * wrong thing.
+     */
+    fun setLinePercentOfRest(index: Int, percent: Boolean) = updateLine(index) {
+        if (it.percentOfRest == percent) it else it.copy(percentOfRest = percent, partsText = "")
+    }
 
     fun addLine() = _formState.update { it.copy(lines = it.lines + LineDraft()) }
 
@@ -315,11 +382,15 @@ class SolutionEditorViewModel(
             emptyList()
         }
         val kept = state.lines.filter { it.productId > 0L }
-        val typed = kept.map { it.partsText.toNumberOr(0.0) }
+        // Shares worked out here rather than on the way back out, so everything downstream —
+        // the batches, the packing, the film on the floor — goes on reading one plain number.
+        val typed = resolvedParts(kept)
         // Typed by area, the figures are rates: the ratio is what they are to each other and
         // the coverage is what they come to, so neither has to be worked out by hand.
         val perArea = state.entry == EntryMode.PER_AREA
-        val top = typed.maxOrNull() ?: 0.0
+        val top = kept.indices.filterNot { kept[it].percentOfRest }
+            .mapNotNull { typed.getOrNull(it) }
+            .maxOrNull() ?: 0.0
         val parts = if (perArea && top > 0.0) typed.map { it / top * 100.0 } else typed
         val typedMin = state.minDoseText.toNumberOr(0.0)
         val typedMax = state.maxDoseText.toNumberOr(typedMin).takeIf { it > 0.0 } ?: typedMin
@@ -358,6 +429,7 @@ class SolutionEditorViewModel(
                     label = line.label.trim(),
                     role = SolutionLineRole.BASE,
                     ratioParts = parts.getOrElse(index) { 0.0 },
+                    percentOfRest = if (line.percentOfRest) line.partsText.toNumberOr(0.0) else 0.0,
                 )
             } + keptOther,
         )

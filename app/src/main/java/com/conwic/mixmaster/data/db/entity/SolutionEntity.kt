@@ -106,6 +106,17 @@ data class SolutionLineEntity(
     val role: String = SolutionLineRole.BASE,
     /** Relative ratio part for a [SolutionLineRole.BASE] line. Units cancel out. */
     val ratioParts: Double = 0.0,
+    /**
+     * When set, this part is that percentage of everything else in the drum rather than a ratio
+     * part of its own — "10 parts A + 2 parts B + water at 10% of (A+B)", which is how a fair
+     * few datasheets word the water and the thinner.
+     *
+     * [ratioParts] still carries what that comes to, worked out when the recipe is saved, so
+     * everything downstream — the batches, the packing, the film thickness — goes on reading
+     * one number. This is what the recipe was written as, so the editor can show it back the
+     * way the datasheet says it and work it out again if A or B changes.
+     */
+    @ColumnInfo(defaultValue = "0") val percentOfRest: Double = 0.0,
     /** For an [SolutionLineRole.ADD_ON]: how much per 1 kg of the part it is dosed against. */
     @ColumnInfo(defaultValue = "0") val amountPerKg: Double = 0.0,
     /** "kg" or "L" — what [amountPerKg] counts. */

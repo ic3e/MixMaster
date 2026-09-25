@@ -455,15 +455,29 @@ fun CalculatorScreen(
 
             result.components.forEachIndexed { index, amount ->
                 item {
-                    val parts = data.parts.getOrNull(index)?.ratioParts
+                    val part = data.parts.getOrNull(index)
+                    val parts = part?.ratioParts
                     val pack = state.packNeeds.getOrNull(index)
                     CardFlat {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = amount.label, style = MaterialTheme.typography.titleLarge)
-                                if (parts != null) {
+                                // Said the way the datasheet says it: a part measured off the
+                                // others reads as the percentage it was written as, not as the
+                                // 1.2 parts that comes to.
+                                val ratioLine = when {
+                                    part != null && part.percentOfRest > 0.0 ->
+                                        stringResource(
+                                            R.string.calc_ratio_percent,
+                                            formatDecimal(part.percentOfRest, 2),
+                                        )
+                                    parts != null ->
+                                        stringResource(R.string.calc_ratio_parts, formatDecimal(parts, 2))
+                                    else -> null
+                                }
+                                if (ratioLine != null) {
                                     Text(
-                                        text = stringResource(R.string.calc_ratio_parts, formatDecimal(parts, 2)),
+                                        text = ratioLine,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

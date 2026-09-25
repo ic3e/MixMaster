@@ -184,6 +184,7 @@
     <string name="calc_no_range_note">Sellel tootel avaldatud vahemikku pole — kasutame tehnilise lehe numbrit nii nagu on.</string>
     <string name="calc_youll_need">Sul on vaja</string>
     <string name="calc_ratio_parts">suhe %1$s osa</string>
+    <string name="calc_ratio_percent">%1$s%% ülejäänust</string>
     <string name="calc_packs">%1$d × %2$s</string>
     <string name="calc_add_density_to_count">Lisa tihedus (kg/L), et pakendeid kokku lugeda</string>
     <string name="calc_set_pack_to_count">Määra pakendi suurus, et pakendeid kokku lugeda</string>
@@ -661,6 +662,10 @@
     <string name="solution_by_area">m² järgi</string>
     <string name="solution_by_area_hint">Iga komponent nii, nagu andmeleht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
     <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_line_percent" formatted="false">% ülejäänust</string>
+    <string name="solution_line_as_percent" formatted="false">Mõõda protsendina ülejäänust</string>
+    <string name="solution_line_as_parts">Mõõda osadena</string>
+    <string name="solution_line_percent_hint" formatted="false">Osa kõigest muust nõus — vesi 10% (A+B)-st.</string>
     <string name="solution_coverage_computed">Teeb kokku %1$s g/m²</string>
     <string name="calc_start_mixing">Alusta segamist</string>
     <string name="calc_start_mixing_sub">Kogus korraga, segamisaeg loeb tagurpidi.</string>

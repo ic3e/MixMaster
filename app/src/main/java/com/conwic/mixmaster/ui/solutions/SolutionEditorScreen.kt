@@ -278,14 +278,37 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                 value = line.partsText,
                                 onValueChange = { viewModel.setLineParts(index, it) },
                                 label = stringResource(
-                                    if (state.entry == EntryMode.PER_AREA) {
-                                        R.string.solution_line_rate
-                                    } else {
-                                        R.string.product_parts
+                                    when {
+                                        line.percentOfRest -> R.string.solution_line_percent
+                                        state.entry == EntryMode.PER_AREA -> R.string.solution_line_rate
+                                        else -> R.string.product_parts
                                     },
                                 ),
                                 keyboardType = KeyboardType.Decimal,
                                 modifier = Modifier.weight(FieldWeightNarrow),
+                            )
+                        }
+                        // "10 parts A + 2 parts B + water at 10% of (A+B)" is how a fair few
+                        // datasheets word the water and the thinner, and there was no way to
+                        // write it down: the 1.2 parts it comes to had to be worked out by hand,
+                        // and worked out again the day somebody corrected A or B.
+                        ActionLink(
+                            text = stringResource(
+                                if (line.percentOfRest) {
+                                    R.string.solution_line_as_parts
+                                } else {
+                                    R.string.solution_line_as_percent
+                                },
+                            ),
+                            onClick = { viewModel.setLinePercentOfRest(index, !line.percentOfRest) },
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                        if (line.percentOfRest) {
+                            Text(
+                                text = stringResource(R.string.solution_line_percent_hint),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 2.dp),
                             )
                         }
                     }

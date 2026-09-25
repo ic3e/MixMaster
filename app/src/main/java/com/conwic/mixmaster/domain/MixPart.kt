@@ -17,6 +17,14 @@ data class MixPart(
     val productId: Long,
     val label: String,
     val ratioParts: Double,
+    /**
+     * What the datasheet actually said, where this part is a share of the others rather than a
+     * ratio part of its own: "water at 10% of (A+B)". Zero for an ordinary part.
+     *
+     * [ratioParts] already carries what that comes to, so nothing in the maths reads this — it
+     * is here so the screen can say the recipe back in the words it was written in.
+     */
+    val percentOfRest: Double = 0.0,
     val packageSize: Double,
     val packageUnit: String,
     val packageType: String,
@@ -59,6 +67,7 @@ fun solutionMix(
             productId = line.productId,
             label = line.label.ifBlank { product?.name.orEmpty() },
             ratioParts = line.ratioParts,
+            percentOfRest = line.percentOfRest,
             packageSize = product?.packageSize ?: 0.0,
             packageUnit = product?.packageUnit ?: "kg",
             packageType = product?.packageType ?: "bag",

@@ -184,6 +184,7 @@
     <string name="calc_no_range_note">Tälle tuotteelle ei ole julkaistua vaihteluväliä — käytetään tuotetiedon lukua sellaisenaan.</string>
     <string name="calc_youll_need">Tarvitset</string>
     <string name="calc_ratio_parts">suhde %1$s osaa</string>
+    <string name="calc_ratio_percent">%1$s %% muista</string>
     <string name="calc_packs">%1$d × %2$s</string>
     <string name="calc_add_density_to_count">Lisää tiheys (kg/L), jotta pakkaukset voidaan laskea</string>
     <string name="calc_set_pack_to_count">Aseta pakkauskoko, jotta pakkaukset voidaan laskea</string>
@@ -661,6 +662,10 @@
     <string name="solution_by_area">m² mukaan</string>
     <string name="solution_by_area_hint">Jokainen osa niin kuin datalehti antaa — kg/m². Suhde ja menekki lasketaan niistä.</string>
     <string name="solution_line_rate">kg/m²</string>
+    <string name="solution_line_percent" formatted="false">% muista</string>
+    <string name="solution_line_as_percent" formatted="false">Mittaa prosentteina muista</string>
+    <string name="solution_line_as_parts">Mittaa osina</string>
+    <string name="solution_line_percent_hint" formatted="false">Osuus kaikesta muusta astiassa — vettä 10 % (A+B):stä.</string>
     <string name="solution_coverage_computed">Tekee yhteensä %1$s g/m²</string>
     <string name="calc_start_mixing">Aloita sekoitus</string>
     <string name="calc_start_mixing_sub">Erä kerrallaan, sekoitusaika laskee alaspäin.</string>
