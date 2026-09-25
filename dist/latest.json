@@ -1,8 +1,8 @@
 {
-  "versionCode": 133,
-  "versionName": "1.0.133",
-  "apk": "MixMaster_1.0.133.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.133.apk",
-  "sizeBytes": 20553107,
-  "notes": "Tell the two halves of the materials page apart"
+  "versionCode": 134,
+  "versionName": "1.0.134",
+  "apk": "MixMaster_1.0.134.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.134.apk",
+  "sizeBytes": 20553103,
+  "notes": "Close the gaps the pages were opening with"
 }
