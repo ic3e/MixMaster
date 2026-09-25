@@ -2,6 +2,12 @@ package com.conwic.mixmaster.ui.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +26,7 @@ import com.conwic.mixmaster.ui.calculator.CalculatorScreen
 import com.conwic.mixmaster.ui.calculator.CoatHandover
 import com.conwic.mixmaster.ui.calendarscreen.CalendarScreen
 import com.conwic.mixmaster.ui.components.BottomNavBar
+import com.conwic.mixmaster.ui.components.rememberMotionOff
 import com.conwic.mixmaster.ui.home.HomeScreen
 import com.conwic.mixmaster.ui.onboarding.OnboardingScreen
 import com.conwic.mixmaster.ui.products.AddEditProductScreen
@@ -37,6 +44,8 @@ fun MixMasterNavGraph(startDestination: String) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    // Read once, out here: the transition lambdas below are not composable, so they cannot ask.
+    val calm = rememberMotionOff()
 
     Scaffold(
         bottomBar = {
@@ -50,13 +59,48 @@ fun MixMasterNavGraph(startDestination: String) {
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            // No transitions. The default cross-fade draws the old and new screen on top of each
-            // other for a few frames, which on site reads as the app glitching, and the slide
-            // shoves the page sideways under your thumb.
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = { ExitTransition.None },
+            // A push, not a cross-fade. The default fade draws the old screen and the new one
+            // on top of each other for a few frames, which on site reads as the app glitching;
+            // and a full-width slide shoves the page sideways under your thumb. This is an
+            // eighth of the width and a fifth of a second: enough to say which way you went,
+            // gone before you have finished the tap.
+            //
+            // The page that is leaving moves less than the page arriving, so they do not travel
+            // as one sheet — the new screen reads as coming over the old one rather than the two
+            // of them being dragged across together. Going back runs it the other way, which is
+            // the only thing on screen that says "back" when the gesture came from the edge.
+            enterTransition = {
+                if (calm) {
+                    EnterTransition.None
+                } else {
+                    slideInHorizontally(tween(PageMillis, easing = PageEase)) { it / 8 } +
+                        fadeIn(tween(PageMillis - 60))
+                }
+            },
+            exitTransition = {
+                if (calm) {
+                    ExitTransition.None
+                } else {
+                    slideOutHorizontally(tween(PageMillis, easing = PageEase)) { -it / 14 } +
+                        fadeOut(tween(PageMillis - 90))
+                }
+            },
+            popEnterTransition = {
+                if (calm) {
+                    EnterTransition.None
+                } else {
+                    slideInHorizontally(tween(PageMillis, easing = PageEase)) { -it / 14 } +
+                        fadeIn(tween(PageMillis - 60))
+                }
+            },
+            popExitTransition = {
+                if (calm) {
+                    ExitTransition.None
+                } else {
+                    slideOutHorizontally(tween(PageMillis, easing = PageEase)) { it / 8 } +
+                        fadeOut(tween(PageMillis - 90))
+                }
+            },
             // fillMaxSize, not padding(insets): the bottom bar is only on the top-level screens,
             // so padding the NavHost made it change size when you opened a product or a project.
             // Navigation animates that size change with a spring — which is the "new card sliding
@@ -196,3 +240,7 @@ fun MixMasterNavGraph(startDestination: String) {
 private fun Inset(insets: PaddingValues, content: @Composable () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().padding(insets)) { content() }
 }
+
+/** How long a page takes to come over the one behind it, and the curve it does it on. */
+private const val PageMillis = 220
+private val PageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
