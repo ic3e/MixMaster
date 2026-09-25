@@ -1,8 +1,8 @@
 {
-  "versionCode": 136,
-  "versionName": "1.0.136",
-  "apk": "MixMaster_1.0.136.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.136.apk",
-  "sizeBytes": 20553107,
-  "notes": "Give a short window less chrome, and kilos one decimal"
+  "versionCode": 137,
+  "versionName": "1.0.137",
+  "apk": "MixMaster_1.0.137.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.137.apk",
+  "sizeBytes": 20553103,
+  "notes": "Hold the page to a column a line can be read across"
 }
