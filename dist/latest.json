@@ -1,8 +1,8 @@
 {
-  "versionCode": 127,
-  "versionName": "1.0.127",
-  "apk": "MixMaster_1.0.127.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.127.apk",
+  "versionCode": 128,
+  "versionName": "1.0.128",
+  "apk": "MixMaster_1.0.128.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.128.apk",
   "sizeBytes": 20552363,
-  "notes": "Take the recently-added products off the home screen"
+  "notes": "Stop warning about a batch that is never mixed"
 }
