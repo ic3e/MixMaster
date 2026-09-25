@@ -1,8 +1,8 @@
 {
-  "versionCode": 126,
-  "versionName": "1.0.126",
-  "apk": "MixMaster_1.0.126.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.126.apk",
-  "sizeBytes": 20552875,
-  "notes": "A box to a job on the room picker, and a way into the recipe"
+  "versionCode": 127,
+  "versionName": "1.0.127",
+  "apk": "MixMaster_1.0.127.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.127.apk",
+  "sizeBytes": 20552363,
+  "notes": "Take the recently-added products off the home screen"
 }
