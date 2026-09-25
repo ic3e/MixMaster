@@ -1,8 +1,8 @@
 {
-  "versionCode": 120,
-  "versionName": "1.0.120",
-  "apk": "MixMaster_1.0.120.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.120.apk",
-  "sizeBytes": 20531411,
-  "notes": "Draw the build-up the way the boards draw it, and fade the mixing screen"
+  "versionCode": 121,
+  "versionName": "1.0.121",
+  "apk": "MixMaster_1.0.121.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.121.apk",
+  "sizeBytes": 20549791,
+  "notes": "Turn the mixing screen over, and let the alert sound be chosen"
 }
