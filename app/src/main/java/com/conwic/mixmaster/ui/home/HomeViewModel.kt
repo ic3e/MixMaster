@@ -3,7 +3,6 @@ package com.conwic.mixmaster.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.conwic.mixmaster.data.db.entity.DeliveryEntity
-import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.TaskEntity
 import com.conwic.mixmaster.data.model.ProjectStatus
 import com.conwic.mixmaster.data.repository.DeliveryRepository
@@ -92,7 +91,6 @@ data class HomeUiState(
     val undatedTasks: List<HomeTaskUi> = emptyList(),
     val week: List<WeekDayUi> = emptyList(),
     val projects: List<ProjectOption> = emptyList(),
-    val recentProducts: List<ProductEntity> = emptyList(),
 )
 
 class HomeViewModel(
@@ -261,7 +259,6 @@ class HomeViewModel(
             undatedTasks = undated,
             week = week,
             projects = projects.map { ProjectOption(it.id, it.name) },
-            recentProducts = products.takeLast(3).reversed(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 

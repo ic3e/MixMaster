@@ -483,7 +483,6 @@
     <string name="home_nothing_today">Nothing on this day. Tap + Add task.</string>
     <string name="home_was_due">%1$s · was due %2$s</string>
     <string name="home_anytime">Anytime · %1$d</string>
-    <string name="home_recent_products">Recently added products</string>
 
     <!-- Project status -->
     <string name="status_all">All</string>

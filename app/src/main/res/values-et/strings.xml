@@ -455,7 +455,6 @@
     <string name="home_nothing_today">Sel päeval pole midagi. Vajuta + Lisa ülesanne.</string>
     <string name="home_was_due">%1$s · tähtaeg oli %2$s</string>
     <string name="home_anytime">Millal tahes · %1$d</string>
-    <string name="home_recent_products">Hiljuti lisatud tooted</string>
 
     <string name="status_all">Kõik</string>
     <string name="status_active">Aktiivne</string>

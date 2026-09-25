@@ -427,27 +427,6 @@ fun HomeScreen(navController: NavHostController) {
                 }
             }
         }
-
-        if (state.recentProducts.isNotEmpty()) {
-            item {
-                Column {
-                    SectionLabel(text = stringResource(R.string.home_recent_products))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.recentProducts.forEach { product ->
-                            Text(
-                                text = product.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier
-                                    .clip(MaterialTheme.shapes.large)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable { navController.navigate(Routes.productDetail(product.id)) }
-                                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 
     editing?.let { draft ->

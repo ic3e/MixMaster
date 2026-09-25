@@ -455,7 +455,6 @@
     <string name="home_nothing_today">Tälle päivälle ei ole mitään. Paina + Lisää tehtävä.</string>
     <string name="home_was_due">%1$s · määräpäivä oli %2$s</string>
     <string name="home_anytime">Milloin tahansa · %1$d</string>
-    <string name="home_recent_products">Viimeksi lisätyt tuotteet</string>
 
     <string name="status_all">Kaikki</string>
     <string name="status_active">Aktiivinen</string>
