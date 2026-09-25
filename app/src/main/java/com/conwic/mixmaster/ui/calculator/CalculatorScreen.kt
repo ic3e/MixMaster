@@ -817,7 +817,11 @@ fun CalculatorScreen(
                                 ),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                // The full ink rather than the muted grey the rest of the notes
+                                // are set in: this one is a figure to check, not an aside. Taken
+                                // from the scheme rather than written as black, so it is still
+                                // legible when the phone is in the dark theme.
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(top = 4.dp),
                             )
                         }
