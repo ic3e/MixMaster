@@ -926,7 +926,11 @@ fun CalculatorScreen(
                         modifier = Modifier.weight(1f),
                     )
                     PrimaryButton(
-                        text = stringResource(R.string.calc_save_to_project),
+                        // Named for what it does, which is walk you over to the projects. It
+                        // said "Save to project" and saved nothing: a coat gets onto a job from
+                        // the job's own Layout tab, and what was actually mixed is written back
+                        // at the end of a batch.
+                        text = stringResource(R.string.calc_open_projects),
                         onClick = { navController.navigateToTopLevel(Routes.PROJECTS) },
                         modifier = Modifier.weight(1f),
                     )

@@ -218,7 +218,7 @@
     <string name="calc_add_to_last">Lisa viimasesse kogusesse:</string>
     <string name="calc_add_to_last_why">Liiga vähe, et eraldi segada.</string>
     <string name="calc_log_usage">Salvesta tegelik kulu</string>
-    <string name="calc_save_to_project">Salvesta projekti</string>
+    <string name="calc_open_projects">Ava projektid</string>
     <!-- Segu, mis on kirjas projekti peal. -->
     <string name="mix_record">Lisa projektile</string>
     <string name="mix_record_note">Läheb objektile %1$s kulunud materjalina</string>

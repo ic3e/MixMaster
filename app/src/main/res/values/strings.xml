@@ -236,7 +236,7 @@
     <string name="calc_add_to_last">Add to the last batch:</string>
     <string name="calc_add_to_last_why">Too little to be worth a mixing of its own.</string>
     <string name="calc_log_usage">Log actual usage</string>
-    <string name="calc_save_to_project">Save to project</string>
+    <string name="calc_open_projects">Open projects</string>
     <!-- What was mixed, written against the project it went on. -->
     <string name="mix_record">Add to project</string>
     <string name="mix_record_note">Goes on %1$s as material used</string>

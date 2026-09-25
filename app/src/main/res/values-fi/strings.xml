@@ -218,7 +218,7 @@
     <string name="calc_add_to_last">Lisää viimeiseen erään:</string>
     <string name="calc_add_to_last_why">Liian vähän omaksi sekoitukseksi.</string>
     <string name="calc_log_usage">Kirjaa todellinen menekki</string>
-    <string name="calc_save_to_project">Tallenna projektiin</string>
+    <string name="calc_open_projects">Avaa projektit</string>
     <!-- Sekoitus kirjattuna sille projektille, johon se meni. -->
     <string name="mix_record">Lisää projektiin</string>
     <string name="mix_record_note">Kirjataan kohteeseen %1$s käytettynä materiaalina</string>
