@@ -816,6 +816,7 @@ fun CalculatorScreen(
                                     formatDecimal(state.headroomPercent, 0),
                                 ),
                                 style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp),
                             )
