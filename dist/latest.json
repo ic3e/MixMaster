@@ -1,8 +1,8 @@
 {
-  "versionCode": 142,
-  "versionName": "1.0.142",
-  "apk": "MixMaster_1.0.142.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.142.apk",
+  "versionCode": 143,
+  "versionName": "1.0.143",
+  "apk": "MixMaster_1.0.143.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.143.apk",
   "sizeBytes": 20553103,
-  "notes": "Stop the bottom-nav tabs animating whichever way they feel like"
+  "notes": "Stop the tabs crossfading through each other"
 }
