@@ -2,6 +2,8 @@ package com.conwic.mixmaster.ui.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
+import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.update.AppUpdates
@@ -189,8 +192,22 @@ fun UpdateBanner(onOpen: () -> Unit, modifier: Modifier = Modifier) {
         is UpdateState.ReadyToInstall -> current.info.versionName
         else -> return
     }
-    CardFlat(modifier = modifier.fillMaxWidth()) {
-        Text(text = stringResource(R.string.upd_available, version), style = MaterialTheme.typography.titleMedium)
+    // In the accent, not in the white every other card on the home screen is set in: this one
+    // is only ever on the page when there is something to do about it, and a white card among
+    // white cards is a card somebody scrolls past for a fortnight. The same tint and brown
+    // outline the calculator gives its total — the app's way of saying "this one".
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer, CardShape)
+            .border(1.dp, MaterialTheme.colorScheme.primary, CardShape)
+            .padding(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.upd_available, version),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
         Hint(stringResource(R.string.upd_youre_on, BuildConfig.VERSION_NAME))
         PrimaryButton(
             text = stringResource(R.string.upd_update),
