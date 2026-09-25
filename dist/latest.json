@@ -1,8 +1,8 @@
 {
-  "versionCode": 125,
-  "versionName": "1.0.125",
-  "apk": "MixMaster_1.0.125.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.125.apk",
-  "sizeBytes": 20552399,
-  "notes": "A part can now be a share of the others, the way a datasheet writes water"
+  "versionCode": 126,
+  "versionName": "1.0.126",
+  "apk": "MixMaster_1.0.126.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.126.apk",
+  "sizeBytes": 20552875,
+  "notes": "A box to a job on the room picker, and a way into the recipe"
 }
