@@ -1,8 +1,8 @@
 {
-  "versionCode": 134,
-  "versionName": "1.0.134",
-  "apk": "MixMaster_1.0.134.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.134.apk",
+  "versionCode": 135,
+  "versionName": "1.0.135",
+  "apk": "MixMaster_1.0.135.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.135.apk",
   "sizeBytes": 20553103,
-  "notes": "Close the gaps the pages were opening with"
+  "notes": "Put the update banner in the accent"
 }
