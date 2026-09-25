@@ -1,8 +1,8 @@
 {
-  "versionCode": 123,
-  "versionName": "1.0.123",
-  "apk": "MixMaster_1.0.123.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.123.apk",
-  "sizeBytes": 20549775,
-  "notes": "Take the field names off the borders"
+  "versionCode": 124,
+  "versionName": "1.0.124",
+  "apk": "MixMaster_1.0.124.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.124.apk",
+  "sizeBytes": 20533391,
+  "notes": "One way of naming a product, and a home screen that isn't half empty"
 }
