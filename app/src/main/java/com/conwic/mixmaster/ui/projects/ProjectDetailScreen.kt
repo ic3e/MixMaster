@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -64,7 +65,7 @@ import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
-import com.conwic.mixmaster.ui.components.byHeight
+import com.conwic.mixmaster.ui.components.compactHeight
 import com.conwic.mixmaster.ui.components.pageSide
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.navigation.Routes
@@ -112,48 +113,70 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     var generatedReportUri by remember { mutableStateOf<Uri?>(null) }
     var confirmArchive by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            Column {
-                MixMasterTopBar(
-                    title = project.name,
-                    onBack = { navController.popBackStack() },
-                    actions = {
-                        if (role == Role.EMPLOYER) {
-                            IconButton(onClick = { overflowOpen = true }) {
-                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
-                            }
-                            DropdownMenu(expanded = overflowOpen, onDismissRequest = { overflowOpen = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.prj_generate_report)) },
-                                    onClick = {
-                                        overflowOpen = false
-                                        generatedReportUri = ReportGenerator.generate(
-                                            context = context,
-                                            project = project,
-                                            rooms = data.rooms,
-                                            roomCoats = roomCoats,
-                                            products = data.products,
-                                            tasks = data.tasks,
-                                            mixes = recordedMixes,
-                                        )
-                                    },
-                                )
-                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_edit)) }, onClick = { overflowOpen = false; editSheetOpen = true })
-                                DropdownMenuItem(text = { Text(stringResource(R.string.prj_archive)) }, onClick = { overflowOpen = false; confirmArchive = true })
-                            }
-                        }
+    // Sideways there is width going spare and no height at all, so the name and the tabs share
+    // a line instead of taking one each — which is the 48dp of back-button touch target that no
+    // amount of trimming the padding was ever going to get back.
+    val sideBySide = compactHeight()
+    // Written once and handed to whichever of the two arrangements is used, so the menu behind
+    // it cannot drift apart between them.
+    val barActions: @Composable RowScope.() -> Unit = {
+        if (role == Role.EMPLOYER) {
+            IconButton(onClick = { overflowOpen = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+            }
+            DropdownMenu(expanded = overflowOpen, onDismissRequest = { overflowOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.prj_generate_report)) },
+                    onClick = {
+                        overflowOpen = false
+                        generatedReportUri = ReportGenerator.generate(
+                            context = context,
+                            project = project,
+                            rooms = data.rooms,
+                            roomCoats = roomCoats,
+                            products = data.products,
+                            tasks = data.tasks,
+                            mixes = recordedMixes,
+                        )
                     },
                 )
-                SegmentedTabs(
-                    titles = tabTitleRes.map { stringResource(it) },
-                    selectedIndex = selectedTab,
-                    onSelect = { selectedTab = it },
-                    modifier = Modifier.padding(
-                        horizontal = pageSide(),
-                        vertical = byHeight(tight = 4.dp, roomy = 10.dp),
-                    ),
-                )
+                DropdownMenuItem(text = { Text(stringResource(R.string.prj_edit)) }, onClick = { overflowOpen = false; editSheetOpen = true })
+                DropdownMenuItem(text = { Text(stringResource(R.string.prj_archive)) }, onClick = { overflowOpen = false; confirmArchive = true })
+            }
+        }
+    }
+    val tabTitles = tabTitleRes.map { stringResource(it) }
+    Scaffold(
+        topBar = {
+            if (sideBySide) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MixMasterTopBar(
+                        title = project.name,
+                        onBack = { navController.popBackStack() },
+                        modifier = Modifier.weight(0.42f),
+                        actions = barActions,
+                    )
+                    SegmentedTabs(
+                        titles = tabTitles,
+                        selectedIndex = selectedTab,
+                        onSelect = { selectedTab = it },
+                        modifier = Modifier.weight(0.58f).padding(end = 12.dp),
+                    )
+                }
+            } else {
+                Column {
+                    MixMasterTopBar(
+                        title = project.name,
+                        onBack = { navController.popBackStack() },
+                        actions = barActions,
+                    )
+                    SegmentedTabs(
+                        titles = tabTitles,
+                        selectedIndex = selectedTab,
+                        onSelect = { selectedTab = it },
+                        modifier = Modifier.padding(horizontal = pageSide(), vertical = 6.dp),
+                    )
+                }
             }
         },
     ) { insets ->
