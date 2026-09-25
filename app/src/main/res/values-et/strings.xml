@@ -213,6 +213,7 @@
     <string name="calc_batches_split">%1$d täis + 1 osaline · %2$s</string>
     <string name="calc_too_big">Selle segumasina jaoks liiga suur — %1$s L nõus, mida tahad täita ainult %2$s L-ni. Võta suurem segumasin või jaga kogus pooleks.</string>
     <string name="calc_spare">Jääb %1$s L varu — nõusse mahub %2$s L ja sa täidad selle %3$s L-ni.</string>
+    <string name="calc_drum_settings">Arvestatud %1$s L nõuga, millest %2$s%% jääb tühjaks — määratud vahekaardil „Segumasina maht“.</string>
     <string name="calc_in_drum">See on %1$s L nõus, millest jääb %2$s L neist %3$s L-st, mida saad kasutada.</string>
     <string name="calc_each_full_batch">Iga täiskogus:</string>
     <string name="calc_then_part_batch">Seejärel üks osaline kogus:</string>

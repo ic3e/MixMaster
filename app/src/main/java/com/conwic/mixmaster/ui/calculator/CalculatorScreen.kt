@@ -804,6 +804,22 @@ fun CalculatorScreen(
                                 modifier = Modifier.padding(top = 4.dp),
                             )
                         }
+                        // Which drum all of that was measured against. Both figures are set on
+                        // the Mixer size tab, so on the other two the litres arrived from
+                        // nowhere — and a red warning about a drum you cannot see the size of
+                        // is a warning you have to go and check before you believe it.
+                        if (plan.perBatchLitres != null && state.batchBasis != BatchBasis.MIXER_VOLUME) {
+                            Text(
+                                text = stringResource(
+                                    R.string.calc_drum_settings,
+                                    formatDecimal(state.mixerLitres, 0),
+                                    formatDecimal(state.headroomPercent, 0),
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
                         if (plan.batches > 0) {
                             if (plan.remainderBatch != null || plan.lastBatchExtra != null) {
                                 Text(

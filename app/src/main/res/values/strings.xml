@@ -231,6 +231,7 @@
     <string name="calc_batches_split">%1$d full + 1 part · %2$s</string>
     <string name="calc_too_big">Too big for this mixer — %1$s L in a drum you only want filled to %2$s L. Use a bigger mixer or split the batch.</string>
     <string name="calc_spare">Leaves %1$s L spare — the drum holds %2$s L and you\'re filling it to %3$s L.</string>
+    <string name="calc_drum_settings">Measured against a %1$s L drum with %2$s%% kept empty — set under “Mixer size”.</string>
     <string name="calc_in_drum">That\'s %1$s L in the drum, which leaves %2$s L of the %3$s L you can use.</string>
     <string name="calc_each_full_batch">Each full batch:</string>
     <string name="calc_then_part_batch">Then one part batch:</string>

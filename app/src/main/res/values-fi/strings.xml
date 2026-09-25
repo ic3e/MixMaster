@@ -213,6 +213,7 @@
     <string name="calc_batches_split">%1$d täyttä + 1 osittainen · %2$s</string>
     <string name="calc_too_big">Liian suuri tälle sekoittimelle — %1$s L astiassa, jonka haluat täyttää vain %2$s litraan. Ota isompi sekoitin tai jaa erä.</string>
     <string name="calc_spare">Jää %1$s L varaa — astiaan mahtuu %2$s L ja täytät sen %3$s litraan.</string>
+    <string name="calc_drum_settings">Mitoitettu %1$s L astialle, josta %2$s %% jää tyhjäksi — asetettu välilehdellä ”Sekoitusastian koko”.</string>
     <string name="calc_in_drum">Se on %1$s L astiassa, jolloin jää %2$s L niistä %3$s litrasta, jotka voit käyttää.</string>
     <string name="calc_each_full_batch">Jokainen täysi erä:</string>
     <string name="calc_then_part_batch">Sitten yksi osittainen erä:</string>
