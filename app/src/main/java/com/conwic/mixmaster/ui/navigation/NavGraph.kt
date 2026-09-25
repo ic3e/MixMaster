@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
@@ -7,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -70,35 +73,31 @@ fun MixMasterNavGraph(startDestination: String) {
             // of them being dragged across together. Going back runs it the other way, which is
             // the only thing on screen that says "back" when the gesture came from the edge.
             enterTransition = {
-                if (calm) {
-                    EnterTransition.None
-                } else {
-                    slideInHorizontally(tween(PageMillis, easing = PageEase)) { it / 8 } +
-                        fadeIn(tween(PageMillis - 60))
+                when {
+                    calm -> EnterTransition.None
+                    betweenTabs() -> tabIn()
+                    else -> pushIn(forward = true)
                 }
             },
             exitTransition = {
-                if (calm) {
-                    ExitTransition.None
-                } else {
-                    slideOutHorizontally(tween(PageMillis, easing = PageEase)) { -it / 14 } +
-                        fadeOut(tween(PageMillis - 90))
+                when {
+                    calm -> ExitTransition.None
+                    betweenTabs() -> tabOut()
+                    else -> pushOut(forward = true)
                 }
             },
             popEnterTransition = {
-                if (calm) {
-                    EnterTransition.None
-                } else {
-                    slideInHorizontally(tween(PageMillis, easing = PageEase)) { -it / 14 } +
-                        fadeIn(tween(PageMillis - 60))
+                when {
+                    calm -> EnterTransition.None
+                    betweenTabs() -> tabIn()
+                    else -> pushIn(forward = false)
                 }
             },
             popExitTransition = {
-                if (calm) {
-                    ExitTransition.None
-                } else {
-                    slideOutHorizontally(tween(PageMillis, easing = PageEase)) { it / 8 } +
-                        fadeOut(tween(PageMillis - 90))
+                when {
+                    calm -> ExitTransition.None
+                    betweenTabs() -> tabOut()
+                    else -> pushOut(forward = false)
                 }
             },
             // fillMaxSize, not padding(insets): the bottom bar is only on the top-level screens,
@@ -244,3 +243,34 @@ private fun Inset(insets: PaddingValues, content: @Composable () -> Unit) {
 /** How long a page takes to come over the one behind it, and the curve it does it on. */
 private const val PageMillis = 220
 private val PageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
+
+/**
+ * Whether this move is between two of the bottom-nav destinations.
+ *
+ * Tapping Warehouse from Products is sideways — neither is inside the other, so a push that
+ * says "forward" or "back" is saying something untrue. Worse, it could not even say it the same
+ * way twice: switching tabs clears the stack down to Home, so navigation reads the move as a
+ * push when you start on Home and as a pop from anywhere else, and the same tap animated one
+ * way from one tab and the other way from the next.
+ */
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.betweenTabs(): Boolean =
+    initialState.destination.route in Routes.bottomNavRoutes &&
+        targetState.destination.route in Routes.bottomNavRoutes
+
+/** A tab arriving: no direction, just a lift off the page. */
+private fun tabIn(): EnterTransition =
+    fadeIn(tween(PageMillis - 40)) +
+        slideInVertically(tween(PageMillis, easing = PageEase)) { it / 40 }
+
+/** And the one it replaces, out of the way quickly so the two do not sit on top of each other. */
+private fun tabOut(): ExitTransition = fadeOut(tween(PageMillis - 120))
+
+/** A page stepping in, from the right going deeper and from the left coming back. */
+private fun pushIn(forward: Boolean): EnterTransition =
+    slideInHorizontally(tween(PageMillis, easing = PageEase)) { if (forward) it / 8 else -it / 14 } +
+        fadeIn(tween(PageMillis - 60))
+
+/** The page it covers, moving a fraction of the distance so they never travel as one sheet. */
+private fun pushOut(forward: Boolean): ExitTransition =
+    slideOutHorizontally(tween(PageMillis, easing = PageEase)) { if (forward) -it / 14 else it / 8 } +
+        fadeOut(tween(PageMillis - 90))
