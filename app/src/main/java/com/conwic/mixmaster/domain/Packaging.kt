@@ -74,6 +74,31 @@ fun usableLitres(mixerLitres: Double, headroomPercent: Double): Double =
     mixerLitres * (1.0 - headroomPercent.coerceIn(0.0, 90.0) / 100.0)
 
 /**
+ * How much of a drum this size to leave empty, before anybody says otherwise.
+ *
+ * The room a mix needs to turn over is not a fixed fraction of the drum. In a 10 L bucket the
+ * paddle takes up a good part of what is in there and the material rides straight up the wall;
+ * in a 65 L drum the same mix has somewhere to go. So a small bucket is left emptier than a big
+ * one — which is the opposite of what a single percentage across every size gives you.
+ *
+ * Forty per cent is the floor, because that is the figure the screen tells people is the usual
+ * minimum and the app should not quietly undercut its own advice. Small buckets go above it, on
+ * a straight line between the sizes a crew actually owns.
+ */
+/** The drum the calculator opens on: the one on the van. */
+const val DefaultMixerLitres = 65.0
+
+fun suggestedHeadroomPercent(mixerLitres: Double): Double {
+    val steps = listOf(5.0 to 55.0, 10.0 to 50.0, 20.0 to 45.0, 35.0 to 42.0, 65.0 to 40.0)
+    if (mixerLitres <= steps.first().first) return steps.first().second
+    if (mixerLitres >= steps.last().first) return steps.last().second
+    val above = steps.indexOfFirst { it.first >= mixerLitres }
+    val (loL, loPct) = steps[above - 1]
+    val (hiL, hiPct) = steps[above]
+    return loPct + (hiPct - loPct) * (mixerLitres - loL) / (hiL - loL)
+}
+
+/**
  * The word for water in each language the app is written in, so a part typed as "Vesi" is
  * recognised the same way "Water" is. Estonian and Finnish share the nominative; the rest are
  * the cases a part actually gets labelled in.

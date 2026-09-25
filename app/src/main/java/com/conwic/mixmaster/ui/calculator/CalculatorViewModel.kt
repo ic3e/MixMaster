@@ -25,7 +25,9 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.implausibleStoredDensities
 import com.conwic.mixmaster.domain.packNeeds
 import com.conwic.mixmaster.domain.planBatches
+import com.conwic.mixmaster.domain.DefaultMixerLitres
 import com.conwic.mixmaster.domain.solutionMix
+import com.conwic.mixmaster.domain.suggestedHeadroomPercent
 import com.conwic.mixmaster.domain.toNumberOrNull
 import com.conwic.mixmaster.domain.usableLitres
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,9 +51,9 @@ data class CalculatorUiState(
     val loggedJobCount: Int = 0,
     val packNeeds: List<PackNeed> = emptyList(),
     val batchBasis: BatchBasis = BatchBasis.ONE_PACKAGE,
-    val mixerLitres: Double = 65.0,
+    val mixerLitres: Double = DefaultMixerLitres,
     /** How much of the drum is deliberately left empty so the mix has room to turn over. */
-    val headroomPercent: Double = 40.0,
+    val headroomPercent: Double = suggestedHeadroomPercent(DefaultMixerLitres),
     val usableLitres: Double = 39.0,
     val maxBatchKg: Double = 25.0,
     val batchPlan: BatchPlan? = null,
@@ -104,8 +106,8 @@ private data class CalculatorInputs(
     /** null = not yet overridden by the user; falls back to the recipe's typical dose. */
     val coverageOverride: Double? = null,
     val batchBasis: BatchBasis = BatchBasis.ONE_PACKAGE,
-    val mixerLitres: Double = 65.0,
-    val headroomPercent: Double = 40.0,
+    val mixerLitres: Double = DefaultMixerLitres,
+    val headroomPercent: Double = suggestedHeadroomPercent(DefaultMixerLitres),
     val maxBatchKg: Double = 25.0,
     /** The coat's row on a room, when this was opened for one — what its colour hangs off. */
     val layerId: Long = 0L,
@@ -327,7 +329,17 @@ class CalculatorViewModel(
 
     fun setBatchBasis(basis: BatchBasis) = inputs.update { it.copy(batchBasis = basis) }
 
-    fun setMixerLitres(litres: Double) = inputs.update { it.copy(mixerLitres = litres) }
+    /**
+     * Picking the drum sets the room to leave in it as well.
+     *
+     * A percentage that stays put while the drum changes size is the wrong figure by the time
+     * you have gone from a 65 L drum to a 10 L bucket — the bucket wants half of it empty and
+     * the drum does not. So the slider moves with the drum, and anybody who disagrees with the
+     * figure can still drag it afterwards.
+     */
+    fun setMixerLitres(litres: Double) = inputs.update {
+        it.copy(mixerLitres = litres, headroomPercent = suggestedHeadroomPercent(litres))
+    }
 
     fun setHeadroomPercent(percent: Double) =
         inputs.update { it.copy(headroomPercent = percent.coerceIn(0.0, 80.0)) }
