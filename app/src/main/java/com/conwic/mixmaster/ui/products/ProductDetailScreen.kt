@@ -2,7 +2,6 @@ package com.conwic.mixmaster.ui.products
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.docs.SheetStore
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -78,7 +78,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {

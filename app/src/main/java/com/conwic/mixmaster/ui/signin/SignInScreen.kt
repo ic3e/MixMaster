@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +27,7 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConwicLockup
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -41,7 +41,7 @@ fun SignInScreen(onContinue: () -> Unit) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {

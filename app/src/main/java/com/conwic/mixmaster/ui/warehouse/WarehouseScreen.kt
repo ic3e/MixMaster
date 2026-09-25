@@ -5,7 +5,6 @@ package com.conwic.mixmaster.ui.warehouse
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +45,7 @@ import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
@@ -98,7 +98,7 @@ fun WarehouseScreen(navController: NavHostController) {
         // The same rhythm as the Products and Projects lists — this screen sat at its own
         // spacing and its own title size, which is what made moving between them feel like
         // moving between two apps. The room at the bottom keeps the last card off the nav bar.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 40.dp),
+        contentPadding = pagePadding(bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineMedium) }

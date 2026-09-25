@@ -2,7 +2,6 @@ package com.conwic.mixmaster.ui.solutions
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +33,7 @@ import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.ChipRow
 import com.conwic.mixmaster.ui.components.ConfirmDialog
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -80,7 +80,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

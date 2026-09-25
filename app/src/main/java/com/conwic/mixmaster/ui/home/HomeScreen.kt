@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -58,6 +57,7 @@ import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.formatGreetingDay
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.OnAccentCard
 import com.conwic.mixmaster.ui.components.CardFlat
@@ -118,7 +118,7 @@ fun HomeScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {

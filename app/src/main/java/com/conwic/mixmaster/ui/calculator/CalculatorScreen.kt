@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.ChipRow
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -161,7 +161,7 @@ fun CalculatorScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         // Opened from a product now rather than from the bottom bar, so it needs its own way

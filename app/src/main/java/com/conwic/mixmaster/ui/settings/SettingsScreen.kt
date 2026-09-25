@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +46,7 @@ import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.components.ChipOption
@@ -82,7 +82,7 @@ fun SettingsScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium) }

@@ -65,6 +65,7 @@ import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.byHeight
+import com.conwic.mixmaster.ui.components.pageSide
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.navigation.Routes
 import androidx.compose.ui.res.stringResource
@@ -149,7 +150,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     selectedIndex = selectedTab,
                     onSelect = { selectedTab = it },
                     modifier = Modifier.padding(
-                        horizontal = 20.dp,
+                        horizontal = pageSide(),
                         vertical = byHeight(tight = 4.dp, roomy = 10.dp),
                     ),
                 )

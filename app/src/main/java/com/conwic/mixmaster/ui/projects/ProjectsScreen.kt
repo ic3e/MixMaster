@@ -3,7 +3,6 @@ package com.conwic.mixmaster.ui.projects
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -39,6 +38,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.ChipOption
@@ -86,7 +86,7 @@ fun ProjectsScreen(navController: NavHostController) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
             // Extra room at the bottom so the floating + doesn't sit on top of the last card.
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
+            contentPadding = pagePadding(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = stringResource(R.string.projects_title), style = MaterialTheme.typography.headlineMedium) }

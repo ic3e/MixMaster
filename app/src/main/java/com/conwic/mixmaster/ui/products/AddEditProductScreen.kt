@@ -1,7 +1,6 @@
 package com.conwic.mixmaster.ui.products
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +31,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
@@ -75,7 +75,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {

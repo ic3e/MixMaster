@@ -2,7 +2,6 @@ package com.conwic.mixmaster.ui.products
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +33,7 @@ import com.conwic.mixmaster.data.db.entity.familyId
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.domain.formatDecimal
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -87,7 +87,7 @@ fun ProductsScreen(navController: NavHostController) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
             // Extra room at the bottom so the floating + doesn't sit on top of the last card.
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
+            contentPadding = pagePadding(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = stringResource(R.string.products_title), style = MaterialTheme.typography.headlineMedium) }

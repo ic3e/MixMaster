@@ -1,7 +1,6 @@
 package com.conwic.mixmaster.ui.onboarding
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
+import com.conwic.mixmaster.ui.components.pagePadding
 import kotlinx.coroutines.launch
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import androidx.compose.ui.res.stringResource
@@ -59,7 +59,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = pagePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {

@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +59,7 @@ import com.conwic.mixmaster.data.report.PickupLine
 import com.conwic.mixmaster.data.report.PickupList
 import com.conwic.mixmaster.domain.formatArea
 import com.conwic.mixmaster.ui.components.DropdownField
+import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.domain.quantityOf
 import androidx.compose.ui.text.input.KeyboardType
 import com.conwic.mixmaster.ui.components.FormTextField
@@ -118,7 +118,7 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
         // against it rather than adding a second gap on top of the first.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
+        contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -179,7 +179,7 @@ fun TasksTab(
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
         // against it rather than adding a second gap on top of the first.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
+        contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (isEmployer) {
@@ -296,7 +296,7 @@ fun LayoutTab(
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
         // against it rather than adding a second gap on top of the first.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
+        contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (role == Role.WORKER) {
@@ -1278,7 +1278,7 @@ fun MaterialsTab(
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
         // against it rather than adding a second gap on top of the first.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
+        contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
@@ -1875,7 +1875,7 @@ fun CalendarTab(data: ProjectDetailData) {
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
         // against it rather than adding a second gap on top of the first.
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 6.dp, bottom = 20.dp),
+        contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (sorted.isEmpty()) {
