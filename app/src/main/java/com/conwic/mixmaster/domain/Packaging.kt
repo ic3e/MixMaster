@@ -211,17 +211,36 @@ fun planBatches(
         // goes in with the last full batch instead, where it disappears into the drum — sending
         // someone back to the mixer to weigh out a few grams is how a batch gets skipped.
         val foldsIn = leftover != null && fullBatches > 0 && remainderKg < packSize * SmallLeftover
-        val batchLitres = totalLitres?.times(fullShare)
-        // The last batch is the big one when the leftover is folded into it, so that is the one
-        // the drum has to hold.
-        val biggestLitres = if (foldsIn) totalLitres?.times(fullShare + remainderShare) else batchLitres
+        // There is no whole pack in this job at all: a patch of 11 m² wants 400 g of a part
+        // that comes in 5 kg canisters. Nothing goes in the drum but the part batch, so the
+        // part batch is the batch — and it is the one the drum has to hold. Measured against a
+        // whole canister instead, the app worked out the volume of a batch twelve times the
+        // size of the whole job and told somebody their half-litre would not fit a 2.6 L drum.
+        val noFullBatch = fullBatches == 0
+        // Whichever batch is the biggest is the one the drum has to hold: the last one when a
+        // leftover is folded into it, the part batch when there is nothing else.
+        val biggestShare = when {
+            noFullBatch -> remainderShare
+            foldsIn -> fullShare + remainderShare
+            else -> fullShare
+        }
+        val biggestLitres = totalLitres?.times(biggestShare)
         return BatchPlan(
             batches = fullBatches,
-            perBatch = result.components.map { ComponentAmount(it.label, it.grams * fullShare) },
-            batchSize = BatchSize.WholePack(formatDecimal(packSize, 2), packType),
+            perBatch = if (noFullBatch) {
+                emptyList()
+            } else {
+                result.components.map { ComponentAmount(it.label, it.grams * fullShare) }
+            },
+            // And it is not a whole canister per batch either, whatever the pack holds.
+            batchSize = if (noFullBatch) {
+                BatchSize.Weight(quantityFromGrams(result.totalGrams * remainderShare).text)
+            } else {
+                BatchSize.WholePack(formatDecimal(packSize, 2), packType)
+            },
             remainderBatch = if (foldsIn) null else leftover,
             lastBatchExtra = if (foldsIn) leftover else null,
-            perBatchLitres = batchLitres,
+            perBatchLitres = biggestLitres,
             overflows = biggestLitres != null && biggestLitres > usable,
         )
     }
