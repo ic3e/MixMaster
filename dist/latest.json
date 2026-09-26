@@ -1,8 +1,8 @@
 {
-  "versionCode": 143,
-  "versionName": "1.0.143",
-  "apk": "MixMaster_1.0.143.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.143.apk",
-  "sizeBytes": 20553103,
-  "notes": "Stop the tabs crossfading through each other"
+  "versionCode": 144,
+  "versionName": "1.0.144",
+  "apk": "MixMaster_1.0.144.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.144.apk",
+  "sizeBytes": 20749711,
+  "notes": "Stop tab pages growing out of the middle of the screen"
 }
