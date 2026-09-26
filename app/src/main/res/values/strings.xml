@@ -796,4 +796,10 @@
     <string name="sc_nothing_body">Stop the count without saving it? The last count stays as it was.</string>
     <string name="sc_stop_count">Stop count</string>
     <string name="wh_order_short">Order</string>
+
+    <!-- Found on site rather than bought -->
+    <string name="product_on_site">Supplied on site</string>
+    <string name="product_on_site_note">Not bought or kept in the shed, like water from the tap. It stays in recipes and mixing, but is left out of stock, counts and orders.</string>
+    <string name="prj_on_site">Supplied on site</string>
+    <string name="prj_on_site_note">Not taken from the shed. Make sure it is there on the day.</string>
 </resources>

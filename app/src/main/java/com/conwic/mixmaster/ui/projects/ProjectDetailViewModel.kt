@@ -68,6 +68,8 @@ data class ProjectMaterial(
     /** In the product's own pack unit. */
     val need: Double,
     val stock: ProductStock,
+    /** Found on site — water from the tap. Needed, but not the shed's to supply. */
+    val onSite: Boolean = false,
 ) {
     /** Free on the shelf once other jobs' bookings are honoured. */
     val available: Double get() = stock.free
@@ -180,7 +182,7 @@ class ProjectDetailViewModel(
         projectRepository.observeAllLayers(),
     ) { projects, rooms, allLayers -> Triple(projects, rooms, allLayers) }
 
-    val materials: StateFlow<List<ProjectMaterial>> = combine(
+    private val allMaterials: StateFlow<List<ProjectMaterial>> = combine(
         data,
         layers,
         mixes,
@@ -205,9 +207,20 @@ class ProjectDetailViewModel(
                 name = product.name,
                 need = need,
                 stock = productStock(product, stockByProduct[productId], claimed[productId].orEmpty()),
+                onSite = product.suppliedOnSite,
             )
         }.sortedBy { it.name }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** What comes out of the shed for this job — the list the van is loaded from. */
+    val materials: StateFlow<List<ProjectMaterial>> = allMaterials
+        .map { list -> list.filterNot { it.onSite } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** What the job needs that is found on site, so it can be asked for before the day. */
+    val siteMaterials: StateFlow<List<ProjectMaterial>> = allMaterials
+        .map { list -> list.filter { it.onSite } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun coatMix(
         layer: RoomLayerEntity,

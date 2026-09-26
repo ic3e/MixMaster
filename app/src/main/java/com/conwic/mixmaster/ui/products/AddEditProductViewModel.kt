@@ -41,6 +41,8 @@ data class ProductFormState(
     /** A link the manufacturer publishes, or a file:// URI of a PDF copied into the app. */
     val safetySheet: String = "",
     val technicalSheet: String = "",
+    /** Found on site rather than bought — water from the tap. Kept off the shelf and off orders. */
+    val suppliedOnSite: Boolean = false,
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
 ) {
@@ -87,6 +89,7 @@ class AddEditProductViewModel(
                         datasheetUrl = existing.datasheetUrl,
                         safetySheet = existing.safetySheetUrl,
                         technicalSheet = existing.technicalSheetUrl,
+                        suppliedOnSite = existing.suppliedOnSite,
                     )
                 }
             }
@@ -106,6 +109,7 @@ class AddEditProductViewModel(
     fun setPackUnit(value: String) = _formState.update { it.copy(packUnit = value) }
     fun setPackType(value: String) = _formState.update { it.copy(packType = value) }
     fun setDensity(value: String) = _formState.update { it.copy(densityText = value) }
+    fun setSuppliedOnSite(value: Boolean) = _formState.update { it.copy(suppliedOnSite = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
 
     fun setSafetySheet(value: String) = _formState.update { it.copy(safetySheet = value) }
@@ -167,6 +171,9 @@ class AddEditProductViewModel(
                     densityKgPerL = state.densityText.toNumberOr(0.0),
                     safetySheetUrl = state.safetySheet.trim(),
                     technicalSheetUrl = state.technicalSheet.trim(),
+                    // Carried through by hand: this row is built fresh from the form, and anything
+                    // the form does not know about would be reset to its default on every save.
+                    suppliedOnSite = state.suppliedOnSite,
                 ),
             )
             onSaved()

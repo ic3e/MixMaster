@@ -15,8 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.docs.SheetStore
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -163,6 +166,22 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         ?: stringResource(R.string.product_density_hint),
                     modifier = Modifier.padding(top = 10.dp),
                 )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.padding(vertical = 12.dp),
+                )
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    // Weighted, so a long line in Finnish wraps instead of pushing the switch off.
+                    Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                        Text(text = stringResource(R.string.product_on_site), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = stringResource(R.string.product_on_site_note),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = state.suppliedOnSite, onCheckedChange = viewModel::setSuppliedOnSite)
+                }
             }
         }
 

@@ -67,7 +67,8 @@ class WarehouseViewModel(
         onTheWay,
     ) { products, stock, booked, coming ->
         val stockByProduct = stock.associateBy { it.productId }
-        products.map { product ->
+        // Nothing found on site is kept in the shed, so it has no place on its shelves.
+        products.filterNot { it.suppliedOnSite }.map { product ->
             productStock(
                 product = product,
                 stock = stockByProduct[product.id],

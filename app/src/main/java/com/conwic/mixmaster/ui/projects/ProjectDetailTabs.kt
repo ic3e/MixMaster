@@ -1232,6 +1232,8 @@ fun MaterialsTab(
     data: ProjectDetailData,
     roomCoats: Map<Long, List<CoatMix>>,
     materials: List<ProjectMaterial>,
+    /** What the job needs that is found on site rather than taken from the shed. */
+    siteMaterials: List<ProjectMaterial>,
     /** What has actually been mixed on this job, newest first. */
     mixes: List<RecordedMix>,
     isEmployer: Boolean,
@@ -1466,6 +1468,27 @@ fun MaterialsTab(
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                     )
+                }
+            }
+        }
+
+        // Water and anything else that comes from the client's side: how much the job needs, so
+        // it can be asked for before the day, but never measured against the shed.
+        if (siteMaterials.isNotEmpty()) {
+            item { SectionLabel(text = stringResource(R.string.prj_on_site), modifier = Modifier.padding(top = 6.dp)) }
+            item {
+                CardSoft {
+                    Text(
+                        text = stringResource(R.string.prj_on_site_note),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    siteMaterials.forEach { material ->
+                        MaterialRow(
+                            label = material.name,
+                            value = "${formatDecimal(material.need, 1)} ${material.stock.packUnit}",
+                        )
+                    }
                 }
             }
         }

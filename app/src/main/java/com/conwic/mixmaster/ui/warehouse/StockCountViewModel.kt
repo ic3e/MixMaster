@@ -33,6 +33,7 @@ class StockCountViewModel(
     ) { products, stock ->
         val byProduct = stock.associateBy { it.productId }
         products
+            .filterNot { it.suppliedOnSite }
             .map { productStock(product = it, stock = byProduct[it.id], bookings = emptyList()) }
             .sortedWith(compareBy({ it.brand.isBlank() }, { it.brand.lowercase() }, { it.name.lowercase() }))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -73,7 +74,7 @@ class StockCountViewModel(
             val shelf = writes.withLock {
                 val products = productRepository.observeAll().first()
                 val stock = stockRepository.observeAll().first().associateBy { it.productId }
-                products.associate { product ->
+                products.filterNot { it.suppliedOnSite }.associate { product ->
                     val row = stock[product.id]
                     product.id to ShelfFigure(row?.fullPacks ?: 0, row?.openAmount ?: 0.0)
                 }

@@ -764,4 +764,10 @@
     <string name="sc_nothing_body">Kas katkestada inventuur ilma salvestamata? Viimane inventuur jääb samaks.</string>
     <string name="sc_stop_count">Katkesta</string>
     <string name="wh_order_short">Telli</string>
+
+    <!-- Found on site rather than bought -->
+    <string name="product_on_site">Saadakse objektilt</string>
+    <string name="product_on_site_note">Ei osteta ega hoita laos, nagu kraanivesi. Jääb retseptidesse ja segamisse, kuid mitte laoseisu, inventuuri ega tellimustesse.</string>
+    <string name="prj_on_site">Saadakse objektilt</string>
+    <string name="prj_on_site_note">Laost ei võeta. Veendu, et see on objektil olemas.</string>
 </resources>

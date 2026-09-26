@@ -71,6 +71,11 @@ data class ProductEntity(
      */
     @ColumnInfo(defaultValue = "") val safetySheetUrl: String = "",
     @ColumnInfo(defaultValue = "") val technicalSheetUrl: String = "",
+    /**
+     * Not bought or kept: found on site. Water, above all — it comes out of the client's tap,
+     * so it belongs in every recipe and batch but never on the shelf, in a count or on an order.
+     */
+    @ColumnInfo(defaultValue = "0") val suppliedOnSite: Boolean = false,
 )
 
 @Entity(

@@ -207,7 +207,8 @@ object SeedData {
         suspend fun water(): Long {
             if (waterId == 0L) {
                 waterId = productDao.insertProduct(
-                    boughtItem(brand = "", name = "Water", category = "Water", unit = "L", type = "canister", density = 1.0),
+                    boughtItem(brand = "", name = "Water", category = "Water", unit = "L", type = "canister", density = 1.0)
+                        .copy(suppliedOnSite = true),
                 )
             }
             return waterId

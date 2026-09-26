@@ -102,6 +102,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     val data by viewModel.data.collectAsState()
     val roomCoats by viewModel.roomCoats.collectAsState()
     val materials by viewModel.materials.collectAsState()
+    val siteMaterials by viewModel.siteMaterials.collectAsState()
     val recordedMixes by viewModel.recordedMixes.collectAsState()
     val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
     val project = data.project ?: return
@@ -242,6 +243,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     data = data,
                     roomCoats = roomCoats,
                     materials = materials,
+                    siteMaterials = siteMaterials,
                     mixes = recordedMixes,
                     isEmployer = role == Role.EMPLOYER,
                     onRemoveMix = viewModel::removeRecordedMix,

@@ -173,7 +173,8 @@ fun bookingsByProduct(
         roomsByProject[project.id].orEmpty().sortedBy { it.sortOrder }.forEach { room ->
             needsForRoom(room, layersByRoom[room.id].orEmpty(), mixes, products)
                 .forEach { (productId, amount) ->
-                    if (amount > 0.0) {
+                    // Water from the client's tap is not the shed's to hold back for anybody.
+                    if (amount > 0.0 && products[productId]?.suppliedOnSite != true) {
                         totals[productId] = (totals[productId] ?: 0.0) + amount
                         byRoom.getOrPut(productId) { mutableListOf() }
                             .add(BookingRoom(room.id, room.name, amount))

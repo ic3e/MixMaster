@@ -764,4 +764,10 @@
     <string name="sc_nothing_body">Keskeytetäänkö inventaario tallentamatta? Edellinen inventaario pysyy ennallaan.</string>
     <string name="sc_stop_count">Keskeytä</string>
     <string name="wh_order_short">Tilaa</string>
+
+    <!-- Found on site rather than bought -->
+    <string name="product_on_site">Saadaan työmaalta</string>
+    <string name="product_on_site_note">Ei osteta eikä pidetä varastossa, kuten hanavesi. Pysyy resepteissä ja sekoituksessa, mutta ei varastossa, inventaariossa eikä tilauksissa.</string>
+    <string name="prj_on_site">Saadaan työmaalta</string>
+    <string name="prj_on_site_note">Ei oteta varastosta. Varmista, että sitä on työmaalla.</string>
 </resources>

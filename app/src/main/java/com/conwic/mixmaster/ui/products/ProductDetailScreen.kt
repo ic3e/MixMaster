@@ -154,7 +154,12 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 ) {
                     Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.wh_on_the_shelf), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = "${formatDecimal(onShelf ?: 0.0, 2)} ${current.packageUnit}",
+                        // Not a nought on a shelf it was never going to be on.
+                        text = if (current.suppliedOnSite) {
+                            stringResource(R.string.product_on_site)
+                        } else {
+                            "${formatDecimal(onShelf ?: 0.0, 2)} ${current.packageUnit}"
+                        },
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }

@@ -64,7 +64,7 @@ const val DATABASE_NAME = "mixmaster.db"
         DeliveryEntity::class,
         MaterialUseEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -580,6 +580,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Products found on site rather than bought. Water is the one there already is: the
+         * shared Water every recipe points at, which the earlier migrations and the seed both
+         * file under the Water category.
+         */
+        private val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE products ADD COLUMN suppliedOnSite INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE products SET suppliedOnSite = 1 WHERE category = 'Water' OR lower(name) = 'water'")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 .addMigrations(
@@ -595,6 +607,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_11_12,
                     MIGRATION_12_13,
                     MIGRATION_13_14,
+                    MIGRATION_14_15,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.
