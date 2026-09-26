@@ -78,6 +78,8 @@ data class SolutionFormState(
     val coats: List<SolutionEntity> = emptyList(),
     /** Coats that are a copy of another one — same name, same recipe — and can go. */
     val duplicateCoatIds: List<Long> = emptyList(),
+    /** What each coat is made of, as saved: its ratio parts in order, by the coat's id. */
+    val coatLines: Map<Long, List<SolutionLineEntity>> = emptyMap(),
     val products: List<ProductEntity> = emptyList(),
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
@@ -176,6 +178,7 @@ class SolutionEditorViewModel(
 
     /** Every recipe, as last seen: what this one's coats are picked out of. */
     @Volatile private var allSolutions: List<SolutionEntity> = emptyList()
+    @Volatile private var allLines: Map<Long, List<SolutionLineEntity>> = emptyMap()
 
     /**
      * The coats of the mix [state] belongs to, worked out again whenever either side changes.
@@ -186,10 +189,20 @@ class SolutionEditorViewModel(
      * arrive every half minute, the list came and went under the thumb.
      */
     private fun withCoats(state: SolutionFormState): SolutionFormState {
-        if (state.solutionId == 0L) return state.copy(coats = emptyList(), duplicateCoatIds = emptyList())
+        if (state.solutionId == 0L) {
+            return state.copy(coats = emptyList(), duplicateCoatIds = emptyList(), coatLines = emptyMap())
+        }
         val family = if (state.parentId > 0L) state.parentId else state.solutionId
         val coats = allSolutions.filter { it.familyId == family }.sortedBy { it.id }
-        return state.copy(coats = coats, duplicateCoatIds = copiesIn(coats, state.solutionId) { coatKey(it) })
+        return state.copy(
+            coats = coats,
+            duplicateCoatIds = copiesIn(coats, state.solutionId) { coatKey(it) },
+            coatLines = coats.associate { coat ->
+                coat.id to allLines[coat.id].orEmpty()
+                    .filter { it.role == SolutionLineRole.BASE }
+                    .sortedBy { it.sortOrder }
+            },
+        )
     }
 
     /** What makes two coats the same coat: the name, and everything the recipe says. */
@@ -296,10 +309,12 @@ class SolutionEditorViewModel(
         viewModelScope.launch {
             productRepository.observeAll().collect { rows -> _formState.update { it.copy(products = rows) } }
         }
-        // The other coats of this mix, kept live so one saved next door shows up here.
+        // The other coats of this mix, kept live so one saved next door shows up here — with
+        // what is in them, so each can be told apart on the list without opening it.
         viewModelScope.launch {
-            solutionRepository.observeAll().collect { all ->
-                allSolutions = all
+            solutionRepository.observeAllWithLines().collect { all ->
+                allSolutions = all.map { it.solution }
+                allLines = all.associate { it.solution.id to it.lines }
                 _formState.update { withCoats(it) }
             }
         }

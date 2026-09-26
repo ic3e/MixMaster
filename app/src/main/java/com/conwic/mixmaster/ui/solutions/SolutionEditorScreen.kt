@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -190,11 +191,27 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                         modifier = Modifier.padding(bottom = 10.dp),
                     )
                     if (state.coats.size > 1) {
+                        val shareOfRest = stringResource(R.string.solution_line_percent)
+                        val productNames = remember(state.products) { state.products.associate { it.id to it.name } }
                         state.coats.forEach { coat ->
                             val isThisOne = coat.id == state.solutionId
                             CoatButton(
                                 name = coat.coatName.ifBlank { coat.name },
                                 ratio = coat.ratioLabel,
+                                parts = state.coatLines[coat.id].orEmpty().map { line ->
+                                    val product = productNames[line.productId].orEmpty()
+                                    val what = when {
+                                        line.label.isBlank() -> product
+                                        product.isBlank() -> line.label
+                                        else -> "$product (${line.label})"
+                                    }
+                                    val amount = if (line.percentOfRest > 0.0) {
+                                        formatDecimal(line.percentOfRest, 2) + shareOfRest
+                                    } else {
+                                        formatDecimal(line.ratioParts, 2)
+                                    }
+                                    what to amount
+                                },
                                 isThisOne = isThisOne,
                                 onOpen = {
                                     // In place of this one, not on top of it: back goes to where the
@@ -596,6 +613,8 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
 private fun CoatButton(
     name: String,
     ratio: String,
+    /** What is in it, a line a product: its name, and how much of it. */
+    parts: List<Pair<String, String>>,
     isThisOne: Boolean,
     onOpen: () -> Unit,
     canRemove: Boolean,
@@ -632,6 +651,31 @@ private fun CoatButton(
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant,
             )
+            // Coats of one mix often differ only in what goes in — a primer thinned with water,
+            // the next coat without — and the ratio alone does not say which product is which.
+            if (parts.isNotEmpty()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                    color = scheme.outline,
+                )
+                parts.forEach { (what, amount) ->
+                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
+                        Text(
+                            text = "• $what",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = scheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = amount,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = scheme.onSurface,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
         }
         if (canRemove) {
             IconButton(onClick = onRemove, modifier = Modifier.size(40.dp)) {
