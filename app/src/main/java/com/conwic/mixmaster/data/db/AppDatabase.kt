@@ -64,7 +64,7 @@ const val DATABASE_NAME = "mixmaster.db"
         DeliveryEntity::class,
         MaterialUseEntity::class,
     ],
-    version = 15,
+    version = 16,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -592,8 +592,26 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * A product's shelf row takes the product's own id.
+         *
+         * There is one stock row per product, and once phones share a company two of them can
+         * start that row for the same product at once — each with its own id, both then claiming
+         * the product, which the unique index refuses. Keyed by the product, both write the same
+         * row. Done in two passes through negative numbers, so no row lands on an id another row
+         * is still holding.
+         */
+        private val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("UPDATE stock SET id = -productId")
+                db.execSQL("UPDATE stock SET id = -id")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
+                // Ids no other phone hands out, for when phones share a company — see GlobalIds.
+                .openHelperFactory(GlobalIdOpenHelperFactory())
                 .addMigrations(
                     MIGRATION_2_3,
                     MIGRATION_3_4,
@@ -608,6 +626,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_12_13,
                     MIGRATION_13_14,
                     MIGRATION_14_15,
+                    MIGRATION_15_16,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

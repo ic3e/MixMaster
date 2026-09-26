@@ -5,6 +5,10 @@ import com.conwic.mixmaster.data.db.entity.StockEntity
 import kotlinx.coroutines.flow.Flow
 import kotlin.math.floor
 
+/**
+ * The shelf. A product's stock row always has the product's own id, so every phone in a company
+ * writes the same row for it rather than each starting its own (see AppDatabase, 15 → 16).
+ */
 class StockRepository(private val stockDao: StockDao) {
 
     fun observeAll(): Flow<List<StockEntity>> = stockDao.observeAll()
@@ -13,7 +17,7 @@ class StockRepository(private val stockDao: StockDao) {
     suspend fun set(productId: Long, fullPacks: Int, openAmount: Double) {
         val existing = stockDao.getForProduct(productId)
         val row = StockEntity(
-            id = existing?.id ?: 0L,
+            id = existing?.id ?: productId,
             productId = productId,
             fullPacks = fullPacks.coerceAtLeast(0),
             openAmount = openAmount.coerceAtLeast(0.0),
@@ -30,7 +34,7 @@ class StockRepository(private val stockDao: StockDao) {
         val existing = stockDao.getForProduct(productId)
         val packs = ((existing?.fullPacks ?: 0) + delta).coerceAtLeast(0)
         if (existing == null) {
-            stockDao.insert(StockEntity(productId = productId, fullPacks = packs))
+            stockDao.insert(StockEntity(id = productId, productId = productId, fullPacks = packs))
         } else {
             stockDao.update(existing.copy(fullPacks = packs))
         }
@@ -67,7 +71,7 @@ class StockRepository(private val stockDao: StockDao) {
         val open = (existing?.openAmount ?: 0.0) + amount.coerceAtLeast(0.0)
         val rolled = if (packSize > 0.0) floor(open / packSize).toInt() else 0
         val row = StockEntity(
-            id = existing?.id ?: 0L,
+            id = existing?.id ?: productId,
             productId = productId,
             fullPacks = (existing?.fullPacks ?: 0) + packs.coerceAtLeast(0) + rolled,
             openAmount = open - rolled * packSize,
