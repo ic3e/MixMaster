@@ -649,7 +649,10 @@ private fun PeopleCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SectionLabel(text = stringResource(R.string.co_people, people.size))
+            SectionLabel(
+                text = stringResource(R.string.co_people, people.size),
+                modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp),
+            )
             ActionLink(text = stringResource(R.string.co_add_person), onClick = onAdd, enabled = !busy)
         }
         CardFlat(contentPadding = 12.dp) {

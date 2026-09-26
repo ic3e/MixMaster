@@ -383,7 +383,7 @@
     <string name="prj_no_scope">No scope notes yet.</string>
     <string name="prj_no_due_date">No due date</string>
     <string name="prj_photo_copy_failed">Couldn\'t copy that photo in — try again, or pick a different one.</string>
-    <string name="prj_worker_note">Viewing as Worker — rooms, areas and coats are set up by your office. You can still add photos and notes below.</string>
+    <string name="prj_worker_note">Viewing as Worker — rooms, areas and coats are set up by your office.</string>
     <string name="prj_total_area">Total area</string>
     <string name="prj_rooms_floors">Rooms · floors</string>
     <string name="prj_est_material">Est. material</string>
@@ -587,7 +587,7 @@
         <item quantity="one">%d mix</item>
         <item quantity="other">%d mixes</item>
     </plurals>
-    <string name="prj_mix_stamp">%1$s · %2$d batches</string>
+    <string name="prj_mix_stamp">%1$s · %2$s</string>
     <string name="prj_mix_remove_confirm">Take this off the project?</string>
     <string name="prj_mix_remove_confirm_body">%1$s · %2$s stops counting as used.</string>
     <string name="prj_no_materials_yet">Put a coat on a room and the material for this job shows up here.</string>
@@ -1048,4 +1048,10 @@
     <string name="calc_by_the_pack">By the pack</string>
     <string name="pack_generic">pack</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
+    <string name="note_by_employer">Employer</string>
+    <string name="note_by_worker">Worker</string>
+    <plurals name="batches_count">
+        <item quantity="one">1 batch</item>
+        <item quantity="other">%1$d batches</item>
+    </plurals>
 </resources>

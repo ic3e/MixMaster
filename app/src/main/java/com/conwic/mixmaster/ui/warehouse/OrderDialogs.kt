@@ -29,6 +29,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import com.conwic.mixmaster.ui.components.packsName
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 /**
  * Writing down an order that has been placed.
@@ -61,7 +63,12 @@ fun OrderDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = productName) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Scrolls: on its side, with the keyboard up, the note and the date were below the
+            // bottom of the dialog.
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 if (isKnownPack) {
                     FormTextField(
                         value = packs,

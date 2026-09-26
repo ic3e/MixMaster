@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.conwic.mixmaster.ui.components.SegmentedTabs
-import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.RatioBadge
 import com.conwic.mixmaster.ui.components.ProductIdentity
 import com.conwic.mixmaster.ui.navigation.Routes
@@ -48,6 +47,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.ui.components.packLabel
+import com.conwic.mixmaster.ui.components.FilterField
 
 @Composable
 fun ProductsScreen(navController: NavHostController) {
@@ -144,14 +144,14 @@ fun ProductsScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    DropdownField(
+                    FilterField(
                         label = stringResource(R.string.filter_brand),
                         selected = state.brandFilter,
                         options = state.brands,
                         onSelect = viewModel::setBrandFilter,
                         modifier = Modifier.weight(1f),
                     )
-                    DropdownField(
+                    FilterField(
                         label = stringResource(R.string.filter_type),
                         selected = state.categoryFilter,
                         options = state.categories,

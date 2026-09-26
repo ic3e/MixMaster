@@ -596,7 +596,12 @@ fun LayoutTab(
             CardFlat {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(modifier = Modifier.weight(1f, fill = false), text = note.authorName, style = MaterialTheme.typography.titleMedium)
-                    Text(text = note.authorRole.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    // In words: this printed the enum itself, "EMPLOYER", in every language.
+                    Text(
+                        text = stringResource(if (note.authorRole == Role.EMPLOYER) R.string.note_by_employer else R.string.note_by_worker),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
                 Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
                 Row(
@@ -1005,6 +1010,9 @@ private fun PhotoViewer(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
+                // A photo is taller than a phone on its side is high; without this the buttons
+                // under it were off the bottom with no way down to them.
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -1388,7 +1396,7 @@ fun MaterialsTab(
                             text = stringResource(
                                 R.string.prj_mix_stamp,
                                 formatStamp(Instant.ofEpochMilli(mix.mixedAt)),
-                                mix.batches,
+                                pluralStringResource(R.plurals.batches_count, mix.batches, mix.batches),
                             ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

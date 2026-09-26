@@ -21,10 +21,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.conwic.mixmaster.ui.components.FilterAll
 
 data class WarehouseUiState(
     val brands: List<String> = emptyList(),
-    val brandFilter: String = "All",
+    val brandFilter: String = FilterAll,
     val items: List<ProductStock> = emptyList(),
     /** Every product, whatever the brand filter says — the count covers the whole shed. */
     val shelf: List<ProductStock> = emptyList(),
@@ -41,7 +42,7 @@ class WarehouseViewModel(
     private val deliveryRepository: DeliveryRepository,
 ) : ViewModel() {
 
-    private val brandFilter = MutableStateFlow("All")
+    private val brandFilter = MutableStateFlow(FilterAll)
 
     /** What every unfinished job has spoken for, worked out from its rooms each time. */
     private val bookings = combine(
@@ -81,9 +82,9 @@ class WarehouseViewModel(
 
     val uiState: StateFlow<WarehouseUiState> = combine(shelf, brandFilter) { items, brand ->
         WarehouseUiState(
-            brands = listOf("All") + items.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted(),
+            brands = listOf(FilterAll) + items.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted(),
             brandFilter = brand,
-            items = items.filter { brand == "All" || it.brand == brand },
+            items = items.filter { brand == FilterAll || it.brand == brand },
             shelf = items,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WarehouseUiState())

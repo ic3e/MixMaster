@@ -241,7 +241,10 @@ fun SettingsScreen(navController: NavHostController) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SectionLabel(text = stringResource(R.string.settings_crew, state.team.size))
+                        SectionLabel(
+                            text = stringResource(R.string.settings_crew, state.team.size),
+                            modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp),
+                        )
                         ActionLink(
                             text = stringResource(R.string.settings_add_member),
                             onClick = {

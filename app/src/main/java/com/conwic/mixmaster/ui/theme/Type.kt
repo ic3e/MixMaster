@@ -24,9 +24,10 @@ val BodyFontFamily = FontFamily(
 )
 
 /**
- * Every style the app uses is set here. One left out is not an error — Material quietly fills it
- * with its own, in Roboto — which is how the mixing screen's title and its start button came out
- * in a different typeface from the rest of the app.
+ * All fifteen styles are set here, including ones the app's own code never names. One left out is
+ * not an error — Material quietly fills it with its own, in Roboto — which is how the mixing
+ * screen's title and its start button came out in a different typeface, and the date and time
+ * pickers, which use styles the app does not, would have done the same.
  */
 val MixMasterTypography = Typography(
     displayLarge = TextStyle(
@@ -34,6 +35,19 @@ val MixMasterTypography = Typography(
         fontWeight = FontWeight.ExtraBold,
         fontSize = 48.sp,
         lineHeight = 54.sp,
+    ),
+    displayMedium = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 40.sp,
+        lineHeight = 46.sp,
+    ),
+    // The date and time pickers draw their big figures in the display and headline styles.
+    displaySmall = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
     ),
     headlineLarge = TextStyle(
         fontFamily = DisplayFontFamily,
@@ -65,6 +79,12 @@ val MixMasterTypography = Typography(
         fontSize = 14.sp,
         lineHeight = 19.sp,
     ),
+    titleSmall = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+    ),
     bodyLarge = TextStyle(
         fontFamily = BodyFontFamily,
         fontWeight = FontWeight.Normal,
@@ -88,6 +108,12 @@ val MixMasterTypography = Typography(
         fontWeight = FontWeight.Bold,
         fontSize = 12.sp,
         letterSpacing = 0.4.sp,
+    ),
+    labelMedium = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 11.sp,
+        letterSpacing = 0.3.sp,
     ),
     labelSmall = TextStyle(
         fontFamily = BodyFontFamily,

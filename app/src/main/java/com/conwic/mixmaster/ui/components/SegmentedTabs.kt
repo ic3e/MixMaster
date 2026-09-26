@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 
 /** The rounded, pill-segmented tab bar used throughout the design (e.g. Project Detail's 5 tabs). */
 @Composable
@@ -40,10 +41,14 @@ fun SegmentedTabs(titles: List<String>, selectedIndex: Int, onSelect: (Int) -> U
                     .padding(vertical = byHeight(tight = 6.dp, roomy = 9.dp)),
                 contentAlignment = Alignment.Center,
             ) {
+                // One line: five of these share a phone's width, and a long word ("Yleiskatsaus")
+                // broke in the middle of itself rather than wrap anywhere sensible.
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

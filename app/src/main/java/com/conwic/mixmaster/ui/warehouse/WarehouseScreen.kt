@@ -62,7 +62,6 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardAccent
 import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.CardFlat
-import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.components.GhostButton
 import com.conwic.mixmaster.ui.components.OnAccentCard
@@ -76,6 +75,7 @@ import java.time.Instant
 import java.time.ZoneId
 import com.conwic.mixmaster.ui.components.packCount
 import com.conwic.mixmaster.ui.components.packName
+import com.conwic.mixmaster.ui.components.FilterField
 
 /**
  * What is actually in the shed.
@@ -197,7 +197,7 @@ fun WarehouseScreen(navController: NavHostController) {
         }
 
         item {
-            DropdownField(
+            FilterField(
                 label = stringResource(R.string.filter_brand),
                 selected = state.brandFilter,
                 options = state.brands,
@@ -697,7 +697,10 @@ private fun CountDialog(item: ProductStock, onDismiss: () -> Unit, onSave: (Int,
         onDismissRequest = onDismiss,
         title = { Text(text = item.name) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 FormTextField(
                     value = packs,
                     onValueChange = { packs = it },

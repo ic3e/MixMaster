@@ -71,6 +71,12 @@ belonged to. It exits non-zero when it finds any. The rest still needs a person:
 - `LanguageStore.wrap` overrides **only the locale** (`Configuration().apply { setLocale(..) }`).
   A copy of the whole configuration pinned the screen size too, and since MainActivity handles
   rotation itself, every dialog kept measuring against the portrait width after a turn.
+- All fifteen Material type styles are set in `ui/theme/Type.kt`. A style left out falls back to
+  Roboto without a word — the mixing screen and the date/time pickers both did — so a new style
+  used anywhere must exist there. Canvas `TextStyle`s name their `fontFamily` themselves.
+- A filter list's first entry is `FilterAll` ("All", a stored value). Show it with `FilterField`,
+  never a bare `DropdownField`, or it reads "All" in every language. Likewise never show an
+  enum's `.name` — map it to a string.
 - Pack kinds (`bag`, `canister`, …) are stored as English keys. Show them through
   `ui/components/PackNames.kt` (`packName`, `packsName`, `packCount`), never raw.
 - A bare language tag (`et`) applied over a device locale with a country (`et_EE`) makes the config

@@ -158,7 +158,11 @@ fun CalendarScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SectionLabel(text = formatDayWithWeek(state.selectedDate))
+                // Gives way to the button: a long weekday and month is wider than the room.
+                SectionLabel(
+                    text = formatDayWithWeek(state.selectedDate),
+                    modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp),
+                )
                 if (access.site) Text(
                     text = stringResource(R.string.action_add_task),
                     style = MaterialTheme.typography.bodyMedium,

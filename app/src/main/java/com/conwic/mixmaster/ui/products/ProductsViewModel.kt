@@ -12,12 +12,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import com.conwic.mixmaster.ui.components.FilterAll
 
 data class ProductsUiState(
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
-    val brandFilter: String = "All",
-    val categoryFilter: String = "All",
+    val brandFilter: String = FilterAll,
+    val categoryFilter: String = FilterAll,
     val search: String = "",
     val visibleProducts: List<ProductEntity> = emptyList(),
 )
@@ -31,8 +32,8 @@ class ProductsViewModel(
     val solutions: StateFlow<List<SolutionEntity>> = solutionRepository.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val brandFilter = MutableStateFlow("All")
-    private val categoryFilter = MutableStateFlow("All")
+    private val brandFilter = MutableStateFlow(FilterAll)
+    private val categoryFilter = MutableStateFlow(FilterAll)
     // Two dropdowns are no way to find one bag in a catalogue this size, and the tour has been
     // promising a search since the first build.
     private val search = MutableStateFlow("")
@@ -49,14 +50,14 @@ class ProductsViewModel(
     ) { products, brands, categories, (brand, category, text) ->
         val needle = text.trim()
         ProductsUiState(
-            brands = listOf("All") + brands,
-            categories = listOf("All") + categories,
+            brands = listOf(FilterAll) + brands,
+            categories = listOf(FilterAll) + categories,
             brandFilter = brand,
             categoryFilter = category,
             search = text,
             visibleProducts = products.filter {
-                (brand == "All" || it.brand == brand) &&
-                    (category == "All" || it.category == category) &&
+                (brand == FilterAll || it.brand == brand) &&
+                    (category == FilterAll || it.category == category) &&
                     (needle.isBlank() || it.matches(needle))
             },
         )

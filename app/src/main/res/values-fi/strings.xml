@@ -181,7 +181,7 @@
     <string name="calc_your_average">Oma keskiarvo: %1$s</string>
     <string name="calc_no_logged">Ei vielä kirjattuja töitä</string>
     <string name="calc_range_note">Tuotetieto antaa vaihteluvälin — säädä sitä huokoisen, karkean tai epätasaisen alustan mukaan.</string>
-    <string name="calc_back_to_typical">Takaisin datalehden arvoon</string>
+    <string name="calc_back_to_typical">Takaisin tuotetiedon arvoon</string>
     <string name="calc_no_range_note">Tälle tuotteelle ei ole julkaistua vaihteluväliä — käytetään tuotetiedon lukua sellaisenaan.</string>
     <string name="calc_youll_need">Tarvitset</string>
     <string name="calc_ratio_parts">suhde %1$s osaa</string>
@@ -191,7 +191,7 @@
     <string name="calc_set_pack_to_count">Aseta pakkauskoko, jotta pakkaukset voidaan laskea</string>
     <string name="calc_total_mix">Massaa yhteensä</string>
     <string name="calc_colour_additives">Väri ja lisäaineet</string>
-    <string name="calc_measured_against">Mitataan tätä vasten</string>
+    <string name="calc_measured_against">Annostellaan osan mukaan</string>
     <string name="calc_addon_rate">%1$s · %2$s tässä työssä</string>
     <string name="action_remove">Poista</string>
     <string name="calc_mixing">Sekoitus</string>
@@ -209,12 +209,12 @@
         <item quantity="one">1 sekoitus</item>
         <item quantity="other">%1$d sekoitusta</item>
     </plurals>
-    <string name="calc_to_get_through">jotta saadaan %1$s valmista massaa</string>
+    <string name="calc_to_get_through">yhteensä %1$s valmista massaa</string>
     <string name="calc_batches_split">%1$d täyttä + 1 osittainen · %2$s</string>
     <string name="calc_too_big">Liian suuri tälle sekoittimelle — %1$s L astiassa, jonka haluat täyttää vain %2$s litraan. Ota isompi sekoitin tai jaa erä.</string>
     <string name="calc_spare">Jää %1$s L varaa — astiaan mahtuu %2$s L ja täytät sen %3$s litraan.</string>
     <string name="calc_drum_settings">Mitoitettu %1$s L astialle, josta %2$s %% jää tyhjäksi — asetettu välilehdellä ”Sekoitusastian koko”.</string>
-    <string name="calc_in_drum">Se on %1$s L astiassa, jolloin jää %2$s L niistä %3$s litrasta, jotka voit käyttää.</string>
+    <string name="calc_in_drum">Astiaan tulee %1$s L — käytettävissä olevasta %3$s litrasta jää %2$s L.</string>
     <string name="calc_each_full_batch">Jokainen täysi erä:</string>
     <string name="calc_then_part_batch">Sitten yksi osittainen erä:</string>
     <string name="calc_one_part_batch">Yksi osittainen erä:</string>
@@ -319,7 +319,7 @@
     <string name="pd_use_in_calculator">Käytä laskurissa</string>
     <string name="pd_density">Tiheys</string>
 
-    <string name="tab_overview">Yleiskatsaus</string>
+    <string name="tab_overview">Yleistä</string>
     <string name="tab_tasks">Tehtävät</string>
     <string name="tab_materials">Materiaalit</string>
     <string name="tab_calendar">Kalenteri</string>
@@ -336,7 +336,7 @@
     <string name="prj_save">Tallenna projekti</string>
     <string name="prj_start_date">Aloitus</string>
     <!-- Työn, kerroksen, tilan tai pinnoitekerroksen korjaaminen jälkikäteen. -->
-    <string name="prj_status">Missä työ menee</string>
+    <string name="prj_status">Työn tilanne</string>
     <string name="prj_dates">Päivämäärät</string>
     <string name="action_clear">Tyhjennä</string>
     <string name="prj_edit_floor">Muokkaa kerrosta</string>
@@ -360,7 +360,7 @@
     <string name="prj_no_scope">Laajuudesta ei ole vielä muistiinpanoja.</string>
     <string name="prj_no_due_date">Ei määräpäivää</string>
     <string name="prj_photo_copy_failed">Kuvan tuonti ei onnistunut — yritä uudelleen tai valitse toinen.</string>
-    <string name="prj_worker_note">Katselet työntekijänä — tilat, pinta-alat ja kerrokset määrittää toimisto. Voit silti lisätä kuvia ja muistiinpanoja.</string>
+    <string name="prj_worker_note">Katselet työntekijänä — tilat, pinta-alat ja kerrokset määrittää toimisto.</string>
     <string name="prj_total_area">Ala yhteensä</string>
     <string name="prj_rooms_floors">Tiloja · kerroksia</string>
     <string name="prj_est_material">Arvioitu materiaali</string>
@@ -386,7 +386,7 @@
     <string name="prj_room_name">Tilan nimi</string>
     <string name="prj_room_area">Ala (m²)</string>
     <string name="prj_add_room_action">Lisää tila</string>
-    <string name="prj_total_used">Materiaalia suunniteltu</string>
+    <string name="prj_total_used">Suunniteltu materiaali</string>
     <string name="prj_materials_logged">Suunniteltu tiloittain</string>
     <string name="prj_no_assigned">Yhdessäkään tilassa ei ole vielä kerrosta.</string>
     <string name="tab_layout">Pohja</string>
@@ -400,7 +400,7 @@
     <string name="signin_employer_b2">Määritä tehtäviä ja tiloja työryhmälle</string>
     <string name="signin_employer_b3">Luo raportteja ja hallitse työryhmää</string>
     <string name="signin_worker">Työntekijä / työmaaryhmä</string>
-    <string name="signin_worker_sub">Käyttää sitä, minkä toimisto on järjestänyt</string>
+    <string name="signin_worker_sub">Käytä sitä, minkä toimisto on järjestänyt</string>
     <string name="signin_worker_b1">Käytä laskuria toimiston tuotelistalla</string>
     <string name="signin_worker_b2">Kuittaa tehtävät ja tilat tehdyiksi</string>
     <string name="signin_worker_b3">Lisää työmaakuvia ja muistiinpanoja — asetustietoja ei voi muokata</string>
@@ -446,7 +446,7 @@
     <string name="upd_err_installer">Asennusohjelmaa ei voitu avata.</string>
 
     <string name="home_projects">Aktiiviset projektit</string>
-    <string name="home_open_today">Tänään auki</string>
+    <string name="home_open_today">Tänään tehtävää</string>
     <string name="home_products">Tuotteet</string>
     <string name="home_quick_calculate">Pikalaskenta</string>
     <string name="home_prev_week">Edellinen viikko</string>
@@ -531,7 +531,7 @@
     <string name="wh_order_note">Muistiinpano — toimittaja, tilausnumero</string>
     <string name="wh_order_save">Tallenna tilaus</string>
     <string name="wh_arrived_title">Saapuiko tavara?</string>
-    <string name="wh_arrived_hint">Kyllä lisää sen hyllyyn.</string>
+    <string name="wh_arrived_hint">Kyllä-vastaus lisää sen hyllyyn.</string>
     <string name="wh_arrived_yes">Kyllä, se on hyllyssä</string>
     <string name="wh_arrived_not_yet">Ei vielä</string>
     <string name="wh_cancel_order">Peruuta tilaus</string>
@@ -555,7 +555,7 @@
         <item quantity="one">%d seos</item>
         <item quantity="other">%d seosta</item>
     </plurals>
-    <string name="prj_mix_stamp">%1$s · %2$d erää</string>
+    <string name="prj_mix_stamp">%1$s · %2$s</string>
     <string name="prj_mix_remove_confirm">Poistetaanko tämä projektilta?</string>
     <string name="prj_mix_remove_confirm_body">%1$s · %2$s ei enää lasketa käytetyksi.</string>
     <string name="prj_no_materials_yet">Lisää tilaan kerros, niin tämän työn materiaali näkyy tässä.</string>
@@ -640,7 +640,7 @@
         <item quantity="one">%1$s poistuu luettelosta. Se on %2$d seoksessa, josta puuttuu jatkossa osa.</item>
         <item quantity="other">%1$s poistuu luettelosta. Se on %2$d seoksessa, ja jokaisesta puuttuu jatkossa osa.</item>
     </plurals>
-    <string name="solution_delete_confirm">Poistetaanko tämä sekoitus?</string>
+    <string name="solution_delete_confirm">Poistetaanko tämä seos?</string>
     <string name="solution_delete_confirm_body">%1$s poistuu listalta. Jo tehtyjen töiden luvut säilyvät.</string>
     <string name="part_remove_confirm">Poistetaanko tämä osa?</string>
     <string name="part_remove_confirm_body">Osa %1$d poistuu sekoituksesta.</string>
@@ -651,15 +651,15 @@
     <string name="prj_archive_confirm">Arkistoidaanko tämä työ?</string>
     <string name="prj_archive_confirm_body">%1$s poistuu aktiivisista eikä varaa enää materiaalia.</string>
     <string name="solution_coats">Kerrokset</string>
-    <string name="solution_coats_explain">Jos datalehti antaa ensimmäiselle kerrokselle yhden seoksen ja toiselle toisen, molemmille tarvitaan oma kerros. Laskuri kysyy, kumpaa ollaan sekoittamassa.</string>
+    <string name="solution_coats_explain">Jos tuotetiedot antavat ensimmäiselle kerrokselle yhden seoksen ja toiselle toisen, molemmille tarvitaan oma kerros. Laskuri kysyy, kumpaa ollaan sekoittamassa.</string>
     <string name="solution_add_coat">+ Lisää toinen kerros</string>
     <string name="solution_coat_name">Tämä kerros</string>
-    <string name="solution_coat_name_hint">Nimi datalehdellä</string>
+    <string name="solution_coat_name_hint">Nimi tuotetiedoissa</string>
     <string name="solution_coat_number">%1$d. kerros</string>
     <string name="solution_coat_count">%1$d kerrosta</string>
     <string name="solution_by_ratio">Suhteen mukaan</string>
     <string name="solution_by_area">m² mukaan</string>
-    <string name="solution_by_area_hint">Jokainen osa niin kuin datalehti antaa — kg/m². Suhde ja menekki lasketaan niistä.</string>
+    <string name="solution_by_area_hint">Jokainen osa niin kuin tuotetiedot antavat — kg/m². Suhde ja menekki lasketaan niistä.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_line_percent" formatted="false">% muista</string>
     <string name="solution_line_as_percent" formatted="false">Mittaa prosentteina muista</string>
@@ -691,7 +691,7 @@
     <string name="mix_used">Materiaalia kului</string>
     <string name="mix_default_time">Tälle seokselle ei ole sekoitusaikaa — lasketaan kaksi minuuttia.</string>
     <string name="solution_mix_time">Sekoitusaika (min)</string>
-    <string name="solution_mix_time_hint">Kuinka kauan datalehti käskee sekoittaa</string>
+    <string name="solution_mix_time_hint">Kuinka kauan tuotetiedot käskevät sekoittaa</string>
     <string name="solution_pot_life">Käyttöaika (minuuttia)</string>
     <string name="solution_pot_life_hint">Kuinka kauan seos pysyy työstettävänä sekoituksen jälkeen. Jätä tyhjäksi, jos tuotetiedoissa ei sanota.</string>
     <string name="calc_pot_life">Pysyy työstettävänä noin %1$d min sekoituksen jälkeen</string>
@@ -1016,4 +1016,10 @@
     <string name="calc_by_the_pack">Pakkauksittain</string>
     <string name="pack_generic">pakkaus</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
+    <string name="note_by_employer">Työnantaja</string>
+    <string name="note_by_worker">Työntekijä</string>
+    <plurals name="batches_count">
+        <item quantity="one">1 erä</item>
+        <item quantity="other">%1$d erää</item>
+    </plurals>
 </resources>

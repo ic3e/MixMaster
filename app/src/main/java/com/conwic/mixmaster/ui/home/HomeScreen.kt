@@ -362,12 +362,15 @@ fun HomeScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // Gives way to the button: "KESKIVIIKKONA, 30 SYYSKUUTA · VK 40" is
+                    // longer than the room beside it, and pushed the button off the edge.
                     SectionLabel(
                         text = if (state.selectedDate == today) {
                             stringResource(R.string.date_today_with_week, formatWeek(today))
                         } else {
                             formatDayWithWeek(state.selectedDate)
                         },
+                        modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp),
                     )
                     if (access.site) Text(
                         text = stringResource(R.string.action_add_task),
@@ -384,7 +387,8 @@ fun HomeScreen(navController: NavHostController) {
                 if (state.dayTasks.isEmpty()) {
                     CardFlat {
                         Text(
-                            text = stringResource(R.string.home_nothing_today),
+                            // "Tap + Add task" only to whoever has the button.
+                            text = stringResource(if (access.site) R.string.home_nothing_today else R.string.calendar_empty_day),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

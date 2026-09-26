@@ -132,7 +132,7 @@
     <string name="settings_restore">Taasta</string>
     <string name="settings_restore_note">Taastamine asendab kõik selles telefonis varukoopiaga ja käivitab rakenduse uuesti.</string>
     <string name="settings_help">Abi</string>
-    <string name="settings_replay_tour">Vaata tutvustus uuesti</string>
+    <string name="settings_replay_tour">Vaata tutvustust uuesti</string>
 
     <string name="crew_add">Lisa meeskonnaliige</string>
     <string name="crew_edit">Muuda meeskonnaliiget</string>
@@ -181,7 +181,7 @@
     <string name="calc_your_average">Sinu keskmine: %1$s</string>
     <string name="calc_no_logged">Salvestatud töid veel pole</string>
     <string name="calc_range_note">Tehniline leht annab vahemiku — kohanda seda poorse, tekstuurse või ebaühtlase aluspinna järgi.</string>
-    <string name="calc_back_to_typical">Tagasi andmelehe väärtusele</string>
+    <string name="calc_back_to_typical">Tagasi tehnilise lehe väärtusele</string>
     <string name="calc_no_range_note">Sellel tootel avaldatud vahemikku pole — kasutame tehnilise lehe numbrit nii nagu on.</string>
     <string name="calc_youll_need">Sul on vaja</string>
     <string name="calc_ratio_parts">suhe %1$s osa</string>
@@ -191,7 +191,7 @@
     <string name="calc_set_pack_to_count">Määra pakendi suurus, et pakendeid kokku lugeda</string>
     <string name="calc_total_mix">Segu kokku</string>
     <string name="calc_colour_additives">Värv ja lisandid</string>
-    <string name="calc_measured_against">Mõõdetakse millegi järgi</string>
+    <string name="calc_measured_against">Doseeritakse osa järgi</string>
     <string name="calc_addon_rate">%1$s · %2$s sellel tööl</string>
     <string name="action_remove">Eemalda</string>
     <string name="calc_mixing">Segamine</string>
@@ -209,12 +209,12 @@
         <item quantity="one">1 segamine</item>
         <item quantity="other">%1$d segamist</item>
     </plurals>
-    <string name="calc_to_get_through">et katta %1$s valmis segu</string>
+    <string name="calc_to_get_through">kokku %1$s valmis segu</string>
     <string name="calc_batches_split">%1$d täis + 1 osaline · %2$s</string>
     <string name="calc_too_big">Selle segumasina jaoks liiga suur — %1$s L nõus, mida tahad täita ainult %2$s L-ni. Võta suurem segumasin või jaga kogus pooleks.</string>
     <string name="calc_spare">Jääb %1$s L varu — nõusse mahub %2$s L ja sa täidad selle %3$s L-ni.</string>
     <string name="calc_drum_settings">Arvestatud %1$s L nõuga, millest %2$s%% jääb tühjaks — määratud vahekaardil „Segumasina maht“.</string>
-    <string name="calc_in_drum">See on %1$s L nõus, millest jääb %2$s L neist %3$s L-st, mida saad kasutada.</string>
+    <string name="calc_in_drum">Nõusse tuleb %1$s L — kasutatavast %3$s L-st jääb üle %2$s L.</string>
     <string name="calc_each_full_batch">Iga täiskogus:</string>
     <string name="calc_then_part_batch">Seejärel üks osaline kogus:</string>
     <string name="calc_one_part_batch">Üks osaline kogus:</string>
@@ -336,7 +336,7 @@
     <string name="prj_save">Salvesta projekt</string>
     <string name="prj_start_date">Algus</string>
     <!-- Töö, korruse, ruumi või kihi parandamine pärast esmast sisestust. -->
-    <string name="prj_status">Kus töö on</string>
+    <string name="prj_status">Töö seis</string>
     <string name="prj_dates">Kuupäevad</string>
     <string name="action_clear">Tühjenda</string>
     <string name="prj_edit_floor">Muuda korrust</string>
@@ -360,7 +360,7 @@
     <string name="prj_no_scope">Töö mahu märkmeid veel pole.</string>
     <string name="prj_no_due_date">Tähtajata</string>
     <string name="prj_photo_copy_failed">Seda fotot ei õnnestunud sisse tuua — proovi uuesti või vali teine.</string>
-    <string name="prj_worker_note">Vaatad töötajana — ruumid, pinnad ja kihid seadistab kontor. Fotosid ja märkusi saad siiski lisada.</string>
+    <string name="prj_worker_note">Vaatad töötajana — ruumid, pinnad ja kihid seadistab kontor.</string>
     <string name="prj_total_area">Pind kokku</string>
     <string name="prj_rooms_floors">Ruume · korruseid</string>
     <string name="prj_est_material">Hinnanguline materjal</string>
@@ -386,7 +386,7 @@
     <string name="prj_room_name">Ruumi nimi</string>
     <string name="prj_room_area">Pind (m²)</string>
     <string name="prj_add_room_action">Lisa ruum</string>
-    <string name="prj_total_used">Materjali plaanis</string>
+    <string name="prj_total_used">Plaanitud materjal</string>
     <string name="prj_materials_logged">Plaanitud ruumide kaupa</string>
     <string name="prj_no_assigned">Ühelgi ruumil ei ole veel kihti.</string>
     <string name="tab_layout">Plaan</string>
@@ -400,7 +400,7 @@
     <string name="signin_employer_b2">Määra meeskonnale ülesandeid ja ruume</string>
     <string name="signin_employer_b3">Koosta raporteid ja halda meeskonda</string>
     <string name="signin_worker">Töötaja / objektimeeskond</string>
-    <string name="signin_worker_sub">Kasutab seda, mille kontor on üles seadnud</string>
+    <string name="signin_worker_sub">Kasuta seda, mille kontor on paika pannud</string>
     <string name="signin_worker_b1">Kasuta kalkulaatorit kontori tootenimekirjaga</string>
     <string name="signin_worker_b2">Märgi ülesanded ja ruumid tehtuks</string>
     <string name="signin_worker_b3">Lisa objektifotosid ja märkmeid — seadistusandmeid muuta ei saa</string>
@@ -446,7 +446,7 @@
     <string name="upd_err_installer">Paigaldajat ei õnnestunud avada.</string>
 
     <string name="home_projects">Aktiivsed projektid</string>
-    <string name="home_open_today">Täna lahtised</string>
+    <string name="home_open_today">Täna teha</string>
     <string name="home_products">Tooted</string>
     <string name="home_quick_calculate">Kiire arvutus</string>
     <string name="home_prev_week">Eelmine nädal</string>
@@ -531,7 +531,7 @@
     <string name="wh_order_note">Märkus — tarnija, tellimuse number</string>
     <string name="wh_order_save">Salvesta tellimus</string>
     <string name="wh_arrived_title">Kas kaup saabus?</string>
-    <string name="wh_arrived_hint">Jah paneb selle riiulile.</string>
+    <string name="wh_arrived_hint">Kui vastad jah, läheb kaup riiulile.</string>
     <string name="wh_arrived_yes">Jah, on riiulis</string>
     <string name="wh_arrived_not_yet">Veel mitte</string>
     <string name="wh_cancel_order">Tühista tellimus</string>
@@ -555,7 +555,7 @@
         <item quantity="one">%d segu</item>
         <item quantity="other">%d segu</item>
     </plurals>
-    <string name="prj_mix_stamp">%1$s · %2$d partiid</string>
+    <string name="prj_mix_stamp">%1$s · %2$s</string>
     <string name="prj_mix_remove_confirm">Võtta see projektilt maha?</string>
     <string name="prj_mix_remove_confirm_body">%1$s · %2$s ei lähe enam kulu hulka.</string>
     <string name="prj_no_materials_yet">Lisa ruumile kiht, siis ilmub selle töö materjal siia.</string>
@@ -600,7 +600,7 @@
         <item quantity="other">Ülesehitus · %d kihti</item>
     </plurals>
     <string name="prj_buildup_tinted">%1$s · toonitud %2$s</string>
-    <string name="prj_buildup_total">≈ %1$s mm kilet, märjalt</string>
+    <string name="prj_buildup_total">≈ %1$s mm märga kihti</string>
     <string name="prj_buildup_mm">%1$s mm</string>
     <string name="prj_buildup_hint">Puuduta, et kihid avada</string>
     <string name="prj_set_colour">Määra värv</string>
@@ -634,16 +634,16 @@
     <string name="task_delete_confirm">Kas kustutada see ülesanne?</string>
     <string name="task_delete_confirm_body">%1$s kaob nimekirjast jäädavalt.</string>
     <string name="product_delete_confirm">Kas kustutada see toode?</string>
-    <string name="product_delete_confirm_body">%1$s kaob kataloogist. Segudel, kus seda kasutatakse, jääb komponent puudu.</string>
+    <string name="product_delete_confirm_body">%1$s kaob kataloogist. Segudel, kus seda kasutatakse, jääb osa puudu.</string>
     <string name="products_search">Otsi tooteid ja segusid</string>
     <plurals name="product_delete_used_in">
-        <item quantity="one">%1$s kaob kataloogist. See on %2$d segus, kust jääb komponent puudu.</item>
-        <item quantity="other">%1$s kaob kataloogist. See on %2$d segus ja igaühest jääb komponent puudu.</item>
+        <item quantity="one">%1$s kaob kataloogist. See on %2$d segus, kust jääb osa puudu.</item>
+        <item quantity="other">%1$s kaob kataloogist. See on %2$d segus ja igaühest jääb osa puudu.</item>
     </plurals>
     <string name="solution_delete_confirm">Kas eemaldada see segu?</string>
     <string name="solution_delete_confirm_body">%1$s kaob nimekirjast. Juba tehtud tööde arvud jäävad alles.</string>
-    <string name="part_remove_confirm">Kas eemaldada see komponent?</string>
-    <string name="part_remove_confirm_body">Komponent %1$d võetakse segust välja.</string>
+    <string name="part_remove_confirm">Kas eemaldada see osa?</string>
+    <string name="part_remove_confirm_body">Osa %1$d võetakse segust välja.</string>
     <string name="coat_remove_confirm">Kas eemaldada see kiht?</string>
     <string name="coat_remove_confirm_body">%1$s võetakse sellelt ruumilt maha ja selle materjali enam ei broneerita.</string>
     <string name="crew_remove_confirm">Kas eemaldada see inimene?</string>
@@ -651,15 +651,15 @@
     <string name="prj_archive_confirm">Kas arhiveerida see töö?</string>
     <string name="prj_archive_confirm_body">%1$s kaob aktiivsete nimekirjast ega broneeri enam materjali.</string>
     <string name="solution_coats">Kihid</string>
-    <string name="solution_coats_explain">Kui andmeleht annab esimesele kihile ühe segu ja teisele teise, on vaja mõlemale oma kiht. Kalkulaator küsib, millist parasjagu segatakse.</string>
+    <string name="solution_coats_explain">Kui tehniline leht annab esimesele kihile ühe segu ja teisele teise, on vaja mõlemale oma kiht. Kalkulaator küsib, millist parasjagu segatakse.</string>
     <string name="solution_add_coat">+ Lisa veel üks kiht</string>
     <string name="solution_coat_name">See kiht</string>
-    <string name="solution_coat_name_hint">Nimi, mis on andmelehel</string>
+    <string name="solution_coat_name_hint">Nimi tehnilisel lehel</string>
     <string name="solution_coat_number">%1$d. kiht</string>
     <string name="solution_coat_count">%1$d kihti</string>
     <string name="solution_by_ratio">Vahekorra järgi</string>
     <string name="solution_by_area">m² järgi</string>
-    <string name="solution_by_area_hint">Iga komponent nii, nagu andmeleht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
+    <string name="solution_by_area_hint">Iga osa nii, nagu tehniline leht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_line_percent" formatted="false">% ülejäänust</string>
     <string name="solution_line_as_percent" formatted="false">Mõõda protsendina ülejäänust</string>
@@ -691,9 +691,9 @@
     <string name="mix_used">Materjali kulus</string>
     <string name="mix_default_time">Sellel segul ei ole segamisaega — loeb kaks minutit.</string>
     <string name="solution_mix_time">Segamisaeg (min)</string>
-    <string name="solution_mix_time_hint">Kui kaua andmeleht käsib segada</string>
+    <string name="solution_mix_time_hint">Kui kaua tehniline leht käsib segada</string>
     <string name="solution_pot_life">Tööaeg (minutites)</string>
-    <string name="solution_pot_life_hint">Kui kaua segu pärast segamist töödeldav püsib. Jäta tühjaks, kui andmelehel ei ole.</string>
+    <string name="solution_pot_life_hint">Kui kaua segu pärast segamist töödeldav püsib. Jäta tühjaks, kui tehnilisel lehel seda ei ole.</string>
     <string name="calc_pot_life">Püsib pärast segamist töödeldav umbes %1$d min</string>
     <string name="mix_pot_life">Töödeldav umbes %1$d min</string>
     <string name="prj_report_share">Saada</string>
@@ -1016,4 +1016,10 @@
     <string name="calc_by_the_pack">Pakendi kaupa</string>
     <string name="pack_generic">pakend</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
+    <string name="note_by_employer">Tööandja</string>
+    <string name="note_by_worker">Töötaja</string>
+    <plurals name="batches_count">
+        <item quantity="one">1 kogus</item>
+        <item quantity="other">%1$d kogust</item>
+    </plurals>
 </resources>

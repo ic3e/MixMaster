@@ -100,6 +100,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.HorizontalDivider
 import com.conwic.mixmaster.ui.theme.FieldShape
 import com.conwic.mixmaster.ui.company.rememberAccess
+import com.conwic.mixmaster.ui.components.FilterField
+import com.conwic.mixmaster.ui.components.FilterAll
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -154,15 +156,15 @@ fun CalculatorScreen(
     var jobRoomId by rememberSaveable { mutableStateOf(handover.roomId) }
 
     val today = remember { LocalDate.now() }
-    var brandFilter by remember { mutableStateOf("All") }
+    var brandFilter by remember { mutableStateOf(FilterAll) }
     var loggedToast by remember { mutableStateOf(false) }
 
-    val brands = listOf("All") + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
+    val brands = listOf(FilterAll) + allSolutions.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted()
     // The dropdown lists mixes, not coats: a second coat is a recipe of the same mix, and
     // picking between them is the next question, not part of the same one.
     val visibleSolutions = allSolutions
         .filter { it.parentId == 0L }
-        .filter { brandFilter == "All" || it.brand == brandFilter }
+        .filter { brandFilter == FilterAll || it.brand == brandFilter }
     // Every coat of whatever is selected, first coat first.
     val chosen = state.selectedSolution?.solution
     val coats = chosen?.let { current ->
@@ -213,7 +215,7 @@ fun CalculatorScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                DropdownField(
+                FilterField(
                     label = stringResource(R.string.filter_brand),
                     selected = brandFilter,
                     options = brands,
