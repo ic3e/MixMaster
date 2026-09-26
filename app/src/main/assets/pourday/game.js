@@ -1643,6 +1643,7 @@
     if (e.code === 'KeyL') toggleLaser();
     if (e.code === 'KeyT') waitMenu();
     if (e.code === 'KeyC') coffee();
+    if (e.code === 'Escape' || e.code === 'KeyP') pauseMenu();
   });
   window.addEventListener('keyup', (e) => {
     input.keys[e.code] = false;
@@ -2170,6 +2171,47 @@
     startDay();
   });
   $('#btnReroll').addEventListener('click', () => showTitle());
+
+  // Inside MixMaster the app hands the page a way out; in a plain browser there isn't one.
+  const bridge = window.MixMaster && typeof window.MixMaster.quit === 'function' ? window.MixMaster : null;
+  const quit = () => { if (bridge) bridge.quit(); };
+  $('#btnQuitTitle').hidden = !bridge;
+  $('#btnQuitEnd').hidden = !bridge;
+  $('#btnQuitTitle').addEventListener('click', quit);
+  $('#btnQuitEnd').addEventListener('click', quit);
+
+  const PHASE_NAMES = { morning: 'the morning', prep: 'prep', pipes: 'the pipes', pour: 'the pour', wash: 'washing up', cure: 'curing' };
+  function howToPlay() {
+    modal({
+      who: 'How to play', title: 'The short version.',
+      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby, or on the slab under the cross with the tool you carry. Tool swaps it — hose and float in the pour; float, pans and blades later.\n\nLaser colours the slab by height while you pour: green on height, red high, blue low.\n\nWait fast-forwards: for the pump, the truck, or the concrete. The map turns with you; orange dots are jobs.\n\nPans from 25%, blades from 55%, edges and collars by hand, home at 95%.',
+      choices: [{ label: 'Back to work', primary: true }],
+    });
+  }
+  function pauseMenu() {
+    if (modalOpen || gs.phase === 'title' || gs.phase === 'end') return;
+    const choices = [
+      { label: 'Resume', primary: true },
+      { label: 'How to play', fn: () => howToPlay() },
+      { label: 'Start a new day', fn: () => modal({
+        who: 'New day', title: 'Walk off this one?', text: 'This slab stays how it is. The foreman will hear about it.',
+        choices: [{ label: 'New day', danger: true, fn: () => { resetWorld(); showTitle(); } }, { label: 'Keep going', primary: true }],
+      }) },
+    ];
+    if (bridge) choices.push({ label: 'Back to MixMaster', danger: true, fn: quit });
+    modal({
+      who: 'Paused', title: 'Take five.',
+      text: `${clock(gs.t)}, ${PHASE_NAMES[gs.phase] || 'on site'}.` + (gs.poured ? ` Hardness ${Math.floor(gs.H)}%.` : '') + ' Time stops while you\'re here. The concrete will pretend it did too.',
+      choices,
+    });
+  }
+  $('#btnMenu').addEventListener('click', () => pauseMenu());
+  /** The phone's back: pauses a shift under way, leaves from the title and end screens. */
+  window.pdBack = () => {
+    if (gs.phase === 'title' || gs.phase === 'end') return 'quit';
+    if (!modalOpen) pauseMenu();
+    return 'paused';
+  };
   $('#btnAgain').addEventListener('click', () => { resetWorld(); showTitle(); });
 
   if (document.fonts && document.fonts.load) {
