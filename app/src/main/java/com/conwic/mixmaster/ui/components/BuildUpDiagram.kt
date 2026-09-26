@@ -56,8 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.conwic.mixmaster.domain.rulerStep
 import com.conwic.mixmaster.ui.theme.Charcoal
 import kotlin.math.roundToInt
-import com.conwic.mixmaster.ui.theme.BodyFontFamily
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
+import com.conwic.mixmaster.ui.theme.AppFontFamily
 
 /** One coat of the build-up as the picture shows it. */
 data class BuildUpRow(
@@ -424,9 +423,9 @@ private fun BuildUpStrip(
     val total = films.sum()
     // Drawn straight onto the canvas, where nothing hands down the theme's type: without the
     // family named here the ruler's figures came out in Roboto.
-    val labelStyle = TextStyle(fontFamily = BodyFontFamily, fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Rule)
+    val labelStyle = TextStyle(fontFamily = AppFontFamily, fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Rule)
     val capStyle = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontSize = 8.sp,
         fontWeight = FontWeight.ExtraBold,
         letterSpacing = 0.5.sp,

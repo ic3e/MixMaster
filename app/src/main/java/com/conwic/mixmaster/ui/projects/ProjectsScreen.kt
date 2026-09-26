@@ -81,7 +81,8 @@ fun ProjectsScreen(navController: NavHostController) {
                     focusedElevation = 0.dp,
                     hoveredElevation = 0.dp,
                 ),
-                containerColor = MaterialTheme.colorScheme.primary,
+                // A fifth see-through, like the tab bar under it: the card it floats over still shows.
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 // Above the tab bar: the page goes on under it, and so would the +.
                 modifier = Modifier.padding(bottom = LocalBarInset.current),

@@ -11,14 +11,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.conwic.mixmaster.ui.theme.BadgeShape
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
+import com.conwic.mixmaster.ui.theme.AppFontFamily
 
 /** The mix-ratio badge, e.g. "100 : 35 wt" or "2K". */
 @Composable
 fun RatioBadge(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 13.sp,
         color = MaterialTheme.colorScheme.primary,

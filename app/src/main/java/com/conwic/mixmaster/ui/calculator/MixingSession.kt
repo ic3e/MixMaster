@@ -109,7 +109,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.math.min
 import com.conwic.mixmaster.ui.components.packCount
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
+import com.conwic.mixmaster.ui.theme.AppFontFamily
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
@@ -1065,7 +1065,7 @@ private fun BigButton(
         // spacing — only bigger, because it is pressed in gloves at the mixer.
         Text(
             text = text.uppercase(),
-            fontFamily = DisplayFontFamily,
+            fontFamily = AppFontFamily,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 20.sp,
             letterSpacing = 0.6.sp,

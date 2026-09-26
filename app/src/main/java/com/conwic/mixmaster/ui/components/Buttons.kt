@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.conwic.mixmaster.ui.theme.Charcoal
 import com.conwic.mixmaster.ui.theme.ChipShape
-import com.conwic.mixmaster.ui.theme.DisplayFontFamily
+import com.conwic.mixmaster.ui.theme.AppFontFamily
 
 private val ButtonPadding = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
 
@@ -26,7 +26,7 @@ private val ButtonPadding = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
 private fun ButtonLabel(text: String) {
     Text(
         text = text.uppercase(),
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 14.sp,
         letterSpacing = 0.4.sp,

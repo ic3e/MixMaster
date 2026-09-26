@@ -8,14 +8,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.conwic.mixmaster.R
 
-/** Archivo (display/headings) and Manrope (body) — the same Google Fonts pair the design prototype uses. */
-val DisplayFontFamily = FontFamily(
-    Font(R.font.archivo_semibold, FontWeight.SemiBold),
-    Font(R.font.archivo_bold, FontWeight.Bold),
-    Font(R.font.archivo_extrabold, FontWeight.ExtraBold),
-    Font(R.font.archivo_black, FontWeight.Black),
-)
-val BodyFontFamily = FontFamily(
+/**
+ * One typeface, Manrope, for everything from the page title to the smallest label.
+ *
+ * The design paired it with Archivo for headings and buttons, and on the phone the two sat side by
+ * side on every card — a title in one, the line under it in the other, a chip and the button next
+ * to it in different letters — which read as a mistake rather than as a choice. Headings stand out
+ * by weight and size now, not by a second face.
+ */
+val AppFontFamily = FontFamily(
     Font(R.font.manrope_regular, FontWeight.Normal),
     Font(R.font.manrope_medium, FontWeight.Medium),
     Font(R.font.manrope_semibold, FontWeight.SemiBold),
@@ -31,92 +32,92 @@ val BodyFontFamily = FontFamily(
  */
 val MixMasterTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 48.sp,
         lineHeight = 54.sp,
     ),
     displayMedium = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 40.sp,
         lineHeight = 46.sp,
     ),
     // The date and time pickers draw their big figures in the display and headline styles.
     displaySmall = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 32.sp,
         lineHeight = 38.sp,
     ),
     headlineLarge = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.ExtraBold,
         fontSize = 24.sp,
         lineHeight = 30.sp,
     ),
     headlineMedium = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
         lineHeight = 26.sp,
     ),
     headlineSmall = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 19.sp,
         lineHeight = 25.sp,
     ),
     titleLarge = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 17.sp,
         lineHeight = 22.sp,
     ),
     titleMedium = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
         lineHeight = 19.sp,
     ),
     titleSmall = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 13.sp,
         lineHeight = 18.sp,
     ),
     bodyLarge = TextStyle(
-        fontFamily = BodyFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 15.sp,
         lineHeight = 21.sp,
     ),
     bodyMedium = TextStyle(
-        fontFamily = BodyFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 13.sp,
         lineHeight = 18.sp,
     ),
     bodySmall = TextStyle(
-        fontFamily = BodyFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
     ),
     labelLarge = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 12.sp,
         letterSpacing = 0.4.sp,
     ),
     labelMedium = TextStyle(
-        fontFamily = DisplayFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 11.sp,
         letterSpacing = 0.3.sp,
     ),
     labelSmall = TextStyle(
-        fontFamily = BodyFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 10.5.sp,
     ),

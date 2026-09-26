@@ -71,6 +71,8 @@ belonged to. It exits non-zero when it finds any. The rest still needs a person:
 - `LanguageStore.wrap` overrides **only the locale** (`Configuration().apply { setLocale(..) }`).
   A copy of the whole configuration pinned the screen size too, and since MainActivity handles
   rotation itself, every dialog kept measuring against the portrait width after a turn.
+- One typeface: Manrope (`AppFontFamily`). The app once paired it with Archivo for headings and
+  the client found two faces on one card odd, so headings stand out by weight and size only.
 - All fifteen Material type styles are set in `ui/theme/Type.kt`. A style left out falls back to
   Roboto without a word — the mixing screen and the date/time pickers both did — so a new style
   used anywhere must exist there. Canvas `TextStyle`s name their `fontFamily` themselves.
