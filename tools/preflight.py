@@ -109,6 +109,12 @@ def main():
             if name in SCOPE_MEMBERS or name in imported or name in near:
                 continue
             problems.append(f'{path}: Modifier.{name}( has no import')
+        # Modifier itself: a file that only ever took a modifier as a parameter has none, and the
+        # first `Modifier.verticalScroll(...)` written into it does not compile.
+        code = strip_code(src)
+        if re.search(r'(?<![\w.])Modifier\s*\.', code) and 'Modifier' not in imported \
+                and package and package.group(1) != 'androidx.compose.ui':
+            problems.append(f'{path}: Modifier is used but never imported')
 
     # 3 · imports that are not used, duplicated, and brackets that never close
     for path in kotlin_files():

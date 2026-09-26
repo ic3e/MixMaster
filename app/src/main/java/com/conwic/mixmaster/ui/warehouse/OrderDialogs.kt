@@ -31,6 +31,7 @@ import java.time.ZoneOffset
 import com.conwic.mixmaster.ui.components.packsName
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
 
 /**
  * Writing down an order that has been placed.
