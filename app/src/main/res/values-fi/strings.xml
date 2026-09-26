@@ -957,4 +957,5 @@
     <string name="crash_copied">Kopioitu. Liitä se viestiin kehittäjälle.</string>
     <string name="crash_send">Lähetä tiedot</string>
     <string name="co_copied">Kopioitu. Liitä se kohtaan, jossa koodia kysytään.</string>
+    <string name="solution_read_only">Voit lukea tämän reseptin, mutta reseptien muuttaminen on sinulta pois päältä. Työnantaja voi kytkeä sen päälle: Yritys → Henkilöt.</string>
 </resources>

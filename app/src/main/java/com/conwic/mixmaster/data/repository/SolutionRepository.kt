@@ -44,7 +44,9 @@ class SolutionRepository(
         val id = if (solution.id == 0L) {
             solutionDao.insert(solution)
         } else {
-            solutionDao.update(solution)
+            // Gone since the form was opened — taken away on another phone, or put back by the
+            // company's server: written again under its own id, so its lines have it to belong to.
+            if (solutionDao.update(solution) == 0) solutionDao.insert(solution)
             solution.id
         }
         solutionDao.deleteLines(id)

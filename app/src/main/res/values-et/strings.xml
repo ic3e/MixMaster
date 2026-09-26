@@ -957,4 +957,5 @@
     <string name="crash_copied">Kopeeritud. Kleebi see sõnumisse arendajale.</string>
     <string name="crash_send">Saada andmed</string>
     <string name="co_copied">Kopeeritud. Kleebi see sinna, kus koodi küsitakse.</string>
+    <string name="solution_read_only">Seda retsepti saad lugeda, aga retseptide muutmine on sinu jaoks välja lülitatud. Tööandja saab selle sisse lülitada: Ettevõte → Inimesed.</string>
 </resources>

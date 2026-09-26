@@ -42,8 +42,9 @@ interface SolutionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(solution: SolutionEntity): Long
 
+    /** How many rows it changed: none when the recipe is no longer there. */
     @Update
-    suspend fun update(solution: SolutionEntity)
+    suspend fun update(solution: SolutionEntity): Int
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

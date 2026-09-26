@@ -42,6 +42,7 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
 import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FormTextField
+import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -67,6 +68,10 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         },
     )
     val state by viewModel.formState.collectAsState()
+    // In a company, somebody not allowed to change recipes can still read one here; the buttons
+    // that would change it are not offered, since the server would only put the recipe back.
+    val access = rememberAccess()
+    val canChange = access.catalogue
     if (!state.isLoaded) return
 
     var confirmArchive by remember { mutableStateOf(false) }
@@ -88,7 +93,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                 title = stringResource(if (state.solutionId == 0L) R.string.solution_add else R.string.solution_edit),
                 onBack = { navController.popBackStack() },
                 actions = {
-                    if (state.solutionId != 0L) {
+                    if (state.solutionId != 0L && canChange) {
                         IconButton(onClick = { confirmArchive = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                         }
@@ -152,7 +157,11 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                                     .tappableText {
-                                        if (!isThisOne) navController.navigate(Routes.solutionEdit(coat.id))
+                                        // In place of this one, not on top of it: back goes to where the
+                                        // recipe was opened from, not through every coat looked at.
+                                        if (!isThisOne) navController.navigate(Routes.solutionEdit(coat.id)) {
+                                            popUpTo(Routes.SOLUTION_EDIT) { inclusive = true }
+                                        }
                                     },
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
@@ -186,15 +195,19 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     // Named here, where the language is known — the view model only stores them.
                     val firstName = stringResource(R.string.solution_coat_number, 1)
                     val nextName = stringResource(R.string.solution_coat_number, state.coats.size.coerceAtLeast(1) + 1)
-                    ActionLink(
-                        text = stringResource(R.string.solution_add_coat),
-                        onClick = {
-                            viewModel.addCoat(firstName, nextName) { id ->
-                                navController.navigate(Routes.solutionEdit(id))
-                            }
-                        },
-                        modifier = Modifier.padding(top = 10.dp),
-                    )
+                    if (canChange) {
+                        ActionLink(
+                            text = stringResource(R.string.solution_add_coat),
+                            onClick = {
+                                viewModel.addCoat(firstName, nextName) { id ->
+                                    navController.navigate(Routes.solutionEdit(id)) {
+                                        popUpTo(Routes.SOLUTION_EDIT) { inclusive = true }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(top = 10.dp),
+                        )
+                    }
                 }
             }
         }
@@ -432,12 +445,22 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         }
 
         item {
-            PrimaryButton(
-                text = stringResource(R.string.solution_save),
-                onClick = { viewModel.save { navController.popBackStack() } },
-                enabled = state.isValid,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (canChange) {
+                PrimaryButton(
+                    text = stringResource(R.string.solution_save),
+                    onClick = { viewModel.save { navController.popBackStack() } },
+                    enabled = state.isValid,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                CardFlat {
+                    Text(
+                        text = stringResource(R.string.solution_read_only),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 

@@ -130,13 +130,30 @@ class SolutionEditorViewModel(
     private val _formState = MutableStateFlow(SolutionFormState())
     val formState: StateFlow<SolutionFormState> = _formState.asStateFlow()
 
+    /** Every recipe, as last seen: what this one's coats are picked out of. */
+    @Volatile private var allSolutions: List<SolutionEntity> = emptyList()
+
+    /**
+     * The coats of the mix [state] belongs to, worked out again whenever either side changes.
+     *
+     * It used to be worked out only when the list of recipes changed. A coat opened before its
+     * own row had loaded then saw no coats at all until something else was saved — so it offered
+     * "Coat 2" as the next name every time, and in a company, where the other phones' changes
+     * arrive every half minute, the list came and went under the thumb.
+     */
+    private fun withCoats(state: SolutionFormState): SolutionFormState {
+        if (state.solutionId == 0L) return state.copy(coats = emptyList())
+        val family = if (state.parentId > 0L) state.parentId else state.solutionId
+        return state.copy(coats = allSolutions.filter { it.familyId == family }.sortedBy { it.id })
+    }
+
     init {
         viewModelScope.launch {
             val existing = solutionId?.takeIf { it > 0L }?.let { id ->
                 solutionRepository.getAllWithLines().firstOrNull { it.solution.id == id }
             }
             _formState.update { state ->
-                if (existing == null) {
+                withCoats(if (existing == null) {
                     state.copy(isLoaded = true)
                 } else {
                     val solution = existing.solution
@@ -174,7 +191,7 @@ class SolutionEditorViewModel(
                             }
                             .ifEmpty { listOf(LineDraft(), LineDraft()) },
                     )
-                }
+                })
             }
         }
         viewModelScope.launch {
@@ -183,15 +200,8 @@ class SolutionEditorViewModel(
         // The other coats of this mix, kept live so one saved next door shows up here.
         viewModelScope.launch {
             solutionRepository.observeAll().collect { all ->
-                _formState.update { state ->
-                    val family = if (state.solutionId == 0L) {
-                        emptyList()
-                    } else {
-                        val id = if (state.parentId > 0L) state.parentId else state.solutionId
-                        all.filter { it.familyId == id }.sortedBy { it.id }
-                    }
-                    state.copy(coats = family)
-                }
+                allSolutions = all
+                _formState.update { withCoats(it) }
             }
         }
         viewModelScope.launch {
@@ -336,8 +346,9 @@ class SolutionEditorViewModel(
         val state = _formState.value
         if (!state.isValid) return
         viewModelScope.launch {
-            persist(state)
-            onSaved()
+            // A product in the recipe taken away on another phone a moment ago fails the write;
+            // the form stays open with what was typed rather than the app closing under it.
+            if (runCatching { persist(state) }.isSuccess) onSaved()
         }
     }
 
@@ -353,16 +364,19 @@ class SolutionEditorViewModel(
         viewModelScope.launch {
             // The first coat is named too, or the list reads "architop" and "2nd coat".
             val named = state.copy(coatName = state.coatName.ifBlank { thisCoatName })
-            val savedId = persist(named)
-            val family = if (state.parentId > 0L) state.parentId else savedId
-            val next = persist(
-                named.copy(
-                    solutionId = 0L,
-                    parentId = family,
-                    coatName = nextCoatName,
-                ),
-            )
-            _formState.update { it.copy(coatName = named.coatName, solutionId = savedId) }
+            val next = runCatching {
+                val savedId = persist(named)
+                val family = if (state.parentId > 0L) state.parentId else savedId
+                val made = persist(
+                    named.copy(
+                        solutionId = 0L,
+                        parentId = family,
+                        coatName = nextCoatName,
+                    ),
+                )
+                _formState.update { withCoats(it.copy(coatName = named.coatName, solutionId = savedId)) }
+                made
+            }.getOrNull() ?: return@launch
             onOpen(next)
         }
     }
