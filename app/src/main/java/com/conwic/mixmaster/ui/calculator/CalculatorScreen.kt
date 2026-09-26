@@ -93,6 +93,9 @@ import kotlin.random.Random
 import com.conwic.mixmaster.domain.toNumberOrNull
 import com.conwic.mixmaster.ui.components.packName
 import com.conwic.mixmaster.ui.components.packLabel
+import com.conwic.mixmaster.domain.batchPartIndex
+import com.conwic.mixmaster.ui.components.byThePack
+import com.conwic.mixmaster.ui.components.onePack
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -646,15 +649,20 @@ fun CalculatorScreen(
             }
 
             item {
+                // Named for the pack the batch is counted in — "By the bottle" for a mix whose
+                // biggest part comes in bottles. "By the bag" said bag whatever it was.
+                val batchPack = state.selectedSolution?.parts
+                    ?.let { parts -> batchPartIndex(parts)?.let { parts[it].packageType } }
+                val byThe = byThePack(batchPack)
                 CardFlat {
                     ChipRow(
                         options = listOf(
-                            BatchBasis.ONE_PACKAGE to R.string.calc_by_the_bag,
-                            BatchBasis.MIXER_VOLUME to R.string.calc_mixer_size,
-                            BatchBasis.MAX_WEIGHT to R.string.calc_max_kg,
-                        ).map { (basis, labelRes) ->
+                            BatchBasis.ONE_PACKAGE to byThe,
+                            BatchBasis.MIXER_VOLUME to stringResource(R.string.calc_mixer_size),
+                            BatchBasis.MAX_WEIGHT to stringResource(R.string.calc_max_kg),
+                        ).map { (basis, label) ->
                             ChipOption(
-                                label = stringResource(labelRes),
+                                label = label,
                                 selected = state.batchBasis == basis,
                                 onClick = { viewModel.setBatchBasis(basis) },
                             )
@@ -736,7 +744,7 @@ fun CalculatorScreen(
                         }
                         BatchBasis.ONE_PACKAGE -> {
                             Text(
-                                text = stringResource(R.string.calc_by_bag_note),
+                                text = stringResource(R.string.calc_by_bag_note, onePack(batchPack)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 12.dp),

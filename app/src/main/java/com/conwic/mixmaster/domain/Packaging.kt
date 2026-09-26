@@ -177,6 +177,15 @@ fun packNeeds(result: MixResult, parts: List<MixPart>): List<PackNeed> =
     }
 
 /**
+ * The part whose whole packs set the batch when mixing "by the bag": the biggest part by ratio of
+ * those sold by weight — the powder that comes in bags, not an additive that happens to be listed
+ * first. Null when no part says what its pack weighs.
+ */
+fun batchPartIndex(parts: List<MixPart>): Int? = parts.indices
+    .filter { parts[it].packageSize > 0.0 && parts[it].packageUnit == "kg" }
+    .maxByOrNull { parts[it].ratioParts }
+
+/**
  * Splits the mix into batches the mixer can actually take.
  *
  * Every basis divides the whole mix evenly, so each batch keeps the product's ratio — mixing a
@@ -205,11 +214,7 @@ fun planBatches(
     // Whole packs can't be split on site, so batch by full packs and leave the odd bit over
     // as a smaller final batch instead of pretending every batch is a fraction of a bag.
     if (basis == BatchBasis.ONE_PACKAGE) {
-        // Batch on the biggest part by ratio — that's the powder that comes in bags, not an
-        // additive that happens to be listed first.
-        val index = parts.indices
-            .filter { parts[it].packageSize > 0.0 && parts[it].packageUnit == "kg" }
-            .maxByOrNull { parts[it].ratioParts }
+        val index = batchPartIndex(parts)
             ?: return BatchPlan(
                 1,
                 result.components,

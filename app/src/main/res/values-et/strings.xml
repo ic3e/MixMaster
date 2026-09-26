@@ -204,7 +204,7 @@
     <string name="calc_headroom_note">Segu jagatakse nii, et iga kogus mahub nõusse. %1$s on ruum, mis jääb segu ringikäimiseks — umbes 40%% on tavaline miinimum, vähemaga ajab üle ääre. Liitrites arvutamiseks on vaja iga osa tihedust.</string>
     <string name="calc_max_per_batch">Max ühe koguse kohta</string>
     <string name="calc_max_batch_note">Segu jagatakse nii, et ükski kogus ei kaalu sellest rohkem — määra see segumasina lubatud koguse järgi või selle järgi, mida üks inimene peaks tõstma.</string>
-    <string name="calc_by_bag_note">Üks terve kott või ämber korraga — objektil pole vaja midagi kaaluda. Vedelik arvutatakse sellele vastavaks ja see, mis lõpuks üle jääb, näidatakse omaette väiksema kogusena.</string>
+    <string name="calc_by_bag_note">Üks terve %1$s korraga — objektil pole vaja midagi kaaluda. Vedelik arvutatakse sellele vastavaks ja see, mis lõpuks üle jääb, näidatakse omaette väiksema kogusena.</string>
     <plurals name="calc_mixings">
         <item quantity="one">1 segamine</item>
         <item quantity="other">%1$d segamist</item>
@@ -1009,4 +1009,11 @@
         <item quantity="other">%1$s purki</item>
     </plurals>
     <string name="home_late">Hilinenud · %1$d</string>
+    <string name="calc_by_the_bucket">Ämbri kaupa</string>
+    <string name="calc_by_the_canister">Kanistri kaupa</string>
+    <string name="calc_by_the_bottle">Pudeli kaupa</string>
+    <string name="calc_by_the_drum">Vaadi kaupa</string>
+    <string name="calc_by_the_tub">Purgi kaupa</string>
+    <string name="calc_by_the_pack">Pakendi kaupa</string>
+    <string name="pack_generic">pakend</string>
 </resources>

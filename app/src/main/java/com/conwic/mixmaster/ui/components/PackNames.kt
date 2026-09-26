@@ -22,15 +22,21 @@ import kotlin.math.floor
  * of them ("Avamata (pudelid)"), and the word after a number, which Estonian and Finnish put in
  * another case ("3 pudelit", "3 pulloa").
  */
-private class PackWords(@StringRes val one: Int, @StringRes val many: Int, @PluralsRes val counted: Int)
+private class PackWords(
+    @StringRes val one: Int,
+    @StringRes val many: Int,
+    @PluralsRes val counted: Int,
+    /** "By the bottle", for the way of batching that goes a whole pack at a time. */
+    @StringRes val byThe: Int,
+)
 
 private val Words = mapOf(
-    "bag" to PackWords(R.string.pack_bag, R.string.pack_bags, R.plurals.pack_bag_count),
-    "bucket" to PackWords(R.string.pack_bucket, R.string.pack_buckets, R.plurals.pack_bucket_count),
-    "canister" to PackWords(R.string.pack_canister, R.string.pack_canisters, R.plurals.pack_canister_count),
-    "bottle" to PackWords(R.string.pack_bottle, R.string.pack_bottles, R.plurals.pack_bottle_count),
-    "drum" to PackWords(R.string.pack_drum, R.string.pack_drums, R.plurals.pack_drum_count),
-    "tub" to PackWords(R.string.pack_tub, R.string.pack_tubs, R.plurals.pack_tub_count),
+    "bag" to PackWords(R.string.pack_bag, R.string.pack_bags, R.plurals.pack_bag_count, R.string.calc_by_the_bag),
+    "bucket" to PackWords(R.string.pack_bucket, R.string.pack_buckets, R.plurals.pack_bucket_count, R.string.calc_by_the_bucket),
+    "canister" to PackWords(R.string.pack_canister, R.string.pack_canisters, R.plurals.pack_canister_count, R.string.calc_by_the_canister),
+    "bottle" to PackWords(R.string.pack_bottle, R.string.pack_bottles, R.plurals.pack_bottle_count, R.string.calc_by_the_bottle),
+    "drum" to PackWords(R.string.pack_drum, R.string.pack_drums, R.plurals.pack_drum_count, R.string.calc_by_the_drum),
+    "tub" to PackWords(R.string.pack_tub, R.string.pack_tubs, R.plurals.pack_tub_count, R.string.calc_by_the_tub),
 )
 
 private fun wordsFor(type: String): PackWords? = Words[type.trim().lowercase()]
@@ -72,6 +78,23 @@ fun packCount(count: Double, type: String): String = packCount(LocalContext.curr
 
 @Composable
 fun packCount(count: Int, type: String): String = packCount(LocalContext.current, count.toDouble(), type)
+
+/**
+ * "By the bottle" — mixing a whole pack at a time, named for the pack that sets the batch.
+ * "By the pack" when there is none yet, or it is a kind the app does not know.
+ */
+@Composable
+fun byThePack(type: String?): String {
+    val words = type?.let { wordsFor(it) } ?: return stringResource(R.string.calc_by_the_pack)
+    return stringResource(words.byThe)
+}
+
+/** "bottle", or "pack" when nobody has said what it comes in. */
+@Composable
+fun onePack(type: String?): String {
+    val words = type?.let { wordsFor(it) } ?: return stringResource(R.string.pack_generic)
+    return stringResource(words.one)
+}
 
 /** "25 kg bucket" — the way a pack is said at the rack. */
 @Composable

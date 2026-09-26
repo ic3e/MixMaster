@@ -204,7 +204,7 @@
     <string name="calc_headroom_note">Massa jaetaan niin, että jokainen erä mahtuu astiaan. %1$s on tila, joka jää massan kiertämiselle — noin 40%% on tavallinen vähimmäismäärä, sitä vähemmällä massa nousee yli. Litroina laskeminen vaatii tiheyden jokaiselle osalle.</string>
     <string name="calc_max_per_batch">Maks. erää kohti</string>
     <string name="calc_max_batch_note">Massa jaetaan niin, ettei yksikään erä paina tätä enempää — aseta se sekoittimen sallitun kuorman mukaan tai sen mukaan, mitä yhden ihmisen kuuluisi nostaa.</string>
-    <string name="calc_by_bag_note">Yksi kokonainen säkki tai ämpäri kerrallaan — työmaalla ei tarvitse punnita mitään. Neste mitoitetaan sen mukaan, ja lopuksi yli jäävä osa näytetään omana pienempänä eränään.</string>
+    <string name="calc_by_bag_note">Yksi kokonainen %1$s kerrallaan — työmaalla ei tarvitse punnita mitään. Neste mitoitetaan sen mukaan, ja lopuksi yli jäävä osa näytetään omana pienempänä eränään.</string>
     <plurals name="calc_mixings">
         <item quantity="one">1 sekoitus</item>
         <item quantity="other">%1$d sekoitusta</item>
@@ -1009,4 +1009,11 @@
         <item quantity="other">%1$s purkkia</item>
     </plurals>
     <string name="home_late">Myöhässä · %1$d</string>
+    <string name="calc_by_the_bucket">Ämpäreittäin</string>
+    <string name="calc_by_the_canister">Kanistereittain</string>
+    <string name="calc_by_the_bottle">Pulloittain</string>
+    <string name="calc_by_the_drum">Tynnyreittäin</string>
+    <string name="calc_by_the_tub">Purkeittain</string>
+    <string name="calc_by_the_pack">Pakkauksittain</string>
+    <string name="pack_generic">pakkaus</string>
 </resources>

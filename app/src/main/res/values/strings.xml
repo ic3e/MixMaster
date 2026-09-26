@@ -222,7 +222,7 @@
     <string name="calc_headroom_note">The mix is split so every batch fits the drum. %1$s is the room left for it to turn over — around 40%% is the usual minimum, less and it climbs out. Working in litres needs a density on each part of the product.</string>
     <string name="calc_max_per_batch">Max per batch</string>
     <string name="calc_max_batch_note">The mix is split so no batch weighs more than this — set it by what the mixer is rated for, or by what one person should be lifting.</string>
-    <string name="calc_by_bag_note">One whole bag or bucket per batch — nothing to weigh out on site. The liquid is scaled to match it, and whatever is left over at the end is shown as its own smaller batch.</string>
+    <string name="calc_by_bag_note">One whole %1$s per batch — nothing to weigh out on site. The liquid is scaled to match it, and whatever is left over at the end is shown as its own smaller batch.</string>
     <plurals name="calc_mixings">
         <item quantity="one">1 mixing</item>
         <item quantity="other">%1$d mixings</item>
@@ -1041,4 +1041,11 @@
         <item quantity="other">%1$s tubs</item>
     </plurals>
     <string name="home_late">Late · %1$d</string>
+    <string name="calc_by_the_bucket">By the bucket</string>
+    <string name="calc_by_the_canister">By the canister</string>
+    <string name="calc_by_the_bottle">By the bottle</string>
+    <string name="calc_by_the_drum">By the drum</string>
+    <string name="calc_by_the_tub">By the tub</string>
+    <string name="calc_by_the_pack">By the pack</string>
+    <string name="pack_generic">pack</string>
 </resources>
