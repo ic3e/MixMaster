@@ -12,9 +12,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RoomLayerDao {
 
-    @Query("SELECT * FROM room_layers WHERE roomId = :roomId ORDER BY sortOrder")
-    fun observeForRoom(roomId: Long): Flow<List<RoomLayerEntity>>
-
     /** Every coat on every room, for the warehouse's bookings. */
     @Query("SELECT * FROM room_layers ORDER BY roomId, sortOrder")
     fun observeAll(): Flow<List<RoomLayerEntity>>

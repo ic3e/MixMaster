@@ -30,7 +30,6 @@ const MM_PEOPLE_WIDTH = 6;
  */
 const MM_GROUPS = {
   products: 'catalogue',
-  product_components: 'catalogue',
   solutions: 'catalogue',
   solution_lines: 'catalogue',
   projects: 'projects',

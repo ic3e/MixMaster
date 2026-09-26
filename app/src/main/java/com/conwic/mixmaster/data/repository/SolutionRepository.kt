@@ -18,10 +18,6 @@ class SolutionRepository(
 
     fun observeAll(): Flow<List<SolutionEntity>> = solutionDao.observeAll()
 
-    fun observeById(id: Long): Flow<SolutionEntity?> = solutionDao.observeById(id)
-
-    fun observeAllLines(): Flow<List<SolutionLineEntity>> = solutionDao.observeAllLines()
-
     fun observeAllWithLines(): Flow<List<SolutionWithLines>> =
         combine(solutionDao.observeAll(), solutionDao.observeAllLines()) { solutions, lines ->
             val bySolution = lines.groupBy { it.solutionId }
@@ -36,8 +32,6 @@ class SolutionRepository(
     fun observeBrands(): Flow<List<String>> = solutionDao.observeBrands()
 
     fun observeCategories(): Flow<List<String>> = solutionDao.observeCategories()
-
-    fun observeCount(): Flow<Int> = solutionDao.observeCount()
 
     fun observeSolutionsUsing(productId: Long): Flow<List<SolutionEntity>> =
         observeAllWithLines().map { all ->
@@ -61,8 +55,6 @@ class SolutionRepository(
     }
 
     suspend fun archive(solution: SolutionEntity) = solutionDao.update(solution.copy(isArchived = true))
-
-    suspend fun delete(solution: SolutionEntity) = solutionDao.delete(solution)
 
     fun observeUsageLogs(): Flow<List<UsageLogEntity>> = usageLogDao.observeAll()
 

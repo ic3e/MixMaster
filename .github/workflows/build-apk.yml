@@ -88,9 +88,17 @@ jobs:
           python3 -c 'import json,sys; v,r,z,n = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; print(json.dumps({"versionCode": r, "versionName": v, "apk": "MixMaster_" + v + ".apk", "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_" + v + ".apk", "sizeBytes": z, "notes": n}, indent=2))' "$VERSION" "$RUN" "$SIZE" "$NOTES" > dist/latest.json
           cat dist/latest.json
 
+          # The compiler's warnings (a variable never read, a parameter never used, a call to
+          # something deprecated) — the only compiler the code ever meets is this one, so what
+          # it says is kept where the next change can read it.
+          mkdir -p .ci-logs
+          grep -E '^w: ' /tmp/gradle.log | sed -E 's#file:///home/runner/work/[^/]+/[^/]+/##' > .ci-logs/warnings.log || true
+          echo "$(wc -l < .ci-logs/warnings.log) compiler warnings"
+
           git config user.email "ci-bot@users.noreply.github.com"
           git config user.name "CI Bot"
           git add -A dist
+          git add .ci-logs/warnings.log
           git add -f app/schemas || true
           git commit -m "ci: publish MixMaster_$VERSION.apk" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}

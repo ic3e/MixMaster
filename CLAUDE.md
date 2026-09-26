@@ -20,6 +20,9 @@ There is **no Android SDK in this sandbox** — never try to run Gradle. The bui
   the `ci: publish` commit.
 - CI also commits the Room schema it generates (`app/schemas/`), so `<version>.json` appears after
   the build, not before.
+- Every successful build also leaves the compiler's warnings in `.ci-logs/warnings.log` — an
+  unused variable or parameter, a deprecated call. Read it after a build; it is the only
+  compiler this code meets.
 - Deliver the APK to the user with `SendUserFile`. The in-app updater reads `latest.json` from
   `main` only.
 - A round trip is about four minutes, and every one of them ships a version number. Docs-only
@@ -99,6 +102,13 @@ give one product two recipes. Projects hold floors, floors hold rooms, and a roo
 list of **room_layers** — the coats laid on it, each with the colour it is tinted with. **stock**
 is what is on the shelf and **deliveries** are what has been ordered; bookings are worked out from
 the rooms every time rather than stored, so they cannot drift.
+
+**Sharing a company** (`data/company`): SQLite triggers write every change to the shared tables
+into `sync_outbox`, whatever screen made it; `SyncEngine` sends it to the company's server and
+asks for what changed since the last change number it saw. Row ids are made unique across phones
+by `GlobalIds`, and a stock row's id is its product's. A new table that should be shared goes in
+`SyncEngine.Tables` (parents before children) and in both servers' permission lists. The servers
+(`server/`) speak one protocol; `node server/test/run.mjs` holds them to it.
 
 ## Delivering
 

@@ -67,10 +67,6 @@ class ProjectRepository(
 
     fun observeById(id: Long): Flow<ProjectEntity?> = projectDao.observeById(id)
 
-    suspend fun getById(id: Long): ProjectEntity? = projectDao.getById(id)
-
-    fun observeActiveCount(): Flow<Int> = projectDao.observeActiveCount()
-
     suspend fun save(project: ProjectEntity): Long =
         if (project.id == 0L) projectDao.insert(project) else { projectDao.update(project); project.id }
 

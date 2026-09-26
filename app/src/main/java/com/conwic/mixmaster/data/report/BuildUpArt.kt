@@ -165,7 +165,6 @@ internal object BuildUpArt {
         val rowsLeft = leadLeft + leadW
         val bracketLeft = left + width - BracketWidth
         val rowsRight = bracketLeft - BracketGap
-        val rowsWidth = rowsRight - rowsLeft
 
         // Where each coat sits on the strip, from the concrete up: the middle of its band, or
         // the joint it is laid into for one that has no thickness of its own. The leaders are

@@ -11,7 +11,6 @@
 <resources>
     <integer name="conwic_badge_viewport_w">406</integer>
     <integer name="conwic_badge_viewport_h">246</integer>
-    <integer name="conwic_wordmark_viewport_w">1459</integer>
     <integer name="conwic_wordmark_viewport_h">245</integer>
 
     <!-- The brown block. -->

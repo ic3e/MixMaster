@@ -13,8 +13,6 @@ interface MaterialUseDao {
     @Query("SELECT * FROM material_uses WHERE projectId = :projectId ORDER BY mixedAt DESC")
     fun observeForProject(projectId: Long): Flow<List<MaterialUseEntity>>
 
-    @Query("SELECT * FROM material_uses ORDER BY mixedAt DESC")
-    fun observeAll(): Flow<List<MaterialUseEntity>>
 
     @Insert
     suspend fun insert(use: MaterialUseEntity): Long

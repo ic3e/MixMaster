@@ -2,16 +2,13 @@ package com.conwic.mixmaster.data.db.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.conwic.mixmaster.data.model.DosingMode
 
 /**
  * A sellable product, e.g. "Microtopping® Base Coat" from Ideal Work.
- * The per-m² dose always refers to the TOTAL mixed product weight; [ProductComponentEntity]
- * rows describe how that total splits across parts (A/B, powder/polymer, cement/water/
- * additive/gravel, ...) by ratio.
+ * The per-m² dose always refers to the TOTAL mixed product weight. How a mix splits across its
+ * parts (A/B, powder/polymer, cement/water) is a recipe: see [SolutionEntity].
  *
  * Datasheets give a coverage RANGE, not a single number — [minDoseGramsPerM2] and
  * [maxDoseGramsPerM2] are that real range, and [typicalDoseGramsPerM2] (their midpoint,
@@ -76,42 +73,4 @@ data class ProductEntity(
      * so it belongs in every recipe and batch but never on the shelf, in a count or on an order.
      */
     @ColumnInfo(defaultValue = "0") val suppliedOnSite: Boolean = false,
-)
-
-@Entity(
-    tableName = "product_components",
-    foreignKeys = [
-        ForeignKey(
-            entity = ProductEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["productId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
-    indices = [Index("productId")],
-)
-data class ProductComponentEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val productId: Long,
-    /** e.g. "Powder", "Polymer", "Part A", "Part B", "Cement", "Water", "Additive", "Gravel". */
-    val label: String,
-    /** Relative ratio part, e.g. 100 and 35 for a 100:35 mix. Units cancel out. */
-    val ratioParts: Double,
-    /** "Weight" or "Volume" — informational only; doesn't affect the mix math (matching how
-     * the original design itself treated it — display classification, not unit conversion). */
-    val basis: String = "Weight",
-    val density: String = "",
-    val potLife: String = "",
-    val notes: String = "",
-    val sortOrder: Int,
-    /** How this part is sold, e.g. 20.0 for a 20 kg bag or 10.0 for a 10 L canister.
-     * 0 means nobody has told the app the pack size yet. */
-    @ColumnInfo(defaultValue = "0") val packageSize: Double = 0.0,
-    /** "kg" or "L" — the unit the pack is sold in. */
-    @ColumnInfo(defaultValue = "kg") val packageUnit: String = "kg",
-    /** "bag", "bucket", "canister", "bottle", "drum" or "tub". */
-    @ColumnInfo(defaultValue = "bag") val packageType: String = "bag",
-    /** Needed to convert this part's weight into litres, both for L-sold packs and for
-     * working out whether a batch fits the mixer. 0 means unknown. */
-    @ColumnInfo(defaultValue = "0") val densityKgPerL: Double = 0.0,
 )

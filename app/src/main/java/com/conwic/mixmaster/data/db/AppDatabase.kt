@@ -25,7 +25,6 @@ import com.conwic.mixmaster.data.db.entity.FloorEntity
 import com.conwic.mixmaster.data.db.entity.MaterialUseEntity
 import com.conwic.mixmaster.data.db.entity.NoteEntity
 import com.conwic.mixmaster.data.db.entity.PhotoEntity
-import com.conwic.mixmaster.data.db.entity.ProductComponentEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import com.conwic.mixmaster.data.db.entity.ProjectEntity
 import com.conwic.mixmaster.data.db.entity.RoomAreaEntity
@@ -48,7 +47,6 @@ const val DATABASE_NAME = "mixmaster.db"
 @Database(
     entities = [
         ProductEntity::class,
-        ProductComponentEntity::class,
         ProjectEntity::class,
         FloorEntity::class,
         RoomAreaEntity::class,
@@ -64,7 +62,7 @@ const val DATABASE_NAME = "mixmaster.db"
         DeliveryEntity::class,
         MaterialUseEntity::class,
     ],
-    version = 16,
+    version = 17,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -608,6 +606,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * The parts a product used to be split into, from before recipes existed. Everything in
+         * it was carried into solutions by 5 → 6; nothing has read or written it since.
+         */
+        private val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS product_components")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 // Ids no other phone hands out, for when phones share a company — see GlobalIds.
@@ -627,6 +635,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_13_14,
                     MIGRATION_14_15,
                     MIGRATION_15_16,
+                    MIGRATION_16_17,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

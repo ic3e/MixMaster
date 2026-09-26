@@ -1,6 +1,5 @@
 package com.conwic.mixmaster.domain
 
-import kotlin.math.abs
 import kotlin.math.pow
 
 /**
@@ -26,9 +25,7 @@ data class BuildUpCoat(
     val colourName: String?,
     /** How thick this one is drawn against the thickest in the stack, 0..1. */
     val weight: Float,
-) {
-    val hasThickness: Boolean get() = millimetres != null
-}
+)
 
 /**
  * The wet density of a mixed coat in kg/L, or null when any part of it has none on file.
@@ -132,6 +129,3 @@ fun rulerStep(totalMm: Double): Double {
     val wanted = totalMm / 4.0
     return steps.firstOrNull { it >= wanted } ?: steps.last()
 }
-
-/** True when two figures are the same to within a hair, used to place the marks. */
-fun sameMillimetre(a: Double, b: Double): Boolean = abs(a - b) < 0.0005

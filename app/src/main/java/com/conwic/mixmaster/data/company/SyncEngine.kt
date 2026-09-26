@@ -69,7 +69,7 @@ object SyncEngine {
      * cannot be written before its floor. Photos stay out until their files travel with them.
      */
     val Tables = listOf(
-        "products", "product_components", "solutions", "solution_lines", "usage_logs",
+        "products", "solutions", "solution_lines", "usage_logs",
         "projects", "floors", "room_areas", "room_layers", "tasks", "notes",
         "material_uses", "stock", "deliveries", "team_members",
     )

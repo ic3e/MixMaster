@@ -26,8 +26,7 @@ class UserPrefs(private val context: Context) {
         val LANGUAGE = stringPreferencesKey("language")
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
         // What the calculator is working on. Stored rather than held in the view model so
-        // "Use in calculator" can say which product before the calculator exists.
-        val LAST_PRODUCT_ID = longPreferencesKey("last_product_id")
+        // "Use in calculator" can say which mix before the calculator exists.
         val LAST_SOLUTION_ID = longPreferencesKey("last_solution_id")
         // Was labelled "contextual tips"; it now drives the mixing reminders in the calculator.
         // The key is left alone so anyone who already turned it off stays turned off.
@@ -72,10 +71,6 @@ class UserPrefs(private val context: Context) {
 
     suspend fun setLastSolutionId(id: Long) {
         context.dataStore.edit { it[Keys.LAST_SOLUTION_ID] = id }
-    }
-
-    suspend fun setLastProductId(id: Long) {
-        context.dataStore.edit { it[Keys.LAST_PRODUCT_ID] = id }
     }
 
     val appLockEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.APP_LOCK_ENABLED] ?: false }

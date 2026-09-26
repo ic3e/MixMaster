@@ -17,8 +17,6 @@ android {
         // build shipped as version 1 and nothing told one APK apart from the next.
         versionCode = (System.getenv("MIXMASTER_BUILD_NUMBER") ?: "1").toInt()
         versionName = "1.0.${System.getenv("MIXMASTER_BUILD_NUMBER") ?: "0"}"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // Fixed debug keystore committed at keystore/debug.keystore so every build — CI or
@@ -75,7 +73,6 @@ ksp {
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
     implementation(composeBom)
-    androidTestImplementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
@@ -84,7 +81,6 @@ dependencies {
 
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
@@ -105,12 +101,4 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.3")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-
-
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

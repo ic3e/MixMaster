@@ -25,10 +25,6 @@ private fun LocalDate.formatIn(pattern: String, locale: Locale): String =
 fun formatDayWithWeek(date: LocalDate, locale: Locale = AppLocale.current): String =
     "${date.formatIn(LONG_DAY_PATTERN, locale)} · ${formatWeek(date)}"
 
-/** Just the day, for a heading that already says which week it is. */
-fun formatLongDay(date: LocalDate, locale: Locale = AppLocale.current): String =
-    date.formatIn(LONG_DAY_PATTERN, locale)
-
 /**
  * "Fri 18 Sep · W38", or "Fri 18 Sep 2027 · W3" once the year stops being obvious.
  */

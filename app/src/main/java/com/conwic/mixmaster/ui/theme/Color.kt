@@ -30,12 +30,5 @@ val TextOnDark = Color(0xFFF3F1EC)
 val BorderSoft = Color(0xFFEBE7DE)
 val Border = Color(0xFFE4DFD4)
 
-// Status pills — background/foreground pairs straight from the design's .pill-* rules.
-val PillActiveBg = AccentDim
-val PillActiveText = Accent
-val PillPlanningBg = Accent2Dim
+// The text on a "planning" status pill, from the design's .pill-planning rule.
 val PillPlanningText = Color(0xFF8A6526)
-val PillHoldBg = BgSoft
-val PillHoldText = TextFaint
-val PillDoneBg = OkDim
-val PillDoneText = Ok

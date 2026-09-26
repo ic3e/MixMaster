@@ -10,7 +10,7 @@ import java.util.Locale
  * framework resets it to the system's locale whenever it pushes a configuration change, which
  * would quietly put an Estonian weekday back under an English heading mid-session.
  *
- * Set once wherever the language is applied, and read by [formatLongDay] and friends.
+ * Set once wherever the language is applied, and read by [formatDayWithWeek] and friends.
  */
 object AppLocale {
     @Volatile

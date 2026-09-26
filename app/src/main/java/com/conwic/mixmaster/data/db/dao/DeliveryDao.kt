@@ -14,9 +14,6 @@ interface DeliveryDao {
     @Query("SELECT * FROM deliveries ORDER BY expectedOn")
     fun observeAll(): Flow<List<DeliveryEntity>>
 
-    @Query("SELECT * FROM deliveries WHERE id = :id")
-    suspend fun getById(id: Long): DeliveryEntity?
-
     @Insert
     suspend fun insert(row: DeliveryEntity): Long
 

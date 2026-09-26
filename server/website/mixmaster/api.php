@@ -30,7 +30,6 @@ function mm_group($table)
 {
     static $groups = array(
         'products' => 'catalogue',
-        'product_components' => 'catalogue',
         'solutions' => 'catalogue',
         'solution_lines' => 'catalogue',
         'projects' => 'projects',
