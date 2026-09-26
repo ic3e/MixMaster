@@ -1,8 +1,8 @@
 {
-  "versionCode": 158,
-  "versionName": "1.0.158",
-  "apk": "MixMaster_1.0.158.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.158.apk",
-  "sizeBytes": 20295467,
-  "notes": "Clear the compiler's four warnings"
+  "versionCode": 159,
+  "versionName": "1.0.159",
+  "apk": "MixMaster_1.0.159.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.159.apk",
+  "sizeBytes": 20405715,
+  "notes": "Let the company set up, keep and move its own server without anybody's help"
 }
