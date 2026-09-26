@@ -95,8 +95,8 @@ service cloud.firestore {
 
     // What a worker may change. Everything else only the employer may change.
     function workerMayWrite(collection) {
-      return collection in ['stock', 'stockMoves', 'mixes', 'usage', 'materialUse',
-                            'notes', 'photos', 'tasks', 'deliveries'];
+      return collection in ['stock', 'deliveries', 'material_uses', 'usage_logs',
+                            'notes', 'tasks'];
     }
 
     match /companies/{cid} {
@@ -136,8 +136,10 @@ Data model the rules assume (the app's sync must match it):
   which does not see writes in the same batch).
 - `companies/{cid}/members/{uid}` — `role`: `employer` | `worker`, `name`, `email`.
 - `companies/{cid}/invites/{email}` — document id = the lower-cased email; `role`, `name`.
-- Every other collection directly under the company holds data; workers may write only the
-  collections in `workerMayWrite`.
+- Every other collection directly under the company is one of the app's tables, named as the table
+  (`products`, `room_layers`, …; `SyncEngine.Tables`), one document per row named by the row's id,
+  with `_at` (server time), `_by`, `_dev` and `_deleted` beside the columns. Workers may write only
+  the collections in `workerMayWrite`, which must match `SyncEngine.WorkerTables`.
 
 ## Steps 6–7: Connect the employer's phone and invite the crew
 
@@ -148,22 +150,26 @@ In MixMaster, in the version that adds company sharing.
 1. Firebase: **gear icon** → **Project settings** → **General** → **Your apps** → **MixMaster** →
    download **google-services.json**.
 2. Get it onto the employer's phone (email to yourself, or Google Drive) — it lands in **Downloads**.
-3. MixMaster: **Settings** → **Company sharing** → **Connect company** → **Choose settings file**.
-4. **Sign in with Google** with the employer's own account; it becomes the company's owner in the app.
-5. **Create company** (`ConWiC Oy`). The phone uploads products, recipes, projects and stock — on
-   Wi-Fi, app open until it says done.
+3. MixMaster: **Settings** → **Company sharing** → **Set up the company** → **Choose settings file**.
+   It shows the project's name when the file is right.
+4. **Company name** (`ConWiC Oy`) → **Sign in with Google and create**, with the employer's own
+   account; it becomes the company's owner.
+5. The phone uploads products, recipes, projects and stock — on Wi-Fi; the screen counts down the
+   changes still going and says **Up to date** when done.
 
 **Step 7 — Invite the crew**
 
-1. **Settings** → **Crew** → **Add member**: name, the email of their Google account, role.
-2. **Send invite** by WhatsApp, SMS or email: a link and a join code (the code carries the project
-   settings, so nobody else needs the file).
-3. The worker installs MixMaster, opens the link (or **Settings** → **Company sharing** →
-   **Join with code**) and signs in with Google **using the invited email**.
-4. Their phone downloads the company's data; what was on it before is replaced (the app offers a
-   backup first).
+1. **Settings** → **Company sharing** → **Invite someone**: name, the email of their Google account,
+   role.
+2. **Invite and share** by WhatsApp, SMS or email: a link and a join code (the code carries the
+   project settings, so nobody else needs the file).
+3. The worker installs MixMaster and taps the link, or **Company sharing** → **Join a company** →
+   **Paste** → **Join**.
+4. They sign in with Google **using the invited email**; their phone's own data is replaced by the
+   company's (the screen offers **Save a backup first**).
 
-Removing someone from **Crew** ends their access straight away.
+**Remove** next to someone's name ends their access straight away. Photos, blueprints and datasheet
+files are not shared yet; everything else is.
 
 ## Step 8 (optional): Photos, blueprints and datasheets
 

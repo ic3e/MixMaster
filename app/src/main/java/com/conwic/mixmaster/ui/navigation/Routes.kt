@@ -33,6 +33,7 @@ object Routes {
     const val PROJECT_DETAIL = "project/{projectId}"
     const val CALENDAR = "calendar"
     const val STOCK_COUNT = "stock_count"
+    const val COMPANY_SHARING = "company_sharing"
     const val WAREHOUSE = "warehouse"
     const val SETTINGS = "settings"
 

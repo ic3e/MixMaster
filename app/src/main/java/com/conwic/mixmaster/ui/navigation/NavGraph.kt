@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,6 +36,8 @@ import com.conwic.mixmaster.ui.products.AddEditProductScreen
 import com.conwic.mixmaster.ui.products.ProductDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
 import com.conwic.mixmaster.ui.solutions.SolutionEditorScreen
+import com.conwic.mixmaster.ui.sharing.CompanySharingScreen
+import com.conwic.mixmaster.ui.sharing.JoinLinks
 import com.conwic.mixmaster.ui.signin.SignInScreen
 import com.conwic.mixmaster.ui.warehouse.StockCountReminder
 import com.conwic.mixmaster.ui.warehouse.StockCountScreen
@@ -54,12 +57,20 @@ fun MixMasterNavGraph(startDestination: String) {
     // Read once, out here: the transition lambdas below are not composable, so they cannot ask.
     val calm = rememberMotionOff()
 
+    val ready = pastSignIn(backStackEntry)
+
+    // An invite link was tapped: to the join screen, with the code already in it.
+    val joinLink by JoinLinks.pending.collectAsState()
+    LaunchedEffect(joinLink != null, ready) {
+        if (joinLink != null && ready) {
+            navController.navigate(Routes.COMPANY_SHARING) { launchSingleTop = true }
+        }
+    }
+
     // The count reminder was tapped: straight to the count, once the app is past sign-in.
     val openCount by StockCountReminder.openRequested.collectAsState()
-    val route = backStackEntry?.destination?.route
-    val pastSignIn = route != null && route != Routes.SIGN_IN && route != Routes.ONBOARDING
-    LaunchedEffect(openCount, pastSignIn) {
-        if (openCount && pastSignIn) {
+    LaunchedEffect(openCount, ready) {
+        if (openCount && ready) {
             StockCountReminder.openRequested.value = false
             navController.navigate(Routes.STOCK_COUNT) { launchSingleTop = true }
         }
@@ -221,8 +232,15 @@ fun MixMasterNavGraph(startDestination: String) {
             }
             composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
             composable(Routes.STOCK_COUNT) { Inset(insets) { StockCountScreen(navController = navController) } }
+            composable(Routes.COMPANY_SHARING) { Inset(insets) { CompanySharingScreen(navController = navController) } }
         }
     }
+}
+
+/** Anywhere but the first-run screens, where a link or a reminder would pull the rug out. */
+private fun pastSignIn(entry: NavBackStackEntry?): Boolean {
+    val route = entry?.destination?.route
+    return route != null && route != Routes.SIGN_IN && route != Routes.ONBOARDING
 }
 
 /** Applies the bottom-bar inset inside a destination, so the NavHost itself never changes size. */
