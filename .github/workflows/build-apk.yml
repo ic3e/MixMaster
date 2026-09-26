@@ -9,6 +9,7 @@ on:
       # Notes for whoever works on this next are not a release.
       - 'CLAUDE.md'
       - 'README.md'
+      - 'docs/**'
   workflow_dispatch: {}
 
 permissions:
