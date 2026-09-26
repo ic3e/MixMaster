@@ -1,8 +1,8 @@
 {
-  "versionCode": 161,
-  "versionName": "1.0.161",
-  "apk": "MixMaster_1.0.161.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.161.apk",
-  "sizeBytes": 20412707,
-  "notes": "Give \"Who has access: Anyone\" a step of its own in the Google guide"
+  "versionCode": 162,
+  "versionName": "1.0.162",
+  "apk": "MixMaster_1.0.162.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.162.apk",
+  "sizeBytes": 20414339,
+  "notes": "Say when something has been copied, and send a crash report straight on"
 }
