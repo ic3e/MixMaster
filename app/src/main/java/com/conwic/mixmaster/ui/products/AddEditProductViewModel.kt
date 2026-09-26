@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.products
 
+import com.conwic.mixmaster.domain.canonicalName
 import androidx.annotation.StringRes
 import android.content.Context
 import android.net.Uri
@@ -149,9 +150,11 @@ class AddEditProductViewModel(
             productRepository.saveProduct(
                 ProductEntity(
                     id = state.productId,
-                    brand = state.brand.trim(),
+                    // The spelling already in the catalogue, if this is the same name typed
+                    // differently — see canonicalName.
+                    brand = canonicalName(state.brand, state.brands),
                     name = state.name.trim(),
-                    category = state.category.trim(),
+                    category = canonicalName(state.category, state.categories),
                     // A bought item has no coverage and no ratio — those belong to the solution
                     // it goes into. The columns are still on the row, left at nothing.
                     dosingMode = DosingMode.COATS,

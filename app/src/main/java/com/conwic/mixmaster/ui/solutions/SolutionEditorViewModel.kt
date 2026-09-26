@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.solutions
 
+import com.conwic.mixmaster.domain.canonicalName
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -626,9 +627,10 @@ class SolutionEditorViewModel(
         return solutionRepository.save(
             SolutionEntity(
                 id = state.solutionId,
-                brand = state.brand.trim(),
+                // The spelling already in use, if this is the same name typed differently.
+                brand = canonicalName(state.brand, state.brands),
                 name = state.name.trim(),
-                category = state.category.trim(),
+                category = canonicalName(state.category, state.categories),
                 dosingMode = state.dosingMode,
                 minDoseGramsPerM2 = min,
                 maxDoseGramsPerM2 = max,

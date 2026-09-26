@@ -255,6 +255,7 @@
     <string name="product_edit">Edit product</string>
     <string name="product_what_it_is">What it is</string>
     <string name="product_brand">Brand</string>
+    <string name="suggest_already_in">Already in the list — tap to use it</string>
     <string name="product_name">Product name</string>
     <string name="product_type">Type</string>
     <string name="product_coverage">How much it covers</string>

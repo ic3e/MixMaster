@@ -238,6 +238,7 @@
     <string name="product_edit">Muokkaa tuotetta</string>
     <string name="product_what_it_is">Mikä se on</string>
     <string name="product_brand">Merkki</string>
+    <string name="suggest_already_in">Jo listalla — napauta käyttääksesi</string>
     <string name="product_name">Tuotteen nimi</string>
     <string name="product_type">Tyyppi</string>
     <string name="product_coverage">Paljonko riittää</string>
