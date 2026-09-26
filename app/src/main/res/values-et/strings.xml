@@ -1022,4 +1022,12 @@
         <item quantity="one">1 kogus</item>
         <item quantity="other">%1$d kogust</item>
     </plurals>
+    <string name="wh_on_order_title">Tellitud · %1$d</string>
+    <string name="wh_on_order_hint">Kõik, mis on tellituks märgitud ja pole veel saabunud. Kontrolli, et igaüks on päriselt tellitud — puuduta, et märkida saabunuks, või tühista, kui tellimust ei tehtud.</string>
+    <string name="wh_order_marked">Tellituks märgitud %1$s</string>
+    <string name="wh_order_marked_by">Tellituks märkis %2$s, %1$s</string>
+    <string name="wh_order_expected">Oodatakse %1$s</string>
+    <string name="wh_order_late">Hilineb — oodati %1$s</string>
+    <string name="wh_order_no_number">Tellimuse numbrit pole — kontrolli, kas see on päriselt tellitud</string>
+    <string name="tab_notes">Märkmed</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDate
+import androidx.room.ColumnInfo
 
 /**
  * Something ordered that is not on the shelf yet.
@@ -38,4 +39,11 @@ data class DeliveryEntity(
     val note: String = "",
     /** Set when it arrived and went on the shelf. Null while it is still on its way. */
     val arrivedOn: LocalDate? = null,
+    /**
+     * Who marked it ordered, by the name the company knows them by; blank on a phone of its own.
+     *
+     * "Mark as ordered" is a tap, and a tap can be made meaning to ring the supplier later. The
+     * list of what is on order says who made it, so there is somebody to ask whether it went out.
+     */
+    @ColumnInfo(defaultValue = "") val orderedBy: String = "",
 )

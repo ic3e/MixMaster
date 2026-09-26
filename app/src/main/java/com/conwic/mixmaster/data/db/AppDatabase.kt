@@ -62,7 +62,7 @@ const val DATABASE_NAME = "mixmaster.db"
         DeliveryEntity::class,
         MaterialUseEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -616,6 +616,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Who marked an order ordered, so the list of what is on order can say whom to ask. */
+        private val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE deliveries ADD COLUMN orderedBy TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 // Ids no other phone hands out, for when phones share a company — see GlobalIds.
@@ -636,6 +643,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_14_15,
                     MIGRATION_15_16,
                     MIGRATION_16_17,
+                    MIGRATION_17_18,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

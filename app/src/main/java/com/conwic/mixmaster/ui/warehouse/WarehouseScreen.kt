@@ -76,6 +76,8 @@ import java.time.ZoneId
 import com.conwic.mixmaster.ui.components.packCount
 import com.conwic.mixmaster.ui.components.packName
 import com.conwic.mixmaster.ui.components.FilterField
+import java.time.LocalDate
+import androidx.compose.material3.HorizontalDivider
 
 /**
  * What is actually in the shed.
@@ -191,6 +193,38 @@ fun WarehouseScreen(navController: NavHostController) {
                                 modifier = Modifier.padding(start = 10.dp),
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        // Everything marked ordered that has not come in, in one place. It was only to be found
+        // product by product, so an order marked and never actually placed went unseen until
+        // the day it did not turn up. Each says who marked it and whether it has an order number,
+        // which is what there is to check it against.
+        val openOrders = onTheWay.values.flatten().sortedBy { it.expectedOn }
+        if (openOrders.isNotEmpty()) {
+            item { SectionLabel(text = stringResource(R.string.wh_on_order_title, openOrders.size)) }
+            item {
+                CardFlat(contentPadding = 12.dp) {
+                    Text(
+                        text = stringResource(R.string.wh_on_order_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 6.dp),
+                    )
+                    openOrders.forEachIndexed { index, delivery ->
+                        val item = state.shelf.firstOrNull { it.productId == delivery.productId }
+                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        OpenOrderRow(
+                            delivery = delivery,
+                            item = item,
+                            onClick = if (access.warehouse) {
+                                { askingAbout = delivery }
+                            } else {
+                                null
+                            },
+                        )
                     }
                 }
             }
@@ -368,7 +402,7 @@ fun WarehouseScreen(navController: NavHostController) {
     // Tapped from the shelf rather than asked on the day, so "not yet" only closes it — the
     // date it is due is the app's business, not something to move by looking at it.
     askingAbout?.let { delivery ->
-        state.items.firstOrNull { it.productId == delivery.productId }?.let { item ->
+        state.shelf.firstOrNull { it.productId == delivery.productId }?.let { item ->
             ArrivalDialog(
                 productName = item.name,
                 line = deliveryText(delivery, item) + " · " + formatDueDate(delivery.expectedOn),
@@ -763,3 +797,61 @@ private fun deliveryText(delivery: DeliveryEntity, item: ProductStock): String {
 }
 
 private fun amountText(amount: Double, unit: String): String = "${formatDecimal(amount, 2)} $unit"
+
+/**
+ * One order on its way: what, how much, when it was marked and by whom, when it is due, and what
+ * it was ordered under. One with no order number says so — that is the one to check was placed.
+ */
+@Composable
+private fun OpenOrderRow(delivery: DeliveryEntity, item: ProductStock?, onClick: (() -> Unit)?) {
+    val today = remember { LocalDate.now() }
+    val late = delivery.expectedOn.isBefore(today)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            Text(
+                text = item?.name.orEmpty(),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f).padding(end = 8.dp),
+            )
+            if (item != null) {
+                Text(
+                    text = deliveryText(delivery, item),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+        Text(
+            text = if (delivery.orderedBy.isBlank()) {
+                stringResource(R.string.wh_order_marked, formatDueDate(delivery.orderedOn))
+            } else {
+                stringResource(R.string.wh_order_marked_by, formatDueDate(delivery.orderedOn), delivery.orderedBy)
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        Text(
+            text = stringResource(
+                if (late) R.string.wh_order_late else R.string.wh_order_expected,
+                formatDueDate(delivery.expectedOn),
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (late) FontWeight.Bold else FontWeight.Normal,
+            color = if (late) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+        )
+        Text(
+            text = delivery.note.ifBlank { stringResource(R.string.wh_order_no_number) },
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (delivery.note.isBlank()) FontWeight.Bold else FontWeight.Normal,
+            color = if (delivery.note.isBlank()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+    }
+}

@@ -77,6 +77,7 @@ private val tabTitleRes = listOf(
     R.string.tab_overview,
     R.string.tab_tasks,
     R.string.tab_layout,
+    R.string.tab_notes,
     R.string.tab_materials,
     R.string.tab_calendar,
 )
@@ -204,8 +205,6 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     data = data,
                     roomCoats = roomCoats,
                     isEmployer = access.projects,
-                    canRecord = access.site,
-                    role = role,
                     onAddFloor = viewModel::addFloor,
                     onAddRoom = viewModel::addRoom,
                     onAddCoat = viewModel::addCoat,
@@ -215,8 +214,6 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onRemoveFloor = viewModel::removeFloor,
                     onEditRoom = viewModel::updateRoom,
                     onRemoveRoom = viewModel::removeRoom,
-                    onRemoveNote = viewModel::removeNote,
-                    onRemovePhoto = viewModel::removePhoto,
                     onMixCoat = { room, coat ->
                         // Straight into the calculator on that coat, with the room's area, the
                         // rate it is specified at and the number of passes already in. Nothing
@@ -236,12 +233,19 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                         )
                     },
                     onSetCoatColour = viewModel::setCoatColour,
-                    onAddNote = viewModel::addNote,
-                    onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },
                     blueprintUri = data.project?.blueprintUri,
                     onSetBlueprint = viewModel::setBlueprintUri,
                 )
-                3 -> MaterialsTab(
+                3 -> NotesTab(
+                    data = data,
+                    canRecord = access.site,
+                    role = role,
+                    onAddNote = viewModel::addNote,
+                    onAddPhoto = { uri -> viewModel.addPhoto(uri, roomId = null, caption = "") },
+                    onRemoveNote = viewModel::removeNote,
+                    onRemovePhoto = viewModel::removePhoto,
+                )
+                4 -> MaterialsTab(
                     data = data,
                     roomCoats = roomCoats,
                     materials = materials,
@@ -252,7 +256,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     onRemoveMix = viewModel::removeRecordedMix,
                     onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
                 )
-                4 -> CalendarTab(data = data)
+                5 -> CalendarTab(data = data)
             }
         }
     }

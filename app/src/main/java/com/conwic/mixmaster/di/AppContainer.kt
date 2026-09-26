@@ -59,7 +59,7 @@ class AppContainer(context: Context) {
     val stockRepository: StockRepository by lazy { StockRepository(database.stockDao()) }
 
     val deliveryRepository: DeliveryRepository by lazy {
-        DeliveryRepository(database.deliveryDao(), stockRepository)
+        DeliveryRepository(database.deliveryDao(), stockRepository, appContext)
     }
 
     val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao(), database.usageLogDao()) }

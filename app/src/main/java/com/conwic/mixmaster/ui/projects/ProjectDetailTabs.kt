@@ -241,9 +241,6 @@ fun LayoutTab(
     data: ProjectDetailData,
     roomCoats: Map<Long, List<CoatMix>>,
     isEmployer: Boolean,
-    /** May add and take away notes and photos — site work, which is a right of its own. */
-    canRecord: Boolean,
-    role: Role,
     onAddFloor: (String) -> Unit,
     onAddRoom: (Long, String, Double) -> Unit,
     onAddCoat: (Long, Long, Long, Double, Double) -> Unit,
@@ -254,13 +251,9 @@ fun LayoutTab(
     onRemoveFloor: (FloorEntity) -> Unit,
     onEditRoom: (RoomAreaEntity, String, Double) -> Unit,
     onRemoveRoom: (RoomAreaEntity) -> Unit,
-    onRemoveNote: (NoteEntity) -> Unit,
-    onRemovePhoto: (PhotoEntity) -> Unit,
     /** Takes one coat of one room into the calculator, with the room's figures. */
     onMixCoat: (RoomAreaEntity, CoatMix) -> Unit,
     onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
-    onAddNote: (String, String, Role) -> Unit,
-    onAddPhoto: (String) -> Unit,
     blueprintUri: String?,
     onSetBlueprint: (String) -> Unit,
 ) {
@@ -277,33 +270,6 @@ fun LayoutTab(
     var editingCoat by remember { mutableStateOf<CoatMix?>(null) }
     var removingFloor by remember { mutableStateOf<FloorEntity?>(null) }
     var removingRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
-    var removingNote by remember { mutableStateOf<NoteEntity?>(null) }
-    var openPhoto by remember { mutableStateOf<PhotoEntity?>(null) }
-    var noteText by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var photoProblem by remember { mutableStateOf<String?>(null) }
-    // Resolved here: the failure is set from inside a coroutine in the picker's callback, which
-    // is not composable.
-    val photoFailedMessage = stringResource(R.string.prj_photo_copy_failed)
-
-    // The picker's permission on this URI dies with the process, so the bytes are copied into the
-    // app before the photo is recorded — otherwise it loads today and never again.
-    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            scope.launch {
-                val stored = PhotoStore.keep(context, uri)
-                if (stored != null) {
-                    photoProblem = null
-                    onAddPhoto(stored)
-                } else {
-                    photoProblem = photoFailedMessage
-                }
-            }
-        }
-    }
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // The tab strip above already leaves its own room underneath, so this opens tight
@@ -521,112 +487,6 @@ fun LayoutTab(
             }
         }
 
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SectionLabel(text = stringResource(R.string.prj_photos, data.photos.size))
-                if (canRecord) {
-                    ActionLink(
-                        text = stringResource(R.string.prj_add_photo),
-                        onClick = {
-                            photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        },
-                    )
-                }
-            }
-        }
-        photoProblem?.let { problem ->
-            item {
-                Text(
-                    text = problem,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        if (data.photos.isNotEmpty()) {
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(data.photos) { photo ->
-                        ContentImage(
-                            uri = photo.uri,
-                            targetSize = 84.dp,
-                            modifier = Modifier
-                                .size(84.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { openPhoto = photo },
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            SectionLabel(text = stringResource(R.string.prj_notes, data.notes.size))
-        }
-        if (canRecord) item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                // A text field is taller than a button; without this they hang off the top edge
-                // together and read as misaligned.
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                FormTextField(
-                    value = noteText,
-                    onValueChange = { noteText = it },
-                    label = stringResource(R.string.prj_add_note),
-                    singleLine = false,
-                    modifier = Modifier.weight(1f),
-                )
-                // Resolved above the callback — onClick is never composable.
-                val employerName = stringResource(R.string.prj_you_employer)
-                val workerName = stringResource(R.string.prj_you_worker)
-                PrimaryButton(
-                    text = stringResource(R.string.prj_post),
-                    onClick = {
-                        val authorName = if (role == Role.EMPLOYER) employerName else workerName
-                        onAddNote(noteText, authorName, role)
-                        noteText = ""
-                    },
-                    enabled = noteText.isNotBlank(),
-                )
-            }
-        }
-        items(data.notes) { note ->
-            CardFlat {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(modifier = Modifier.weight(1f, fill = false), text = note.authorName, style = MaterialTheme.typography.titleMedium)
-                    // In words: this printed the enum itself, "EMPLOYER", in every language.
-                    Text(
-                        text = stringResource(if (note.authorRole == Role.EMPLOYER) R.string.note_by_employer else R.string.note_by_worker),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f, fill = false),
-                        text = formatStamp(note.createdAt),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    // A note was write-only: a wrong one, or one meant for another job, stayed
-                    // on the record for good.
-                    if (canRecord) {
-                        ActionLink(
-                            text = stringResource(R.string.action_remove),
-                            onClick = { removingNote = note },
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            }
-        }
     }
 
     if (addFloorOpen) {
@@ -743,6 +603,178 @@ fun LayoutTab(
         )
     }
 
+    removingCoat?.let { coat ->
+        ConfirmDialog(
+            title = stringResource(R.string.coat_remove_confirm),
+            message = stringResource(R.string.coat_remove_confirm_body, coat.title),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingCoat = null
+                onRemoveCoat(coat.layer)
+            },
+            onDismiss = { removingCoat = null },
+        )
+    }
+}
+
+/**
+ * The photos and notes of a job, on a page of their own.
+ *
+ * They were at the foot of the layout, under every floor, room and coat, so reading the latest
+ * note meant scrolling past the whole build-up first — and the note box was the last thing on
+ * the longest page in the app.
+ */
+@Composable
+fun NotesTab(
+    data: ProjectDetailData,
+    /** May add and take away notes and photos — site work, which is a right of its own. */
+    canRecord: Boolean,
+    role: Role,
+    onAddNote: (String, String, Role) -> Unit,
+    onAddPhoto: (String) -> Unit,
+    onRemoveNote: (NoteEntity) -> Unit,
+    onRemovePhoto: (PhotoEntity) -> Unit,
+) {
+    var removingNote by remember { mutableStateOf<NoteEntity?>(null) }
+    var openPhoto by remember { mutableStateOf<PhotoEntity?>(null) }
+    var noteText by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var photoProblem by remember { mutableStateOf<String?>(null) }
+    // Resolved here: the failure is set from inside a coroutine in the picker's callback, which
+    // is not composable.
+    val photoFailedMessage = stringResource(R.string.prj_photo_copy_failed)
+
+    // The picker's permission on this URI dies with the process, so the bytes are copied into the
+    // app before the photo is recorded — otherwise it loads today and never again.
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val stored = PhotoStore.keep(context, uri)
+                if (stored != null) {
+                    photoProblem = null
+                    onAddPhoto(stored)
+                } else {
+                    photoProblem = photoFailedMessage
+                }
+            }
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = pagePadding(top = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                SectionLabel(text = stringResource(R.string.prj_photos, data.photos.size))
+                if (canRecord) {
+                    ActionLink(
+                        text = stringResource(R.string.prj_add_photo),
+                        onClick = {
+                            photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
+                    )
+                }
+            }
+        }
+        photoProblem?.let { problem ->
+            item {
+                Text(
+                    text = problem,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+        if (data.photos.isNotEmpty()) {
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(data.photos) { photo ->
+                        ContentImage(
+                            uri = photo.uri,
+                            targetSize = 84.dp,
+                            modifier = Modifier
+                                .size(84.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { openPhoto = photo },
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            SectionLabel(text = stringResource(R.string.prj_notes, data.notes.size))
+        }
+        if (canRecord) item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                // A text field is taller than a button; without this they hang off the top edge
+                // together and read as misaligned.
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FormTextField(
+                    value = noteText,
+                    onValueChange = { noteText = it },
+                    label = stringResource(R.string.prj_add_note),
+                    singleLine = false,
+                    modifier = Modifier.weight(1f),
+                )
+                // Resolved above the callback — onClick is never composable.
+                val employerName = stringResource(R.string.prj_you_employer)
+                val workerName = stringResource(R.string.prj_you_worker)
+                PrimaryButton(
+                    text = stringResource(R.string.prj_post),
+                    onClick = {
+                        val authorName = if (role == Role.EMPLOYER) employerName else workerName
+                        onAddNote(noteText, authorName, role)
+                        noteText = ""
+                    },
+                    enabled = noteText.isNotBlank(),
+                )
+            }
+        }
+        items(data.notes) { note ->
+            CardFlat {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(modifier = Modifier.weight(1f, fill = false), text = note.authorName, style = MaterialTheme.typography.titleMedium)
+                    // In words: this printed the enum itself, "EMPLOYER", in every language.
+                    Text(
+                        text = stringResource(if (note.authorRole == Role.EMPLOYER) R.string.note_by_employer else R.string.note_by_worker),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Text(text = note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f, fill = false),
+                        text = formatStamp(note.createdAt),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    // A note was write-only: a wrong one, or one meant for another job, stayed
+                    // on the record for good.
+                    if (canRecord) {
+                        ActionLink(
+                            text = stringResource(R.string.action_remove),
+                            onClick = { removingNote = note },
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     removingNote?.let { note ->
         ConfirmDialog(
             title = stringResource(R.string.prj_remove_note_confirm),
@@ -766,19 +798,6 @@ fun LayoutTab(
                 openPhoto = null
             },
             onDismiss = { openPhoto = null },
-        )
-    }
-
-    removingCoat?.let { coat ->
-        ConfirmDialog(
-            title = stringResource(R.string.coat_remove_confirm),
-            message = stringResource(R.string.coat_remove_confirm_body, coat.title),
-            confirmText = stringResource(R.string.action_remove),
-            onConfirm = {
-                removingCoat = null
-                onRemoveCoat(coat.layer)
-            },
-            onDismiss = { removingCoat = null },
         )
     }
 }

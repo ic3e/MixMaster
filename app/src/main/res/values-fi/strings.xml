@@ -1022,4 +1022,12 @@
         <item quantity="one">1 erä</item>
         <item quantity="other">%1$d erää</item>
     </plurals>
+    <string name="wh_on_order_title">Tilattu · %1$d</string>
+    <string name="wh_on_order_hint">Kaikki tilatuksi merkityt, jotka eivät ole vielä saapuneet. Tarkista, että jokainen on oikeasti tilattu — napauta merkitäksesi saapuneeksi tai peru, jos tilausta ei tehty.</string>
+    <string name="wh_order_marked">Merkitty tilatuksi %1$s</string>
+    <string name="wh_order_marked_by">Tilatuksi merkitsi %2$s, %1$s</string>
+    <string name="wh_order_expected">Odotetaan %1$s</string>
+    <string name="wh_order_late">Myöhässä — odotettiin %1$s</string>
+    <string name="wh_order_no_number">Ei tilausnumeroa — tarkista, että tilaus on oikeasti tehty</string>
+    <string name="tab_notes">Muistiot</string>
 </resources>

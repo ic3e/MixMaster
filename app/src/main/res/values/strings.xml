@@ -1054,4 +1054,12 @@
         <item quantity="one">1 batch</item>
         <item quantity="other">%1$d batches</item>
     </plurals>
+    <string name="wh_on_order_title">On order · %1$d</string>
+    <string name="wh_on_order_hint">Everything marked as ordered that has not arrived yet. Check each one really was ordered — tap it to mark it arrived, or cancel it if it never went out.</string>
+    <string name="wh_order_marked">Marked ordered %1$s</string>
+    <string name="wh_order_marked_by">Marked ordered %1$s by %2$s</string>
+    <string name="wh_order_expected">Expected %1$s</string>
+    <string name="wh_order_late">Late — expected %1$s</string>
+    <string name="wh_order_no_number">No order number — check it was really ordered</string>
+    <string name="tab_notes">Notes</string>
 </resources>

@@ -4,6 +4,8 @@ import com.conwic.mixmaster.data.db.dao.DeliveryDao
 import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import android.content.Context
+import com.conwic.mixmaster.data.company.CompanyStore
 
 /**
  * Orders placed against the warehouse.
@@ -15,6 +17,7 @@ import java.time.LocalDate
 class DeliveryRepository(
     private val deliveryDao: DeliveryDao,
     private val stockRepository: StockRepository,
+    private val context: Context,
 ) {
 
     fun observeAll(): Flow<List<DeliveryEntity>> = deliveryDao.observeAll()
@@ -34,6 +37,8 @@ class DeliveryRepository(
                 expectedOn = expectedOn,
                 orderedOn = LocalDate.now(),
                 note = note.trim(),
+                // By the name the company knows this phone by; nobody to name on a phone of its own.
+                orderedBy = CompanyStore.current(context)?.name.orEmpty(),
             ),
         )
     }

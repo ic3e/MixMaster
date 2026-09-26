@@ -32,9 +32,11 @@ fun SegmentedTabs(titles: List<String>, selectedIndex: Int, onSelect: (Int) -> U
     ) {
         titles.forEachIndexed { index, title ->
             val selected = index == selectedIndex
+            // Shared out by the length of each word rather than equally: six equal slots left
+            // "Materiaalit" cut short beside a "Pohja" with room to spare.
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(title.length.coerceAtLeast(4).toFloat())
                     .clip(ChipShape)
                     .background(if (selected) Charcoal else Color.Transparent)
                     .clickable { onSelect(index) }
