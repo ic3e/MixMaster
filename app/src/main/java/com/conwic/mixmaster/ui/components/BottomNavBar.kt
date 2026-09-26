@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,25 +70,34 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
                 .navigationBarsPadding()
                 .height(64.dp)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             navItems.forEach { item ->
                 val selected = currentRoute == item.route
                 val color = if (selected) Color.White else NavInactive
+                // An equal fifth each, the lit pill filling it: sized to its word, "Home" had a
+                // small pill and "Warehouse" a wide one, and it jumped as you moved between tabs.
                 Column(
                     modifier = Modifier
+                        .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
                         // Solid: the bar under it lets the page through, and a lit-up tab with a card
                         // showing through it read as part of the page rather than as the tab you are on.
                         .background(color = if (selected) NavSelected else Color.Transparent)
                         .clickable { onNavigate(item.route) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .padding(horizontal = 2.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     val label = stringResource(item.labelRes)
                     Icon(imageVector = item.icon, contentDescription = label, tint = color, modifier = Modifier.height(20.dp))
-                    Text(text = label, style = MaterialTheme.typography.labelSmall, color = color)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
