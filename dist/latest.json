@@ -1,8 +1,8 @@
 {
-  "versionCode": 199,
-  "versionName": "1.0.199",
-  "apk": "MixMaster_1.0.199.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.199.apk",
+  "versionCode": 200,
+  "versionName": "1.0.200",
+  "apk": "MixMaster_1.0.200.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.200.apk",
   "sizeBytes": 20396729,
-  "notes": "The order dot, smaller and red"
+  "notes": "The order dot moves out onto the button's corner"
 }
