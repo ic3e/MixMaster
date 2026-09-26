@@ -1,8 +1,8 @@
 {
-  "versionCode": 174,
-  "versionName": "1.0.174",
-  "apk": "MixMaster_1.0.174.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.174.apk",
-  "sizeBytes": 20499327,
-  "notes": "Show nothing to change to whoever may not change it"
+  "versionCode": 175,
+  "versionName": "1.0.175",
+  "apk": "MixMaster_1.0.175.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.175.apk",
+  "sizeBytes": 20499259,
+  "notes": "Set the mixing screen in the app's own type, and say \"start mixing\""
 }
