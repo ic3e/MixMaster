@@ -1,8 +1,8 @@
 {
-  "versionCode": 177,
-  "versionName": "1.0.177",
-  "apk": "MixMaster_1.0.177.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.177.apk",
+  "versionCode": 178,
+  "versionName": "1.0.178",
+  "apk": "MixMaster_1.0.178.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.178.apk",
   "sizeBytes": 20516551,
-  "notes": "Import Modifier where the order dialog now scrolls, and check for it"
+  "notes": "Show a product with no brand under \"Other\", at the end of the list"
 }
