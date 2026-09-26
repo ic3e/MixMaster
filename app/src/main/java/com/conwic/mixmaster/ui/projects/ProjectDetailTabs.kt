@@ -299,7 +299,8 @@ fun LayoutTab(
         contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (role == Role.WORKER) {
+        // Said to whoever cannot change the layout, which in a company is not only the crew.
+        if (!isEmployer) {
             item {
                 CardFlat {
                     Text(
