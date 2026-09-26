@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.products
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.clickable
@@ -82,6 +83,8 @@ fun ProductsScreen(navController: NavHostController) {
                     ),
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
+                    // Above the tab bar: the page goes on under it, and so would the +.
+                    modifier = Modifier.padding(bottom = LocalBarInset.current),
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.products_add))
                 }
@@ -91,7 +94,7 @@ fun ProductsScreen(navController: NavHostController) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
             // Extra room at the bottom so the floating + doesn't sit on top of the last card.
-            contentPadding = pagePadding(bottom = 96.dp),
+            contentPadding = pagePadding(bottom = 96.dp + LocalBarInset.current),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = stringResource(R.string.products_title), style = MaterialTheme.typography.headlineMedium) }

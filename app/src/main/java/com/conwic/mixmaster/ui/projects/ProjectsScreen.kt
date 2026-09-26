@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.projects
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -82,6 +83,8 @@ fun ProjectsScreen(navController: NavHostController) {
                 ),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
+                // Above the tab bar: the page goes on under it, and so would the +.
+                modifier = Modifier.padding(bottom = LocalBarInset.current),
             ) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.projects_new))
             }
@@ -90,7 +93,7 @@ fun ProjectsScreen(navController: NavHostController) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(insets),
             // Extra room at the bottom so the floating + doesn't sit on top of the last card.
-            contentPadding = pagePadding(bottom = 96.dp),
+            contentPadding = pagePadding(bottom = 96.dp + LocalBarInset.current),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(text = stringResource(R.string.projects_title), style = MaterialTheme.typography.headlineMedium) }

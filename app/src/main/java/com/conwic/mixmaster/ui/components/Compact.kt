@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
@@ -49,6 +50,13 @@ fun pagePadding(top: Dp = 20.dp, bottom: Dp = 20.dp, side: Dp = 20.dp): PaddingV
     val margin = maxOf(side, (width - PageMaxWidth) / 2)
     return PaddingValues(start = margin, end = margin, top = top, bottom = bottom)
 }
+
+/**
+ * How much of the bottom of a top-level page the tab bar covers. The bar is see-through and the
+ * page runs on underneath it, so a page's list ends this much further down to let its last card
+ * scroll clear, and anything floating at the bottom lifts by it. Nothing wherever there is no bar.
+ */
+val LocalBarInset = compositionLocalOf { 0.dp }
 
 /** The same margin on its own, for chrome that has to line up with the page under it. */
 @Composable

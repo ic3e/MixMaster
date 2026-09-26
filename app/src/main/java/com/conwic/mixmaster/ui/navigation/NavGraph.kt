@@ -1,5 +1,10 @@
 package com.conwic.mixmaster.ui.navigation
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
@@ -136,7 +141,7 @@ fun MixMasterNavGraph(startDestination: String) {
                 }
             }
             // All five bottom-nav pages live in this one destination — see TabHost for why.
-            composable(Routes.HOME) { entry -> Inset(insets) { TabHost(entry, navController, calm) } }
+            composable(Routes.HOME) { entry -> UnderBar(insets) { TabHost(entry, navController, calm) } }
             composable(
                 route = Routes.CALCULATOR,
                 arguments = listOf(
@@ -249,6 +254,24 @@ private fun pastSignIn(entry: NavBackStackEntry?): Boolean {
 @Composable
 private fun Inset(insets: PaddingValues, content: @Composable () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().padding(insets)) { content() }
+}
+
+/**
+ * The tab pages: inset like every other page except at the bottom, where they run on under the
+ * see-through bar. How much of them it covers goes down as [LocalBarInset].
+ */
+@Composable
+private fun UnderBar(insets: PaddingValues, content: @Composable () -> Unit) {
+    val direction = LocalLayoutDirection.current
+    Box(
+        modifier = Modifier.fillMaxSize().padding(
+            start = insets.calculateStartPadding(direction),
+            top = insets.calculateTopPadding(),
+            end = insets.calculateEndPadding(direction),
+        ),
+    ) {
+        CompositionLocalProvider(LocalBarInset provides insets.calculateBottomPadding()) { content() }
+    }
 }
 
 /** How long a page takes to come over the one behind it, and the curve it does it on. */

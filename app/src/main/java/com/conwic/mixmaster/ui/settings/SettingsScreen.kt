@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.settings
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -81,7 +82,7 @@ fun SettingsScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = pagePadding(),
+        contentPadding = pagePadding(bottom = 20.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium) }

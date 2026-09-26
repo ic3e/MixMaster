@@ -56,8 +56,9 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     // dark bar stops short of the right edge of the screen.
     // Flat, like the design: the charcoal bar reads as its own layer without a drop shadow.
     // The top corners are rounded like a sheet's. Square, the dark block cut straight across the
-    // page and looked like the bottom of the screen had been painted over.
-    Surface(color = Charcoal, shape = NavBarShape, modifier = Modifier.fillMaxWidth()) {
+    // page and looked like the bottom of the screen had been painted over. A fifth see-through,
+    // so the page can be seen carrying on underneath it — the pages leave room to scroll clear.
+    Surface(color = Charcoal.copy(alpha = 0.8f), shape = NavBarShape, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

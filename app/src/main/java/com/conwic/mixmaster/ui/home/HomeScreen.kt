@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.home
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -130,7 +131,7 @@ fun HomeScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = pagePadding(),
+        contentPadding = pagePadding(bottom = 20.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {

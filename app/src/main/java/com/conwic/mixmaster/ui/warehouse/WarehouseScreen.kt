@@ -2,6 +2,7 @@
 
 package com.conwic.mixmaster.ui.warehouse
 
+import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
@@ -129,7 +130,7 @@ fun WarehouseScreen(navController: NavHostController) {
         // The same rhythm as the Products and Projects lists — this screen sat at its own
         // spacing and its own title size, which is what made moving between them feel like
         // moving between two apps. The room at the bottom keeps the last card off the nav bar.
-        contentPadding = pagePadding(bottom = 40.dp),
+        contentPadding = pagePadding(bottom = 40.dp + LocalBarInset.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineMedium) }
