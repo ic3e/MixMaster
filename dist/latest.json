@@ -1,8 +1,8 @@
 {
-  "versionCode": 180,
-  "versionName": "1.0.180",
-  "apk": "MixMaster_1.0.180.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.180.apk",
-  "sizeBytes": 20516551,
-  "notes": "Say what is in the mix on the calculator's recipe card"
+  "versionCode": 181,
+  "versionName": "1.0.181",
+  "apk": "MixMaster_1.0.181.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.181.apk",
+  "sizeBytes": 20521063,
+  "notes": "A list of what is on order, and notes and photos on a page of their own"
 }
