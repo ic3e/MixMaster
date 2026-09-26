@@ -2,6 +2,10 @@
 
 package com.conwic.mixmaster.ui.projects
 
+import com.conwic.mixmaster.data.db.entity.ProjectEntity
+import com.conwic.mixmaster.ui.components.SuggestField
+import com.conwic.mixmaster.domain.sameNameIn
+import com.conwic.mixmaster.domain.distinctNames
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -270,7 +274,9 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     }
 
     if (editSheetOpen) {
+        val everyProject by viewModel.everyProject.collectAsState()
         EditProjectSheet(
+            others = everyProject.filter { it.id != project.id },
             initialName = project.name,
             initialClient = project.clientName,
             initialAddress = project.address,
@@ -370,6 +376,8 @@ private fun AddressActionSheet(address: String, onDismiss: () -> Unit, context: 
 
 @Composable
 private fun EditProjectSheet(
+    /** Every other job, for the clients already in use and a name already taken. */
+    others: List<ProjectEntity>,
     initialName: String,
     initialClient: String,
     initialAddress: String,
@@ -380,6 +388,7 @@ private fun EditProjectSheet(
     onDismiss: () -> Unit,
     onSave: (String, String, String, String, ProjectStatus, LocalDate?, LocalDate?) -> Unit,
 ) {
+    val clients = remember(others) { distinctNames(others.map { it.clientName }) }
     var name by remember { mutableStateOf(initialName) }
     var client by remember { mutableStateOf(initialClient) }
     var address by remember { mutableStateOf(initialAddress) }
@@ -410,13 +419,15 @@ private fun EditProjectSheet(
                 value = name,
                 onValueChange = { name = it },
                 label = stringResource(R.string.project_name),
+                hint = sameNameIn(name, others.map { it.name })?.let { stringResource(R.string.name_already_project, it) },
                 singleLine = false,
                 modifier = Modifier.fillMaxWidth(),
             )
-            FormTextField(
+            SuggestField(
                 value = client,
                 onValueChange = { client = it },
                 label = stringResource(R.string.prj_client),
+                suggestions = clients,
                 singleLine = false,
                 modifier = Modifier.fillMaxWidth(),
             )

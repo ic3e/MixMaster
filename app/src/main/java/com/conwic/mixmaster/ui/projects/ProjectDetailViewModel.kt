@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.projects
 
+import com.conwic.mixmaster.domain.canonicalName
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -103,6 +104,11 @@ class ProjectDetailViewModel(
     private val stockRepository: StockRepository,
     private val projectId: Long,
 ) : ViewModel() {
+
+    /** Every job, archived ones too — for the clients and names already in use. */
+    val everyProject: StateFlow<List<ProjectEntity>> =
+        combine(projectRepository.observeAll(), projectRepository.observeArchived()) { live, archived -> live + archived }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val data: StateFlow<ProjectDetailData> = combine(
         projectRepository.observeById(projectId),
@@ -428,7 +434,11 @@ class ProjectDetailViewModel(
                 projectRepository.save(
                     it.copy(
                         name = name.trim(),
-                        clientName = clientName.trim(),
+                        // The spelling already on another job, if this is the same client.
+                        clientName = canonicalName(
+                            clientName,
+                            everyProject.value.filter { p -> p.id != it.id }.map { p -> p.clientName },
+                        ),
                         address = address.trim(),
                         scopeNotes = scopeNotes.trim(),
                         startDate = startDate,

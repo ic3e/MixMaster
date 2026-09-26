@@ -170,6 +170,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     onValueChange = viewModel::setName,
                     label = stringResource(R.string.solution_name),
                     problem = state.nameProblem?.let { stringResource(it) },
+                    hint = state.sameName?.let { stringResource(R.string.name_already_solution, it) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(
@@ -256,10 +257,13 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                         }
                     }
                     if (state.coats.size > 1 || state.coatName.isNotBlank()) {
-                        FormTextField(
+                        // "Base coat" and "Finish coat" come round on every system: offered back
+                        // so one is not "Base Coat" here and "Basecoat" on the next.
+                        SuggestField(
                             value = state.coatName,
                             onValueChange = viewModel::setCoatName,
                             label = stringResource(R.string.solution_coat_name),
+                            suggestions = state.coatNames,
                             hint = stringResource(R.string.solution_coat_name_hint),
                             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                         )
@@ -352,10 +356,11 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            FormTextField(
+                            SuggestField(
                                 value = line.label,
                                 onValueChange = { viewModel.setLineLabel(index, it) },
                                 label = stringResource(R.string.solution_line_label),
+                                suggestions = state.usedLabels,
                                 hint = stringResource(R.string.solution_line_label_hint),
                                 modifier = Modifier.weight(FieldWeightWide),
                             )

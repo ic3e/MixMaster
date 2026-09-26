@@ -69,7 +69,8 @@ fun SuggestField(
     val offering = !expanded && focused && typing && matches.isNotEmpty() && value != settledOn
     // The ▾ shows everything, whatever is typed — a new name has no matches to narrow it to.
     val shown = if (offering) matches else pool
-    val open = (expanded || offering) && shown.isNotEmpty()
+    // A form someone may only read never offers anything: picking would change it.
+    val open = !LocalReadOnly.current && (expanded || offering) && shown.isNotEmpty()
 
     Box(
         modifier = modifier.onSizeChanged { size ->

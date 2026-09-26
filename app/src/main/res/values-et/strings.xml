@@ -239,6 +239,9 @@
     <string name="product_what_it_is">Mis see on</string>
     <string name="product_brand">Bränd</string>
     <string name="suggest_already_in">Juba nimekirjas — puuduta, et see võtta</string>
+    <string name="name_already_product">Toode nimega „%1$s“ on juba olemas.</string>
+    <string name="name_already_solution">Segu nimega „%1$s“ on juba olemas.</string>
+    <string name="name_already_project">Projekt nimega „%1$s“ on juba olemas.</string>
     <string name="product_name">Toote nimi</string>
     <string name="product_type">Tüüp</string>
     <string name="product_coverage">Kui palju katab</string>

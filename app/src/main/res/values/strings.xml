@@ -256,6 +256,9 @@
     <string name="product_what_it_is">What it is</string>
     <string name="product_brand">Brand</string>
     <string name="suggest_already_in">Already in the list — tap to use it</string>
+    <string name="name_already_product">There is already a product called “%1$s”.</string>
+    <string name="name_already_solution">There is already a solution called “%1$s”.</string>
+    <string name="name_already_project">There is already a project called “%1$s”.</string>
     <string name="product_name">Product name</string>
     <string name="product_type">Type</string>
     <string name="product_coverage">How much it covers</string>

@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.solutions
 
+import com.conwic.mixmaster.domain.distinctNames
+import com.conwic.mixmaster.domain.sameNameIn
 import com.conwic.mixmaster.domain.canonicalName
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
@@ -84,7 +86,27 @@ data class SolutionFormState(
     val products: List<ProductEntity> = emptyList(),
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
+    /** Every solution saved, coats included — for the names already in use. */
+    val catalogue: List<SolutionEntity> = emptyList(),
+    /** What parts have been called in any solution, to offer back on a line. */
+    val usedLabels: List<String> = emptyList(),
 ) {
+    /**
+     * Every solution but this one and its own coats. The spellings a save snaps to come from
+     * these, not from this solution's own old one — or a slip could never be put right.
+     */
+    val others: List<SolutionEntity>
+        get() {
+            val root = if (parentId != 0L) parentId else solutionId
+            return catalogue.filter { root == 0L || (it.id != root && it.parentId != root) }
+        }
+
+    /** Another solution already called this, however it is spelt there. */
+    val sameName: String? get() = sameNameIn(name, others.map { it.name })
+
+    /** What coats have been called, in this solution and every other. */
+    val coatNames: List<String> get() = distinctNames(catalogue.map { it.coatName })
+
     @get:StringRes
     val nameProblem: Int? get() = if (name.isBlank()) R.string.solution_problem_no_name else null
 
@@ -316,7 +338,8 @@ class SolutionEditorViewModel(
             solutionRepository.observeAllWithLines().collect { all ->
                 allSolutions = all.map { it.solution }
                 allLines = all.associate { it.solution.id to it.lines }
-                _formState.update { withCoats(it) }
+                val labels = distinctNames(all.flatMap { row -> row.lines.map { it.label } })
+                _formState.update { withCoats(it.copy(catalogue = allSolutions, usedLabels = labels)) }
             }
         }
         viewModelScope.launch {
@@ -628,9 +651,9 @@ class SolutionEditorViewModel(
             SolutionEntity(
                 id = state.solutionId,
                 // The spelling already in use, if this is the same name typed differently.
-                brand = canonicalName(state.brand, state.brands),
+                brand = canonicalName(state.brand, state.others.map { it.brand }),
                 name = state.name.trim(),
-                category = canonicalName(state.category, state.categories),
+                category = canonicalName(state.category, state.others.map { it.category }),
                 dosingMode = state.dosingMode,
                 minDoseGramsPerM2 = min,
                 maxDoseGramsPerM2 = max,
@@ -644,7 +667,7 @@ class SolutionEditorViewModel(
                 mixSeconds = written.mixSeconds,
                 potLifeMinutes = written.potLifeMinutes,
                 parentId = state.parentId,
-                coatName = state.coatName.trim(),
+                coatName = canonicalName(state.coatName, state.catalogue.filter { it.id != state.solutionId }.map { it.coatName }),
             ),
             kept.mapIndexed { index, line ->
                 SolutionLineEntity(

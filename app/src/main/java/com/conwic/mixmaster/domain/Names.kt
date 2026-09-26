@@ -46,3 +46,14 @@ fun nameMatches(typed: String, pool: List<String>): List<String> {
         .sortedWith(compareBy({ it.first }, { it.second.lowercase(Locale.ROOT) }))
         .map { it.second }
 }
+
+/** The name in [others] that [typed] already is, however it is spelt there, or null. */
+fun sameNameIn(typed: String, others: List<String>): String? {
+    val key = nameKey(typed)
+    if (key.isEmpty()) return null
+    return others.firstOrNull { nameKey(it) == key }
+}
+
+/** Every different name in [names], blanks left out, in the order a list shows them. */
+fun distinctNames(names: List<String>): List<String> =
+    names.map { it.trim() }.filter { it.isNotEmpty() }.distinct().sortedBy { it.lowercase(Locale.ROOT) }

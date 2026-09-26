@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.products
 
+import com.conwic.mixmaster.domain.sameNameIn
 import com.conwic.mixmaster.domain.canonicalName
 import androidx.annotation.StringRes
 import android.content.Context
@@ -46,7 +47,18 @@ data class ProductFormState(
     val suppliedOnSite: Boolean = false,
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
+    /** The whole catalogue, to catch the same product added twice and a brand spelt anew. */
+    val catalogue: List<ProductEntity> = emptyList(),
 ) {
+    /**
+     * Every product but this one. The spellings a save snaps to come from these, not from this
+     * product's own old one — or "ardex" could never be put right as "Ardex".
+     */
+    val others: List<ProductEntity> get() = catalogue.filter { it.id != productId }
+
+    /** Another product already called this, however it is spelt there, or null. */
+    val sameName: String? get() = sameNameIn(name, others.map { it.name })
+
     /** A product with no name is a row nobody can pick out of a list. */
     @get:StringRes
     val nameProblem: Int? get() = if (name.isBlank()) R.string.product_problem_no_name else null
@@ -96,6 +108,11 @@ class AddEditProductViewModel(
         }
         viewModelScope.launch {
             productRepository.observeBrands().collect { brands -> _formState.update { it.copy(brands = brands) } }
+        }
+        viewModelScope.launch {
+            productRepository.observeAll().collect { rows ->
+                _formState.update { it.copy(catalogue = rows) }
+            }
         }
         viewModelScope.launch {
             productRepository.observeCategories().collect { rows -> _formState.update { it.copy(categories = rows) } }
@@ -152,9 +169,9 @@ class AddEditProductViewModel(
                     id = state.productId,
                     // The spelling already in the catalogue, if this is the same name typed
                     // differently — see canonicalName.
-                    brand = canonicalName(state.brand, state.brands),
+                    brand = canonicalName(state.brand, state.others.map { it.brand }),
                     name = state.name.trim(),
-                    category = canonicalName(state.category, state.categories),
+                    category = canonicalName(state.category, state.others.map { it.category }),
                     // A bought item has no coverage and no ratio — those belong to the solution
                     // it goes into. The columns are still on the row, left at nothing.
                     dosingMode = DosingMode.COATS,

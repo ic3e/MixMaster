@@ -1,5 +1,9 @@
 package com.conwic.mixmaster.ui.projects
 
+import com.conwic.mixmaster.data.db.entity.ProjectEntity
+import com.conwic.mixmaster.ui.components.SuggestField
+import com.conwic.mixmaster.domain.sameNameIn
+import com.conwic.mixmaster.domain.distinctNames
 import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -189,7 +193,9 @@ fun ProjectsScreen(navController: NavHostController) {
     }
 
     if (newProjectOpen) {
+        val everyProject by viewModel.everyProject.collectAsState()
         NewProjectSheet(
+            projects = everyProject,
             onDismiss = { newProjectOpen = false },
             onCreate = { name, client, address ->
                 viewModel.createProject(name, client, address) { id ->
@@ -203,7 +209,12 @@ fun ProjectsScreen(navController: NavHostController) {
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun NewProjectSheet(onDismiss: () -> Unit, onCreate: (String, String, String) -> Unit) {
+private fun NewProjectSheet(
+    projects: List<ProjectEntity>,
+    onDismiss: () -> Unit,
+    onCreate: (String, String, String) -> Unit,
+) {
+    val clients = remember(projects) { distinctNames(projects.map { it.clientName }) }
     var name by remember { mutableStateOf("") }
     var client by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
@@ -227,12 +238,15 @@ private fun NewProjectSheet(onDismiss: () -> Unit, onCreate: (String, String, St
                 value = name,
                 onValueChange = { name = it },
                 label = stringResource(R.string.project_name),
+                hint = sameNameIn(name, projects.map { it.name })?.let { stringResource(R.string.name_already_project, it) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            FormTextField(
+            // The same client comes back job after job: offered, so it stays one spelling.
+            SuggestField(
                 value = client,
                 onValueChange = { client = it },
                 label = stringResource(R.string.project_client_optional),
+                suggestions = clients,
                 modifier = Modifier.fillMaxWidth(),
             )
             FormTextField(

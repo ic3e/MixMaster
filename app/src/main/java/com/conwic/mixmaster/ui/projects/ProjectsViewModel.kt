@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.projects
 
+import com.conwic.mixmaster.domain.canonicalName
 import androidx.annotation.StringRes
 import com.conwic.mixmaster.R
 import androidx.lifecycle.ViewModel
@@ -53,6 +54,11 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
     val archived: StateFlow<List<ProjectEntity>> = projectRepository.observeArchived()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Every job, archived ones too — for the clients and names already in use. */
+    val everyProject: StateFlow<List<ProjectEntity>> =
+        combine(projectRepository.observeAll(), projectRepository.observeArchived()) { live, archived -> live + archived }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setFilter(value: ProjectStatus?) = filter.update { value }
 
     fun unarchive(project: ProjectEntity) {
@@ -71,7 +77,8 @@ class ProjectsViewModel(private val projectRepository: ProjectRepository) : View
             val id = projectRepository.save(
                 ProjectEntity(
                     name = name.trim(),
-                    clientName = clientName.trim(),
+                    // The spelling already on another job, if this is the same client.
+                    clientName = canonicalName(clientName, everyProject.value.map { it.clientName }),
                     address = address.trim(),
                     status = ProjectStatus.PLANNING,
                     startDate = null,

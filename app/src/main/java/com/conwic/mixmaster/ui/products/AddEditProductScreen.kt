@@ -104,6 +104,9 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     onValueChange = viewModel::setName,
                     label = stringResource(R.string.product_name),
                     problem = state.nameProblem?.let { stringResource(it) },
+                    // Not refused — two sizes of one thing can share a name — but worth a look
+                    // before the catalogue has the same powder in it twice.
+                    hint = state.sameName?.let { stringResource(R.string.name_already_product, it) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(
