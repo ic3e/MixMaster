@@ -1,8 +1,8 @@
 {
-  "versionCode": 197,
-  "versionName": "1.0.197",
-  "apk": "MixMaster_1.0.197.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.197.apk",
-  "sizeBytes": 20380345,
-  "notes": "The order dot sits in the button's lower corner"
+  "versionCode": 198,
+  "versionName": "1.0.198",
+  "apk": "MixMaster_1.0.198.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.198.apk",
+  "sizeBytes": 20396729,
+  "notes": "Every letter on its own: no joined \"fl\" or \"fi\""
 }
