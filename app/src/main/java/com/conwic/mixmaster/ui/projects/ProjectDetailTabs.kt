@@ -2,6 +2,17 @@
 
 package com.conwic.mixmaster.ui.projects
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material.icons.filled.PictureAsPdf
+import android.content.Context
+import android.provider.OpenableColumns
+import com.conwic.mixmaster.data.db.entity.BlueprintEntity
+import androidx.compose.foundation.lazy.itemsIndexed
+import com.conwic.mixmaster.ui.components.ViewerImage
+import com.conwic.mixmaster.ui.components.ImageViewer
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,7 +28,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -257,8 +267,9 @@ fun LayoutTab(
     /** Takes one coat of one room into the calculator, with the room's figures. */
     onMixCoat: (RoomAreaEntity, CoatMix) -> Unit,
     onSetCoatColour: (RoomLayerEntity, Long, Double, String, Int) -> Unit,
-    blueprintUri: String?,
-    onSetBlueprint: (String) -> Unit,
+    blueprints: List<BlueprintEntity>,
+    onAddBlueprint: (uri: String, name: String, mimeType: String) -> Unit,
+    onRemoveBlueprint: (BlueprintEntity) -> Unit,
 ) {
     var pickerRoom by remember { mutableStateOf<RoomAreaEntity?>(null) }
     var colourCoat by remember { mutableStateOf<CoatMix?>(null) }
@@ -293,7 +304,12 @@ fun LayoutTab(
         }
 
         item {
-            BlueprintSection(blueprintUri = blueprintUri, isEmployer = isEmployer, onSetBlueprint = onSetBlueprint)
+            BlueprintSection(
+                blueprints = blueprints,
+                canChange = isEmployer,
+                onAddBlueprint = onAddBlueprint,
+                onRemoveBlueprint = onRemoveBlueprint,
+            )
         }
 
         item {
@@ -639,7 +655,9 @@ fun NotesTab(
     onRemovePhoto: (PhotoEntity) -> Unit,
 ) {
     var removingNote by remember { mutableStateOf<NoteEntity?>(null) }
-    var openPhoto by remember { mutableStateOf<PhotoEntity?>(null) }
+    // Which photo the full-screen viewer opened on, or null while it is shut.
+    var viewerAt by remember { mutableStateOf<Int?>(null) }
+    var removingPhoto by remember { mutableStateOf<PhotoEntity?>(null) }
     var noteText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -695,14 +713,14 @@ fun NotesTab(
         if (data.photos.isNotEmpty()) {
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(data.photos) { photo ->
+                    itemsIndexed(data.photos) { index, photo ->
                         ContentImage(
                             uri = photo.uri,
                             targetSize = 84.dp,
                             modifier = Modifier
                                 .size(84.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .clickable { openPhoto = photo },
+                                .clickable { viewerAt = index },
                         )
                     }
                 }
@@ -791,66 +809,207 @@ fun NotesTab(
         )
     }
 
-    // Full size, because a site photo is taken to be looked at rather than thumbed past.
-    openPhoto?.let { photo ->
-        PhotoViewer(
-            photo = photo,
-            canRemove = canRecord,
-            onRemove = {
-                onRemovePhoto(photo)
-                openPhoto = null
+    // Full screen and zoomable, because a site photo is taken to be looked into — a crack, a
+    // colour reference — rather than thumbed past.
+    val startAt = viewerAt
+    if (startAt != null) {
+        ImageViewer(
+            images = data.photos.map { ViewerImage(it.uri, formatStamp(it.takenAt)) },
+            startAt = startAt,
+            onDismiss = { viewerAt = null },
+            actionLabel = if (canRecord) stringResource(R.string.action_remove) else null,
+            onAction = if (canRecord) {
+                { index -> removingPhoto = data.photos.getOrNull(index) }
+            } else {
+                null
             },
-            onDismiss = { openPhoto = null },
+        )
+    }
+    val photoToRemove = removingPhoto
+    if (photoToRemove != null) {
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_photo_confirm),
+            message = stringResource(R.string.prj_remove_photo_confirm_body),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingPhoto = null
+                onRemovePhoto(photoToRemove)
+            },
+            onDismiss = { removingPhoto = null },
         )
     }
 }
 
+/**
+ * The drawings for the job — as many as it has, one per floor or per revision — each opened with
+ * a tap and each able to come off again.
+ *
+ * There used to be one, which could be swapped but never removed. Pictures open here, full screen
+ * and zoomable; a PDF goes to the phone's own PDF viewer, which already zooms and pages through it.
+ */
 @Composable
-private fun BlueprintSection(blueprintUri: String?, isEmployer: Boolean, onSetBlueprint: (String) -> Unit) {
+private fun BlueprintSection(
+    blueprints: List<BlueprintEntity>,
+    canChange: Boolean,
+    onAddBlueprint: (uri: String, name: String, mimeType: String) -> Unit,
+    onRemoveBlueprint: (BlueprintEntity) -> Unit,
+) {
     val context = LocalContext.current
-    val pickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
+    // Several at once: a job's drawings usually come as a set.
+    val pickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        uris.forEach { uri ->
             runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            onSetBlueprint(uri.toString())
+            onAddBlueprint(uri.toString(), displayName(context, uri).orEmpty(), context.contentResolver.getType(uri).orEmpty())
         }
     }
+    // What each one is, asked of the file once rather than on every redraw. The one carried over
+    // from before blueprints had a list was stored without either.
+    val kinds = remember(blueprints) {
+        blueprints.associate { blueprint ->
+            val uri = Uri.parse(blueprint.uri)
+            blueprint.id to Pair(
+                blueprint.name.ifBlank { displayName(context, uri).orEmpty() },
+                blueprint.mimeType.ifBlank { runCatching { context.contentResolver.getType(uri) }.getOrNull().orEmpty() },
+            )
+        }
+    }
+    val pictures = blueprints.filter { kinds[it.id]?.second.orEmpty().startsWith("image/") }
+    var viewerAt by remember { mutableStateOf<Int?>(null) }
+    var removing by remember { mutableStateOf<BlueprintEntity?>(null) }
 
     Column {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel(text = stringResource(R.string.prj_blueprint))
-            if (isEmployer) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SectionLabel(text = stringResource(R.string.prj_blueprints, blueprints.size))
+            if (canChange) {
                 ActionLink(
-                    text = if (blueprintUri == null) stringResource(R.string.prj_attach) else stringResource(R.string.prj_replace),
+                    text = stringResource(R.string.prj_attach),
                     onClick = { pickerLauncher.launch(arrayOf("image/*", "application/pdf")) },
                 )
             }
         }
-        if (blueprintUri != null) {
-            CardFlat(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).clip(CardShape).clickable {
-                    val uri = Uri.parse(blueprintUri)
-                    val mimeType = context.contentResolver.getType(uri) ?: "*/*"
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, mimeType)
-                        // NEW_TASK because the context here is the locale wrapper, not the
-                        // activity, and startActivity throws without it.
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    runCatching { context.startActivity(intent) }
-                },
-            ) {
-                Text(text = stringResource(R.string.prj_view_blueprint), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            CardFlat(modifier = Modifier.padding(top = 6.dp)) {
+        CardFlat(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+            if (blueprints.isEmpty()) {
                 Text(
-                    text = if (isEmployer) stringResource(R.string.prj_no_blueprint_employer) else stringResource(R.string.prj_no_blueprint_worker),
+                    text = stringResource(if (canChange) R.string.prj_no_blueprint_employer else R.string.prj_no_blueprint_worker),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            blueprints.forEachIndexed { index, blueprint ->
+                val (name, type) = kinds[blueprint.id] ?: Pair("", "")
+                val isPicture = type.startsWith("image/")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(CardShape)
+                        .clickable {
+                            if (isPicture) {
+                                viewerAt = pictures.indexOfFirst { it.id == blueprint.id }.coerceAtLeast(0)
+                            } else {
+                                openExternally(context, blueprint.uri, type)
+                            }
+                        }
+                        .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (isPicture) {
+                        ContentImage(
+                            uri = blueprint.uri,
+                            targetSize = 48.dp,
+                            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)),
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.PictureAsPdf,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                        Text(
+                            text = name.ifBlank { stringResource(R.string.prj_blueprint_n, index + 1) },
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = stringResource(if (isPicture) R.string.prj_blueprint_picture else R.string.prj_blueprint_pdf),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (canChange) {
+                        IconButton(onClick = { removing = blueprint }) {
+                            Icon(
+                                imageVector = Icons.Filled.DeleteOutline,
+                                contentDescription = stringResource(R.string.prj_remove_blueprint),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
+                }
+                if (index != blueprints.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+            }
         }
     }
+
+    val startAt = viewerAt
+    if (startAt != null) {
+        ImageViewer(
+            images = pictures.map { picture ->
+                val number = blueprints.indexOfFirst { it.id == picture.id } + 1
+                ViewerImage(
+                    uri = picture.uri,
+                    caption = kinds[picture.id]?.first.orEmpty().ifBlank { stringResource(R.string.prj_blueprint_n, number) },
+                )
+            },
+            startAt = startAt,
+            onDismiss = { viewerAt = null },
+        )
+    }
+    val toRemove = removing
+    if (toRemove != null) {
+        ConfirmDialog(
+            title = stringResource(R.string.prj_remove_blueprint_confirm),
+            message = stringResource(R.string.prj_remove_blueprint_confirm_body),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removing = null
+                onRemoveBlueprint(toRemove)
+            },
+            onDismiss = { removing = null },
+        )
+    }
+}
+
+/** The file's own name, as the app that holds it gives it, or null. */
+private fun displayName(context: Context, uri: Uri): String? = runCatching {
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) cursor.getString(0) else null
+    }
+}.getOrNull()?.takeIf { it.isNotBlank() }
+
+/** Hands a file to whatever on the phone opens it — a PDF viewer, for a PDF. */
+private fun openExternally(context: Context, uri: String, type: String) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(Uri.parse(uri), type.ifBlank { "*/*" })
+        // NEW_TASK because the context here is the locale wrapper, not the activity, and
+        // startActivity throws without it.
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    runCatching { context.startActivity(intent) }
 }
 
 @Composable
@@ -1010,76 +1169,6 @@ private fun EditCoatSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-    }
-}
-
-/**
- * One site photo, full width, with the date it was taken and a way to take it off.
- *
- * The strip on the Layout tab is thumbnails: a crack or a colour reference read at 84 dp is no
- * use to anybody, and there was nothing to tap.
- */
-@Composable
-private fun PhotoViewer(
-    photo: PhotoEntity,
-    canRemove: Boolean,
-    onRemove: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var confirming by remember { mutableStateOf(false) }
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                // A photo is taller than a phone on its side is high; without this the buttons
-                // under it were off the bottom with no way down to them.
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ContentImage(
-                uri = photo.uri,
-                targetSize = 320.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f, fill = false),
-                    text = formatStamp(photo.takenAt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (canRemove) {
-                    ActionLink(
-                        text = stringResource(R.string.action_remove),
-                        onClick = { confirming = true },
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-        }
-    }
-
-    if (confirming) {
-        ConfirmDialog(
-            title = stringResource(R.string.prj_remove_photo_confirm),
-            message = stringResource(R.string.prj_remove_photo_confirm_body),
-            confirmText = stringResource(R.string.action_remove),
-            onConfirm = {
-                confirming = false
-                onRemove()
-            },
-            onDismiss = { confirming = false },
-        )
     }
 }
 

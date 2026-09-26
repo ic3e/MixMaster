@@ -52,6 +52,7 @@ class AppContainer(context: Context) {
             noteDao = database.noteDao(),
             photoDao = database.photoDao(),
             materialUseDao = database.materialUseDao(),
+            blueprintDao = database.blueprintDao(),
         )
     }
 

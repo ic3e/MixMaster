@@ -15,7 +15,11 @@ data class ProjectEntity(
     val startDate: LocalDate?,
     val targetFinishDate: LocalDate?,
     val scopeNotes: String = "",
-    /** content:// URI to an attached blueprint image or PDF, set by the Employer. */
+    /**
+     * The one blueprint a project could have before they got a table of their own
+     * ([BlueprintEntity]). Moved across by the 18→19 migration and no longer read; the column
+     * stays because dropping one in SQLite means rebuilding a shared table.
+     */
     val blueprintUri: String? = null,
     val isArchived: Boolean = false,
     /**

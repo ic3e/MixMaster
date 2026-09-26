@@ -238,8 +238,10 @@ object SyncEngine {
         clearMarks()
         applying {
             val db = sql()
-            // Photos belong to projects; with the projects gone they have nothing to hang on.
+            // Photos and blueprints belong to projects; with the projects gone they have nothing
+            // to hang on.
             db.execSQL("DELETE FROM photos")
+            db.execSQL("DELETE FROM blueprints")
             Tables.asReversed().forEach { table -> db.execSQL("DELETE FROM `$table`") }
             db.execSQL("DELETE FROM $OUTBOX")
             db.execSQL("DELETE FROM $INBOX")

@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.data.db
 
+import com.conwic.mixmaster.data.db.dao.BlueprintDao
+import com.conwic.mixmaster.data.db.entity.BlueprintEntity
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
@@ -61,8 +63,9 @@ const val DATABASE_NAME = "mixmaster.db"
         RoomLayerEntity::class,
         DeliveryEntity::class,
         MaterialUseEntity::class,
+        BlueprintEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -83,6 +86,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun noteDao(): NoteDao
     abstract fun photoDao(): PhotoDao
+    abstract fun blueprintDao(): BlueprintDao
     abstract fun teamMemberDao(): TeamMemberDao
     abstract fun usageLogDao(): UsageLogDao
 
@@ -623,6 +627,28 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Blueprints get a table of their own, so a project can hold more than one and each can
+         * be taken off. The one a project already had moves across; the old column is left as
+         * it is and no longer read.
+         */
+        private val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `blueprints` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`projectId` INTEGER NOT NULL, `uri` TEXT NOT NULL, `name` TEXT NOT NULL, " +
+                        "`mimeType` TEXT NOT NULL, `addedAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`projectId`) REFERENCES `projects`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_blueprints_projectId` ON `blueprints` (`projectId`)")
+                db.execSQL(
+                    "INSERT INTO blueprints (projectId, uri, name, mimeType, addedAt) " +
+                        "SELECT id, blueprintUri, '', '', 0 FROM projects " +
+                        "WHERE blueprintUri IS NOT NULL AND blueprintUri != ''",
+                )
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 // Ids no other phone hands out, for when phones share a company — see GlobalIds.
@@ -644,6 +670,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_15_16,
                     MIGRATION_16_17,
                     MIGRATION_17_18,
+                    MIGRATION_18_19,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

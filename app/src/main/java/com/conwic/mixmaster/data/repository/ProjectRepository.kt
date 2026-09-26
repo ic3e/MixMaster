@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.data.repository
 
+import com.conwic.mixmaster.data.db.entity.BlueprintEntity
+import com.conwic.mixmaster.data.db.dao.BlueprintDao
 import com.conwic.mixmaster.data.db.dao.FloorDao
 import com.conwic.mixmaster.data.db.dao.MaterialUseDao
 import com.conwic.mixmaster.data.db.dao.NoteDao
@@ -29,6 +31,7 @@ class ProjectRepository(
     private val noteDao: NoteDao,
     private val photoDao: PhotoDao,
     private val materialUseDao: MaterialUseDao,
+    private val blueprintDao: BlueprintDao,
 ) {
     fun observeAll(): Flow<List<ProjectEntity>> = projectDao.observeAll()
 
@@ -148,4 +151,10 @@ class ProjectRepository(
     suspend fun addPhoto(photo: PhotoEntity): Long = photoDao.insert(photo)
 
     suspend fun removePhoto(photo: PhotoEntity) = photoDao.delete(photo)
+
+    fun observeBlueprints(projectId: Long): Flow<List<BlueprintEntity>> = blueprintDao.observeForProject(projectId)
+
+    suspend fun addBlueprint(blueprint: BlueprintEntity): Long = blueprintDao.insert(blueprint)
+
+    suspend fun removeBlueprint(blueprint: BlueprintEntity) = blueprintDao.delete(blueprint)
 }

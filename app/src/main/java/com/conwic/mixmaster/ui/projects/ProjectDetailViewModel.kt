@@ -1,5 +1,8 @@
 package com.conwic.mixmaster.ui.projects
 
+import android.content.Intent
+import android.net.Uri
+import com.conwic.mixmaster.data.db.entity.BlueprintEntity
 import com.conwic.mixmaster.domain.canonicalName
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -54,6 +57,7 @@ data class ProjectDetailData(
     val tasks: List<TaskEntity> = emptyList(),
     val notes: List<NoteEntity> = emptyList(),
     val photos: List<PhotoEntity> = emptyList(),
+    val blueprints: List<BlueprintEntity> = emptyList(),
     val products: List<ProductEntity> = emptyList(),
     val solutions: List<SolutionEntity> = emptyList(),
 ) {
@@ -120,6 +124,8 @@ class ProjectDetailViewModel(
         ProjectDetailData(project, floors, rooms, tasks, notes, emptyList())
     }.combine(projectRepository.observePhotos(projectId)) { partial, photos ->
         partial.copy(photos = photos)
+    }.combine(projectRepository.observeBlueprints(projectId)) { partial, blueprints ->
+        partial.copy(blueprints = blueprints)
     }.combine(productRepository.observeAll()) { partial, products ->
         partial.copy(products = products)
     }.combine(solutionRepository.observeAll()) { partial, solutions ->
@@ -414,9 +420,24 @@ class ProjectDetailViewModel(
         }
     }
 
-    fun setBlueprintUri(uri: String) {
+    fun addBlueprint(uri: String, name: String, mimeType: String) {
         viewModelScope.launch {
-            data.value.project?.let { projectRepository.save(it.copy(blueprintUri = uri)) }
+            projectRepository.addBlueprint(
+                BlueprintEntity(projectId = projectId, uri = uri, name = name, mimeType = mimeType, addedAt = Instant.now()),
+            )
+        }
+    }
+
+    /** Takes it off the job, and lets go of the phone's leave to read the file. */
+    fun removeBlueprint(blueprint: BlueprintEntity) {
+        viewModelScope.launch {
+            projectRepository.removeBlueprint(blueprint)
+            runCatching {
+                appContext.contentResolver.releasePersistableUriPermission(
+                    Uri.parse(blueprint.uri),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
         }
     }
 

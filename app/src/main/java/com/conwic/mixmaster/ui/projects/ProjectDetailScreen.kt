@@ -237,8 +237,9 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                         )
                     },
                     onSetCoatColour = viewModel::setCoatColour,
-                    blueprintUri = data.project?.blueprintUri,
-                    onSetBlueprint = viewModel::setBlueprintUri,
+                    blueprints = data.blueprints,
+                    onAddBlueprint = viewModel::addBlueprint,
+                    onRemoveBlueprint = viewModel::removeBlueprint,
                 )
                 3 -> NotesTab(
                     data = data,
