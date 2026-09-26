@@ -30,9 +30,9 @@ class StockRepository(private val stockDao: StockDao) {
      * A quick correction — two bags taken to site, one found behind the door. Not a count, so the
      * date the shelf was last counted is left alone.
      */
-    suspend fun adjustPacks(productId: Long, delta: Int) {
+    suspend fun setPacks(productId: Long, fullPacks: Int) {
         val existing = stockDao.getForProduct(productId)
-        val packs = ((existing?.fullPacks ?: 0) + delta).coerceAtLeast(0)
+        val packs = fullPacks.coerceAtLeast(0)
         if (existing == null) {
             stockDao.insert(StockEntity(id = productId, productId = productId, fullPacks = packs))
         } else {

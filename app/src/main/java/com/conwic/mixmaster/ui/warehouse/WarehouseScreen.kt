@@ -4,6 +4,7 @@ package com.conwic.mixmaster.ui.warehouse
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -31,6 +32,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +41,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -339,7 +344,7 @@ fun WarehouseScreen(navController: NavHostController) {
                 detailId = null
                 counting = item
             },
-            onAdjust = { delta -> viewModel.adjustPacks(item.productId, delta) },
+            onSetPacks = { packs -> viewModel.setPacks(item.productId, packs) },
             onOrder = {
                 detailId = null
                 ordering = item
@@ -435,13 +440,42 @@ private fun StockSheet(
     canChange: Boolean,
     onDismiss: () -> Unit,
     onCount: () -> Unit,
-    onAdjust: (Int) -> Unit,
+    /** Puts the shelf at this many unopened packs — a figure, not a step, so a second Save is harmless. */
+    onSetPacks: (Int) -> Unit,
     onOrder: () -> Unit,
     onDelivery: (DeliveryEntity) -> Unit,
     onOpenProject: (Long) -> Unit,
     onOpenProduct: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    // The − / + only moves the figure; the shelf changes on Save. Each tap used to be written at
+    // once, and a sheet brushed on the way into a pocket left the stock two bags out with nothing
+    // to say so.
+    var packs by remember(item.productId) { mutableStateOf<Int?>(null) }
+    val shownPacks = packs ?: item.fullPacks
+    val unsaved = shownPacks != item.fullPacks
+    // Once the saved figure catches up with the one being shown, there is nothing held any more.
+    LaunchedEffect(item.fullPacks) { if (packs == item.fullPacks) { packs = null } }
+
+    // Where the sheet was going when it was stopped to ask about the change.
+    var leaving by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val leaveThen: (() -> Unit) -> Unit = { go -> if (unsaved) { leaving = go } else { go() } }
+    val save = { onSetPacks(shownPacks) }
+
+    // Read by the sheet state, which is made once: the figures it needs are whatever they are now.
+    val unsavedNow by rememberUpdatedState(unsaved)
+    val dismissNow by rememberUpdatedState(onDismiss)
+    val sheetState = rememberModalBottomSheetState(
+        confirmValueChange = { value ->
+            if (value == SheetValue.Hidden && unsavedNow) {
+                leaving = dismissNow
+                false
+            } else {
+                true
+            }
+        },
+    )
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -479,17 +513,24 @@ private fun StockSheet(
                     // door — without typing out a whole count for it.
                     val fullPacks = stringResource(
                         R.string.wh_packs_and_amount,
-                        packCount(item.fullPacks, item.packType),
-                        amountText(item.packedAmount, item.packUnit),
+                        packCount(shownPacks, item.packType),
+                        amountText(shownPacks * item.packSize, item.packUnit),
                     )
                     if (canChange) {
                         PackAdjustRow(
                             label = stringResource(R.string.wh_full_packs),
                             value = fullPacks,
-                            canLess = item.fullPacks > 0,
-                            onLess = { onAdjust(-1) },
-                            onMore = { onAdjust(1) },
+                            canLess = shownPacks > 0,
+                            onLess = { packs = (shownPacks - 1).coerceAtLeast(0) },
+                            onMore = { packs = shownPacks + 1 },
                         )
+                        if (unsaved) {
+                            UnsavedPacks(
+                                was = packCount(item.fullPacks, item.packType),
+                                onUndo = { packs = null },
+                                onSave = save,
+                            )
+                        }
                     } else {
                         StockRow(label = stringResource(R.string.wh_full_packs), value = fullPacks)
                     }
@@ -500,7 +541,7 @@ private fun StockSheet(
                 }
                 StockRow(
                     label = stringResource(R.string.wh_total_on_hand),
-                    value = amountText(item.onHand, item.packUnit),
+                    value = amountText(item.onHand + (shownPacks - item.fullPacks) * item.packSize, item.packUnit),
                     strong = true,
                 )
                 Text(
@@ -532,7 +573,7 @@ private fun StockSheet(
                 CardFlat(
                     modifier = Modifier
                         .clip(CardShape)
-                        .clickable { onOpenProject(booking.projectId) },
+                        .clickable { leaveThen { onOpenProject(booking.projectId) } },
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -573,7 +614,7 @@ private fun StockSheet(
                     CardFlat(
                         modifier = Modifier
                             .clip(CardShape)
-                            .clickable(enabled = canChange) { onDelivery(delivery) },
+                            .clickable(enabled = canChange) { leaveThen { onDelivery(delivery) } },
                     ) {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -639,20 +680,90 @@ private fun StockSheet(
             if (canChange) {
                 PrimaryButton(
                     text = stringResource(R.string.wh_count_stock),
-                    onClick = onCount,
+                    onClick = { leaveThen(onCount) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 GhostButton(
                     text = stringResource(R.string.wh_mark_ordered),
-                    onClick = onOrder,
+                    onClick = { leaveThen(onOrder) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
             GhostButton(
                 text = stringResource(R.string.wh_open_product),
-                onClick = onOpenProduct,
+                onClick = { leaveThen(onOpenProduct) },
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+    }
+
+    val going = leaving
+    if (going != null) {
+        AlertDialog(
+            // Tapped past: back to the sheet, the change still held.
+            onDismissRequest = { leaving = null },
+            title = { Text(text = stringResource(R.string.wh_adjust_leave_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.wh_adjust_leave_body,
+                        stringResource(R.string.wh_full_packs),
+                        packCount(item.fullPacks, item.packType),
+                        packCount(shownPacks, item.packType),
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        save()
+                        leaving = null
+                        going()
+                    },
+                ) {
+                    Text(text = stringResource(R.string.action_save), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        packs = null
+                        leaving = null
+                        going()
+                    },
+                ) {
+                    Text(text = stringResource(R.string.wh_adjust_undo), color = MaterialTheme.colorScheme.error)
+                }
+            },
+        )
+    }
+}
+
+/** Under the − / +: the figure moved but the shelf has not, with the two ways to settle it. */
+@Composable
+private fun UnsavedPacks(was: String, onUndo: () -> Unit, onSave: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .clip(CardShape)
+            .background(scheme.secondaryContainer)
+            .border(1.dp, scheme.secondary, CardShape)
+            .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.wh_adjust_unsaved, was),
+            style = MaterialTheme.typography.labelLarge,
+            color = scheme.onSecondaryContainer,
+            modifier = Modifier.weight(1f).padding(end = 4.dp),
+        )
+        TextButton(onClick = onUndo) {
+            Text(text = stringResource(R.string.wh_adjust_undo), color = scheme.error)
+        }
+        TextButton(onClick = onSave) {
+            Text(text = stringResource(R.string.action_save), fontWeight = FontWeight.Bold)
         }
     }
 }

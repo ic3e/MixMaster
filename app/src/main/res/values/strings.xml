@@ -533,6 +533,10 @@
     <string name="wh_in_stock">%1$s in stock</string>
     <string name="wh_no_pack_size">Pack size not set — add it on the product</string>
     <string name="wh_full_packs">Unopened packs</string>
+    <string name="wh_adjust_unsaved">Not saved · was %1$s</string>
+    <string name="wh_adjust_undo">Undo</string>
+    <string name="wh_adjust_leave_title">Save the change?</string>
+    <string name="wh_adjust_leave_body">%1$s: %2$s → %3$s. It is not saved yet.</string>
     <string name="wh_pack_of">One pack is %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Left in the open pack (%1$s)</string>
     <string name="wh_open_pack_hint">Leave empty if there is none</string>

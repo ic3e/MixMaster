@@ -503,6 +503,10 @@
     <string name="wh_in_stock">%1$s varastossa</string>
     <string name="wh_no_pack_size">Pakkauskokoa ei ole asetettu — lisää se tuotteelle</string>
     <string name="wh_full_packs">Avaamattomat pakkaukset</string>
+    <string name="wh_adjust_unsaved">Tallentamatta · oli %1$s</string>
+    <string name="wh_adjust_undo">Kumoa</string>
+    <string name="wh_adjust_leave_title">Tallennetaanko muutos?</string>
+    <string name="wh_adjust_leave_body">%1$s: %2$s → %3$s. Muutosta ei ole vielä tallennettu.</string>
     <string name="wh_pack_of">Yksi pakkaus on %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Avatussa pakkauksessa jäljellä (%1$s)</string>
     <string name="wh_open_pack_hint">Jätä tyhjäksi, jos avattua ei ole</string>

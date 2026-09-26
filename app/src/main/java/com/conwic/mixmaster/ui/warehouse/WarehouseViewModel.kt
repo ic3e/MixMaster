@@ -108,8 +108,8 @@ class WarehouseViewModel(
         }
     }
 
-    fun adjustPacks(productId: Long, delta: Int) {
-        viewModelScope.launch { stockRepository.adjustPacks(productId, delta) }
+    fun setPacks(productId: Long, packs: Int) {
+        viewModelScope.launch { stockRepository.setPacks(productId, packs) }
     }
 
     fun order(productId: Long, packs: Int, amount: Double, expectedOn: LocalDate, note: String) {

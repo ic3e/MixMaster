@@ -503,6 +503,10 @@
     <string name="wh_in_stock">%1$s laos</string>
     <string name="wh_no_pack_size">Pakendi suurus määramata — lisa see toote juurde</string>
     <string name="wh_full_packs">Avamata pakendid</string>
+    <string name="wh_adjust_unsaved">Salvestamata · oli %1$s</string>
+    <string name="wh_adjust_undo">Võta tagasi</string>
+    <string name="wh_adjust_leave_title">Kas salvestada muudatus?</string>
+    <string name="wh_adjust_leave_body">%1$s: %2$s → %3$s. Muudatus pole veel salvestatud.</string>
     <string name="wh_pack_of">Üks pakend on %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Avatud pakendis järel (%1$s)</string>
     <string name="wh_open_pack_hint">Jäta tühjaks, kui avatut ei ole</string>
