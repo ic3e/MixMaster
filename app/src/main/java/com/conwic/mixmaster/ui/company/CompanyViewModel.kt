@@ -40,6 +40,8 @@ data class CompanyUi(
     val progress: Int = 0,
     /** The last thing that went wrong, as the server's or the app's word for it. */
     val problem: String? = null,
+    /** What answered instead of a server, when something did: a page's title. */
+    val problemDetail: String? = null,
     val found: Found? = null,
     val people: List<Person> = emptyList(),
     val peopleLoaded: Boolean = false,
@@ -67,7 +69,7 @@ class CompanyViewModel(
     /** One thing at a time, with its name on screen while it runs and its failure after. */
     private fun work(@StringRes what: Int, block: suspend () -> Unit) {
         if (_ui.value.busy != null) return
-        _ui.update { it.copy(busy = what, problem = null, progress = 0) }
+        _ui.update { it.copy(busy = what, problem = null, problemDetail = null, progress = 0) }
         viewModelScope.launch {
             try {
                 block()
@@ -75,7 +77,7 @@ class CompanyViewModel(
                 if (p.code == "revoked" && CompanyStore.current(app) != null) {
                     withContext(Dispatchers.IO) { CompanyWipe.run(app, CompanyWipe.Reason.Revoked) }
                 }
-                _ui.update { it.copy(problem = p.code) }
+                _ui.update { it.copy(problem = p.code, problemDetail = p.detail) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -86,7 +88,7 @@ class CompanyViewModel(
         }
     }
 
-    fun dismissProblem() = _ui.update { it.copy(problem = null) }
+    fun dismissProblem() = _ui.update { it.copy(problem = null, problemDetail = null) }
 
     fun dismissNotice() = _ui.update { it.copy(notice = null) }
 
@@ -135,7 +137,7 @@ class CompanyViewModel(
     fun join(text: String) {
         val code = AccessCode.parse(text)
         if (code == null) {
-            _ui.update { it.copy(problem = "bad_format") }
+            _ui.update { it.copy(problem = "bad_format", problemDetail = null) }
             return
         }
         work(R.string.co_joining) {

@@ -946,4 +946,11 @@
     <string name="co_w5">Ava brauseris sinu-veebileht/mixmaster/api.php. Seal peaks olema kirjas „The server is running and waiting to be set up.”</string>
     <string name="co_w6">Sisesta MixMasteris serveri aadressiks sinu-veebileht/mixmaster.</string>
     <string name="co_w_note">Vaja on majutust, mis käitab PHP-d — peaaegu kõik käitavad; veebilehe koostajad nagu Wix või Squarespace mitte. Aadress peab algama https:// (tabalukk); kui mitte, lülita juhtpaneelis sisse tasuta sertifikaat (Let’s Encrypt).</string>
+    <string name="co_err_page_said">Vastanud leht: „%1$s”</string>
+    <string name="co_err_google_dev">See on testaadress (lõpeb /dev). Kasuta Web app URL-i, mis lõpeb /exec: Deploy → Manage deployments.</string>
+    <string name="co_err_google_editor">See on skriptiredaktori aadress. Kasutada tuleb Web app URL-i kohast Deploy → Manage deployments — see lõpeb /exec.</string>
+    <string name="co_err_google_access">Google küsib sisselogimist, seega pole server rakendusele avatud. Deploy → Manage deployments → pliiats → Who has access: Anyone (mitte „Anyone with a Google account”) → Deploy.</string>
+    <string name="co_err_google_old_version">Serveris pole veel MixMasteri koodi — see avaldati enne, kui kood kleebiti või salvestati. Salvesta kood, siis Deploy → Manage deployments → pliiats → Version: New version → Deploy.</string>
+    <string name="co_err_google_authorize">Google’ile pole veel luba antud. Vali skriptis „prepare”, vajuta Run ja luba (juhendi samm 5).</string>
+    <string name="co_err_not_found">Sellel aadressil pole midagi. Kontrolli, et „mixmaster” kaust on veebilehe põhikaustas ja aadress klapib.</string>
 </resources>

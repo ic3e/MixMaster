@@ -978,4 +978,11 @@
     <string name="co_w5">Open your-website/mixmaster/api.php in a browser. It should say “The server is running and waiting to be set up.”</string>
     <string name="co_w6">Back in MixMaster, enter your-website/mixmaster as the server address.</string>
     <string name="co_w_note">It needs hosting that runs PHP — nearly all do; website builders like Wix or Squarespace don’t. The address must start with https:// (the padlock); if it doesn’t, switch on the free certificate (Let’s Encrypt) in the control panel.</string>
+    <string name="co_err_page_said">The page that answered: “%1$s”</string>
+    <string name="co_err_google_dev">That is the test address (it ends in /dev). Use the Web app URL that ends in /exec: Deploy → Manage deployments.</string>
+    <string name="co_err_google_editor">That is the address of the script editor. The one to use is the Web app URL from Deploy → Manage deployments — it ends in /exec.</string>
+    <string name="co_err_google_access">Google asks for a sign-in, so the server isn’t open to the app. Deploy → Manage deployments → pencil → Who has access: Anyone (not “Anyone with a Google account”) → Deploy.</string>
+    <string name="co_err_google_old_version">The server doesn’t have the MixMaster code in it yet — it was deployed before the code was pasted or saved. Save the code, then Deploy → Manage deployments → pencil → Version: New version → Deploy.</string>
+    <string name="co_err_google_authorize">Google hasn’t been given permission yet. In the script, pick “prepare”, press Run and allow it (step 5 of the guide).</string>
+    <string name="co_err_not_found">Nothing at that address. Check that the “mixmaster” folder is in the website’s main folder and the address matches.</string>
 </resources>

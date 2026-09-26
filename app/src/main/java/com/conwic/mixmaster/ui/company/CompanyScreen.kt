@@ -99,6 +99,15 @@ fun CompanyScreen(navController: NavHostController) {
             item {
                 CardFlat(edge = MaterialTheme.colorScheme.error) {
                     Text(text = stringResource(problemText(problem)), style = MaterialTheme.typography.bodyMedium)
+                    val detail = ui.problemDetail
+                    if (detail != null) {
+                        Text(
+                            text = stringResource(R.string.co_err_page_said, detail),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    }
                     ActionLink(
                         text = stringResource(R.string.co_ok),
                         onClick = viewModel::dismissProblem,
@@ -249,6 +258,12 @@ internal fun problemText(code: String): Int = when (code) {
     "moved_unready" -> R.string.co_err_moved_unready
     "moved_unknown" -> R.string.co_err_moved_unknown
     "busy" -> R.string.co_err_busy
+    "google_dev" -> R.string.co_err_google_dev
+    "google_editor" -> R.string.co_err_google_editor
+    "google_access" -> R.string.co_err_google_access
+    "google_old_version" -> R.string.co_err_google_old_version
+    "google_authorize" -> R.string.co_err_google_authorize
+    "not_found" -> R.string.co_err_not_found
     else -> R.string.co_err_server
 }
 

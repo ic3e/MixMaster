@@ -16,9 +16,10 @@ import javax.net.ssl.SSLException
  * "offline" (no answer at all), "not_server" (an answer, but not from a MixMaster server),
  * "https" (the address is not a secure one).
  *
- * [to] is set when the company has moved: the server's word for where it went.
+ * [to] is set when the company has moved: the server's word for where it went. [detail] is what
+ * answered instead of a server — a page's title — for the person trying to find out why.
  */
-class CompanyProblem(val code: String, val to: String? = null) : Exception(code)
+class CompanyProblem(val code: String, val to: String? = null, val detail: String? = null) : Exception(code)
 
 data class Me(val id: Long, val name: String, val owner: Boolean, val perms: Perms)
 
@@ -128,6 +129,7 @@ object CompanyApi {
         body.put("v", PROTOCOL)
         val bytes = body.toString().toByteArray(Charsets.UTF_8)
         var url = runCatching { URL(server) }.getOrNull() ?: throw CompanyProblem("not_server")
+        val asked = url
         if (url.protocol != "https") throw CompanyProblem("https")
         var post = true
         var hops = 0
@@ -160,7 +162,8 @@ object CompanyApi {
                 }
                 val stream = if (status >= 400) conn.errorStream else conn.inputStream
                 val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
-                val json = runCatching { JSONObject(text) }.getOrNull() ?: throw CompanyProblem("not_server")
+                val json = runCatching { JSONObject(text) }.getOrNull()
+                    ?: throw CompanyProblem(diagnose(asked, url, status, text), detail = pageTitle(text))
                 if (!json.optBoolean("ok", false)) {
                     throw CompanyProblem(json.optString("error", "server").ifBlank { "server" }, json.text("to"))
                 }
@@ -177,6 +180,36 @@ object CompanyApi {
         }
         // Not reached: the loop above only ever returns or throws.
         throw CompanyProblem("offline")
+    }
+
+    /**
+     * Something answered, but not a MixMaster server: what it most likely was, so whoever is
+     * setting a server up is told what to change rather than only that something is wrong. The
+     * Google cases are the ones a first setup runs into, and each has its own fix.
+     */
+    private fun diagnose(asked: URL, answered: URL, status: Int, text: String): String {
+        val google = asked.host == "script.google.com"
+        return when {
+            google && asked.path.endsWith("/dev") -> "google_dev"
+            google && !asked.path.endsWith("/exec") -> "google_editor"
+            asked.host == "docs.google.com" || asked.host == "drive.google.com" -> "google_editor"
+            answered.host == "accounts.google.com" || text.contains("accounts.google.com/v3/signin") ||
+                text.contains("ServiceLogin") -> "google_access"
+            text.contains("Script function not found") -> "google_old_version"
+            text.contains("Authorization is required", ignoreCase = true) -> "google_authorize"
+            status == 404 -> "not_found"
+            else -> "not_server"
+        }
+    }
+
+    /** A page's title, or the start of its text: enough to tell a sign-in page from an error. */
+    private fun pageTitle(text: String): String? {
+        val title = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .find(text)?.groupValues?.get(1)
+        val plain = (title ?: text.take(400).replace(Regex("<[^>]*>"), " "))
+            .replace("&amp;", "&").replace("&#39;", "'").replace("&quot;", "\"").replace("&nbsp;", " ")
+            .replace(Regex("\\s+"), " ").trim()
+        return plain.take(100).ifBlank { null }
     }
 
     private fun signed(link: CompanyLink, action: String): JSONObject = JSONObject()

@@ -946,4 +946,11 @@
     <string name="co_w5">Avaa selaimessa oma-sivusi/mixmaster/api.php. Siinä pitäisi lukea ”The server is running and waiting to be set up.”</string>
     <string name="co_w6">Syötä MixMasterissa palvelimen osoitteeksi oma-sivusi/mixmaster.</string>
     <string name="co_w_note">Tarvitaan ylläpito, joka ajaa PHP:tä — lähes kaikki ajavat; sivunrakentajat kuten Wix tai Squarespace eivät. Osoitteen on alettava https:// (riippulukko); jos ei, ota hallintapaneelista käyttöön ilmainen varmenne (Let’s Encrypt).</string>
+    <string name="co_err_page_said">Vastannut sivu: ”%1$s”</string>
+    <string name="co_err_google_dev">Tämä on testiosoite (päättyy /dev). Käytä Web app URL -osoitetta, joka päättyy /exec: Deploy → Manage deployments.</string>
+    <string name="co_err_google_editor">Tämä on skriptieditorin osoite. Käytä Web app URL -osoitetta kohdasta Deploy → Manage deployments — se päättyy /exec.</string>
+    <string name="co_err_google_access">Google pyytää kirjautumista, joten palvelin ei ole avoin sovellukselle. Deploy → Manage deployments → kynä → Who has access: Anyone (ei ”Anyone with a Google account”) → Deploy.</string>
+    <string name="co_err_google_old_version">Palvelimella ei ole vielä MixMaster-koodia — se julkaistiin ennen kuin koodi liitettiin tai tallennettiin. Tallenna koodi, sitten Deploy → Manage deployments → kynä → Version: New version → Deploy.</string>
+    <string name="co_err_google_authorize">Googlelle ei ole vielä annettu lupaa. Valitse skriptissä ”prepare”, paina Run ja salli (ohjeen vaihe 5).</string>
+    <string name="co_err_not_found">Osoitteessa ei ole mitään. Tarkista, että ”mixmaster”-kansio on verkkosivun pääkansiossa ja osoite täsmää.</string>
 </resources>
