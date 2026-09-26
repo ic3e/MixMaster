@@ -122,6 +122,10 @@
     <string name="theme_auto">Auto</string>
     <string name="settings_theme_note">Auto follows the phone\'s own light/dark setting.</string>
     <string name="settings_on_site">On site</string>
+    <string name="settings_break_time">Break time</string>
+    <string name="break_time_title">Pour Day</string>
+    <string name="break_time_note">A first-person concrete shift, for while the slab hardens: prep, pipes, pour, wait, trowel. Keep the dog off it.</string>
+    <string name="break_time_play">Play</string>
     <string name="settings_mixing_reminders">Mixing reminders</string>
     <string name="settings_mixing_reminders_note">The nudge about leaving the drum room to turn over.</string>
     <string name="settings_alert_sound">Alert sound</string>

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Pour Day</title>
+<style>
+  /* One face, the app's own: Manrope, shipped with the game so it works on a site with no signal. */
+  @font-face { font-family: "Manrope"; src: url("fonts/manrope_medium.ttf") format("truetype"); font-weight: 500; }
+  @font-face { font-family: "Manrope"; src: url("fonts/manrope_bold.ttf") format("truetype"); font-weight: 700; }
+  @font-face { font-family: "Manrope"; src: url("fonts/manrope_extrabold.ttf") format("truetype"); font-weight: 800; }
+
+  :root {
+    color-scheme: dark;
+    --ink: #10141a;
+    --panel: rgba(16, 20, 26, 0.74);
+    --panel-solid: #171c23;
+    --line: rgba(242, 239, 232, 0.16);
+    --chalk: #f2efe8;
+    --muted: #aeb2b8;
+    --hivis: #ff6b1a;
+    --hivis-dim: rgba(255, 107, 26, 0.18);
+    --laser: #ff3b30;
+    --ok: #6bd68a;
+    --warn: #ffd23f;
+    --low: #5aa9ff;
+    --font: "Manrope", "Roboto", system-ui, sans-serif;
+  }
+  [hidden] { display: none !important; }
+  html, body {
+    height: 100%; margin: 0; overflow: hidden; background: var(--ink); color: var(--chalk);
+    font-family: var(--font); font-feature-settings: "liga" 0, "clig" 0;
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #touch { position: fixed; inset: 0; }
+  button { font-family: var(--font); color: var(--chalk); -webkit-tap-highlight-color: transparent; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  #hud > * { pointer-events: none; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; backdrop-filter: blur(4px); }
+
+  #top { position: absolute; left: 12px; right: 12px; top: 10px; display: flex; gap: 8px; align-items: flex-start; }
+  #clockbox { padding: 6px 10px; min-width: 76px; }
+  #clock { font-weight: 800; font-size: 22px; letter-spacing: 0.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  #phase { font-weight: 800; font-size: 10px; letter-spacing: 1.6px; color: var(--hivis); text-transform: uppercase; }
+  #objective { flex: 1; padding: 7px 10px; font-weight: 700; font-size: 13px; line-height: 1.3; min-height: 20px; }
+  #objective small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+
+  #side { position: absolute; right: 12px; top: 78px; width: 150px; display: flex; flex-direction: column; gap: 6px; }
+  #weather { padding: 6px 9px; font-size: 11.5px; font-weight: 700; line-height: 1.45; font-variant-numeric: tabular-nums; }
+  #weather span { color: var(--muted); font-weight: 500; }
+  #energyRow { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  #energyBar { flex: 1; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
+  #energyFill { height: 100%; width: 60%; background: var(--ok); }
+  #hard { padding: 7px 9px; }
+  #hard .lbl { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  #hard .lbl b { font-size: 16px; letter-spacing: 0; color: var(--hivis); font-variant-numeric: tabular-nums; }
+  #hardBar { position: relative; height: 10px; margin-top: 5px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+  #hardFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #6b7075, #c9ccce); }
+  #hardBar .win { position: absolute; top: 0; bottom: 0; }
+  #hardBar .pans { left: 25%; width: 40%; border-top: 3px solid rgba(255, 210, 63, 0.9); }
+  #hardBar .blades { left: 55%; width: 37%; border-bottom: 3px solid rgba(90, 169, 255, 0.95); }
+  #hardBar .m95 { left: 95%; width: 2px; background: var(--laser); }
+  #hardEta { margin-top: 5px; font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.35; font-variant-numeric: tabular-nums; }
+  #hardEta b { color: var(--chalk); }
+  #map { width: 150px; height: 150px; border-radius: 12px; border: 1px solid var(--line); background: rgba(16,20,26,0.6); }
+  #truckInfo { padding: 6px 9px; font-size: 11.5px; font-weight: 700; line-height: 1.4; font-variant-numeric: tabular-nums; }
+
+  #crosshair { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; }
+  #crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(242,239,232,0.85); }
+  #crosshair::before { left: 6px; top: 0; width: 2px; height: 14px; }
+  #crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
+  #targetInfo { position: absolute; left: 50%; top: calc(50% + 16px); transform: translateX(-50%); font-weight: 800; font-size: 13px; text-shadow: 0 1px 3px #000; white-space: nowrap; text-align: center; }
+  #targetInfo .dev-ok { color: var(--ok); } #targetInfo .dev-hi { color: var(--laser); } #targetInfo .dev-lo { color: var(--low); }
+
+  #waitBadge { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); padding: 10px 16px; font-weight: 800; font-size: 15px; text-align: center; }
+  #waitBadge small { display: block; font-weight: 600; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+  /* Top left, under the task: the bottom is thumbs and buttons, the right is the gauges. */
+  #toasts { position: absolute; left: 12px; right: 174px; top: 96px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .toast { max-width: 560px; padding: 8px 12px; font-size: 13px; font-weight: 600; line-height: 1.35; background: var(--panel-solid); border: 1px solid var(--line); border-left: 4px solid var(--hivis); border-radius: 10px; animation: tin 0.25s ease-out; }
+  .toast.warn { border-left-color: var(--laser); }
+  .toast.good { border-left-color: var(--ok); }
+  @keyframes tin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  #joy { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid rgba(242,239,232,0.25); background: rgba(16,20,26,0.25); }
+  #joyKnob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(242,239,232,0.35); }
+
+  #buttons { position: absolute; right: 14px; bottom: 16px; display: grid; grid-template-columns: 70px 70px; grid-auto-rows: auto; gap: 8px; justify-items: stretch; pointer-events: none; }
+  #btnFinish { grid-row: 1; } #btnTool, #btnLaser { grid-row: 2; height: 48px; } #btnWait, #btnCoffee { grid-row: 3; height: 48px; } #btnAction { grid-row: 4; }
+  #buttons button { pointer-events: auto; }
+  .sbtn { border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-weight: 800; font-size: 11px; letter-spacing: 0.4px; line-height: 1.1; padding: 2px 4px; text-transform: uppercase; }
+  .sbtn.on { border-color: var(--laser); color: #ffd7d3; }
+  .sbtn:active { background: rgba(255,255,255,0.15); }
+  #btnFinish { grid-column: 1 / 3; height: 44px; border-radius: 12px; border: none; background: var(--hivis); color: #1a1208; font-weight: 800; font-size: 14px; letter-spacing: 0.6px; text-transform: uppercase; }
+  #btnAction { grid-column: 1 / 3; position: relative; height: 96px; border-radius: 22px; border: 2px solid var(--hivis); background: var(--hivis-dim); font-weight: 800; font-size: 13px; letter-spacing: 0.3px; line-height: 1.2; padding: 6px 8px; overflow: hidden; }
+  #btnAction.idle { border-color: var(--line); background: var(--panel); color: var(--muted); }
+  #btnAction.held { background: rgba(255,107,26,0.4); }
+  #actFill { position: absolute; left: 0; bottom: 0; height: 5px; width: 0; background: var(--hivis); }
+  #actLabel { position: relative; }
+
+  /* ---------- screens ---------- */
+  .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 13, 18, 0.72); overflow-y: auto; }
+  .sheet { width: 100%; max-width: 520px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 18px; padding: 20px 20px 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); margin: auto; }
+  .brand { font-weight: 800; font-size: 44px; letter-spacing: 3px; line-height: 0.95; text-transform: uppercase; }
+  .brand em { font-style: normal; color: var(--hivis); }
+  .tag { margin-top: 8px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  .daycard { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .daycard div { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 8px 10px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .daycard b { display: block; font-size: 17px; color: var(--chalk); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .howto { margin-top: 14px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .howto b { color: var(--chalk); }
+  .big { margin-top: 16px; width: 100%; height: 54px; border: none; border-radius: 14px; background: var(--hivis); color: #1a1208; font-weight: 800; font-size: 17px; letter-spacing: 1px; text-transform: uppercase; }
+  .ghost { margin-top: 8px; width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 14px; background: transparent; font-weight: 700; font-size: 14px; }
+  .best { margin-top: 10px; text-align: center; font-size: 12px; color: var(--muted); }
+
+  #modal .sheet { max-width: 440px; }
+  .who { font-size: 11px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--hivis); }
+  #modal h2 { margin: 6px 0 0; font-size: 20px; font-weight: 800; line-height: 1.25; }
+  #modal p { margin: 8px 0 0; font-size: 14.5px; line-height: 1.5; color: #d8d5ce; white-space: pre-line; }
+  .choices { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .choices button { min-height: 46px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); font-weight: 800; font-size: 14.5px; padding: 8px 12px; text-align: left; }
+  .choices button.primary { background: var(--hivis); border-color: var(--hivis); color: #1a1208; }
+  .choices button.danger { border-color: rgba(255,59,48,0.6); color: #ffb3ad; }
+
+  #end .rank { font-weight: 800; font-size: 30px; line-height: 1.1; color: var(--hivis); text-transform: uppercase; letter-spacing: 1px; }
+  #end .score { margin-top: 4px; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .stats { margin-top: 12px; display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .stats span { color: var(--muted); } .stats b { text-align: right; }
+  .story { margin-top: 14px; font-size: 13px; line-height: 1.55; color: #d8d5ce; }
+  .story li { margin-bottom: 4px; }
+
+  @media (max-height: 460px) {
+    #side { top: 66px; width: 136px; } #map { width: 120px; height: 120px; }
+    #buttons { bottom: 10px; } #btnTool, #btnLaser, #btnWait, #btnCoffee { height: 40px; } #btnAction { height: 78px; }
+    #toasts { top: 70px; right: 330px; }
+    .brand { font-size: 34px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="touch"></div>
+
+<div id="hud" hidden>
+  <div id="top">
+    <div id="clockbox" class="panel"><div id="clock">05:30</div><div id="phase">Morning</div></div>
+    <div id="objective" class="panel"></div>
+  </div>
+  <div id="side">
+    <div id="weather" class="panel"></div>
+    <div id="hard" class="panel" hidden>
+      <div class="lbl">Hardness <b id="hardPct">0%</b></div>
+      <div id="hardBar"><div id="hardFill"></div><div class="win pans"></div><div class="win blades"></div><div class="win m95"></div></div>
+      <div id="hardEta"></div>
+    </div>
+    <div id="truckInfo" class="panel" hidden></div>
+    <canvas id="map" width="300" height="300"></canvas>
+  </div>
+  <div id="crosshair"></div>
+  <div id="targetInfo"></div>
+  <div id="waitBadge" class="panel" hidden></div>
+  <div id="toasts"></div>
+  <div id="joy" hidden><div id="joyKnob"></div></div>
+  <div id="buttons">
+    <button id="btnFinish" hidden>Finish the pour</button>
+    <button id="btnTool" class="sbtn">Tool</button>
+    <button id="btnLaser" class="sbtn">Laser</button>
+    <button id="btnWait" class="sbtn">Wait</button>
+    <button id="btnCoffee" class="sbtn">Coffee</button>
+    <button id="btnAction" class="idle"><span id="actLabel">—</span><i id="actFill"></i></button>
+  </div>
+</div>
+
+<div id="modal" class="screen" hidden>
+  <div class="sheet"><div class="who" id="mWho"></div><h2 id="mTitle"></h2><p id="mText"></p><div class="choices" id="mChoices"></div></div>
+</div>
+
+<div id="title" class="screen">
+  <div class="sheet">
+    <div class="brand">Pour<br><em>Day</em></div>
+    <div class="tag">One slab, one day. Get there before everyone, lay the pipes, pour it, float it, wait for it — and keep the dog off it.</div>
+    <div class="daycard" id="dayCard"></div>
+    <div class="howto">
+      <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool you carry.
+      <b>Tool</b> swaps what's in your hands, <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
+    </div>
+    <button class="big" id="btnStart">Clock in</button>
+    <button class="ghost" id="btnReroll">Different day</button>
+    <div class="best" id="bestLine"></div>
+  </div>
+</div>
+
+<div id="end" class="screen" hidden>
+  <div class="sheet">
+    <div class="who">End of shift</div>
+    <div class="rank" id="eRank"></div>
+    <div class="score" id="eScore"></div>
+    <div class="stats" id="eStats"></div>
+    <ul class="story" id="eStory"></ul>
+    <button class="big" id="btnAgain">Another day</button>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

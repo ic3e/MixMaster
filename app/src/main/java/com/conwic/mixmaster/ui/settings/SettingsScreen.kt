@@ -198,6 +198,31 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
+        // Somewhere to be while the slab hardens.
+        item {
+            Column {
+                SectionLabel(text = stringResource(R.string.settings_break_time))
+                CardFlat(
+                    modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.BREAK_TIME) },
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(text = stringResource(R.string.break_time_title), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = stringResource(R.string.break_time_note),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        ActionLink(
+                            text = stringResource(R.string.break_time_play),
+                            onClick = { navController.navigate(Routes.BREAK_TIME) },
+                        )
+                    }
+                }
+            }
+        }
+
         item {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_using_as))

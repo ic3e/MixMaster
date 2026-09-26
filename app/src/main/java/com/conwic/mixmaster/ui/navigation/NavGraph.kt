@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.navigation
 
+import com.conwic.mixmaster.ui.breaktime.BreakTimeScreen
 import kotlinx.coroutines.flow.map
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.LocalBarInset
@@ -252,6 +253,7 @@ fun MixMasterNavGraph(startDestination: String) {
             composable(Routes.STOCK_COUNT) { Inset(insets) { StockCountScreen(navController = navController) } }
             composable(Routes.COMPANY) { Inset(insets) { CompanyScreen(navController = navController) } }
             composable(Routes.SERVER_GUIDE) { Inset(insets) { ServerGuideScreen(navController = navController) } }
+            composable(Routes.BREAK_TIME) { Inset(insets) { BreakTimeScreen(onExit = { navController.popBackStack() }) } }
         }
     }
 }

@@ -107,6 +107,10 @@
     <string name="theme_auto">Automaatne</string>
     <string name="settings_theme_note">Automaatne järgib telefoni enda hele/tume seadet.</string>
     <string name="settings_on_site">Objektil</string>
+    <string name="settings_break_time">Paus</string>
+    <string name="break_time_title">Pour Day</string>
+    <string name="break_time_note">Betoonitöö päev esimeses isikus, ajaks kui plaat kõveneb: ettevalmistus, torud, valu, ootamine, hõõrumine. Hoia koer plaadilt eemal. Mäng on inglise keeles.</string>
+    <string name="break_time_play">Mängi</string>
     <string name="settings_mixing_reminders">Segamise meeldetuletused</string>
     <string name="settings_mixing_reminders_note">Meeldetuletus jätta nõusse ruumi, et segu saaks ringi käia.</string>
     <string name="settings_alert_sound">Helisignaal</string>

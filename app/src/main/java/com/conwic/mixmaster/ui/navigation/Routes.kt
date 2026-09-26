@@ -37,6 +37,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val COMPANY = "company"
     const val SERVER_GUIDE = "server_guide"
+    const val BREAK_TIME = "break_time"
 
     fun calculator(solutionId: Long = 0L): String =
         if (solutionId > 0L) "calculator?solutionId=$solutionId" else "calculator"
