@@ -46,7 +46,7 @@ fun CompanyGate(content: @Composable () -> Unit) {
     val current = link
     val lockedOut = current != null && !current.owner &&
         System.currentTimeMillis() - current.lastContactAt > OfflineLockDays * 24L * 60 * 60 * 1000
-    if (lockedOut && current != null) OfflineLock(current) else content()
+    if (lockedOut) OfflineLock(current) else content()
     EndedNotice()
 }
 
