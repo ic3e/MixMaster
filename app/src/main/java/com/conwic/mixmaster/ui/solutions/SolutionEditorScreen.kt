@@ -1,11 +1,31 @@
 package com.conwic.mixmaster.ui.solutions
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import com.conwic.mixmaster.ui.theme.ChipShape
+import com.conwic.mixmaster.ui.theme.FieldShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,7 +72,6 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.SuggestField
-import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 
 /**
@@ -73,11 +92,23 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         },
     )
     val state by viewModel.formState.collectAsState()
+    val changes by viewModel.changes.collectAsState()
     // In a company, somebody not allowed to change recipes can still read one here; the buttons
     // that would change it are not offered, since the server would only put the recipe back.
     val access = rememberAccess()
     val canChange = access.catalogue
     if (!state.isLoaded) return
+
+    val context = LocalContext.current
+    val savedText = stringResource(R.string.solution_changes_saved)
+    val unsaved = canChange && changes.isNotEmpty()
+    // The list of changes, opened from the notice at the top.
+    var showChanges by remember { mutableStateOf(false) }
+    // Where the person was going when they were stopped to ask about unsaved changes — back, or
+    // to another coat — carried on with once they have answered.
+    var leaving by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val leaveThen: (() -> Unit) -> Unit = { go -> if (unsaved) { leaving = go } else { go() } }
+    BackHandler(enabled = unsaved) { leaving = { navController.popBackStack() } }
 
     var confirmArchive by remember { mutableStateOf(false) }
     // The coat waiting on a yes before it is taken off, and whether the copies are.
@@ -99,8 +130,9 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         item {
             MixMasterTopBar(
                 title = stringResource(if (state.solutionId == 0L) R.string.solution_add else R.string.solution_edit),
-                onBack = { navController.popBackStack() },
+                onBack = { leaveThen { navController.popBackStack() } },
                 actions = {
+                    if (unsaved) UnsavedNotice(count = changes.size, onClick = { showChanges = true })
                     if (state.solutionId != 0L && canChange) {
                         IconButton(onClick = { confirmArchive = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
@@ -160,50 +192,24 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     if (state.coats.size > 1) {
                         state.coats.forEach { coat ->
                             val isThisOne = coat.id == state.solutionId
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                                    .tappableText {
-                                        // In place of this one, not on top of it: back goes to where the
-                                        // recipe was opened from, not through every coat looked at.
-                                        if (!isThisOne) navController.navigate(Routes.solutionEdit(coat.id)) {
+                            CoatButton(
+                                name = coat.coatName.ifBlank { coat.name },
+                                ratio = coat.ratioLabel,
+                                isThisOne = isThisOne,
+                                onOpen = {
+                                    // In place of this one, not on top of it: back goes to where the
+                                    // recipe was opened from, not through every coat looked at.
+                                    leaveThen {
+                                        navController.navigate(Routes.solutionEdit(coat.id)) {
                                             popUpTo(Routes.SOLUTION_EDIT) { inclusive = true }
                                         }
-                                    },
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    modifier = Modifier.weight(1f),
-                                    text = coat.coatName.ifBlank { coat.name },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (isThisOne) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    },
-                                )
-                                Text(
-                                    text = coat.ratioLabel,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                    }
+                                },
                                 // Any coat but the first (which is the mix itself, and goes with the
                                 // bin at the top) and the one open here.
-                                if (canChange && !isThisOne && coat.parentId != 0L) {
-                                    IconButton(onClick = { removingCoat = coat }, modifier = Modifier.size(36.dp)) {
-                                        Icon(
-                                            Icons.Filled.Close,
-                                            contentDescription = stringResource(R.string.action_remove),
-                                            tint = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.size(18.dp),
-                                        )
-                                    }
-                                } else if (canChange) {
-                                    Spacer(modifier = Modifier.size(36.dp))
-                                }
-                            }
+                                canRemove = canChange && !isThisOne && coat.parentId != 0L,
+                                onRemove = { removingCoat = coat },
+                            )
                         }
                         if (canChange && state.duplicateCoatIds.isNotEmpty()) {
                             ActionLink(
@@ -535,6 +541,35 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         )
     }
 
+    if ((showChanges || leaving != null) && changes.isNotEmpty()) {
+        val going = leaving
+        ChangesDialog(
+            changes = changes,
+            leaving = going != null,
+            canSave = state.isValid,
+            onSave = {
+                showChanges = false
+                leaving = null
+                viewModel.save {
+                    if (going != null) {
+                        going()
+                    } else {
+                        Toast.makeText(context, savedText, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onUndo = {
+                showChanges = false
+                leaving = null
+                if (going != null) going() else viewModel.undoChanges()
+            },
+            onKeepEditing = {
+                showChanges = false
+                leaving = null
+            },
+        )
+    }
+
     confirmRemoveLine?.let { index ->
         ConfirmDialog(
             title = stringResource(R.string.part_remove_confirm),
@@ -550,7 +585,191 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
 
 }
 
-private fun dosingLabel(mode: DosingMode): Int = when (mode) {
+/**
+ * A coat of the mix, as a button that opens it.
+ *
+ * They were plain lines of text, the others in the link colour, and read as a list of names
+ * rather than something to press. Each is a bordered button with an arrow now, and the one open
+ * on the page is filled in and says so.
+ */
+@Composable
+private fun CoatButton(
+    name: String,
+    ratio: String,
+    isThisOne: Boolean,
+    onOpen: () -> Unit,
+    canRemove: Boolean,
+    onRemove: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(FieldShape)
+            .background(if (isThisOne) scheme.primaryContainer else scheme.surface)
+            .border(
+                width = if (isThisOne) 2.dp else 1.dp,
+                color = if (isThisOne) scheme.primary else scheme.primary.copy(alpha = 0.55f),
+                shape = FieldShape,
+            )
+            .clickable(enabled = !isThisOne, onClick = onOpen)
+            .heightIn(min = 56.dp)
+            .padding(start = 14.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isThisOne) scheme.onSurface else scheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (isThisOne) stringResource(R.string.solution_coat_open, ratio) else ratio,
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.onSurfaceVariant,
+            )
+        }
+        if (canRemove) {
+            IconButton(onClick = onRemove, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.action_remove),
+                    tint = scheme.error,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+        Icon(
+            if (isThisOne) Icons.Filled.Edit else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = scheme.primary,
+            modifier = Modifier.padding(start = 2.dp).size(if (isThisOne) 18.dp else 24.dp),
+        )
+    }
+}
+
+/** The notice next to the bin that the page holds changes not saved yet. Opens the list of them. */
+@Composable
+private fun UnsavedNotice(count: Int, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val about = stringResource(R.string.solution_unsaved_about)
+    Row(
+        modifier = Modifier
+            .padding(end = 4.dp)
+            .clip(ChipShape)
+            .background(scheme.secondaryContainer)
+            .border(1.dp, scheme.secondary, ChipShape)
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = about }
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Filled.Edit,
+            contentDescription = null,
+            tint = scheme.onSecondaryContainer,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = stringResource(R.string.solution_unsaved, count),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = scheme.onSecondaryContainer,
+            modifier = Modifier.padding(start = 6.dp),
+        )
+    }
+}
+
+/**
+ * What differs from the saved recipe, each as it was and as it is now, with the choice of
+ * keeping it or not. Asked from the notice at the top, and again on the way out of the page.
+ */
+@Composable
+private fun ChangesDialog(
+    changes: List<FormChange>,
+    leaving: Boolean,
+    canSave: Boolean,
+    onSave: () -> Unit,
+    onUndo: () -> Unit,
+    onKeepEditing: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onKeepEditing,
+        title = {
+            Text(stringResource(if (leaving) R.string.solution_changes_leave_title else R.string.solution_changes_title))
+        },
+        text = {
+            Column(modifier = Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState())) {
+                if (leaving) {
+                    Text(
+                        text = stringResource(R.string.solution_changes_leave_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 6.dp),
+                    )
+                }
+                changes.forEach { change -> ChangeRow(change) }
+                if (!canSave) {
+                    Text(
+                        text = stringResource(R.string.solution_changes_cannot_save),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave, enabled = canSave) {
+                Text(text = stringResource(R.string.action_save), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onKeepEditing) { Text(text = stringResource(R.string.solution_changes_keep)) }
+            TextButton(onClick = onUndo) {
+                Text(
+                    text = stringResource(if (leaving) R.string.solution_changes_discard else R.string.solution_changes_undo),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun ChangeRow(change: FormChange) {
+    val part = change.part
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Text(
+            text = if (part != null) stringResource(R.string.product_part_n, part) else stringResource(change.label),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = shownText(change.before),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textDecoration = TextDecoration.LineThrough,
+        )
+        Text(
+            text = "→ " + shownText(change.after),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
+private fun shownText(value: Shown): String {
+    val res = value.res
+    if (res != null) return stringResource(res)
+    return if (value.text.isBlank()) stringResource(R.string.solution_change_empty) else value.text
+}
+
+internal fun dosingLabel(mode: DosingMode): Int = when (mode) {
     DosingMode.COATS -> R.string.dosing_per_coat
     DosingMode.POUR -> R.string.dosing_per_pour
     DosingMode.MM -> R.string.dosing_per_mm

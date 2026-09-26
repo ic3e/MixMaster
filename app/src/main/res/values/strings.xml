@@ -995,4 +995,16 @@
     <string name="solution_coats_dedupe">Remove %1$d duplicate coats</string>
     <string name="solution_coats_dedupe_title">Remove the duplicates?</string>
     <string name="solution_coats_dedupe_body">%1$d coats have the same name and the same recipe as another coat. One of each is kept and the copies are removed.</string>
+    <string name="solution_unsaved">%1$d unsaved</string>
+    <string name="solution_unsaved_about">Unsaved changes. Tap to see them.</string>
+    <string name="solution_changes_title">Not saved yet</string>
+    <string name="solution_changes_leave_title">Save your changes?</string>
+    <string name="solution_changes_leave_body">These changes have not been saved. Leaving without saving loses them.</string>
+    <string name="solution_changes_undo">Undo changes</string>
+    <string name="solution_changes_discard">Don\'t save</string>
+    <string name="solution_changes_keep">Keep editing</string>
+    <string name="solution_changes_cannot_save">It can\'t be saved yet: something on the page is marked in red.</string>
+    <string name="solution_change_empty">(empty)</string>
+    <string name="solution_changes_saved">Saved</string>
+    <string name="solution_coat_open">%1$s · open now</string>
 </resources>

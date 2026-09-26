@@ -963,4 +963,16 @@
     <string name="solution_coats_dedupe">Poista %1$d kaksoiskerrosta</string>
     <string name="solution_coats_dedupe_title">Poistetaanko kaksoiskerrokset?</string>
     <string name="solution_coats_dedupe_body">%1$d kerroksella on sama nimi ja sama resepti kuin toisella kerroksella. Jokaisesta säilytetään yksi, ja kopiot poistetaan.</string>
+    <string name="solution_unsaved">%1$d tallentamatta</string>
+    <string name="solution_unsaved_about">Tallentamattomia muutoksia. Napauta nähdäksesi ne.</string>
+    <string name="solution_changes_title">Ei vielä tallennettu</string>
+    <string name="solution_changes_leave_title">Tallennetaanko muutokset?</string>
+    <string name="solution_changes_leave_body">Näitä muutoksia ei ole tallennettu. Jos poistut tallentamatta, ne menetetään.</string>
+    <string name="solution_changes_undo">Kumoa muutokset</string>
+    <string name="solution_changes_discard">Älä tallenna</string>
+    <string name="solution_changes_keep">Jatka muokkausta</string>
+    <string name="solution_changes_cannot_save">Tallennus ei vielä onnistu: sivulla on jotain merkitty punaisella.</string>
+    <string name="solution_change_empty">(tyhjä)</string>
+    <string name="solution_changes_saved">Tallennettu</string>
+    <string name="solution_coat_open">%1$s · nyt auki</string>
 </resources>

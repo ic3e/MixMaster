@@ -17,8 +17,11 @@ import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.domain.toNumberOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -123,6 +126,18 @@ data class SolutionFormState(
     val isValid: Boolean get() = nameProblem == null && linesProblem == null && doseProblem == null
 }
 
+/** A value in the list of changes: typed text, or a word the screen puts in its own language. */
+data class Shown(val text: String = "", @StringRes val res: Int? = null)
+
+/** One thing on the form that is not what was last saved: what it was, and what it is now. */
+data class FormChange(
+    @StringRes val label: Int,
+    /** The part's number, for a change to one of the parts; the label is then ignored. */
+    val part: Int? = null,
+    val before: Shown,
+    val after: Shown,
+)
+
 class SolutionEditorViewModel(
     private val solutionRepository: SolutionRepository,
     private val productRepository: ProductRepository,
@@ -131,6 +146,33 @@ class SolutionEditorViewModel(
 
     private val _formState = MutableStateFlow(SolutionFormState())
     val formState: StateFlow<SolutionFormState> = _formState.asStateFlow()
+
+    /**
+     * What a coat's figures come to once written down. Saving and the list of changes both work
+     * from this, so the list never calls something a change that would be saved the same.
+     */
+    private data class Written(
+        val kept: List<LineDraft>,
+        /** Each kept line's parts, shares worked out, as they go into the recipe. */
+        val parts: List<Double>,
+        val min: Double,
+        val max: Double,
+        val mixSeconds: Int,
+        val potLifeMinutes: Int,
+    )
+
+    /** The form as it was opened, or as it was last saved — what "unsaved" is measured from. */
+    private val baseline = MutableStateFlow<SolutionFormState?>(null)
+
+    /**
+     * Everything on the form that would be lost by leaving now, in the order it is on screen.
+     *
+     * A change typed and never saved was gone without a word the moment back was pressed or
+     * another coat was opened, and nothing on screen said the recipe differed from the saved one.
+     */
+    val changes: StateFlow<List<FormChange>> = combine(_formState, baseline) { now, saved ->
+        if (saved == null || !now.isLoaded) emptyList() else changesBetween(saved, now)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Every recipe, as last seen: what this one's coats are picked out of. */
     @Volatile private var allSolutions: List<SolutionEntity> = emptyList()
@@ -249,6 +291,7 @@ class SolutionEditorViewModel(
                     )
                 })
             }
+            baseline.value = _formState.value
         }
         viewModelScope.launch {
             productRepository.observeAll().collect { rows -> _formState.update { it.copy(products = rows) } }
@@ -404,8 +447,119 @@ class SolutionEditorViewModel(
         viewModelScope.launch {
             // A product in the recipe taken away on another phone a moment ago fails the write;
             // the form stays open with what was typed rather than the app closing under it.
-            if (runCatching { persist(state) }.isSuccess) onSaved()
+            val id = runCatching { persist(state) }.getOrNull() ?: return@launch
+            // Saved from the list of changes, the form stays open: what was saved is now what
+            // the next change is measured from, and a new recipe has an id to be saved under.
+            _formState.update { withCoats(it.copy(solutionId = id)) }
+            baseline.value = state.copy(solutionId = id)
+            onSaved()
         }
+    }
+
+    /** Puts the form back to how it was opened, or last saved. */
+    fun undoChanges() {
+        val saved = baseline.value ?: return
+        _formState.update {
+            it.copy(
+                brand = saved.brand,
+                name = saved.name,
+                category = saved.category,
+                dosingMode = saved.dosingMode,
+                minDoseText = saved.minDoseText,
+                maxDoseText = saved.maxDoseText,
+                doseUnitLabel = saved.doseUnitLabel,
+                mixMinutesText = saved.mixMinutesText,
+                potLifeText = saved.potLifeText,
+                datasheetUrl = saved.datasheetUrl,
+                lines = saved.lines,
+                entry = saved.entry,
+                coatName = saved.coatName,
+            )
+        }
+    }
+
+    private fun changesBetween(saved: SolutionFormState, now: SolutionFormState): List<FormChange> {
+        val savedAs = written(saved)
+        val nowAs = written(now)
+        val found = mutableListOf<FormChange>()
+        fun typed(@StringRes label: Int, before: String, after: String) {
+            if (before.trim() != after.trim()) found += FormChange(label, before = Shown(before.trim()), after = Shown(after.trim()))
+        }
+        typed(R.string.solution_name, saved.name, now.name)
+        typed(R.string.product_brand, saved.brand, now.brand)
+        typed(R.string.product_type, saved.category, now.category)
+        typed(R.string.solution_coat_name, saved.coatName, now.coatName)
+
+        // Typed the same way on both sides, a part is compared as it was typed, so a rate changed
+        // shows as that rate. Switched between ratio and kg/m², every box is rewritten without the
+        // recipe changing, and only the ratio it comes to says whether anything did.
+        val sameEntry = saved.entry == now.entry
+        fun amount(written: Written, index: Int): Double? {
+            val line = written.kept.getOrNull(index) ?: return null
+            return if (line.percentOfRest || sameEntry) line.partsText.toNumberOr(0.0) else written.parts.getOrElse(index) { 0.0 }
+        }
+        fun shown(written: Written, index: Int): Shown {
+            val line = written.kept.getOrNull(index) ?: return Shown()
+            val product = now.products.firstOrNull { it.id == line.productId }
+                ?.let { if (it.brand.isBlank()) it.name else "${it.brand} — ${it.name}" }
+                .orEmpty()
+            val figure = formatDecimal(amount(written, index) ?: 0.0, 4)
+            return Shown(
+                listOf(product, line.label.trim(), if (line.percentOfRest) "$figure%" else figure)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
+            )
+        }
+        for (index in 0 until maxOf(savedAs.kept.size, nowAs.kept.size)) {
+            val before = savedAs.kept.getOrNull(index)
+            val after = nowAs.kept.getOrNull(index)
+            val same = before != null && after != null &&
+                before.productId == after.productId &&
+                before.label.trim() == after.label.trim() &&
+                before.percentOfRest == after.percentOfRest &&
+                alike(amount(savedAs, index) ?: 0.0, amount(nowAs, index) ?: 0.0)
+            if (!same) found += FormChange(R.string.product_parts, part = index + 1, before = shown(savedAs, index), after = shown(nowAs, index))
+        }
+
+        if (!alike(savedAs.min, nowAs.min) || !alike(savedAs.max, nowAs.max)) {
+            found += FormChange(R.string.product_coverage, before = Shown(range(savedAs)), after = Shown(range(nowAs)))
+        }
+        if (saved.dosingMode != now.dosingMode) {
+            found += FormChange(
+                R.string.product_measured_per,
+                before = Shown(res = dosingLabel(saved.dosingMode)),
+                after = Shown(res = dosingLabel(now.dosingMode)),
+            )
+        }
+        typed(R.string.product_per_what, saved.doseUnitLabel, now.doseUnitLabel)
+        if (savedAs.mixSeconds != nowAs.mixSeconds) {
+            found += FormChange(
+                R.string.solution_mix_time,
+                before = Shown(if (savedAs.mixSeconds > 0) formatDecimal(savedAs.mixSeconds / 60.0, 2) else ""),
+                after = Shown(if (nowAs.mixSeconds > 0) formatDecimal(nowAs.mixSeconds / 60.0, 2) else ""),
+            )
+        }
+        if (savedAs.potLifeMinutes != nowAs.potLifeMinutes) {
+            found += FormChange(
+                R.string.solution_pot_life,
+                before = Shown(if (savedAs.potLifeMinutes > 0) "${savedAs.potLifeMinutes}" else ""),
+                after = Shown(if (nowAs.potLifeMinutes > 0) "${nowAs.potLifeMinutes}" else ""),
+            )
+        }
+        typed(R.string.product_datasheet_link, saved.datasheetUrl, now.datasheetUrl)
+        return found
+    }
+
+    /**
+     * Near enough to be the same figure. A ratio taken to kg/m² and back is rounded to four
+     * decimals on the way, which moves a 2 to 2.002 — not a change anybody made.
+     */
+    private fun alike(a: Double, b: Double): Boolean = abs(a - b) <= maxOf(0.005, 0.001 * maxOf(abs(a), abs(b)))
+
+    private fun range(written: Written): String = when {
+        written.max <= 0.0 -> ""
+        alike(written.min, written.max) -> formatDecimal(written.max, 1)
+        else -> "${formatDecimal(written.min, 1)}–${formatDecimal(written.max, 1)}"
     }
 
     /**
@@ -451,21 +605,11 @@ class SolutionEditorViewModel(
         } else {
             emptyList()
         }
-        val kept = state.lines.filter { it.productId > 0L }
-        // Shares worked out here rather than on the way back out, so everything downstream —
-        // the batches, the packing, the film on the floor — goes on reading one plain number.
-        val typed = resolvedParts(kept)
-        // Typed by area, the figures are rates: the ratio is what they are to each other and
-        // the coverage is what they come to, so neither has to be worked out by hand.
-        val perArea = state.entry == EntryMode.PER_AREA
-        val top = kept.indices.filterNot { kept[it].percentOfRest }
-            .mapNotNull { typed.getOrNull(it) }
-            .maxOrNull() ?: 0.0
-        val parts = if (perArea && top > 0.0) typed.map { it / top * 100.0 } else typed
-        val typedMin = state.minDoseText.toNumberOr(0.0)
-        val typedMax = state.maxDoseText.toNumberOr(typedMin).takeIf { it > 0.0 } ?: typedMin
-        val min = if (perArea) typed.sum() * 1000.0 else minOf(typedMin, typedMax)
-        val max = if (perArea) typed.sum() * 1000.0 else maxOf(typedMin, typedMax)
+        val written = written(state)
+        val kept = written.kept
+        val parts = written.parts
+        val min = written.min
+        val max = written.max
         return solutionRepository.save(
             SolutionEntity(
                 id = state.solutionId,
@@ -482,13 +626,8 @@ class SolutionEditorViewModel(
                 sourceNote = "",
                 datasheetUrl = state.datasheetUrl.trim(),
                 ratioLabel = parts.joinToString(":") { formatDecimal(it, 2) },
-                // Capped where the timer's own arrows stop: a mistyped 900 minutes is a
-                // countdown nobody can sit through and a screen held awake all afternoon.
-                mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt()
-                    .coerceIn(0, MaxMixSeconds),
-                // Capped at a working day: a pot life is minutes, and a mistyped 9000 would
-                // read as three days of workable material.
-                potLifeMinutes = state.potLifeText.toNumberOr(0.0).roundToInt().coerceIn(0, 600),
+                mixSeconds = written.mixSeconds,
+                potLifeMinutes = written.potLifeMinutes,
                 parentId = state.parentId,
                 coatName = state.coatName.trim(),
             ),
@@ -502,6 +641,33 @@ class SolutionEditorViewModel(
                     percentOfRest = if (line.percentOfRest) line.partsText.toNumberOr(0.0) else 0.0,
                 )
             } + keptOther,
+        )
+    }
+
+    private fun written(state: SolutionFormState): Written {
+        val kept = state.lines.filter { it.productId > 0L }
+        // Shares worked out here rather than on the way back out, so everything downstream —
+        // the batches, the packing, the film on the floor — goes on reading one plain number.
+        val typed = resolvedParts(kept)
+        // Typed by area, the figures are rates: the ratio is what they are to each other and
+        // the coverage is what they come to, so neither has to be worked out by hand.
+        val perArea = state.entry == EntryMode.PER_AREA
+        val top = kept.indices.filterNot { kept[it].percentOfRest }
+            .mapNotNull { typed.getOrNull(it) }
+            .maxOrNull() ?: 0.0
+        val typedMin = state.minDoseText.toNumberOr(0.0)
+        val typedMax = state.maxDoseText.toNumberOr(typedMin).takeIf { it > 0.0 } ?: typedMin
+        return Written(
+            kept = kept,
+            parts = if (perArea && top > 0.0) typed.map { it / top * 100.0 } else typed,
+            min = if (perArea) typed.sum() * 1000.0 else minOf(typedMin, typedMax),
+            max = if (perArea) typed.sum() * 1000.0 else maxOf(typedMin, typedMax),
+            // Capped where the timer's own arrows stop: a mistyped 900 minutes is a
+            // countdown nobody can sit through and a screen held awake all afternoon.
+            mixSeconds = (state.mixMinutesText.toNumberOr(0.0) * 60.0).roundToInt().coerceIn(0, MaxMixSeconds),
+            // Capped at a working day: a pot life is minutes, and a mistyped 9000 would
+            // read as three days of workable material.
+            potLifeMinutes = state.potLifeText.toNumberOr(0.0).roundToInt().coerceIn(0, 600),
         )
     }
 

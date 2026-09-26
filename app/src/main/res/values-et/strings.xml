@@ -963,4 +963,16 @@
     <string name="solution_coats_dedupe">Eemalda %1$d topeltkihti</string>
     <string name="solution_coats_dedupe_title">Eemaldad topeltkihid?</string>
     <string name="solution_coats_dedupe_body">%1$d kihil on sama nimi ja sama retsept kui mõnel teisel kihil. Igast jääb alles üks, koopiad eemaldatakse.</string>
+    <string name="solution_unsaved">%1$d salvestamata</string>
+    <string name="solution_unsaved_about">Salvestamata muudatused. Puuduta, et neid näha.</string>
+    <string name="solution_changes_title">Veel salvestamata</string>
+    <string name="solution_changes_leave_title">Kas salvestada muudatused?</string>
+    <string name="solution_changes_leave_body">Need muudatused on salvestamata. Salvestamata lahkudes lähevad need kaduma.</string>
+    <string name="solution_changes_undo">Võta muudatused tagasi</string>
+    <string name="solution_changes_discard">Ära salvesta</string>
+    <string name="solution_changes_keep">Jätka muutmist</string>
+    <string name="solution_changes_cannot_save">Veel ei saa salvestada: lehel on midagi punasega märgitud.</string>
+    <string name="solution_change_empty">(tühi)</string>
+    <string name="solution_changes_saved">Salvestatud</string>
+    <string name="solution_coat_open">%1$s · praegu avatud</string>
 </resources>
