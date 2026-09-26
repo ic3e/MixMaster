@@ -1,8 +1,8 @@
 {
-  "versionCode": 151,
-  "versionName": "1.0.151",
-  "apk": "MixMaster_1.0.151.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.151.apk",
-  "sizeBytes": 20915451,
-  "notes": "Set a missing pack size from the count or the warehouse list"
+  "versionCode": 152,
+  "versionName": "1.0.152",
+  "apk": "MixMaster_1.0.152.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.152.apk",
+  "sizeBytes": 20915455,
+  "notes": "Give new rows ids no other phone will hand out"
 }
