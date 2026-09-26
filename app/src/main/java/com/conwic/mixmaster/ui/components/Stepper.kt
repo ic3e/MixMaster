@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,6 +72,7 @@ fun Stepper(
         onValueChange(next)
     }
 
+    val readOnly = LocalReadOnly.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -78,13 +80,14 @@ fun Stepper(
             .border(1.dp, MaterialTheme.colorScheme.outline, StepperShape),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        StepButton(symbol = "−", onClick = { nudge(-step) })
+        if (readOnly) Spacer(modifier = Modifier.size(44.dp)) else StepButton(symbol = "−", onClick = { nudge(-step) })
         BasicTextField(
             value = field,
             onValueChange = {
                 field = it
                 onValueChange(it.text)
             },
+            readOnly = readOnly,
             singleLine = true,
             textStyle = MaterialTheme.typography.titleLarge.copy(
                 color = MaterialTheme.colorScheme.onSurface,
@@ -102,7 +105,7 @@ fun Stepper(
                 modifier = Modifier.padding(start = 4.dp),
             )
         }
-        StepButton(symbol = "+", onClick = { nudge(step) })
+        if (readOnly) Spacer(modifier = Modifier.size(44.dp)) else StepButton(symbol = "+", onClick = { nudge(step) })
     }
 }
 

@@ -54,7 +54,8 @@ fun TaskRow(
     subtitle: String,
     done: Boolean,
     priority: TaskPriority,
-    onEdit: () -> Unit,
+    /** Null for somebody who may not change tasks: the row is then only read. */
+    onEdit: (() -> Unit)?,
     modifier: Modifier = Modifier,
     onToggle: (() -> Unit)? = null,
 ) {
@@ -62,7 +63,7 @@ fun TaskRow(
         modifier = modifier
             .fillMaxWidth()
             .clip(CardShape)
-            .clickable(onClick = onEdit)
+            .clickable(enabled = onEdit != null, onClick = { onEdit?.invoke() })
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -51,6 +51,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.ProjectStatus
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 @Composable
 fun ProjectsScreen(navController: NavHostController) {
@@ -65,9 +66,12 @@ fun ProjectsScreen(navController: NavHostController) {
     // crew and the jobs they are on.
     var archivedOpen by remember { mutableStateOf(false) }
 
+    // Starting a job, and bringing one back, are the plans' to change.
+    val access = rememberAccess()
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
+            if (access.projects) FloatingActionButton(
                 onClick = { newProjectOpen = true },
                 // Flat like the rest of the design — the default FAB shadow reads as a smudge here.
                 elevation = FloatingActionButtonDefaults.elevation(
@@ -167,10 +171,12 @@ fun ProjectsScreen(navController: NavHostController) {
                                     )
                                 }
                             }
-                            ActionLink(
-                                text = stringResource(R.string.projects_restore),
-                                onClick = { viewModel.unarchive(project) },
-                            )
+                            if (access.projects) {
+                                ActionLink(
+                                    text = stringResource(R.string.projects_restore),
+                                    onClick = { viewModel.unarchive(project) },
+                                )
+                            }
                         }
                     }
                 }

@@ -896,7 +896,6 @@
     <string name="co_home_title">Said ligipääsukoodi?</string>
     <string name="co_home_body">Ühenda telefon oma ettevõttega ja see saab ettevõtte tooted, retseptid, projektid ja laoseisu.</string>
     <string name="co_home_action">Sisesta ligipääsukood</string>
-    <string name="co_not_yours">Tööandja pole sulle seda lubanud. Palu tal see sisse lülitada: Ettevõte → Inimesed.</string>
     <string name="co_server_title">Server</string>
     <string name="co_guide_open">Kuidas serverit üles seada</string>
     <string name="co_move_body">Kui ettevõte peab kunagi andmeid mujal hoidma — uus veebileht, teine Google’i konto — sea esmalt uus server üles ja koli siis kõik siit sinna. Kõik telefonid järgnevad ise; kellelgi pole uut koodi vaja.</string>

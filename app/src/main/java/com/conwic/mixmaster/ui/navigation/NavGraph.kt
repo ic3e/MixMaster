@@ -43,6 +43,7 @@ import com.conwic.mixmaster.ui.warehouse.StockCountReminder
 import com.conwic.mixmaster.ui.warehouse.StockCountScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 @Composable
 fun MixMasterNavGraph(startDestination: String) {
@@ -60,11 +61,14 @@ fun MixMasterNavGraph(startDestination: String) {
     val ready = pastSignIn(backStackEntry)
 
     // The count reminder was tapped: straight to the count, once the app is past sign-in.
+    // Only for whoever looks after the shelf: a reminder set before the right was taken away
+    // opens the app rather than a count that could not be saved.
     val openCount by StockCountReminder.openRequested.collectAsState()
+    val access = rememberAccess()
     LaunchedEffect(openCount, ready) {
         if (openCount && ready) {
             StockCountReminder.openRequested.value = false
-            navController.navigate(Routes.STOCK_COUNT) { launchSingleTop = true }
+            if (access.warehouse) navController.navigate(Routes.STOCK_COUNT) { launchSingleTop = true }
         }
     }
 

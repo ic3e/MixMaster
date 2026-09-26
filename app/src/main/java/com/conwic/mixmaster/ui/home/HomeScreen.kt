@@ -230,7 +230,7 @@ fun HomeScreen(navController: NavHostController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
-                                .clickable { ordering = short }
+                                .clickable(enabled = access.warehouse) { ordering = short }
                                 .padding(vertical = 6.dp),
                         ) {
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -264,7 +264,7 @@ fun HomeScreen(navController: NavHostController) {
                             }
                         }
                     }
-                    Text(
+                    if (access.warehouse) Text(
                         text = stringResource(R.string.home_short_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = OnAccentCard.copy(alpha = 0.7f),
@@ -369,7 +369,7 @@ fun HomeScreen(navController: NavHostController) {
                             formatDayWithWeek(state.selectedDate)
                         },
                     )
-                    Text(
+                    if (access.site) Text(
                         text = stringResource(R.string.action_add_task),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
@@ -397,7 +397,11 @@ fun HomeScreen(navController: NavHostController) {
                                 subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onEdit = { editing = item.task.toDraft() },
+                                onEdit = if (access.site) {
+                                    { editing = item.task.toDraft() }
+                                } else {
+                                    null
+                                },
                             )
                             if (index != state.dayTasks.lastIndex) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
@@ -421,7 +425,11 @@ fun HomeScreen(navController: NavHostController) {
                                     ?: item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onEdit = { editing = item.task.toDraft() },
+                                onEdit = if (access.site) {
+                                    { editing = item.task.toDraft() }
+                                } else {
+                                    null
+                                },
                             )
                             if (index != state.overdueTasks.lastIndex) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
@@ -443,7 +451,11 @@ fun HomeScreen(navController: NavHostController) {
                                 subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                                 done = item.task.isDone,
                                 priority = item.task.priority,
-                                onEdit = { editing = item.task.toDraft() },
+                                onEdit = if (access.site) {
+                                    { editing = item.task.toDraft() }
+                                } else {
+                                    null
+                                },
                             )
                             if (index != state.undatedTasks.lastIndex) {
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
@@ -490,7 +502,8 @@ fun HomeScreen(navController: NavHostController) {
     }
 
     // Asked on the day, one order at a time: the next one comes up as soon as this is answered.
-    due.firstOrNull()?.let { delivery ->
+    // Only of whoever looks after the shelf — the answer changes what is on it.
+    due.firstOrNull()?.takeIf { access.warehouse }?.let { delivery ->
         ArrivalDialog(
             productName = delivery.productName,
             line = deliveryLine(delivery),

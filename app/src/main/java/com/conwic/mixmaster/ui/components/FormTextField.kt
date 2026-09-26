@@ -61,6 +61,7 @@ fun FormTextField(
     }
 
     val supporting = problem ?: hint
+    val readOnly = LocalReadOnly.current
     Column(modifier = modifier) {
         FieldLabel(text = label, error = problem != null)
         OutlinedTextField(
@@ -69,9 +70,10 @@ fun FormTextField(
                 field = it
                 onValueChange(it.text)
             },
+            readOnly = readOnly,
             singleLine = singleLine,
             isError = problem != null,
-            trailingIcon = if (trailing != null) {
+            trailingIcon = if (trailing != null && !readOnly) {
                 {
                     Text(
                         text = "▾",

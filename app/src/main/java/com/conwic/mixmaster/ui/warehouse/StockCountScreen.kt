@@ -63,6 +63,7 @@ import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.Ok
 import com.conwic.mixmaster.ui.components.packName
 import com.conwic.mixmaster.ui.components.packsName
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 /** What is typed into one row, kept as text: "12," on its way to "12,5" is not a number yet. */
 private data class CountDraft(val packs: String, val open: String)
@@ -93,6 +94,7 @@ fun StockCountScreen(navController: NavHostController) {
     val drafts = remember { mutableStateMapOf<Long, CountDraft>() }
     var confirmFinish by remember { mutableStateOf(false) }
     var settingPack by remember { mutableStateOf<ProductStock?>(null) }
+    val access = rememberAccess()
 
     val list = rows.orEmpty()
     val done = list.count { it.productId in count.counted }
@@ -154,7 +156,12 @@ fun StockCountScreen(navController: NavHostController) {
                         draft = draft,
                         onPacks = { saveDraft(item, draft.copy(packs = it)) },
                         onOpen = { saveDraft(item, draft.copy(open = it)) },
-                        onSetPack = { settingPack = item },
+                        // The pack belongs to the product, which is the catalogue's to change.
+                        onSetPack = if (access.catalogue) {
+                            { settingPack = item }
+                        } else {
+                            null
+                        },
                         onTick = {
                             // Both ways: a green tick tapped again comes off, so a slip of the
                             // thumb while scrolling is undone by the same tap that made it.
@@ -261,7 +268,7 @@ private fun CountRow(
     draft: CountDraft,
     onPacks: (String) -> Unit,
     onOpen: (String) -> Unit,
-    onSetPack: () -> Unit,
+    onSetPack: (() -> Unit)?,
     onTick: () -> Unit,
 ) {
     // The green edge is what says "done" from across the list, without reading a word of it.
@@ -279,7 +286,7 @@ private fun CountRow(
             )
             SameButton(counted = counted, onClick = onTick)
         }
-        if (!item.isKnownPack) {
+        if (!item.isKnownPack && onSetPack != null) {
             // Set here, mid-count, rather than on the product's own form three screens away.
             ActionLink(
                 text = stringResource(R.string.pack_set),

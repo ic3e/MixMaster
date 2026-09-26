@@ -115,6 +115,13 @@ by `GlobalIds`, and a stock row's id is its product's. A new table that should b
 `SyncEngine.Tables` (parents before children) and in both servers' permission lists. The servers
 (`server/`) speak one protocol; `node server/test/run.mjs` holds them to it.
 
+**Permissions on screen** follow the server's groups (`rememberAccess()`): catalogue = products
+and recipes, projects = projects/floors/rooms/coats, warehouse = stock and deliveries, site =
+tasks, notes, photos, recorded mixes and usage logs. Whoever may not change something does not
+see the control that would: add/remove/save buttons are left out, and a form they may read is
+wrapped in `CompositionLocalProvider(LocalReadOnly provides true)`, which every field honours.
+No "not yours" toasts.
+
 ## Delivering
 
 - Commit messages explain the change in the app's own voice, and end with the `Co-Authored-By` and

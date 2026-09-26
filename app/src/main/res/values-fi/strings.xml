@@ -896,7 +896,6 @@
     <string name="co_home_title">Saitko pääsykoodin?</string>
     <string name="co_home_body">Yhdistä puhelin yritykseesi, niin se saa yrityksen tuotteet, reseptit, projektit ja varaston.</string>
     <string name="co_home_action">Syötä pääsykoodi</string>
-    <string name="co_not_yours">Työnantaja ei ole antanut sinulle tätä oikeutta. Pyydä häntä kytkemään se päälle: Yritys → Henkilöt.</string>
     <string name="co_server_title">Palvelin</string>
     <string name="co_guide_open">Näin otat palvelimen käyttöön</string>
     <string name="co_move_body">Jos yrityksen tiedot pitää joskus säilyttää muualla — uusi verkkosivu, toinen Google-tili — ota ensin uusi palvelin käyttöön ja siirrä sitten kaikki sinne täältä. Kaikki puhelimet seuraavat itse; kukaan ei tarvitse uutta koodia.</string>

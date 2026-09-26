@@ -36,11 +36,12 @@ fun PickerField(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
 ) {
+    val readOnly = LocalReadOnly.current
     Column(modifier = modifier) {
         FieldLabel(text = label)
         // The field is disabled so it takes no focus and raises no keyboard; disabled widgets
         // don't consume pointer input, so the tap lands on the box around it.
-        Box(modifier = Modifier.fillMaxWidth().clip(FieldShape).clickable(onClick = onClick)) {
+        Box(modifier = Modifier.fillMaxWidth().clip(FieldShape).clickable(enabled = !readOnly, onClick = onClick)) {
             OutlinedTextField(
                 value = value,
                 onValueChange = {},
@@ -51,12 +52,17 @@ fun PickerField(
                 } else {
                     null
                 },
-                trailingIcon = {
-                    Text(
-                        text = "▾",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(end = 12.dp),
-                    )
+                // No arrow on a field that will not open: it is the arrow that says "choose".
+                trailingIcon = if (readOnly) {
+                    null
+                } else {
+                    {
+                        Text(
+                            text = "▾",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(end = 12.dp),
+                        )
+                    }
                 },
                 shape = FieldShape,
                 // Disabled is a layout state here, not a "you can't touch this" state, so every

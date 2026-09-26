@@ -160,6 +160,8 @@ fun MixingSession(
     onProgress: (MixProgress) -> Unit,
     /** Writes what actually went in against the job the run was started for. */
     onRecord: (amounts: List<UsedAmount>, batches: Int) -> Unit,
+    /** May write what was mixed against the job — site work. Without it the summary is only read. */
+    canRecord: Boolean,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -407,6 +409,7 @@ fun MixingSession(
                         used = usedMaterial(steps.take(doneSteps), parts),
                         jobLabel = run.jobLabel,
                         recorded = recorded,
+                        canRecord = canRecord,
                         onRecord = {
                             onRecord(mixedAmounts(steps.take(doneSteps)), doneSteps)
                             recorded = true
@@ -1076,6 +1079,7 @@ private fun MixingSummary(
     /** The job this was mixed for, or blank where the run was started without one. */
     jobLabel: String,
     recorded: Boolean,
+    canRecord: Boolean,
     onRecord: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -1120,7 +1124,10 @@ private fun MixingSummary(
     // What was mixed, written against the job. Offered here because this is the one moment the
     // figures are the ones that went in rather than the ones that were planned — and once, so a
     // summary read twice doesn't put the same batches on the project twice.
-    if (jobLabel.isBlank()) {
+    if (!canRecord) {
+        // Nothing to offer: the batches were mixed, and writing them onto the job is somebody
+        // else's to do.
+    } else if (jobLabel.isBlank()) {
         Text(
             text = stringResource(R.string.mix_record_no_job),
             style = MaterialTheme.typography.labelSmall,

@@ -74,6 +74,8 @@ import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.SuggestField
 import com.conwic.mixmaster.ui.navigation.Routes
+import androidx.compose.runtime.CompositionLocalProvider
+import com.conwic.mixmaster.ui.components.LocalReadOnly
 
 /**
  * A recipe: which products go in, in what ratio, and how much of the result covers a square
@@ -123,6 +125,9 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
         if (product.brand.isBlank()) product.name else "${product.brand} — ${product.name}"
     }
 
+    // Read, not changed: every field shows what the recipe holds and takes no typing, and the
+    // links that add or take away parts are left out below.
+    CompositionLocalProvider(LocalReadOnly provides !canChange) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentPadding = pagePadding(),
@@ -141,6 +146,19 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     }
                 },
             )
+        }
+
+        // Said first, before anybody tries a field and wonders why it will not type.
+        if (!canChange) {
+            item {
+                CardFlat {
+                    Text(
+                        text = stringResource(R.string.solution_read_only),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         item { SectionLabel(text = stringResource(R.string.product_what_it_is)) }
@@ -279,7 +297,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                 // Some datasheets never give a ratio at all — architop lists each part's own
                 // rate per square metre. Typed that way, the ratio and the coverage both fall
                 // out of the figures instead of being worked out by hand.
-                ChipRow(
+                if (canChange) ChipRow(
                     options = listOf(EntryMode.RATIO, EntryMode.PER_AREA).map { mode ->
                         ChipOption(
                             label = stringResource(
@@ -308,7 +326,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            if (state.lines.size > 1) {
+                            if (canChange && state.lines.size > 1) {
                                 ActionLink(
                                     text = stringResource(R.string.action_remove),
                                     onClick = { confirmRemoveLine = index },
@@ -359,17 +377,19 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                         // datasheets word the water and the thinner, and there was no way to
                         // write it down: the 1.2 parts it comes to had to be worked out by hand,
                         // and worked out again the day somebody corrected A or B.
-                        ActionLink(
-                            text = stringResource(
-                                if (line.percentOfRest) {
-                                    R.string.solution_line_as_parts
-                                } else {
-                                    R.string.solution_line_as_percent
-                                },
-                            ),
-                            onClick = { viewModel.setLinePercentOfRest(index, !line.percentOfRest) },
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
+                        if (canChange) {
+                            ActionLink(
+                                text = stringResource(
+                                    if (line.percentOfRest) {
+                                        R.string.solution_line_as_parts
+                                    } else {
+                                        R.string.solution_line_as_percent
+                                    },
+                                ),
+                                onClick = { viewModel.setLinePercentOfRest(index, !line.percentOfRest) },
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
                         if (line.percentOfRest) {
                             Text(
                                 text = stringResource(R.string.solution_line_percent_hint),
@@ -380,11 +400,13 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                         }
                     }
                 }
-                ActionLink(
-                    text = stringResource(R.string.product_add_part),
-                    onClick = { viewModel.addLine() },
-                    modifier = Modifier.padding(top = 10.dp),
-                )
+                if (canChange) {
+                    ActionLink(
+                        text = stringResource(R.string.product_add_part),
+                        onClick = { viewModel.addLine() },
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
                 state.linesProblem?.let { problem ->
                     Text(
                         text = stringResource(problem),
@@ -498,24 +520,17 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
             }
         }
 
-        item {
-            if (canChange) {
+        if (canChange) {
+            item {
                 PrimaryButton(
                     text = stringResource(R.string.solution_save),
                     onClick = { viewModel.save { navController.popBackStack() } },
                     enabled = state.isValid,
                     modifier = Modifier.fillMaxWidth(),
                 )
-            } else {
-                CardFlat {
-                    Text(
-                        text = stringResource(R.string.solution_read_only),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
+    }
     }
 
     if (confirmArchive) {

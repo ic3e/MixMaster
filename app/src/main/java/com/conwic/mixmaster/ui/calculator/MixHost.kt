@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.prefs.MixRunStore
 import com.conwic.mixmaster.ui.LocalAppContainer
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 /**
  * Shows the mixing screen wherever the app happens to be, for as long as a run is under way.
@@ -28,6 +29,7 @@ fun MixingHost() {
     val progress = remember(current) { MixRunStore.progress(context) }
 
     val container = LocalAppContainer.current
+    val access = rememberAccess()
     MixingSession(
         run = current,
         progress = progress,
@@ -47,6 +49,7 @@ fun MixingHost() {
                 )
             }
         },
+        canRecord = access.site,
         onClose = { MixRunStore.clear(context) },
     )
 }

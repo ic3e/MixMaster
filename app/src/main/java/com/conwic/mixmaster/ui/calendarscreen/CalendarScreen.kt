@@ -61,6 +61,7 @@ import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.projects.labelRes
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 @Composable
 fun CalendarScreen(navController: NavHostController) {
@@ -72,6 +73,8 @@ fun CalendarScreen(navController: NavHostController) {
 
     // Non-null while the add/edit sheet is open; holds what the sheet starts from.
     var editing by remember { mutableStateOf<TaskDraft?>(null) }
+    // Tasks are site work: without that right they are read here, not added or changed.
+    val access = rememberAccess()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -156,7 +159,7 @@ fun CalendarScreen(navController: NavHostController) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 SectionLabel(text = formatDayWithWeek(state.selectedDate))
-                Text(
+                if (access.site) Text(
                     text = stringResource(R.string.action_add_task),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
@@ -208,7 +211,11 @@ fun CalendarScreen(navController: NavHostController) {
                     subtitle = item.subtitle.ifBlank { stringResource(R.string.task_none_project) },
                     done = item.task.isDone,
                     priority = item.task.priority,
-                    onEdit = { editing = item.task.toDraft() },
+                    onEdit = if (access.site) {
+                        { editing = item.task.toDraft() }
+                    } else {
+                        null
+                    },
                 )
             }
         }

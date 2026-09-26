@@ -23,6 +23,7 @@ data class ChipOption(val label: String, val selected: Boolean, val onClick: () 
 
 @Composable
 fun ChipRow(options: List<ChipOption>, modifier: Modifier = Modifier) {
+    val readOnly = LocalReadOnly.current
     LazyRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -40,7 +41,7 @@ fun ChipRow(options: List<ChipOption>, modifier: Modifier = Modifier) {
                     .clip(ChipShape)
                     .background(bg)
                     .then(if (!option.selected) Modifier.border(1.dp, MaterialTheme.colorScheme.outline, ChipShape) else Modifier)
-                    .clickable { option.onClick() }
+                    .clickable(enabled = !readOnly) { option.onClick() }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
         }

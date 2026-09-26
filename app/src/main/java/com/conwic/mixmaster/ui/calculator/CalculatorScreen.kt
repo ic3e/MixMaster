@@ -99,6 +99,7 @@ import com.conwic.mixmaster.ui.components.onePack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.HorizontalDivider
 import com.conwic.mixmaster.ui.theme.FieldShape
+import com.conwic.mixmaster.ui.company.rememberAccess
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -142,6 +143,7 @@ fun CalculatorScreen(
     val state by viewModel.uiState.collectAsState()
     val showMixingReminders by viewModel.showMixingReminders.collectAsState()
     val mixesById by viewModel.mixesById.collectAsState()
+    val access = rememberAccess()
     val jobRooms by viewModel.jobRooms.collectAsState()
     var jobPickOpen by remember { mutableStateOf(false) }
     // Which job the figures on screen belong to: handed in by whoever opened the screen, or
@@ -990,11 +992,14 @@ fun CalculatorScreen(
 
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    GhostButton(
-                        text = stringResource(R.string.calc_log_usage),
-                        onClick = { viewModel.logUsage { loggedToast = true } },
-                        modifier = Modifier.weight(1f),
-                    )
+                    // Logging a job's rate is site work; without that right there is nothing to log.
+                    if (access.site) {
+                        GhostButton(
+                            text = stringResource(R.string.calc_log_usage),
+                            onClick = { viewModel.logUsage { loggedToast = true } },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                     PrimaryButton(
                         // Named for what it does, which is walk you over to the projects. It
                         // said "Save to project" and saved nothing: a coat gets onto a job from

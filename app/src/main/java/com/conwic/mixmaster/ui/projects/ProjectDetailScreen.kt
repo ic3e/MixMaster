@@ -195,7 +195,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 0 -> OverviewTab(data = data, onAddressClick = { addressSheetOpen = true })
                 1 -> TasksTab(
                     data = data,
-                    isEmployer = access.projects,
+                    canChange = access.site,
                     onToggle = viewModel::setTaskDone,
                     onSave = viewModel::saveTask,
                     onDelete = viewModel::deleteTask,
@@ -204,6 +204,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     data = data,
                     roomCoats = roomCoats,
                     isEmployer = access.projects,
+                    canRecord = access.site,
                     role = role,
                     onAddFloor = viewModel::addFloor,
                     onAddRoom = viewModel::addRoom,
@@ -246,7 +247,8 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     materials = materials,
                     siteMaterials = siteMaterials,
                     mixes = recordedMixes,
-                    isEmployer = access.projects,
+                    canRecord = access.site,
+                    canTakeStock = access.warehouse,
                     onRemoveMix = viewModel::removeRecordedMix,
                     onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
                 )

@@ -928,7 +928,6 @@
     <string name="co_home_title">Got an access code?</string>
     <string name="co_home_body">Connect to your company and this phone gets its products, recipes, projects and stock.</string>
     <string name="co_home_action">Enter access code</string>
-    <string name="co_not_yours">Your employer hasn’t given you this. Ask them to switch it on under Company → People.</string>
     <string name="co_server_title">Server</string>
     <string name="co_guide_open">How to set up a server</string>
     <string name="co_move_body">If the company ever needs to keep its data somewhere else — a new website, another Google account — set up the new server first, then move everything there from here. Every phone follows by itself; nobody needs a new code.</string>

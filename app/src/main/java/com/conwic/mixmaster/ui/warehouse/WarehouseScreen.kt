@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
 import com.conwic.mixmaster.ui.company.rememberAccess
 import androidx.compose.ui.text.style.TextAlign
 import com.conwic.mixmaster.data.prefs.StockCountStore
@@ -113,13 +112,10 @@ fun WarehouseScreen(navController: NavHostController) {
     var settingPack by remember { mutableStateOf<ProductStock?>(null) }
     val count = rememberStockCount()
     val context = LocalContext.current
-    // In a company the employer decides who changes the shelf. The buttons stay where they are,
-    // so the page reads the same for everybody; a tap that is not yours to make says why.
+    // In a company the employer decides who changes the shelf. Whoever may not sees the shelf
+    // as it stands, with nothing to press that would change it: buttons that only answered
+    // "not yours" were options that were never there.
     val access = rememberAccess()
-    val notYours = stringResource(R.string.co_not_yours)
-    val allowed: (Boolean, () -> Unit) -> Unit = { may, action ->
-        if (may) action() else Toast.makeText(context, notYours, Toast.LENGTH_SHORT).show()
-    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -131,12 +127,15 @@ fun WarehouseScreen(navController: NavHostController) {
     ) {
         item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineMedium) }
 
-        item {
-            StockCountCard(
-                count = count,
-                shelf = state.shelf,
-                onStart = { allowed(access.warehouse) { navController.navigate(Routes.STOCK_COUNT) } },
-            )
+        // The count, and its reminder, are for whoever looks after the shelf.
+        if (access.warehouse) {
+            item {
+                StockCountCard(
+                    count = count,
+                    shelf = state.shelf,
+                    onStart = { navController.navigate(Routes.STOCK_COUNT) },
+                )
+            }
         }
 
         val summary = count.summary
@@ -185,9 +184,9 @@ fun WarehouseScreen(navController: NavHostController) {
                             )
                             // Straight from the list to the order, with the amount filled in — it
                             // used to be the product's sheet first, then the button at its foot.
-                            ActionLink(
+                            if (access.warehouse) ActionLink(
                                 text = stringResource(R.string.wh_order_short),
-                                onClick = { allowed(access.warehouse) { ordering = item } },
+                                onClick = { ordering = item },
                                 color = OnAccentCard,
                                 modifier = Modifier.padding(start = 10.dp),
                             )
@@ -286,7 +285,9 @@ fun WarehouseScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f).padding(end = 8.dp),
                         )
-                        ActionLink(text = stringResource(R.string.pack_set), onClick = { allowed(access.catalogue) { settingPack = item } })
+                        if (access.catalogue) {
+                            ActionLink(text = stringResource(R.string.pack_set), onClick = { settingPack = item })
+                        }
                     }
                 }
             }
@@ -298,25 +299,20 @@ fun WarehouseScreen(navController: NavHostController) {
         StockSheet(
             item = item,
             deliveries = onTheWay[item.productId].orEmpty(),
+            canChange = access.warehouse,
             onDismiss = { detailId = null },
             onCount = {
-                allowed(access.warehouse) {
-                    detailId = null
-                    counting = item
-                }
+                detailId = null
+                counting = item
             },
-            onAdjust = { delta -> allowed(access.warehouse) { viewModel.adjustPacks(item.productId, delta) } },
+            onAdjust = { delta -> viewModel.adjustPacks(item.productId, delta) },
             onOrder = {
-                allowed(access.warehouse) {
-                    detailId = null
-                    ordering = item
-                }
+                detailId = null
+                ordering = item
             },
             onDelivery = { delivery ->
-                allowed(access.warehouse) {
-                    detailId = null
-                    askingAbout = delivery
-                }
+                detailId = null
+                askingAbout = delivery
             },
             onOpenProject = { projectId ->
                 detailId = null
@@ -401,6 +397,8 @@ fun WarehouseScreen(navController: NavHostController) {
 private fun StockSheet(
     item: ProductStock,
     deliveries: List<DeliveryEntity>,
+    /** Looks after the shelf: may count, nudge, order and answer for deliveries. Otherwise it is read. */
+    canChange: Boolean,
     onDismiss: () -> Unit,
     onCount: () -> Unit,
     onAdjust: (Int) -> Unit,
@@ -445,17 +443,22 @@ private fun StockSheet(
                 if (item.isKnownPack) {
                     // − / + for the everyday change — a bag taken to site, one found behind the
                     // door — without typing out a whole count for it.
-                    PackAdjustRow(
-                        label = stringResource(R.string.wh_full_packs),
-                        value = stringResource(
-                            R.string.wh_packs_and_amount,
-                            packCount(item.fullPacks, item.packType),
-                            amountText(item.packedAmount, item.packUnit),
-                        ),
-                        canLess = item.fullPacks > 0,
-                        onLess = { onAdjust(-1) },
-                        onMore = { onAdjust(1) },
+                    val fullPacks = stringResource(
+                        R.string.wh_packs_and_amount,
+                        packCount(item.fullPacks, item.packType),
+                        amountText(item.packedAmount, item.packUnit),
                     )
+                    if (canChange) {
+                        PackAdjustRow(
+                            label = stringResource(R.string.wh_full_packs),
+                            value = fullPacks,
+                            canLess = item.fullPacks > 0,
+                            onLess = { onAdjust(-1) },
+                            onMore = { onAdjust(1) },
+                        )
+                    } else {
+                        StockRow(label = stringResource(R.string.wh_full_packs), value = fullPacks)
+                    }
                     StockRow(
                         label = stringResource(R.string.wh_open_pack_row),
                         value = amountText(item.openAmount, item.packUnit),
@@ -536,7 +539,7 @@ private fun StockSheet(
                     CardFlat(
                         modifier = Modifier
                             .clip(CardShape)
-                            .clickable { onDelivery(delivery) },
+                            .clickable(enabled = canChange) { onDelivery(delivery) },
                     ) {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -599,16 +602,18 @@ private fun StockSheet(
                 )
             }
 
-            PrimaryButton(
-                text = stringResource(R.string.wh_count_stock),
-                onClick = onCount,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            GhostButton(
-                text = stringResource(R.string.wh_mark_ordered),
-                onClick = onOrder,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (canChange) {
+                PrimaryButton(
+                    text = stringResource(R.string.wh_count_stock),
+                    onClick = onCount,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GhostButton(
+                    text = stringResource(R.string.wh_mark_ordered),
+                    onClick = onOrder,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             GhostButton(
                 text = stringResource(R.string.wh_open_product),
                 onClick = onOpenProduct,

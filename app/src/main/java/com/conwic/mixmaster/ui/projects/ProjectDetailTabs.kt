@@ -168,7 +168,8 @@ private fun InfoRow(label: String, value: String) {
 @Composable
 fun TasksTab(
     data: ProjectDetailData,
-    isEmployer: Boolean,
+    /** May add, tick off and change tasks — the "mixes, notes and tasks" right, not the plans. */
+    canChange: Boolean,
     onToggle: (Long, Boolean) -> Unit,
     onSave: (TaskDraft) -> Unit,
     onDelete: (Long) -> Unit,
@@ -183,7 +184,7 @@ fun TasksTab(
         contentPadding = pagePadding(top = 6.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (isEmployer) {
+        if (canChange) {
             item {
                 GhostButton(
                     text = stringResource(R.string.action_add_task),
@@ -199,8 +200,16 @@ fun TasksTab(
                     subtitle = task.dueDate?.let { formatDueDate(it) } ?: stringResource(R.string.prj_no_due_date),
                     done = task.isDone,
                     priority = task.priority,
-                    onToggle = { onToggle(task.id, !task.isDone) },
-                    onEdit = { editing = task.toDraft() },
+                    onToggle = if (canChange) {
+                        { onToggle(task.id, !task.isDone) }
+                    } else {
+                        null
+                    },
+                    onEdit = if (canChange) {
+                        { editing = task.toDraft() }
+                    } else {
+                        null
+                    },
                 )
             }
         }
@@ -232,6 +241,8 @@ fun LayoutTab(
     data: ProjectDetailData,
     roomCoats: Map<Long, List<CoatMix>>,
     isEmployer: Boolean,
+    /** May add and take away notes and photos — site work, which is a right of its own. */
+    canRecord: Boolean,
     role: Role,
     onAddFloor: (String) -> Unit,
     onAddRoom: (Long, String, Double) -> Unit,
@@ -513,12 +524,14 @@ fun LayoutTab(
         item {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 SectionLabel(text = stringResource(R.string.prj_photos, data.photos.size))
-                ActionLink(
-                    text = stringResource(R.string.prj_add_photo),
-                    onClick = {
-                        photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
-                )
+                if (canRecord) {
+                    ActionLink(
+                        text = stringResource(R.string.prj_add_photo),
+                        onClick = {
+                            photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
+                    )
+                }
             }
         }
         photoProblem?.let { problem ->
@@ -550,7 +563,7 @@ fun LayoutTab(
         item {
             SectionLabel(text = stringResource(R.string.prj_notes, data.notes.size))
         }
-        item {
+        if (canRecord) item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -599,7 +612,7 @@ fun LayoutTab(
                     )
                     // A note was write-only: a wrong one, or one meant for another job, stayed
                     // on the record for good.
-                    if (isEmployer) {
+                    if (canRecord) {
                         ActionLink(
                             text = stringResource(R.string.action_remove),
                             onClick = { removingNote = note },
@@ -742,7 +755,7 @@ fun LayoutTab(
     openPhoto?.let { photo ->
         PhotoViewer(
             photo = photo,
-            canRemove = isEmployer,
+            canRemove = canRecord,
             onRemove = {
                 onRemovePhoto(photo)
                 openPhoto = null
@@ -1238,7 +1251,10 @@ fun MaterialsTab(
     siteMaterials: List<ProjectMaterial>,
     /** What has actually been mixed on this job, newest first. */
     mixes: List<RecordedMix>,
-    isEmployer: Boolean,
+    /** May take away a recorded mix — site work. */
+    canRecord: Boolean,
+    /** May take the job's material off the shelf — the warehouse's right. */
+    canTakeStock: Boolean,
     onRemoveMix: (Long) -> Unit,
     onTakeOutOfStock: () -> Unit,
 ) {
@@ -1377,7 +1393,7 @@ fun MaterialsTab(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        if (isEmployer) {
+                        if (canRecord) {
                             ActionLink(
                                 text = stringResource(R.string.action_remove),
                                 onClick = { removingMix = mix },
@@ -1455,11 +1471,13 @@ fun MaterialsTab(
             item {
                 val issuedAt = data.project?.materialsIssuedAt
                 if (issuedAt == null) {
-                    PrimaryButton(
-                        text = stringResource(R.string.prj_take_out_of_stock),
-                        onClick = onTakeOutOfStock,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    if (canTakeStock) {
+                        PrimaryButton(
+                            text = stringResource(R.string.prj_take_out_of_stock),
+                            onClick = onTakeOutOfStock,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 } else {
                     Text(
                         text = stringResource(
