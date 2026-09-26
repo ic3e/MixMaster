@@ -1,8 +1,8 @@
 {
-  "versionCode": 178,
-  "versionName": "1.0.178",
-  "apk": "MixMaster_1.0.178.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.178.apk",
+  "versionCode": 179,
+  "versionName": "1.0.179",
+  "apk": "MixMaster_1.0.179.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.179.apk",
   "sizeBytes": 20516551,
-  "notes": "Show a product with no brand under \"Other\", at the end of the list"
+  "notes": "Fill the search field white, and put the bottom bar away while typing"
 }
