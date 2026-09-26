@@ -1,8 +1,8 @@
 {
-  "versionCode": 149,
-  "versionName": "1.0.149",
-  "apk": "MixMaster_1.0.149.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.149.apk",
-  "sizeBytes": 20896783,
-  "notes": "Water comes from the tap, not the shed"
+  "versionCode": 150,
+  "versionName": "1.0.150",
+  "apk": "MixMaster_1.0.150.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.150.apk",
+  "sizeBytes": 20896787,
+  "notes": "Count: a tick can be taken back, and brands head their groups in full ink"
 }
