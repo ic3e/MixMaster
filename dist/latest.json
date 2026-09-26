@@ -1,8 +1,8 @@
 {
-  "versionCode": 157,
-  "versionName": "1.0.157",
-  "apk": "MixMaster_1.0.157.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.157.apk",
+  "versionCode": 158,
+  "versionName": "1.0.158",
+  "apk": "MixMaster_1.0.158.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.158.apk",
   "sizeBytes": 20295467,
-  "notes": "Clear out what nothing uses any more"
+  "notes": "Clear the compiler's four warnings"
 }
