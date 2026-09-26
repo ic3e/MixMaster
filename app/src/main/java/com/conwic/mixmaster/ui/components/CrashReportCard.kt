@@ -3,6 +3,8 @@ package com.conwic.mixmaster.ui.components
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -52,10 +54,24 @@ fun CrashReportCard(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(top = 8.dp),
         )
         val copyLabel = stringResource(R.string.crash_copy)
+        val copied = stringResource(R.string.crash_copied)
+        val chooser = stringResource(R.string.crash_send)
+        // Straight into a message: on a phone that is how a report reaches anyone, and a copy
+        // needs somewhere to be pasted into first.
         PrimaryButton(
-            text = copyLabel,
-            onClick = { copyToClipboard(context, copyLabel, trace) },
+            text = stringResource(R.string.crash_send),
+            onClick = { send(context, chooser, trace) },
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        )
+        GhostButton(
+            text = copyLabel,
+            onClick = {
+                // The copy happened before too; nothing said so, and it looked like the button did nothing.
+                if (copyToClipboard(context, copyLabel, trace)) {
+                    Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
         GhostButton(
             text = stringResource(R.string.action_close),
@@ -68,9 +84,12 @@ fun CrashReportCard(modifier: Modifier = Modifier) {
     }
 }
 
-private fun copyToClipboard(context: Context, label: String, text: String) {
-    runCatching {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
-    }
+private fun copyToClipboard(context: Context, label: String, text: String): Boolean = runCatching {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
+}.isSuccess
+
+private fun send(context: Context, chooser: String, text: String) {
+    val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+    runCatching { context.startActivity(Intent.createChooser(intent, chooser)) }
 }

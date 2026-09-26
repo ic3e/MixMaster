@@ -231,7 +231,9 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
-        if (state.role == Role.EMPLOYER) {
+        // In a company the Company screen's People are the crew — who is in, and what each may do.
+        // Two lists of people side by side, only one of which means anything, was a puzzle.
+        if (state.role == Role.EMPLOYER && company == null) {
             item {
                 Column {
                     Row(

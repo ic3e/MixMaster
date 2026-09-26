@@ -986,4 +986,7 @@
     <string name="co_err_google_old_version">The server doesn’t have the MixMaster code in it yet — it was deployed before the code was pasted or saved. Save the code, then Deploy → Manage deployments → pencil → Version: New version → Deploy.</string>
     <string name="co_err_google_authorize">Google hasn’t been given permission yet. In the script, pick “prepare”, press Run and allow it (step 5 of the guide).</string>
     <string name="co_err_not_found">Nothing at that address. Check that the “mixmaster” folder is in the website’s main folder and the address matches.</string>
+    <string name="crash_copied">Copied. Paste it into a message to the developer.</string>
+    <string name="crash_send">Send the details</string>
+    <string name="co_copied">Copied. Paste it where the code is asked for.</string>
 </resources>

@@ -954,4 +954,7 @@
     <string name="co_err_google_old_version">Palvelimella ei ole vielä MixMaster-koodia — se julkaistiin ennen kuin koodi liitettiin tai tallennettiin. Tallenna koodi, sitten Deploy → Manage deployments → kynä → Version: New version → Deploy.</string>
     <string name="co_err_google_authorize">Googlelle ei ole vielä annettu lupaa. Valitse skriptissä ”prepare”, paina Run ja salli (ohjeen vaihe 5).</string>
     <string name="co_err_not_found">Osoitteessa ei ole mitään. Tarkista, että ”mixmaster”-kansio on verkkosivun pääkansiossa ja osoite täsmää.</string>
+    <string name="crash_copied">Kopioitu. Liitä se viestiin kehittäjälle.</string>
+    <string name="crash_send">Lähetä tiedot</string>
+    <string name="co_copied">Kopioitu. Liitä se kohtaan, jossa koodia kysytään.</string>
 </resources>

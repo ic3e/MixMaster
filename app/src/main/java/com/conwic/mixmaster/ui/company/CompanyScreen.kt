@@ -2,6 +2,7 @@ package com.conwic.mixmaster.ui.company
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -584,6 +585,7 @@ private fun FreshCodeCard(person: Person, code: AccessCode, companyName: String,
     val clipboard = LocalClipboardManager.current
     val message = stringResource(R.string.co_share_text, person.name, companyName, code.shown)
     val chooser = stringResource(R.string.co_share_chooser)
+    val copied = stringResource(R.string.co_copied)
     CardFlat(edge = MaterialTheme.colorScheme.primary) {
         Text(
             text = stringResource(R.string.co_code_for, person.name),
@@ -608,7 +610,12 @@ private fun FreshCodeCard(person: Person, code: AccessCode, companyName: String,
             )
             GhostButton(
                 text = stringResource(R.string.co_copy),
-                onClick = { clipboard.setText(AnnotatedString(code.shown)) },
+                onClick = {
+                    clipboard.setText(AnnotatedString(code.shown))
+                    // Copying makes no sound and shows nothing by itself; without this the button
+                    // looked as if it did nothing.
+                    Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
+                },
                 modifier = Modifier.weight(1f),
             )
         }
