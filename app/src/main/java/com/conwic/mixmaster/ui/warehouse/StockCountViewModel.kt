@@ -63,6 +63,13 @@ class StockCountViewModel(
     /** As the app had it: written back all the same, which dates the count. */
     fun same(item: ProductStock) = save(item.productId, item.fullPacks, item.openAmount)
 
+    /**
+     * Takes the tick off again. Only the tick: the figures stay as they are on the shelf, so a
+     * tap that landed on the wrong row costs nothing, and a row changed and then un-ticked keeps
+     * what was typed into it.
+     */
+    fun uncount(productId: Long) = StockCountStore.unmarkCounted(app, productId)
+
     /** Nothing counted, nothing to record: the count is dropped and the last one still stands. */
     fun stop(onDone: () -> Unit) {
         StockCountStore.cancel(app)

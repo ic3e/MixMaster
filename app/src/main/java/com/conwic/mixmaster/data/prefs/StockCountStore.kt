@@ -194,6 +194,11 @@ object StockCountStore {
         if (!it.inProgress || productId in it.counted) it else it.copy(counted = it.counted + productId)
     }
 
+    /** A tick taken back — tapped by mistake, or the rack wants a second look. */
+    fun unmarkCounted(context: Context, productId: Long) = update(context) {
+        if (productId !in it.counted) it else it.copy(counted = it.counted - productId)
+    }
+
     /**
      * Closes the count and keeps what it found. [shelf] is every product as it now stands.
      *

@@ -133,7 +133,15 @@ fun StockCountScreen(navController: NavHostController) {
             }
 
             list.groupBy { it.brand.ifBlank { otherBrand } }.forEach { (brand, products) ->
-                item(key = "brand:$brand") { SectionLabel(text = brand, modifier = Modifier.padding(top = 6.dp)) }
+                item(key = "brand:$brand") {
+                    // In full ink, not the faint grey of other section labels: here the brand is
+                    // the signpost for finding your place along the racks.
+                    SectionLabel(
+                        text = brand,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
                 items(products, key = { it.productId }) { item ->
                     val draft = draftOf(item)
                     CountRow(
@@ -142,9 +150,15 @@ fun StockCountScreen(navController: NavHostController) {
                         draft = draft,
                         onPacks = { saveDraft(item, draft.copy(packs = it)) },
                         onOpen = { saveDraft(item, draft.copy(open = it)) },
-                        onSame = {
-                            drafts.remove(item.productId)
-                            viewModel.same(item)
+                        onTick = {
+                            // Both ways: a green tick tapped again comes off, so a slip of the
+                            // thumb while scrolling is undone by the same tap that made it.
+                            if (item.productId in count.counted) {
+                                viewModel.uncount(item.productId)
+                            } else {
+                                drafts.remove(item.productId)
+                                viewModel.same(item)
+                            }
                         },
                     )
                 }
@@ -227,7 +241,7 @@ private fun CountRow(
     draft: CountDraft,
     onPacks: (String) -> Unit,
     onOpen: (String) -> Unit,
-    onSame: () -> Unit,
+    onTick: () -> Unit,
 ) {
     // The green edge is what says "done" from across the list, without reading a word of it.
     CardFlat(edge = if (counted) Ok else null) {
@@ -242,7 +256,7 @@ private fun CountRow(
                 },
                 modifier = Modifier.weight(1f).padding(end = 10.dp),
             )
-            SameButton(counted = counted, onClick = onSame)
+            SameButton(counted = counted, onClick = onTick)
         }
         if (item.isKnownPack) {
             Row(
@@ -285,7 +299,7 @@ private fun CountLabel(text: String) {
     )
 }
 
-/** The tick: "same as the app has it". Filled in once the row has been gone through. */
+/** The tick: "same as the app has it". Filled in once the row has been gone through; tapped again, it comes off. */
 @Composable
 private fun SameButton(counted: Boolean, onClick: () -> Unit) {
     val ink = if (counted) Color.White else MaterialTheme.colorScheme.primary
