@@ -1,5 +1,11 @@
 package com.conwic.mixmaster.ui.products
 
+import kotlin.math.abs
+import com.conwic.mixmaster.domain.toNumberOrNull
+import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.ui.components.FieldLabel
+import com.conwic.mixmaster.ui.components.ChipOption
+import com.conwic.mixmaster.ui.components.ChipRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
@@ -169,6 +175,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         ?: stringResource(R.string.product_density_hint),
                     modifier = Modifier.padding(top = 10.dp),
                 )
+                DensityGuide(current = state.densityText, onPick = viewModel::setDensity)
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.outlineVariant,
                     modifier = Modifier.padding(vertical = 12.dp),
@@ -286,5 +293,46 @@ private fun SheetField(
                 )
             }
         }
+    }
+}
+
+/**
+ * What a litre of the common kinds of thing weighs, one tap from the density box.
+ *
+ * A density nobody had to hand was left blank, and a blank one leaves the coat thickness and
+ * "does this batch fit the bucket" unworked. For anything dry the figure wanted is the grains'
+ * own: mixed, the liquid takes the place of the air between them, so what a loose bucketful
+ * weighs — the "bulk density" a datasheet gives for a powder — would make a coat half again as
+ * thick as it lies. Sand and gravel are the same stone, so they share one figure.
+ */
+@Composable
+private fun DensityGuide(current: String, onPick: (String) -> Unit) {
+    val typed = current.toNumberOrNull()
+    val kinds = listOf(
+        R.string.density_kind_liquid to 1.05,
+        R.string.density_kind_powder to 2.7,
+        R.string.density_kind_sand to 2.65,
+        R.string.density_kind_gravel to 2.65,
+    )
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        FieldLabel(text = stringResource(R.string.product_density_typical))
+        ChipRow(
+            options = kinds.map { (name, kgPerL) ->
+                val figure = formatDecimal(kgPerL, 2)
+                ChipOption(
+                    label = "${stringResource(name)} · $figure",
+                    // Sand and gravel share a figure, so neither lights up: from the number
+                    // alone there is no telling which of the two was meant.
+                    selected = typed != null && abs(typed - kgPerL) < 0.001 && kinds.count { it.second == kgPerL } == 1,
+                    onClick = { onPick(figure) },
+                )
+            },
+        )
+        Text(
+            text = stringResource(R.string.product_density_grains),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 6.dp, start = 4.dp),
+        )
     }
 }

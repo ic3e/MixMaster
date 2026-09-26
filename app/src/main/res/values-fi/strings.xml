@@ -278,6 +278,12 @@
     <string name="product_parts">Osia</string>
     <string name="product_density">Tiheys (kg/L)</string>
     <string name="product_density_hint">Paljonko yksi litra painaa</string>
+    <string name="product_density_typical">Tyypillisiä arvoja — napauta</string>
+    <string name="density_kind_liquid">Neste</string>
+    <string name="density_kind_powder">Jauhe</string>
+    <string name="density_kind_sand">Hiekka</string>
+    <string name="density_kind_gravel">Sora 4–8 mm</string>
+    <string name="product_density_grains">Jauheella, hiekalla ja soralla se on rakeiden oma paino, ei löysän ämpärillisen. Seoksessa neste täyttää rakeiden välisen ilman — tuotetiedon ”irtotiheys” näyttäisi jokaisen kerroksen aivan liian paksuna. Jos tuotetieto kertoo rakeiden oman tiheyden, se on näitä parempi.</string>
     <string name="product_pack_size">Pakkauskoko</string>
     <string name="product_container">Pakkaus</string>
     <string name="dosing_per_coat">Kerrosta kohti</string>

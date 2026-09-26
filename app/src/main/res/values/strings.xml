@@ -295,6 +295,12 @@
     <string name="product_parts">Parts</string>
     <string name="product_density">Density (kg/L)</string>
     <string name="product_density_hint">What one litre weighs</string>
+    <string name="product_density_typical">Typical figures — tap one</string>
+    <string name="density_kind_liquid">Liquid</string>
+    <string name="density_kind_powder">Powder</string>
+    <string name="density_kind_sand">Sand</string>
+    <string name="density_kind_gravel">Gravel 4–8 mm</string>
+    <string name="product_density_grains">For powder, sand and gravel it is what the grains themselves weigh, not a loose bucketful. In a mix the liquid fills the air between them — a datasheet\'s \"bulk density\" would make every coat look far too thick. Where a datasheet gives the grains\' own density, that beats these.</string>
     <string name="product_pack_size">Pack size</string>
     <string name="product_container">Container</string>
     <string name="dosing_per_coat">Per coat</string>

@@ -278,6 +278,12 @@
     <string name="product_parts">Osi</string>
     <string name="product_density">Tihedus (kg/L)</string>
     <string name="product_density_hint">Kui palju kaalub üks liiter</string>
+    <string name="product_density_typical">Tavalised väärtused — puuduta</string>
+    <string name="density_kind_liquid">Vedelik</string>
+    <string name="density_kind_powder">Pulber</string>
+    <string name="density_kind_sand">Liiv</string>
+    <string name="density_kind_gravel">Kruus 4–8 mm</string>
+    <string name="product_density_grains">Pulbri, liiva ja kruusa puhul on see terade endi kaal, mitte lahtise ämbritäie oma. Segus täidab vedelik terade vahelise õhu — tehnilise lehe „puistetihedus“ näitaks iga kihti liiga paksuna. Kui tehniline leht annab terade enda tiheduse, on see nendest parem.</string>
     <string name="product_pack_size">Pakendi suurus</string>
     <string name="product_container">Pakend</string>
     <string name="dosing_per_coat">Kihi kohta</string>
