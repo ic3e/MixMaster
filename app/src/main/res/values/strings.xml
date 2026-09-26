@@ -990,4 +990,9 @@
     <string name="crash_send">Send the details</string>
     <string name="co_copied">Copied. Paste it where the code is asked for.</string>
     <string name="solution_read_only">You can read this recipe, but changing recipes is switched off for you. The employer can switch it on under Company → People.</string>
+    <string name="solution_coat_remove_title">Remove %1$s?</string>
+    <string name="solution_coat_remove_body">It is taken off this recipe. The other coats stay as they are, and a room already laid with it keeps it.</string>
+    <string name="solution_coats_dedupe">Remove %1$d duplicate coats</string>
+    <string name="solution_coats_dedupe_title">Remove the duplicates?</string>
+    <string name="solution_coats_dedupe_body">%1$d coats have the same name and the same recipe as another coat. One of each is kept and the copies are removed.</string>
 </resources>

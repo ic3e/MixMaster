@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -29,6 +33,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.db.entity.SolutionEntity
 import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.ui.LocalAppContainer
@@ -75,6 +80,9 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
     if (!state.isLoaded) return
 
     var confirmArchive by remember { mutableStateOf(false) }
+    // The coat waiting on a yes before it is taken off, and whether the copies are.
+    var removingCoat by remember { mutableStateOf<SolutionEntity?>(null) }
+    var confirmDedupe by remember { mutableStateOf(false) }
     // The part number waiting on an answer, so a mis-tap on a scrolling form does not
     // quietly take a component out of the mix.
     var confirmRemoveLine by remember { mutableStateOf<Int?>(null) }
@@ -164,9 +172,10 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                         }
                                     },
                                 horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
-                                    modifier = Modifier.weight(1f, fill = false),
+                                    modifier = Modifier.weight(1f),
                                     text = coat.coatName.ifBlank { coat.name },
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (isThisOne) {
@@ -180,7 +189,29 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                // Any coat but the first (which is the mix itself, and goes with the
+                                // bin at the top) and the one open here.
+                                if (canChange && !isThisOne && coat.parentId != 0L) {
+                                    IconButton(onClick = { removingCoat = coat }, modifier = Modifier.size(36.dp)) {
+                                        Icon(
+                                            Icons.Filled.Close,
+                                            contentDescription = stringResource(R.string.action_remove),
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    }
+                                } else if (canChange) {
+                                    Spacer(modifier = Modifier.size(36.dp))
+                                }
                             }
+                        }
+                        if (canChange && state.duplicateCoatIds.isNotEmpty()) {
+                            ActionLink(
+                                text = stringResource(R.string.solution_coats_dedupe, state.duplicateCoatIds.size),
+                                onClick = { confirmDedupe = true },
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
                         }
                     }
                     if (state.coats.size > 1 || state.coatName.isNotBlank()) {
@@ -474,6 +505,33 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                 viewModel.archive { navController.popBackStack() }
             },
             onDismiss = { confirmArchive = false },
+        )
+    }
+
+    val coatToGo = removingCoat
+    if (coatToGo != null) {
+        ConfirmDialog(
+            title = stringResource(R.string.solution_coat_remove_title, coatToGo.coatName.ifBlank { coatToGo.name }),
+            message = stringResource(R.string.solution_coat_remove_body),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                removingCoat = null
+                viewModel.removeCoat(coatToGo.id)
+            },
+            onDismiss = { removingCoat = null },
+        )
+    }
+
+    if (confirmDedupe) {
+        ConfirmDialog(
+            title = stringResource(R.string.solution_coats_dedupe_title),
+            message = stringResource(R.string.solution_coats_dedupe_body, state.duplicateCoatIds.size),
+            confirmText = stringResource(R.string.action_remove),
+            onConfirm = {
+                confirmDedupe = false
+                viewModel.removeDuplicateCoats()
+            },
+            onDismiss = { confirmDedupe = false },
         )
     }
 

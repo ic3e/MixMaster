@@ -958,4 +958,9 @@
     <string name="crash_send">Lähetä tiedot</string>
     <string name="co_copied">Kopioitu. Liitä se kohtaan, jossa koodia kysytään.</string>
     <string name="solution_read_only">Voit lukea tämän reseptin, mutta reseptien muuttaminen on sinulta pois päältä. Työnantaja voi kytkeä sen päälle: Yritys → Henkilöt.</string>
+    <string name="solution_coat_remove_title">Poistetaanko %1$s?</string>
+    <string name="solution_coat_remove_body">Se poistetaan reseptistä. Muut kerrokset pysyvät ennallaan, ja huone, johon se on jo levitetty, säilyttää sen.</string>
+    <string name="solution_coats_dedupe">Poista %1$d kaksoiskerrosta</string>
+    <string name="solution_coats_dedupe_title">Poistetaanko kaksoiskerrokset?</string>
+    <string name="solution_coats_dedupe_body">%1$d kerroksella on sama nimi ja sama resepti kuin toisella kerroksella. Jokaisesta säilytetään yksi, ja kopiot poistetaan.</string>
 </resources>

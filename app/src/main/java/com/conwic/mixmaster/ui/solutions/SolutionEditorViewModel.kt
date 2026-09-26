@@ -73,6 +73,8 @@ data class SolutionFormState(
     val coatName: String = "",
     /** Every coat of this mix, first coat first — this one included. */
     val coats: List<SolutionEntity> = emptyList(),
+    /** Coats that are a copy of another one — same name, same recipe — and can go. */
+    val duplicateCoatIds: List<Long> = emptyList(),
     val products: List<ProductEntity> = emptyList(),
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
@@ -142,9 +144,63 @@ class SolutionEditorViewModel(
      * arrive every half minute, the list came and went under the thumb.
      */
     private fun withCoats(state: SolutionFormState): SolutionFormState {
-        if (state.solutionId == 0L) return state.copy(coats = emptyList())
+        if (state.solutionId == 0L) return state.copy(coats = emptyList(), duplicateCoatIds = emptyList())
         val family = if (state.parentId > 0L) state.parentId else state.solutionId
-        return state.copy(coats = allSolutions.filter { it.familyId == family }.sortedBy { it.id })
+        val coats = allSolutions.filter { it.familyId == family }.sortedBy { it.id }
+        return state.copy(coats = coats, duplicateCoatIds = copiesIn(coats, state.solutionId) { coatKey(it) })
+    }
+
+    /** What makes two coats the same coat: the name, and everything the recipe says. */
+    private fun coatKey(coat: SolutionEntity): String = listOf(
+        coat.coatName.trim().lowercase(), coat.ratioLabel, coat.dosingMode, coat.minDoseGramsPerM2,
+        coat.maxDoseGramsPerM2, coat.doseUnitLabel, coat.mixSeconds, coat.potLifeMinutes,
+    ).joinToString("|")
+
+    /**
+     * Every coat beyond the first of each set of identical ones. The one kept is the mix's first
+     * coat when it is among them — the others hang off it — then the one open on screen, then
+     * the oldest.
+     */
+    private fun copiesIn(coats: List<SolutionEntity>, openId: Long, key: (SolutionEntity) -> String): List<Long> =
+        coats.groupBy(key).values.flatMap { same ->
+            if (same.size < 2) {
+                emptyList()
+            } else {
+                val kept = same.firstOrNull { it.parentId == 0L }
+                    ?: same.firstOrNull { it.id == openId }
+                    ?: same.minBy { it.id }
+                same.filter { it.id != kept.id }.map { it.id }
+            }
+        }
+
+    /**
+     * Takes one coat off the mix. Archived like a deleted recipe rather than wiped, so a room
+     * already laid with it keeps what it was laid with. The first coat is the mix itself, and
+     * goes with the bin at the top.
+     */
+    fun removeCoat(id: Long) {
+        val coat = _formState.value.coats.firstOrNull { it.id == id } ?: return
+        if (coat.parentId == 0L) return
+        viewModelScope.launch { runCatching { solutionRepository.archive(coat) } }
+    }
+
+    /**
+     * Takes away every copy, keeping one of each. Checked again against the lines themselves
+     * before anything goes, so two coats that only look alike on the list are both kept.
+     */
+    fun removeDuplicateCoats() {
+        val state = _formState.value
+        viewModelScope.launch {
+            runCatching {
+                val lines = solutionRepository.getAllWithLines().associate { withLines ->
+                    withLines.solution.id to withLines.lines.sortedBy { it.sortOrder }.joinToString(";") {
+                        "${it.productId}:${it.role}:${it.ratioParts}:${it.percentOfRest}:${it.amountPerKg}:${it.amountUnit}"
+                    }
+                }
+                val copies = copiesIn(state.coats, state.solutionId) { coatKey(it) + "|" + lines[it.id].orEmpty() }
+                state.coats.filter { it.id in copies }.forEach { solutionRepository.archive(it) }
+            }
+        }
     }
 
     init {

@@ -958,4 +958,9 @@
     <string name="crash_send">Saada andmed</string>
     <string name="co_copied">Kopeeritud. Kleebi see sinna, kus koodi küsitakse.</string>
     <string name="solution_read_only">Seda retsepti saad lugeda, aga retseptide muutmine on sinu jaoks välja lülitatud. Tööandja saab selle sisse lülitada: Ettevõte → Inimesed.</string>
+    <string name="solution_coat_remove_title">Eemaldad kihi %1$s?</string>
+    <string name="solution_coat_remove_body">See võetakse retseptist ära. Teised kihid jäävad nagu on ja ruum, kuhu see juba pandi, jääb sellega.</string>
+    <string name="solution_coats_dedupe">Eemalda %1$d topeltkihti</string>
+    <string name="solution_coats_dedupe_title">Eemaldad topeltkihid?</string>
+    <string name="solution_coats_dedupe_body">%1$d kihil on sama nimi ja sama retsept kui mõnel teisel kihil. Igast jääb alles üks, koopiad eemaldatakse.</string>
 </resources>
