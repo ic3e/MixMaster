@@ -1,8 +1,8 @@
 {
-  "versionCode": 191,
-  "versionName": "1.0.191",
-  "apk": "MixMaster_1.0.191.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.191.apk",
-  "sizeBytes": 20361193,
-  "notes": "Typical densities one tap from the density box"
+  "versionCode": 192,
+  "versionName": "1.0.192",
+  "apk": "MixMaster_1.0.192.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.192.apk",
+  "sizeBytes": 20378141,
+  "notes": "Names already in use come up while typing, and win on save"
 }
