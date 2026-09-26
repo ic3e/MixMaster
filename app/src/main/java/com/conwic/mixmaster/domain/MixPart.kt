@@ -106,7 +106,6 @@ data class CoatMix(
     /** Whose system this coat is part of: a change of brand is a change of system. */
     val brand: String = "",
     val doseGramsPerM2: Double,
-    val doseUnitLabel: String,
     val parts: List<MixPart>,
     val result: MixResult,
     /** What this coat is tinted with, worked out for the room. */

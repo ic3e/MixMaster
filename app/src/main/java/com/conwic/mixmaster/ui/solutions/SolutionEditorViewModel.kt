@@ -332,7 +332,6 @@ class SolutionEditorViewModel(
     fun setDosingMode(mode: DosingMode) = _formState.update { it.copy(dosingMode = mode) }
     fun setMinDose(value: String) = _formState.update { it.copy(minDoseText = value) }
     fun setMaxDose(value: String) = _formState.update { it.copy(maxDoseText = value) }
-    fun setDoseUnitLabel(value: String) = _formState.update { it.copy(doseUnitLabel = value) }
     fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
     fun setCoatName(value: String) = _formState.update { it.copy(coatName = value) }
     fun setMixMinutes(value: String) = _formState.update { it.copy(mixMinutesText = value) }
@@ -546,7 +545,6 @@ class SolutionEditorViewModel(
                 after = Shown(res = dosingLabel(now.dosingMode)),
             )
         }
-        typed(R.string.product_per_what, saved.doseUnitLabel, now.doseUnitLabel)
         if (savedAs.mixSeconds != nowAs.mixSeconds) {
             found += FormChange(
                 R.string.solution_mix_time,

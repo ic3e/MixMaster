@@ -258,8 +258,6 @@
     <string name="product_range_hint">Kui tehniline leht annab vahemiku asemel ühe numbri, pane see mõlemasse lahtrisse.</string>
     <string name="product_min">Min</string>
     <string name="product_max">Max</string>
-    <string name="product_per_what">Mille kohta</string>
-    <string name="product_per_what_hint">nt kihi kohta, mm kohta</string>
     <string name="product_notes">Märkmed</string>
     <string name="product_datasheet_link">Tehnilise lehe link (valikuline)</string>
     <!-- Toote taga olev dokumentatsioon: ohutuskaart ja tehniline kaart. -->

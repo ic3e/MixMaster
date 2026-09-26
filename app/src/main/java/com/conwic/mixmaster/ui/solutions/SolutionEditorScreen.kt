@@ -470,13 +470,6 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     },
                     modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 )
-                FormTextField(
-                    value = state.doseUnitLabel,
-                    onValueChange = viewModel::setDoseUnitLabel,
-                    label = stringResource(R.string.product_per_what),
-                    hint = stringResource(R.string.product_per_what_hint),
-                    modifier = Modifier.padding(top = 10.dp),
-                )
                 // The line every datasheet carries and nobody times. Put it here and the mixer
                 // can be counted down instead of stopped when the lumps go.
                 FormTextField(

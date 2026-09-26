@@ -239,7 +239,6 @@ class ProjectDetailViewModel(
                 title = mix.solution.coatLabel,
                 brand = mix.solution.brand,
                 doseGramsPerM2 = dose,
-                doseUnitLabel = mix.solution.doseUnitLabel,
                 parts = mix.parts,
                 result = result,
                 colour = colourAddOn(layer, mix.parts, productsById)
@@ -263,7 +262,6 @@ class ProjectDetailViewModel(
             title = product.name,
             brand = product.brand,
             doseGramsPerM2 = layer.doseGramsPerM2,
-            doseUnitLabel = "",
             parts = parts,
             result = MixCalculator.compute(parts, areaM2, layer.quantity, layer.doseGramsPerM2),
         )
