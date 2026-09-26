@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.shareIn
 
 data class CalculatorUiState(
     val selectedSolution: SolutionMix? = null,
@@ -155,14 +156,24 @@ class CalculatorViewModel(
         }
     }
 
-    /** Every recipe with its lines resolved to the products they name. */
+    /**
+     * Every recipe with its lines resolved to the products they name.
+     *
+     * Shared, because the coat picker reads it as well as the sums: two collectors of a cold flow
+     * would run both queries twice. Replayed rather than started empty, so the sums still wait
+     * for the real list instead of working once from nothing.
+     */
     private val mixes = combine(
         solutionRepository.observeAllWithLines(),
         productRepository.observeAll(),
     ) { solutions, products ->
         val productsById = products.associateBy { it.id }
         solutions.associate { it.solution.id to solutionMix(it.solution, it.lines, productsById) }
-    }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    /** The same, by recipe, for saying what is in each coat of the mix on screen. */
+    val mixesById: StateFlow<Map<Long, SolutionMix>> =
+        mixes.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /**
      * The colour each coat on a project is tinted with.

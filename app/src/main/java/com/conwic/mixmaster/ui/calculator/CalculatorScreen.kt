@@ -96,6 +96,9 @@ import com.conwic.mixmaster.ui.components.packLabel
 import com.conwic.mixmaster.domain.batchPartIndex
 import com.conwic.mixmaster.ui.components.byThePack
 import com.conwic.mixmaster.ui.components.onePack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.HorizontalDivider
+import com.conwic.mixmaster.ui.theme.FieldShape
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -138,6 +141,7 @@ fun CalculatorScreen(
     val allSolutions by viewModel.solutions.collectAsState()
     val state by viewModel.uiState.collectAsState()
     val showMixingReminders by viewModel.showMixingReminders.collectAsState()
+    val mixesById by viewModel.mixesById.collectAsState()
     val jobRooms by viewModel.jobRooms.collectAsState()
     var jobPickOpen by remember { mutableStateOf(false) }
     // Which job the figures on screen belong to: handed in by whoever opened the screen, or
@@ -236,19 +240,30 @@ fun CalculatorScreen(
         }
 
         // Which coat is being mixed. Only asked where a mix has more than one, because most
-        // do not, and a question with one answer is a question not worth asking.
+        // do not, and a question with one answer is a question not worth asking. Each says what
+        // goes in it: the coats of one mix often differ only by the water, and "Coat 1" and
+        // "Coat 2" alone left that to memory.
         if (coats.size > 1) {
             item {
-                ChipRow(
-                    options = coats.map { coat ->
-                        ChipOption(
-                            label = coat.coatName.ifBlank { coat.name },
+                val shareOfRest = stringResource(R.string.solution_line_percent)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    coats.forEach { coat ->
+                        val parts = mixesById[coat.id]?.parts.orEmpty()
+                        CoatChoice(
+                            name = coat.coatName.ifBlank { coat.name },
+                            ratio = coat.ratioLabel,
+                            parts = parts.map { part ->
+                                part.label to if (part.percentOfRest > 0.0) {
+                                    formatDecimal(part.percentOfRest, 2) + shareOfRest
+                                } else {
+                                    formatDecimal(part.ratioParts, 2)
+                                }
+                            },
                             selected = coat.id == chosen?.id,
                             onClick = { viewModel.selectSolution(coat.id) },
                         )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    }
+                }
             }
         }
 
@@ -1031,6 +1046,77 @@ private fun mixingReminder(date: LocalDate): String {
     val pool = stringArrayResource(R.array.mixing_reminders)
     if (pool.isEmpty()) return ""
     return pool[Random(date.toEpochDay()).nextInt(pool.size)]
+}
+
+/**
+ * One coat of the mix to choose, with what goes in it — a line a part, its parts or its share
+ * of the rest on the right. The one being worked out is filled in and ticked.
+ */
+@Composable
+private fun CoatChoice(
+    name: String,
+    ratio: String,
+    parts: List<Pair<String, String>>,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(FieldShape)
+            .background(if (selected) scheme.primaryContainer else scheme.surface)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) scheme.primary else scheme.primary.copy(alpha = 0.55f),
+                shape = FieldShape,
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (selected) scheme.onSurface else scheme.primary,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = ratio,
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.onSurfaceVariant,
+            )
+            if (selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = scheme.primary,
+                    modifier = Modifier.padding(start = 6.dp).size(18.dp),
+                )
+            }
+        }
+        if (parts.isNotEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = scheme.outline)
+            parts.forEach { (what, amount) ->
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
+                    Text(
+                        text = "• $what",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = scheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = amount,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = scheme.onSurface,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+        }
+    }
 }
 
 /** The batch size in words. Built here because only the screen knows the language. */
