@@ -50,8 +50,10 @@ class ProductsViewModel(
     ) { products, brands, categories, (brand, category, text) ->
         val needle = text.trim()
         ProductsUiState(
-            brands = listOf(FilterAll) + brands,
-            categories = listOf(FilterAll) + categories,
+            // The blank one — products with no brand, or no type — goes last, where the filter
+            // shows it as "Other", rather than first as an empty line.
+            brands = listOf(FilterAll) + lastIfBlank(brands),
+            categories = listOf(FilterAll) + lastIfBlank(categories),
             brandFilter = brand,
             categoryFilter = category,
             search = text,
@@ -62,6 +64,11 @@ class ProductsViewModel(
             },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProductsUiState())
+
+    private fun lastIfBlank(values: List<String>): List<String> {
+        val (blank, named) = values.partition { it.isBlank() }
+        return named + blank.take(1).map { "" }
+    }
 
     fun setBrandFilter(brand: String) = brandFilter.update { brand }
 

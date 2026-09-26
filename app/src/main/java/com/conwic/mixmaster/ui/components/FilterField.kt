@@ -13,6 +13,10 @@ const val FilterAll = "All"
  *
  * The lists hold "All" as their stored value, and it was shown as stored: an Estonian calculator
  * offered "Bränd: All". It is shown here in the app's language and handed back as the value.
+ *
+ * A blank entry — the brand of something with none, like the tap water — is shown as "Other",
+ * the word the stock count already files those under. It was a blank line in the list, and
+ * picking it left the field looking empty.
  */
 @Composable
 fun FilterField(
@@ -23,10 +27,16 @@ fun FilterField(
     modifier: Modifier = Modifier,
 ) {
     val all = stringResource(R.string.status_all)
-    val shown = options.map { if (it == FilterAll) all else it }
+    val other = stringResource(R.string.sc_no_brand)
+    fun word(value: String) = when {
+        value == FilterAll -> all
+        value.isBlank() -> other
+        else -> value
+    }
+    val shown = options.map(::word)
     DropdownField(
         label = label,
-        selected = if (selected == FilterAll) all else selected,
+        selected = word(selected),
         options = shown,
         onSelect = { picked -> onSelect(options.getOrElse(shown.indexOf(picked)) { picked }) },
         modifier = modifier,
