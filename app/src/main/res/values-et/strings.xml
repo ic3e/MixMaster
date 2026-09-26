@@ -502,6 +502,7 @@
 
     <!-- Warehouse -->
     <string name="nav_warehouse">Ladu</string>
+    <string name="nav_orders_open">midagi on tellitud</string>
     <string name="action_save">Salvesta</string>
     <string name="wh_title">Ladu</string>
     <string name="wh_to_order">Tellida</string>

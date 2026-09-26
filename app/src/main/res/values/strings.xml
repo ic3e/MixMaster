@@ -532,6 +532,7 @@
 
     <!-- Warehouse -->
     <string name="nav_warehouse">Warehouse</string>
+    <string name="nav_orders_open">something on order</string>
     <string name="action_save">Save</string>
     <string name="wh_title">Warehouse</string>
     <string name="wh_to_order">To order</string>

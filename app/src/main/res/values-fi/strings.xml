@@ -502,6 +502,7 @@
 
     <!-- Warehouse -->
     <string name="nav_warehouse">Varasto</string>
+    <string name="nav_orders_open">tilauksia tulossa</string>
     <string name="action_save">Tallenna</string>
     <string name="wh_title">Varasto</string>
     <string name="wh_to_order">Tilattavaa</string>

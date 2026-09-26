@@ -1,5 +1,10 @@
 package com.conwic.mixmaster.ui.components
 
+import com.conwic.mixmaster.ui.theme.Accent2
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.foundation.background
@@ -56,7 +61,12 @@ private val NavBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
 private val NavSelected = Color.White.copy(alpha = 0.12f).compositeOver(Charcoal)
 
 @Composable
-fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
+fun BottomNavBar(
+    currentRoute: String?,
+    /** Tabs with something waiting on them, marked with a dot. */
+    dotted: Set<String> = emptySet(),
+    onNavigate: (String) -> Unit,
+) {
     // fillMaxWidth on both: without it the Surface shrinks to the width of its items and the
     // dark bar stops short of the right edge of the screen.
     // Flat, like the design: the charcoal bar reads as its own layer without a drop shadow.
@@ -90,7 +100,28 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     val label = stringResource(item.labelRes)
-                    Icon(imageVector = item.icon, contentDescription = label, tint = color, modifier = Modifier.height(20.dp))
+                    val dot = item.route in dotted
+                    val waiting = stringResource(R.string.nav_orders_open)
+                    Box {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = if (dot) "$label, $waiting" else label,
+                            tint = color,
+                            modifier = Modifier.height(20.dp),
+                        )
+                        if (dot) {
+                            // Gold on the charcoal, where brown would sink into it; off the corner
+                            // of the icon so it reads as a mark on the tab, not part of the drawing.
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 3.dp, y = (-2).dp)
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(Accent2),
+                            )
+                        }
+                    }
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,

@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.navigation
 
+import kotlinx.coroutines.flow.map
+import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.LocalBarInset
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -66,6 +68,13 @@ fun MixMasterNavGraph(startDestination: String) {
 
     val ready = pastSignIn(backStackEntry)
 
+    // Something marked as ordered and not in yet: a dot on the Warehouse tab until it is, so the
+    // list of what is on its way gets looked at without anyone having to remember it is there.
+    val container = LocalAppContainer.current
+    val ordersOpen by remember(container) {
+        container.deliveryRepository.observeAll().map { rows -> rows.any { it.arrivedOn == null } }
+    }.collectAsState(initial = false)
+
     // The count reminder was tapped: straight to the count, once the app is past sign-in.
     // Only for whoever looks after the shelf: a reminder set before the right was taken away
     // opens the app rather than a count that could not be saved.
@@ -85,7 +94,10 @@ fun MixMasterNavGraph(startDestination: String) {
     Scaffold(
         bottomBar = {
             if (tabsEntry != null && !keyboardOpen) {
-                BottomNavBar(currentRoute = tab) { route ->
+                BottomNavBar(
+                    currentRoute = tab,
+                    dotted = if (ordersOpen) setOf(Routes.WAREHOUSE) else emptySet(),
+                ) { route ->
                     if (route != tab) navController.navigateToTopLevel(route)
                 }
             }
