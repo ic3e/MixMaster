@@ -48,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.ui.components.packLabel
 import com.conwic.mixmaster.ui.components.FilterField
+import com.conwic.mixmaster.ui.components.formFieldColors
+import com.conwic.mixmaster.ui.theme.FieldShape
 
 @Composable
 fun ProductsScreen(navController: NavHostController) {
@@ -125,6 +127,8 @@ fun ProductsScreen(navController: NavHostController) {
                     // word floating on the border is what made the fields look stickered.
                     placeholder = { Text(stringResource(R.string.products_search)) },
                     singleLine = true,
+                    shape = FieldShape,
+                    colors = formFieldColors(),
                     trailingIcon = {
                         if (state.search.isNotBlank()) {
                             IconButton(onClick = { viewModel.setSearch("") }) {

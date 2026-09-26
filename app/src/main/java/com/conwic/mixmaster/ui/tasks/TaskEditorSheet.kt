@@ -55,6 +55,8 @@ import java.time.ZoneOffset
 import java.time.temporal.TemporalAdjusters
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.ui.components.formFieldColors
+import com.conwic.mixmaster.ui.theme.FieldShape
 
 /** Everything the editor needs to show, and hands back on save. */
 data class TaskDraft(
@@ -169,6 +171,8 @@ fun TaskEditorSheet(
                 value = title,
                 onValueChange = { title = it },
                 singleLine = true,
+                shape = FieldShape,
+                colors = formFieldColors(),
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             )
 

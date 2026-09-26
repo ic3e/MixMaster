@@ -92,20 +92,28 @@ fun FormTextField(
             },
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = FieldShape,
-            // Filled, not just outlined. On the cream page a hairline outline made every field
-            // blend into the background and into the text around it; a solid fill separates them.
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                errorContainerColor = MaterialTheme.colorScheme.surface,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            ),
+            colors = formFieldColors(),
             modifier = Modifier.fillMaxWidth(),
         )
     }
 }
+
+/**
+ * The colours of every typed-into field in the app.
+ *
+ * Filled, not just outlined. On the cream page a hairline outline made every field blend into the
+ * background and into the text around it; a solid fill separates them. Shared, because the fields
+ * that are not a [FormTextField] — the product search, the task title — were left unfilled.
+ */
+@Composable
+fun formFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    disabledContainerColor = MaterialTheme.colorScheme.surface,
+    errorContainerColor = MaterialTheme.colorScheme.surface,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+)
 
 /**
  * The word above a field, rather than the one Material floats across its top border.

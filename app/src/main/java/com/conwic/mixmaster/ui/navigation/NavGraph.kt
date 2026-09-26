@@ -44,6 +44,7 @@ import com.conwic.mixmaster.ui.warehouse.StockCountScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.conwic.mixmaster.ui.company.rememberAccess
+import com.conwic.mixmaster.ui.components.rememberKeyboardOpen
 
 @Composable
 fun MixMasterNavGraph(startDestination: String) {
@@ -72,9 +73,13 @@ fun MixMasterNavGraph(startDestination: String) {
         }
     }
 
+    // Out of the way while typing: it rode up on top of the keyboard and took a strip of an
+    // already short screen, between the field and the keys.
+    val keyboardOpen = rememberKeyboardOpen()
+
     Scaffold(
         bottomBar = {
-            if (tabsEntry != null) {
+            if (tabsEntry != null && !keyboardOpen) {
                 BottomNavBar(currentRoute = tab) { route ->
                     if (route != tab) navController.navigateToTopLevel(route)
                 }
