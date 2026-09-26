@@ -2,6 +2,7 @@ package com.conwic.mixmaster.data.prefs
 
 import android.content.Context
 import com.conwic.mixmaster.domain.CountInterval
+import com.conwic.mixmaster.domain.DefaultCountReminderMinute
 import com.conwic.mixmaster.domain.countDueAt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,10 +40,12 @@ data class StockCountState(
     /** When the phone last said a count was due. */
     val notifiedAt: Long = 0L,
     val summary: CountSummary? = null,
+    /** When in the day the reminder comes, as minutes after midnight. */
+    val reminderMinute: Int = DefaultCountReminderMinute,
 ) {
     val inProgress: Boolean get() = startedAt > 0L
 
-    fun dueAt(zone: ZoneId = ZoneId.systemDefault()): Long? = countDueAt(interval, lastCountAt, anchorAt, zone)
+    fun dueAt(zone: ZoneId = ZoneId.systemDefault()): Long? = countDueAt(interval, lastCountAt, anchorAt, zone, reminderMinute)
 
     fun isDue(now: Long = System.currentTimeMillis()): Boolean = dueAt()?.let { it <= now } ?: false
 }
@@ -68,6 +71,7 @@ object StockCountStore {
     private const val K_SUM_COUNTED = "summaryCounted"
     private const val K_SUM_CHANGES = "summaryChanges"
     private const val K_SUM_SKIPPED = "summarySkipped"
+    private const val K_TIME = "reminderMinute"
 
     private val flow = MutableStateFlow(StockCountState())
 
@@ -113,6 +117,7 @@ object StockCountStore {
             before = decodeFigures(p.getString(K_BEFORE, null)),
             counted = decodeIds(p.getString(K_COUNTED, null)).toSet(),
             notifiedAt = p.getLong(K_NOTIFIED, 0L),
+            reminderMinute = p.getInt(K_TIME, DefaultCountReminderMinute),
             summary = if (summaryAt > 0L) {
                 CountSummary(
                     finishedAt = summaryAt,
@@ -137,6 +142,7 @@ object StockCountStore {
                 .putString(K_BEFORE, encodeFigures(next.before))
                 .putString(K_COUNTED, next.counted.joinToString(","))
                 .putLong(K_NOTIFIED, next.notifiedAt)
+                .putInt(K_TIME, next.reminderMinute)
                 .putLong(K_SUM_AT, next.summary?.finishedAt ?: 0L)
                 .putInt(K_SUM_COUNTED, next.summary?.counted ?: 0)
                 .putString(K_SUM_CHANGES, encodeChanges(next.summary?.changes.orEmpty()))
@@ -156,9 +162,21 @@ object StockCountStore {
         it.copy(interval = interval, anchorAt = anchor, notifiedAt = 0L)
     }
 
+    fun setReminderMinute(context: Context, minuteOfDay: Int) = update(context) {
+        it.copy(reminderMinute = minuteOfDay.coerceIn(0, 24 * 60 - 1))
+    }
+
     /** Starts a count, remembering the shelf as it stands; the last one's summary goes. Does nothing if one is under way. */
     fun start(context: Context, shelf: Map<Long, ShelfFigure>) = update(context) {
         if (it.inProgress) it else it.copy(startedAt = System.currentTimeMillis(), before = shelf, counted = emptySet(), summary = null)
+    }
+
+    /**
+     * Drops the count under way without recording it. For one where nothing was counted: saving
+     * that as a count would move the reminder on a fortnight for a shelf nobody looked at.
+     */
+    fun cancel(context: Context) = update(context) {
+        it.copy(startedAt = 0L, before = emptyMap(), counted = emptySet())
     }
 
     fun markCounted(context: Context, productId: Long) = update(context) {

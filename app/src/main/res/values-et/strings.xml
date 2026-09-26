@@ -735,11 +735,8 @@
     <string name="sc_every_week">Iga nädal</string>
     <string name="sc_every_2weeks">Iga 2 nädala tagant</string>
     <string name="sc_every_month">Iga kuu</string>
-    <string name="sc_reminder_hint">Teavitus kell 8.00 päeval, mil inventuur on käes, ja uuesti iga kolmanda päeva hommikul, kuni see on tehtud.</string>
-    <string name="sc_done_title">Inventuur tehtud %1$s</string>
-    <string name="sc_done_counts">%1$d loetud · %2$d muutus</string>
+    <string name="sc_reminder_hint">Teavitus kell %1$s päeval, mil inventuur on käes, ja uuesti iga kolme päeva järel, kuni see on tehtud.</string>
     <string name="sc_no_changes">Kõik klappis rakenduses olevaga.</string>
-    <string name="sc_not_counted">Loendamata: %1$s</string>
     <string name="sc_dismiss">Selge</string>
     <string name="sc_less">Üks vähem</string>
     <string name="sc_more">Üks rohkem</string>
@@ -748,5 +745,18 @@
     <string name="sc_notify_title">Inventuuri aeg</string>
     <string name="sc_notify_text">Viimane inventuur %1$s. Vajuta, et alustada.</string>
     <string name="sc_notify_text_never">Inventuuri pole veel tehtud. Vajuta, et alustada.</string>
+    <string name="sc_reminder_at">Kell %1$s</string>
+    <string name="sc_change_time">Muuda kellaaega</string>
+    <string name="sc_pick_time">Meeldetuletuse kellaaeg</string>
+    <string name="sc_done_heading">Inventuur tehtud</string>
+    <string name="sc_stat_changed">Muutunud</string>
+    <string name="sc_stat_skipped">Loendamata</string>
+    <string name="sc_section_changed">Mis muutus</string>
+    <string name="sc_show_all">Näita kõiki %1$d</string>
+    <string name="sc_show_fewer">Näita vähem</string>
+    <string name="sc_nothing_counted">Midagi ei loetud, seega jäävad kõik kogused samaks.</string>
+    <string name="sc_nothing_title">Midagi pole veel loetud</string>
+    <string name="sc_nothing_body">Kas katkestada inventuur ilma salvestamata? Viimane inventuur jääb samaks.</string>
+    <string name="sc_stop_count">Katkesta</string>
     <string name="wh_order_short">Telli</string>
 </resources>

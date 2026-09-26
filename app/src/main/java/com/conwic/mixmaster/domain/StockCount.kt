@@ -27,38 +27,55 @@ enum class CountInterval(val key: String) {
     }
 }
 
-/** First thing on a working morning: before the van is loaded, not in the middle of a pour. */
-const val CountReminderHour = 8
+/**
+ * When in the day the reminder comes, as minutes after midnight. Eight o'clock unless changed:
+ * first thing on a working morning, before the van is loaded rather than in the middle of a pour.
+ */
+const val DefaultCountReminderMinute = 8 * 60
 
 /** How long a reminder that was seen and not acted on is left before it asks again. */
 const val CountRepeatDays = 3L
 
-private fun morningOf(day: LocalDate, zone: ZoneId): Long =
-    day.atTime(CountReminderHour, 0).atZone(zone).toInstant().toEpochMilli()
+private fun timeOn(day: LocalDate, minuteOfDay: Int, zone: ZoneId): Long {
+    val minute = minuteOfDay.coerceIn(0, 24 * 60 - 1)
+    return day.atTime(minute / 60, minute % 60).atZone(zone).toInstant().toEpochMilli()
+}
 
 private fun dayOf(millis: Long, zone: ZoneId): LocalDate =
     Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
 
 /**
- * When the next count falls due, as epoch millis — the morning of the day [interval] after the
- * last count, or after [anchorAt] when there has not been one yet. Null when reminders are off.
+ * When the next count falls due, as epoch millis — the reminder time on the day [interval] after
+ * the last count, or after [anchorAt] when there has not been one yet. Null when reminders are off.
  */
-fun countDueAt(interval: CountInterval, lastCountAt: Long, anchorAt: Long, zone: ZoneId): Long? {
+fun countDueAt(
+    interval: CountInterval,
+    lastCountAt: Long,
+    anchorAt: Long,
+    zone: ZoneId,
+    minuteOfDay: Int = DefaultCountReminderMinute,
+): Long? {
     val from = if (lastCountAt > 0L) lastCountAt else anchorAt
     val due = interval.after(dayOf(from, zone)) ?: return null
-    return morningOf(due, zone)
+    return timeOn(due, minuteOfDay, zone)
 }
 
 /**
  * When the phone should next say so.
  *
- * On the morning it falls due; and if that one came and went without a count, again every
- * [CountRepeatDays] mornings until there is one. Never in the past: an alarm booked for a time
- * already gone goes off the moment it is booked, which after a restart would be at a random
- * minute of the day rather than at eight.
+ * At the reminder time on the day it falls due; and if that one came and went without a count,
+ * again every [CountRepeatDays] days until there is one. Never in the past: an alarm booked for a
+ * time already gone goes off the moment it is booked, which after a restart would be at a random
+ * minute of the day rather than the one that was picked.
  */
-fun nextCountReminderAt(dueAt: Long, notifiedAt: Long, now: Long, zone: ZoneId): Long {
+fun nextCountReminderAt(
+    dueAt: Long,
+    notifiedAt: Long,
+    now: Long,
+    zone: ZoneId,
+    minuteOfDay: Int = DefaultCountReminderMinute,
+): Long {
     var day = if (notifiedAt >= dueAt) dayOf(notifiedAt, zone).plusDays(CountRepeatDays) else dayOf(dueAt, zone)
-    while (morningOf(day, zone) <= now) day = day.plusDays(1)
-    return morningOf(day, zone)
+    while (timeOn(day, minuteOfDay, zone) <= now) day = day.plusDays(1)
+    return timeOn(day, minuteOfDay, zone)
 }

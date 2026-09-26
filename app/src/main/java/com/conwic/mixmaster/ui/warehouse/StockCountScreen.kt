@@ -179,7 +179,26 @@ fun StockCountScreen(navController: NavHostController) {
         }
     }
 
-    if (confirmFinish) {
+    if (confirmFinish && done == 0) {
+        AlertDialog(
+            onDismissRequest = { confirmFinish = false },
+            title = { Text(text = stringResource(R.string.sc_nothing_title)) },
+            text = { Text(text = stringResource(R.string.sc_nothing_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmFinish = false
+                        viewModel.stop { navController.popBackStack() }
+                    },
+                ) { Text(text = stringResource(R.string.sc_stop_count)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmFinish = false }) {
+                    Text(text = stringResource(R.string.sc_keep_counting))
+                }
+            },
+        )
+    } else if (confirmFinish) {
         AlertDialog(
             onDismissRequest = { confirmFinish = false },
             title = { Text(text = stringResource(R.string.sc_skipped_title, list.size - done)) },

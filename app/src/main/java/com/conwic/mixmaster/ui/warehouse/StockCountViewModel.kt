@@ -62,6 +62,12 @@ class StockCountViewModel(
     /** As the app had it: written back all the same, which dates the count. */
     fun same(item: ProductStock) = save(item.productId, item.fullPacks, item.openAmount)
 
+    /** Nothing counted, nothing to record: the count is dropped and the last one still stands. */
+    fun stop(onDone: () -> Unit) {
+        StockCountStore.cancel(app)
+        onDone()
+    }
+
     fun finish(onDone: () -> Unit) {
         viewModelScope.launch {
             val shelf = writes.withLock {

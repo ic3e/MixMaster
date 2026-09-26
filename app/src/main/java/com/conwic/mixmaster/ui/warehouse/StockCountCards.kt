@@ -1,6 +1,14 @@
 package com.conwic.mixmaster.ui.warehouse
 
 import android.Manifest
+import android.content.Context
+import android.text.format.DateFormat
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
+import java.util.Calendar
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -9,6 +17,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.conwic.mixmaster.ui.components.ProductIdentity
+import com.conwic.mixmaster.ui.components.SectionLabel
+import com.conwic.mixmaster.ui.theme.FieldShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -74,6 +92,7 @@ internal fun StockCountCard(
     val dueAt = count.dueAt()
     // Asked for the moment a reminder is switched on — the one point where it is obvious why.
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    var pickingTime by remember { mutableStateOf(false) }
 
     val status = when {
         count.inProgress -> stringResource(
@@ -140,67 +159,219 @@ internal fun StockCountCard(
             },
         )
         if (count.interval != CountInterval.OFF) {
+            val time = timeText(context, count.reminderMinute)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.sc_reminder_at, time),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                )
+                ActionLink(text = stringResource(R.string.sc_change_time), onClick = { pickingTime = true })
+            }
             Text(
-                text = stringResource(R.string.sc_reminder_hint),
+                text = stringResource(R.string.sc_reminder_hint, time),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
     }
+
+    if (pickingTime) {
+        ReminderTimeDialog(
+            minuteOfDay = count.reminderMinute,
+            onDismiss = { pickingTime = false },
+            onPick = { minute ->
+                pickingTime = false
+                StockCountStore.setReminderMinute(context, minute)
+                StockCountReminder.schedule(context)
+            },
+        )
+    }
 }
 
-/** What the count that was just finished turned up, until somebody has read it. */
+/** The reminder time the way the phone writes times: 08:00, or 8:00 AM where that is the habit. */
+private fun timeText(context: Context, minuteOfDay: Int): String {
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, minuteOfDay / 60)
+        set(Calendar.MINUTE, minuteOfDay % 60)
+    }
+    return DateFormat.getTimeFormat(context).format(calendar.time)
+}
+
+/** The clock face, in the phone's own 12- or 24-hour habit. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReminderTimeDialog(minuteOfDay: Int, onDismiss: () -> Unit, onPick: (Int) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberTimePickerState(
+        initialHour = minuteOfDay / 60,
+        initialMinute = minuteOfDay % 60,
+        is24Hour = DateFormat.is24HourFormat(context),
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.sc_pick_time)) },
+        text = { TimePicker(state = state) },
+        confirmButton = {
+            TextButton(onClick = { onPick(state.hour * 60 + state.minute) }) {
+                Text(text = stringResource(R.string.action_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.action_cancel)) }
+        },
+    )
+}
+
+/**
+ * What the count that was just finished turned up, until somebody has read it.
+ *
+ * Three figures first, then the products behind them one to a row, set out the way products are
+ * everywhere else in the app. It used to run every product nobody got to into one paragraph,
+ * which for a count finished early was the whole shed in a single block of commas.
+ */
 @Composable
 internal fun CountSummaryCard(summary: CountSummary, shelf: List<ProductStock>, onDismiss: () -> Unit) {
     val byId = shelf.associateBy { it.productId }
     val changes = summary.changes.mapNotNull { change -> byId[change.productId]?.let { it to change } }
-    val skipped = summary.skipped.mapNotNull { byId[it]?.name }
+    val skipped = summary.skipped.mapNotNull { byId[it] }
+    var showAllSkipped by rememberSaveable { mutableStateOf(false) }
 
     CardSoft {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.sc_done_title, formatDueDate(dayOf(summary.finishedAt))),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f).padding(end = 8.dp),
-            )
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(text = stringResource(R.string.sc_done_heading), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = formatDueDate(dayOf(summary.finishedAt)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             ActionLink(text = stringResource(R.string.sc_dismiss), onClick = onDismiss)
         }
-        Text(
-            text = stringResource(R.string.sc_done_counts, summary.counted, changes.size),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
-        )
-        if (changes.isEmpty()) {
-            Text(text = stringResource(R.string.sc_no_changes), style = MaterialTheme.typography.bodyMedium)
+
+        // Sized to the tallest, so a label that wraps in Finnish lifts all three together.
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SummaryFigure(
+                value = summary.counted,
+                label = stringResource(R.string.sc_counted),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+            SummaryFigure(
+                value = changes.size,
+                label = stringResource(R.string.sc_stat_changed),
+                highlight = changes.isNotEmpty(),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+            SummaryFigure(
+                value = skipped.size,
+                label = stringResource(R.string.sc_stat_skipped),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
         }
-        changes.forEach { (item, change) ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
-                )
-                Text(
-                    text = changeText(change, item),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
+
+        if (changes.isNotEmpty()) {
+            SummaryList(title = stringResource(R.string.sc_section_changed)) {
+                changes.forEachIndexed { index, (item, change) ->
+                    if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ProductIdentity(
+                            name = item.name,
+                            brand = item.brand,
+                            modifier = Modifier.weight(1f).padding(end = 10.dp),
+                        )
+                        Text(
+                            text = changeText(change, item),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        } else {
+            Text(
+                text = stringResource(if (summary.counted > 0) R.string.sc_no_changes else R.string.sc_nothing_counted),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
+
+        if (skipped.isNotEmpty()) {
+            // Three, and the rest on request: the list is for spotting the one that was missed,
+            // not for reading the whole catalogue back.
+            val shown = if (showAllSkipped) skipped else skipped.take(SkippedPreview)
+            SummaryList(title = stringResource(R.string.sc_stat_skipped)) {
+                shown.forEachIndexed { index, item ->
+                    if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ProductIdentity(
+                        name = item.name,
+                        brand = item.brand,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                    )
+                }
+            }
+            if (skipped.size > SkippedPreview) {
+                ActionLink(
+                    text = if (showAllSkipped) {
+                        stringResource(R.string.sc_show_fewer)
+                    } else {
+                        stringResource(R.string.sc_show_all, skipped.size)
+                    },
+                    onClick = { showAllSkipped = !showAllSkipped },
+                    modifier = Modifier.padding(top = 10.dp),
                 )
             }
         }
-        if (skipped.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.sc_not_counted, skipped.joinToString(", ")),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
     }
+}
+
+private const val SkippedPreview = 3
+
+/** One of the three figures across the top of the summary. */
+@Composable
+private fun SummaryFigure(value: Int, label: String, modifier: Modifier = Modifier, highlight: Boolean = false) {
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surface, FieldShape)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+    ) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (highlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** A heading and a white panel of rows under it, set into the soft card. */
+@Composable
+private fun SummaryList(title: String, content: @Composable ColumnScope.() -> Unit) {
+    SectionLabel(text = title, modifier = Modifier.padding(top = 16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, FieldShape)
+            .padding(horizontal = 14.dp),
+        content = content,
+    )
 }
 
 /**

@@ -22,8 +22,8 @@ import java.time.ZoneId
 /**
  * The nudge to count the shed.
  *
- * Booked with the system clock for eight in the morning of the day a count falls due, and then
- * every third morning until one is done. Not an exact alarm and not a loud one: this is a
+ * Booked with the system clock for the chosen time (eight unless changed) on the day a count
+ * falls due, and then every third day until one is done. Not an exact alarm and not a loud one: this is a
  * reminder, not a batch going off, and it may land a few minutes late without anybody minding.
  *
  * Booked again whenever anything it depends on changes — the interval, a count finished — and on
@@ -45,7 +45,9 @@ object StockCountReminder {
         runCatching { manager.cancel(pending) }
         val state = StockCountStore.read(context)
         val dueAt = state.dueAt() ?: return
-        val at = nextCountReminderAt(dueAt, state.notifiedAt, System.currentTimeMillis(), ZoneId.systemDefault())
+        val at = nextCountReminderAt(
+            dueAt, state.notifiedAt, System.currentTimeMillis(), ZoneId.systemDefault(), state.reminderMinute,
+        )
         runCatching { manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }
     }
 

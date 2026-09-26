@@ -735,11 +735,8 @@
     <string name="sc_every_week">Joka viikko</string>
     <string name="sc_every_2weeks">2 viikon välein</string>
     <string name="sc_every_month">Kuukausittain</string>
-    <string name="sc_reminder_hint">Ilmoitus klo 8.00 eräpäivänä ja uudelleen joka kolmas aamu, kunnes inventaario on tehty.</string>
-    <string name="sc_done_title">Inventaario tehty %1$s</string>
-    <string name="sc_done_counts">%1$d laskettu · %2$d muuttui</string>
+    <string name="sc_reminder_hint">Ilmoitus klo %1$s eräpäivänä ja uudelleen joka kolmas päivä, kunnes inventaario on tehty.</string>
     <string name="sc_no_changes">Kaikki täsmäsi sovelluksen tietoihin.</string>
-    <string name="sc_not_counted">Laskematta: %1$s</string>
     <string name="sc_dismiss">Selvä</string>
     <string name="sc_less">Yksi vähemmän</string>
     <string name="sc_more">Yksi enemmän</string>
@@ -748,5 +745,18 @@
     <string name="sc_notify_title">Inventaarion aika</string>
     <string name="sc_notify_text">Edellinen inventaario %1$s. Aloita napauttamalla.</string>
     <string name="sc_notify_text_never">Inventaariota ei ole vielä tehty. Aloita napauttamalla.</string>
+    <string name="sc_reminder_at">Klo %1$s</string>
+    <string name="sc_change_time">Vaihda aika</string>
+    <string name="sc_pick_time">Muistutuksen kellonaika</string>
+    <string name="sc_done_heading">Inventaario tehty</string>
+    <string name="sc_stat_changed">Muuttunut</string>
+    <string name="sc_stat_skipped">Laskematta</string>
+    <string name="sc_section_changed">Mikä muuttui</string>
+    <string name="sc_show_all">Näytä kaikki %1$d</string>
+    <string name="sc_show_fewer">Näytä vähemmän</string>
+    <string name="sc_nothing_counted">Mitään ei laskettu, joten kaikki määrät pysyvät ennallaan.</string>
+    <string name="sc_nothing_title">Mitään ei ole vielä laskettu</string>
+    <string name="sc_nothing_body">Keskeytetäänkö inventaario tallentamatta? Edellinen inventaario pysyy ennallaan.</string>
+    <string name="sc_stop_count">Keskeytä</string>
     <string name="wh_order_short">Tilaa</string>
 </resources>

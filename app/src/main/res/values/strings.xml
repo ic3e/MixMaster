@@ -767,11 +767,8 @@
     <string name="sc_every_week">Every week</string>
     <string name="sc_every_2weeks">Every 2 weeks</string>
     <string name="sc_every_month">Every month</string>
-    <string name="sc_reminder_hint">A notification at 8:00 on the day it falls due, and again every third morning until the count is done.</string>
-    <string name="sc_done_title">Count finished %1$s</string>
-    <string name="sc_done_counts">%1$d counted · %2$d changed</string>
+    <string name="sc_reminder_hint">A notification at %1$s on the day it falls due, and again every third day until the count is done.</string>
     <string name="sc_no_changes">Everything matched what the app had.</string>
-    <string name="sc_not_counted">Not counted: %1$s</string>
     <string name="sc_dismiss">Done</string>
     <string name="sc_less">One less</string>
     <string name="sc_more">One more</string>
@@ -780,5 +777,18 @@
     <string name="sc_notify_title">Time for the stock count</string>
     <string name="sc_notify_text">Last count %1$s. Tap to start.</string>
     <string name="sc_notify_text_never">No count done yet. Tap to start.</string>
+    <string name="sc_reminder_at">At %1$s</string>
+    <string name="sc_change_time">Change time</string>
+    <string name="sc_pick_time">Reminder time</string>
+    <string name="sc_done_heading">Count finished</string>
+    <string name="sc_stat_changed">Changed</string>
+    <string name="sc_stat_skipped">Not counted</string>
+    <string name="sc_section_changed">What changed</string>
+    <string name="sc_show_all">Show all %1$d</string>
+    <string name="sc_show_fewer">Show fewer</string>
+    <string name="sc_nothing_counted">Nothing was counted, so every figure stays as it was.</string>
+    <string name="sc_nothing_title">Nothing counted yet</string>
+    <string name="sc_nothing_body">Stop the count without saving it? The last count stays as it was.</string>
+    <string name="sc_stop_count">Stop count</string>
     <string name="wh_order_short">Order</string>
 </resources>
