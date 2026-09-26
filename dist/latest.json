@@ -1,8 +1,8 @@
 {
-  "versionCode": 150,
-  "versionName": "1.0.150",
-  "apk": "MixMaster_1.0.150.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.150.apk",
-  "sizeBytes": 20896787,
-  "notes": "Count: a tick can be taken back, and brands head their groups in full ink"
+  "versionCode": 151,
+  "versionName": "1.0.151",
+  "apk": "MixMaster_1.0.151.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.151.apk",
+  "sizeBytes": 20915451,
+  "notes": "Set a missing pack size from the count or the warehouse list"
 }
