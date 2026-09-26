@@ -1,8 +1,8 @@
 {
-  "versionCode": 162,
-  "versionName": "1.0.162",
-  "apk": "MixMaster_1.0.162.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.162.apk",
-  "sizeBytes": 20414339,
-  "notes": "Say when something has been copied, and send a crash report straight on"
+  "versionCode": 163,
+  "versionName": "1.0.163",
+  "apk": "MixMaster_1.0.163.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.163.apk",
+  "sizeBytes": 20415199,
+  "notes": "Stop coats multiplying, and a recipe screen closing under a worker"
 }
