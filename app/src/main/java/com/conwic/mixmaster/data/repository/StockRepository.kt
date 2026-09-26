@@ -23,6 +23,20 @@ class StockRepository(private val stockDao: StockDao) {
     }
 
     /**
+     * A quick correction — two bags taken to site, one found behind the door. Not a count, so the
+     * date the shelf was last counted is left alone.
+     */
+    suspend fun adjustPacks(productId: Long, delta: Int) {
+        val existing = stockDao.getForProduct(productId)
+        val packs = ((existing?.fullPacks ?: 0) + delta).coerceAtLeast(0)
+        if (existing == null) {
+            stockDao.insert(StockEntity(productId = productId, fullPacks = packs))
+        } else {
+            stockDao.update(existing.copy(fullPacks = packs))
+        }
+    }
+
+    /**
      * Puts a delivery on the shelf.
      *
      * Loose amounts are rolled up into whole packs where they make one, so a shed that takes in

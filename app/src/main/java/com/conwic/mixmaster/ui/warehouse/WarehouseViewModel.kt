@@ -25,6 +25,8 @@ data class WarehouseUiState(
     val brands: List<String> = emptyList(),
     val brandFilter: String = "All",
     val items: List<ProductStock> = emptyList(),
+    /** Every product, whatever the brand filter says — the count covers the whole shed. */
+    val shelf: List<ProductStock> = emptyList(),
 ) {
     /** What still has to be ordered — anything already on its way is somebody's problem already. */
     val toOrder: List<ProductStock> get() = items.filter { it.stillToOrder > 0.0 }
@@ -80,6 +82,7 @@ class WarehouseViewModel(
             brands = listOf("All") + items.map { it.brand }.filter { it.isNotBlank() }.distinct().sorted(),
             brandFilter = brand,
             items = items.filter { brand == "All" || it.brand == brand },
+            shelf = items,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WarehouseUiState())
 
@@ -89,6 +92,10 @@ class WarehouseViewModel(
 
     fun setStock(productId: Long, fullPacks: Int, openAmount: Double) {
         viewModelScope.launch { stockRepository.set(productId, fullPacks, openAmount) }
+    }
+
+    fun adjustPacks(productId: Long, delta: Int) {
+        viewModelScope.launch { stockRepository.adjustPacks(productId, delta) }
     }
 
     fun order(productId: Long, packs: Int, amount: Double, expectedOn: LocalDate, note: String) {

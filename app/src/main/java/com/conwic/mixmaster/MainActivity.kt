@@ -27,6 +27,7 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
+import com.conwic.mixmaster.ui.warehouse.StockCountReminder
 
 /**
  * A FragmentActivity rather than a plain ComponentActivity: BiometricPrompt, which backs the
@@ -61,6 +62,7 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         wakeForAlarm(intent)
+        StockCountReminder.takeOpenRequest(intent)
     }
 
     /**
@@ -102,7 +104,10 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         wakeForAlarm(intent)
+        StockCountReminder.takeOpenRequest(intent)
         val container = (application as MixMasterApp).container
+        // Booked afresh on every start: cheap, and it is the one moment it is certain to happen.
+        StockCountReminder.schedule(this)
 
         // Looks once per app start, and stays quiet unless there's something newer — a failed
         // check on a site with no signal isn't news.

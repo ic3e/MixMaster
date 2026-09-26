@@ -3,6 +3,19 @@
 package com.conwic.mixmaster.ui.warehouse
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import com.conwic.mixmaster.data.prefs.StockCountStore
+import com.conwic.mixmaster.ui.components.ActionLink
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -92,6 +105,8 @@ fun WarehouseScreen(navController: NavHostController) {
     var counting by remember { mutableStateOf<ProductStock?>(null) }
     var ordering by remember { mutableStateOf<ProductStock?>(null) }
     var askingAbout by remember { mutableStateOf<DeliveryEntity?>(null) }
+    val count = rememberStockCount()
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -102,6 +117,25 @@ fun WarehouseScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.wh_title), style = MaterialTheme.typography.headlineMedium) }
+
+        item {
+            StockCountCard(
+                count = count,
+                shelf = state.shelf,
+                onStart = { navController.navigate(Routes.STOCK_COUNT) },
+            )
+        }
+
+        val summary = count.summary
+        if (summary != null) {
+            item {
+                CountSummaryCard(
+                    summary = summary,
+                    shelf = state.shelf,
+                    onDismiss = { StockCountStore.dismissSummary(context) },
+                )
+            }
+        }
 
         val toOrder = state.toOrder
         if (toOrder.isNotEmpty()) {
@@ -122,6 +156,7 @@ fun WarehouseScreen(navController: NavHostController) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 text = item.name,
@@ -134,6 +169,14 @@ fun WarehouseScreen(navController: NavHostController) {
                                 style = MaterialTheme.typography.titleMedium,
                                 color = OnAccentCard,
                                 fontWeight = FontWeight.ExtraBold,
+                            )
+                            // Straight from the list to the order, with the amount filled in — it
+                            // used to be the product's sheet first, then the button at its foot.
+                            ActionLink(
+                                text = stringResource(R.string.wh_order_short),
+                                onClick = { ordering = item },
+                                color = OnAccentCard,
+                                modifier = Modifier.padding(start = 10.dp),
                             )
                         }
                     }
@@ -241,6 +284,7 @@ fun WarehouseScreen(navController: NavHostController) {
                 detailId = null
                 counting = item
             },
+            onAdjust = { delta -> viewModel.adjustPacks(item.productId, delta) },
             onOrder = {
                 detailId = null
                 ordering = item
@@ -321,6 +365,7 @@ private fun StockSheet(
     deliveries: List<DeliveryEntity>,
     onDismiss: () -> Unit,
     onCount: () -> Unit,
+    onAdjust: (Int) -> Unit,
     onOrder: () -> Unit,
     onDelivery: (DeliveryEntity) -> Unit,
     onOpenProject: (Long) -> Unit,
@@ -360,7 +405,9 @@ private fun StockSheet(
             SectionLabel(text = stringResource(R.string.wh_on_the_shelf))
             CardFlat {
                 if (item.isKnownPack) {
-                    StockRow(
+                    // − / + for the everyday change — a bag taken to site, one found behind the
+                    // door — without typing out a whole count for it.
+                    PackAdjustRow(
                         label = stringResource(R.string.wh_full_packs),
                         value = stringResource(
                             R.string.wh_packs_and_amount,
@@ -368,6 +415,9 @@ private fun StockSheet(
                             item.packType,
                             amountText(item.packedAmount, item.packUnit),
                         ),
+                        canLess = item.fullPacks > 0,
+                        onLess = { onAdjust(-1) },
+                        onMore = { onAdjust(1) },
                     )
                     StockRow(
                         label = stringResource(R.string.wh_open_pack_row),
@@ -528,6 +578,49 @@ private fun StockSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+}
+
+/** A figure with a − and a + either side of it, each one pack. */
+@Composable
+private fun PackAdjustRow(
+    label: String,
+    value: String,
+    canLess: Boolean,
+    onLess: () -> Unit,
+    onMore: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RoundStep(icon = Icons.Filled.Remove, label = stringResource(R.string.sc_less), enabled = canLess, onClick = onLess)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+            )
+            RoundStep(icon = Icons.Filled.Add, label = stringResource(R.string.sc_more), enabled = true, onClick = onMore)
+        }
+    }
+}
+
+@Composable
+private fun RoundStep(icon: ImageVector, label: String, enabled: Boolean, onClick: () -> Unit) {
+    val ink = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .border(1.dp, ink.copy(alpha = 0.6f), CircleShape)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(imageVector = icon, contentDescription = label, tint = ink)
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,6 +36,8 @@ import com.conwic.mixmaster.ui.products.ProductDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
 import com.conwic.mixmaster.ui.solutions.SolutionEditorScreen
 import com.conwic.mixmaster.ui.signin.SignInScreen
+import com.conwic.mixmaster.ui.warehouse.StockCountReminder
+import com.conwic.mixmaster.ui.warehouse.StockCountScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -50,6 +53,17 @@ fun MixMasterNavGraph(startDestination: String) {
     val tab by tabFlow.collectAsState()
     // Read once, out here: the transition lambdas below are not composable, so they cannot ask.
     val calm = rememberMotionOff()
+
+    // The count reminder was tapped: straight to the count, once the app is past sign-in.
+    val openCount by StockCountReminder.openRequested.collectAsState()
+    val route = backStackEntry?.destination?.route
+    val pastSignIn = route != null && route != Routes.SIGN_IN && route != Routes.ONBOARDING
+    LaunchedEffect(openCount, pastSignIn) {
+        if (openCount && pastSignIn) {
+            StockCountReminder.openRequested.value = false
+            navController.navigate(Routes.STOCK_COUNT) { launchSingleTop = true }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -206,6 +220,7 @@ fun MixMasterNavGraph(startDestination: String) {
                 Inset(insets) { ProjectDetailScreen(navController = navController, projectId = projectId) }
             }
             composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
+            composable(Routes.STOCK_COUNT) { Inset(insets) { StockCountScreen(navController = navController) } }
         }
     }
 }

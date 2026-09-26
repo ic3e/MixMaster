@@ -65,6 +65,8 @@ import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
+import com.conwic.mixmaster.ui.warehouse.StockCountDueCard
+import com.conwic.mixmaster.ui.warehouse.rememberStockCount
 import com.conwic.mixmaster.ui.warehouse.ArrivalDialog
 import com.conwic.mixmaster.ui.warehouse.OrderDialog
 import com.conwic.mixmaster.ui.tasks.TaskDraft
@@ -115,6 +117,8 @@ fun HomeScreen(navController: NavHostController) {
     val due by viewModel.dueDeliveries.collectAsState()
     // Non-null while an order is being written down, from the shortage card.
     var ordering by remember { mutableStateOf<ShortItem?>(null) }
+
+    val stockCount = rememberStockCount()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -263,6 +267,9 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         if (hasUpdate) item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
+
+        // Only added when due: an empty item still takes the list's gap either side of it.
+        if (stockCount.isDue()) item { StockCountDueCard(onOpen = { navController.navigate(Routes.STOCK_COUNT) }) }
 
         item {
             // Three cards of one height, whatever the language does to the words: sized to
