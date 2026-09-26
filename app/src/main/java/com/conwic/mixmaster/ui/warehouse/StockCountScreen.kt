@@ -61,6 +61,8 @@ import com.conwic.mixmaster.ui.components.pagePadding
 import com.conwic.mixmaster.ui.components.pageSide
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.Ok
+import com.conwic.mixmaster.ui.components.packName
+import com.conwic.mixmaster.ui.components.packsName
 
 /** What is typed into one row, kept as text: "12," on its way to "12,5" is not a number yet. */
 private data class CountDraft(val packs: String, val open: String)
@@ -269,7 +271,7 @@ private fun CountRow(
                 name = item.name,
                 brand = item.brand,
                 detail = if (item.isKnownPack) {
-                    stringResource(R.string.wh_pack_of, formatDecimal(item.packSize, 2), item.packUnit, item.packType)
+                    stringResource(R.string.wh_pack_of, formatDecimal(item.packSize, 2), item.packUnit, packName(item.packType))
                 } else {
                     stringResource(R.string.pack_not_set)
                 },
@@ -291,7 +293,7 @@ private fun CountRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    CountLabel(stringResource(R.string.sc_full_packs, item.packType))
+                    CountLabel(stringResource(R.string.sc_full_packs, packsName(item.packType)))
                     Stepper(value = draft.packs, onValueChange = onPacks, decimals = 0)
                 }
                 Column(modifier = Modifier.weight(1f)) {

@@ -521,9 +521,7 @@
     <string name="wh_pack_of">Yksi pakkaus on %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Avatussa pakkauksessa jäljellä (%1$s)</string>
     <string name="wh_open_pack_hint">Jätä tyhjäksi, jos avattua ei ole</string>
-    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
-    <string name="wh_packs_only">%1$d %2$s</string>
-    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_packs_and_amount">%1$s · %2$s</string>
     <string name="wh_on_its_way">Tulossa</string>
     <string name="wh_on_order_label">Tulossa</string>
     <string name="wh_mark_ordered">Merkitse tilatuksi</string>
@@ -691,7 +689,6 @@
     <string name="mix_total_time">Aika ensimmäisestä viimeiseen</string>
     <string name="mix_average_step">Keskimääräinen sekoitus</string>
     <string name="mix_used">Materiaalia kului</string>
-    <string name="mix_packs">%1$s %2$s</string>
     <string name="mix_default_time">Tälle seokselle ei ole sekoitusaikaa — lasketaan kaksi minuuttia.</string>
     <string name="solution_mix_time">Sekoitusaika (min)</string>
     <string name="solution_mix_time_hint">Kuinka kauan datalehti käskee sekoittaa</string>
@@ -975,4 +972,41 @@
     <string name="solution_change_empty">(tyhjä)</string>
     <string name="solution_changes_saved">Tallennettu</string>
     <string name="solution_coat_open">%1$s · nyt auki</string>
+    <string name="pack_bag">säkki</string>
+    <string name="pack_bags">säkit</string>
+    <plurals name="pack_bag_count">
+        <item quantity="one">%1$s säkki</item>
+        <item quantity="other">%1$s säkkiä</item>
+    </plurals>
+    <string name="pack_bucket">ämpäri</string>
+    <string name="pack_buckets">ämpärit</string>
+    <plurals name="pack_bucket_count">
+        <item quantity="one">%1$s ämpäri</item>
+        <item quantity="other">%1$s ämpäriä</item>
+    </plurals>
+    <string name="pack_canister">kanisteri</string>
+    <string name="pack_canisters">kanisterit</string>
+    <plurals name="pack_canister_count">
+        <item quantity="one">%1$s kanisteri</item>
+        <item quantity="other">%1$s kanisteria</item>
+    </plurals>
+    <string name="pack_bottle">pullo</string>
+    <string name="pack_bottles">pullot</string>
+    <plurals name="pack_bottle_count">
+        <item quantity="one">%1$s pullo</item>
+        <item quantity="other">%1$s pulloa</item>
+    </plurals>
+    <string name="pack_drum">tynnyri</string>
+    <string name="pack_drums">tynnyrit</string>
+    <plurals name="pack_drum_count">
+        <item quantity="one">%1$s tynnyri</item>
+        <item quantity="other">%1$s tynnyriä</item>
+    </plurals>
+    <string name="pack_tub">purkki</string>
+    <string name="pack_tubs">purkit</string>
+    <plurals name="pack_tub_count">
+        <item quantity="one">%1$s purkki</item>
+        <item quantity="other">%1$s purkkia</item>
+    </plurals>
+    <string name="home_late">Myöhässä · %1$d</string>
 </resources>

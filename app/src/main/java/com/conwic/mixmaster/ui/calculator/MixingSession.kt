@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -93,7 +95,6 @@ import com.conwic.mixmaster.data.prefs.MixProgress
 import com.conwic.mixmaster.data.prefs.SavedMixRun
 import com.conwic.mixmaster.domain.MixPart
 import com.conwic.mixmaster.domain.MixingStep
-import com.conwic.mixmaster.domain.formatDecimal
 import com.conwic.mixmaster.domain.quantityFromGrams
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.data.db.entity.UsedAmount
@@ -107,6 +108,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.math.min
+import com.conwic.mixmaster.ui.components.packCount
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
@@ -382,14 +384,13 @@ fun MixingSession(
             // whatever is left, and the controls on the floor of the screen. The whole page used
             // to scroll, so a mix of six parts pushed the start button off the bottom — which is
             // the one thing on here that has to be under a thumb.
-            Column(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
                     .navigationBarsPadding()
+                    .displayCutoutPadding()
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (finished || step == null) {
                     // The summary is read once, at the end, and can be as long as the run was.
@@ -413,36 +414,39 @@ fun MixingSession(
                         onClose = close,
                     )
                     }
-                    return@Column
+                    return@BoxWithConstraints
                 }
 
-                Text(text = title, style = MaterialTheme.typography.headlineSmall, color = ink)
-                Text(
-                    text = if (step.isPartBatch) {
-                        stringResource(R.string.mix_part_batch_of, stepIndex + 1, steps.size)
-                    } else {
-                        stringResource(R.string.mix_batch_of, stepIndex + 1, steps.size)
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = inkAccent,
-                    fontWeight = FontWeight.Bold,
-                )
-                if (run.potLifeMinutes > 0) {
-                    // The clock that matters after this one: how long what is in the drum stays
-                    // workable. Said here rather than left on a datasheet in the van.
+
+                val header: @Composable () -> Unit = {
+                    Text(text = title, style = MaterialTheme.typography.headlineSmall, color = ink)
                     Text(
-                        text = stringResource(R.string.mix_pot_life, run.potLifeMinutes),
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = if (step.isPartBatch) {
+                            stringResource(R.string.mix_part_batch_of, stepIndex + 1, steps.size)
+                        } else {
+                            stringResource(R.string.mix_batch_of, stepIndex + 1, steps.size)
+                        },
+                        style = MaterialTheme.typography.titleMedium,
                         color = inkAccent,
                         fontWeight = FontWeight.Bold,
                     )
-                }
-                if (run.batchSize.isNotBlank()) {
-                    Text(
-                        text = run.batchSize,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = inkSoft,
-                    )
+                    if (run.potLifeMinutes > 0) {
+                        // The clock that matters after this one: how long what is in the drum stays
+                        // workable. Said here rather than left on a datasheet in the van.
+                        Text(
+                            text = stringResource(R.string.mix_pot_life, run.potLifeMinutes),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = inkAccent,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    if (run.batchSize.isNotBlank()) {
+                        Text(
+                            text = run.batchSize,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = inkSoft,
+                        )
+                    }
                 }
 
                 val total = seconds * 1000L
@@ -461,198 +465,244 @@ fun MixingSession(
                 // the worker is doing: what to weigh out before the drill starts, the ring while
                 // it turns, and then the list again so the next batch can be weighed. Showing
                 // both at once is what pushed everything else off the bottom.
-                BoxWithConstraints(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    // Square, and never taller than the room it has been left.
-                    val side = minOf(maxWidth, maxHeight)
-                    // The two of them are the two faces of one card, and pressing start turns it
-                    // over: the list goes edge-on and the ring comes round behind it. One object
-                    // changing its mind rather than two things swapping — which is what the
-                    // screen is really doing, because it is the same batch either way.
-                    val flip = animateFloatAsState(
-                        targetValue = if (phase == MixPhase.RUNNING) 180f else 0f,
-                        animationSpec = if (calm) snap() else tween(FlipMillis, easing = FlipEase),
-                        label = "flip",
-                    )
-                    // Swapped at the halfway point, where the card is edge-on and neither face
-                    // has anything to show. Derived rather than read straight, so the turn costs
-                    // one recomposition at the halfway mark instead of one per frame — the angle
-                    // itself is only ever read inside the layer block.
-                    val showRing by remember(flip) { derivedStateOf { flip.value > 90f } }
-                    Box(
+                val middle: @Composable (Modifier) -> Unit = { modifier ->
+                    BoxWithConstraints(
+                        modifier = modifier,
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().graphicsLayer {
-                            rotationY = flip.value
-                            // Near enough for the turn to have some depth, far enough that the
-                            // leading edge does not balloon across the screen on the way past.
-                            cameraDistance = 16f * density
-                        },
                     ) {
-                        // The back face carried round the other way, so it lands the right way
-                        // up rather than in mirror writing.
+                        // Square, and never taller than the room it has been left.
+                        val side = minOf(maxWidth, maxHeight)
+                        // The two of them are the two faces of one card, and pressing start turns it
+                        // over: the list goes edge-on and the ring comes round behind it. One object
+                        // changing its mind rather than two things swapping — which is what the
+                        // screen is really doing, because it is the same batch either way.
+                        val flip = animateFloatAsState(
+                            targetValue = if (phase == MixPhase.RUNNING) 180f else 0f,
+                            animationSpec = if (calm) snap() else tween(FlipMillis, easing = FlipEase),
+                            label = "flip",
+                        )
+                        // Swapped at the halfway point, where the card is edge-on and neither face
+                        // has anything to show. Derived rather than read straight, so the turn costs
+                        // one recomposition at the halfway mark instead of one per frame — the angle
+                        // itself is only ever read inside the layer block.
+                        val showRing by remember(flip) { derivedStateOf { flip.value > 90f } }
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .graphicsLayer { rotationY = if (showRing) 180f else 0f },
+                            modifier = Modifier.fillMaxSize().graphicsLayer {
+                                rotationY = flip.value
+                                // Near enough for the turn to have some depth, far enough that the
+                                // leading edge does not balloon across the screen on the way past.
+                                cameraDistance = 16f * density
+                            },
                         ) {
-                            if (showRing) {
-                                // Keyed on the batch, so every one of them gets the wind-up rather than
-                                // only the first: the ring arriving is what says a new batch is up.
-                                key(stepIndex) {
-                                    TimerRing(
-                                        remaining = remaining,
-                                        total = total,
-                                        running = true,
-                                        done = false,
-                                        calm = calm,
-                                        modifier = Modifier.size(side),
-                                    )
-                                }
-                            } else {
-                                // Scrolls inside its own space rather than taking the page with it —
-                                // a recipe of ten parts is rare, and when it happens the buttons stay
-                                // where they are.
-                                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                                    CardFlat {
-                                        SectionLabel(text = stringResource(R.string.mix_goes_in))
-                                        step.amounts.forEach { amount ->
-                                            val part = parts.firstOrNull { it.label == amount.label }
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                Text(
-                                                    text = amount.label,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
-                                                )
-                                                Column(horizontalAlignment = Alignment.End) {
+                            // The back face carried round the other way, so it lands the right way
+                            // up rather than in mirror writing.
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer { rotationY = if (showRing) 180f else 0f },
+                            ) {
+                                if (showRing) {
+                                    // Keyed on the batch, so every one of them gets the wind-up rather than
+                                    // only the first: the ring arriving is what says a new batch is up.
+                                    key(stepIndex) {
+                                        TimerRing(
+                                            remaining = remaining,
+                                            total = total,
+                                            running = true,
+                                            done = false,
+                                            calm = calm,
+                                            modifier = Modifier.size(side),
+                                        )
+                                    }
+                                } else {
+                                    // Scrolls inside its own space rather than taking the page with it —
+                                    // a recipe of ten parts is rare, and when it happens the buttons stay
+                                    // where they are.
+                                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                                        CardFlat {
+                                            SectionLabel(text = stringResource(R.string.mix_goes_in))
+                                            step.amounts.forEach { amount ->
+                                                val part = parts.firstOrNull { it.label == amount.label }
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
                                                     Text(
-                                                        text = quantityFromGrams(amount.grams).text,
+                                                        text = amount.label,
                                                         style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.ExtraBold,
+                                                        modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
                                                     )
-                                                    packText(part, amount.grams)?.let { packs ->
+                                                    Column(horizontalAlignment = Alignment.End) {
                                                         Text(
-                                                            text = packs,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            text = quantityFromGrams(amount.grams).text,
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.ExtraBold,
                                                         )
+                                                        packText(part, amount.grams)?.let { packs ->
+                                                            Text(
+                                                                text = packs,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
+                        }
+                        }
                     }
-                    }
+
                 }
 
-                // Only before it starts: a countdown that can be argued with while it runs is
-                // not a countdown.
-                if (phase == MixPhase.READY) {
-                    TimeStepper(
-                        label = stringResource(R.string.mix_time_label),
-                        value = clock(seconds),
-                        onLess = { seconds = (seconds - MixStepSeconds).coerceAtLeast(MixStepSeconds) },
-                        // Never downwards: a mix that already asks for twenty minutes would
-                        // otherwise have "more time" clamp it back to the ceiling.
-                        onMore = { seconds = (seconds + MixStepSeconds).coerceAtMost(maxOf(MaxMixSeconds, seconds)) },
-                    )
-                }
-
-                // Said plainly rather than promised quietly: the alarm off screen depends on
-                // permissions the phone can refuse, and a worker who has turned notifications
-                // down needs to know the screen has to stay open.
-                alertWarning(canNotify, context)?.let { warning ->
-                    Text(
-                        text = warning,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = inkSoft,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-
-                when (phase) {
-                    MixPhase.READY -> {
-                        BigButton(
-                            text = stringResource(R.string.mix_start),
-                            onClick = {
-                                stepStartedAt = System.currentTimeMillis()
-                                deadline = stepStartedAt + seconds * 1000L
-                                now = stepStartedAt
-                                phase = MixPhase.RUNNING
-                                // Booked with the system clock as well as ticked here: a phone
-                                // in a pocket, a call, a screen gone black — the batch is still
-                                // up when it is up.
-                                MixAlarm.schedule(context, deadline, title)
-                                // And said out loud, so the app lock leaves the mix alone.
-                                MixRun.started(deadline)
-                            },
+                val controls: @Composable () -> Unit = {
+                    // Only before it starts: a countdown that can be argued with while it runs is
+                    // not a countdown.
+                    if (phase == MixPhase.READY) {
+                        TimeStepper(
+                            label = stringResource(R.string.mix_time_label),
+                            value = clock(seconds),
+                            onLess = { seconds = (seconds - MixStepSeconds).coerceAtLeast(MixStepSeconds) },
+                            // Never downwards: a mix that already asks for twenty minutes would
+                            // otherwise have "more time" clamp it back to the ceiling.
+                            onMore = { seconds = (seconds + MixStepSeconds).coerceAtMost(maxOf(MaxMixSeconds, seconds)) },
                         )
                     }
-                    MixPhase.RUNNING -> {
+
+                    // Said plainly rather than promised quietly: the alarm off screen depends on
+                    // permissions the phone can refuse, and a worker who has turned notifications
+                    // down needs to know the screen has to stay open.
+                    alertWarning(canNotify, context)?.let { warning ->
                         Text(
-                            text = stringResource(R.string.mix_running_note),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = warning,
+                            style = MaterialTheme.typography.bodySmall,
                             color = inkSoft,
                             textAlign = TextAlign.Center,
                         )
-                        // As big as the others so a glove can find it, but outlined rather than
-                        // filled: ending the mixing early is an override, not the way through.
-                        BigButton(
-                            text = stringResource(R.string.mix_stop_early),
-                            onClick = {
-                                MixAlarm.cancel(context)
-                                MixRun.ended()
-                                recordAndAdvance()
-                            },
-                            filled = false,
-                        )
                     }
-                    MixPhase.DONE -> {
-                        Text(
-                            text = stringResource(R.string.mix_ready),
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Charcoal,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                        BigButton(
-                            text = if (stepIndex + 1 < steps.size) {
-                                stringResource(R.string.mix_next_batch)
-                            } else {
-                                stringResource(R.string.mix_last_done)
-                            },
-                            onClick = {
-                                // Cancelled, not just taken off the shade: the booking outlives
-                                // the batch it was made for otherwise.
-                                MixAlarm.cancel(context)
-                                MixRun.ended()
-                                recordAndAdvance()
-                            },
-                            container = Charcoal,
-                            content = Color.White,
-                        )
+
+                    when (phase) {
+                        MixPhase.READY -> {
+                            BigButton(
+                                text = stringResource(R.string.mix_start),
+                                onClick = {
+                                    stepStartedAt = System.currentTimeMillis()
+                                    deadline = stepStartedAt + seconds * 1000L
+                                    now = stepStartedAt
+                                    phase = MixPhase.RUNNING
+                                    // Booked with the system clock as well as ticked here: a phone
+                                    // in a pocket, a call, a screen gone black — the batch is still
+                                    // up when it is up.
+                                    MixAlarm.schedule(context, deadline, title)
+                                    // And said out loud, so the app lock leaves the mix alone.
+                                    MixRun.started(deadline)
+                                },
+                            )
+                        }
+                        MixPhase.RUNNING -> {
+                            Text(
+                                text = stringResource(R.string.mix_running_note),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = inkSoft,
+                                textAlign = TextAlign.Center,
+                            )
+                            // As big as the others so a glove can find it, but outlined rather than
+                            // filled: ending the mixing early is an override, not the way through.
+                            BigButton(
+                                text = stringResource(R.string.mix_stop_early),
+                                onClick = {
+                                    MixAlarm.cancel(context)
+                                    MixRun.ended()
+                                    recordAndAdvance()
+                                },
+                                filled = false,
+                            )
+                        }
+                        MixPhase.DONE -> {
+                            Text(
+                                text = stringResource(R.string.mix_ready),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = Charcoal,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                            BigButton(
+                                text = if (stepIndex + 1 < steps.size) {
+                                    stringResource(R.string.mix_next_batch)
+                                } else {
+                                    stringResource(R.string.mix_last_done)
+                                },
+                                onClick = {
+                                    // Cancelled, not just taken off the shade: the booking outlives
+                                    // the batch it was made for otherwise.
+                                    MixAlarm.cancel(context)
+                                    MixRun.ended()
+                                    recordAndAdvance()
+                                },
+                                container = Charcoal,
+                                content = Color.White,
+                            )
+                        }
                     }
+
+                    // Sometimes the floor is covered before the plan is: ending the run here counts
+                    // what was mixed rather than what was going to be.
+                    GhostButton(
+                        text = stringResource(R.string.mix_finish),
+                        onClick = {
+                            MixAlarm.cancel(context)
+                            MixRun.ended()
+                            finishedAt = System.currentTimeMillis()
+                            finished = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
 
-                // Sometimes the floor is covered before the plan is: ending the run here counts
-                // what was mixed rather than what was going to be.
-                GhostButton(
-                    text = stringResource(R.string.mix_finish),
-                    onClick = {
-                        MixAlarm.cancel(context)
-                        MixRun.ended()
-                        finishedAt = System.currentTimeMillis()
-                        finished = true
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                // On its side, the phone is too short for the header, what goes in, the time and
+                // two buttons one above the other: the list was squeezed to nothing. So the batch
+                // goes on the left and the controls on the right, still under a thumb.
+                if (maxWidth > maxHeight) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            header()
+                            middle(Modifier.weight(1f).fillMaxWidth())
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                controls()
+                            }
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        header()
+                        middle(Modifier.weight(1f).fillMaxWidth())
+                        controls()
+                    }
+                }
             }
         }
     }
@@ -1162,7 +1212,7 @@ private fun usedMaterial(done: List<MixingStep>, parts: List<MixPart>): List<Use
     }
 }
 
-/** "2 bag" — what a figure comes to in the containers it is carried in. */
+/** "2 bags" — what a figure comes to in the containers it is carried in. */
 @Composable
 private fun packText(part: MixPart?, grams: Double): String? {
     if (part == null || part.packageSize <= 0.0) return null
@@ -1174,7 +1224,7 @@ private fun packText(part: MixPart?, grams: Double): String? {
     }
     val packs = amount / part.packageSize
     if (packs <= 0.0) return null
-    return stringResource(R.string.mix_packs, formatDecimal(packs, 2), part.packageType)
+    return packCount(packs, part.packageType)
 }
 
 /** m:ss, the way a countdown is read. */

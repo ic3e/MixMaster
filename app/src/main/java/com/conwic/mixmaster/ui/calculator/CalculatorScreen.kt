@@ -91,6 +91,8 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import java.time.LocalDate
 import kotlin.random.Random
 import com.conwic.mixmaster.domain.toNumberOrNull
+import com.conwic.mixmaster.ui.components.packName
+import com.conwic.mixmaster.ui.components.packLabel
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -509,7 +511,7 @@ fun CalculatorScreen(
                             Text(
                                 text = when {
                                     pack.packs != null ->
-                                        stringResource(R.string.calc_packs, pack.packs, pack.packLabel) +
+                                        stringResource(R.string.calc_packs, pack.packs, packLabel(pack.packSize, pack.packUnit, pack.packType)) +
                                             (pack.amountInPackUnit?.takeIf { pack.packUnit == "L" }
                                                 ?.let { " · " + quantityFromLitres(it).text } ?: "")
                                     pack.packSize > 0.0 && pack.packUnit == "L" ->
@@ -1027,7 +1029,7 @@ private fun mixingReminder(date: LocalDate): String {
 @Composable
 private fun batchSizeText(size: BatchSize): String = when (size) {
     is BatchSize.Unknown -> stringResource(R.string.batch_none)
-    is BatchSize.WholePack -> stringResource(R.string.batch_whole_pack, size.packSizeKg, size.packType)
+    is BatchSize.WholePack -> stringResource(R.string.batch_whole_pack, size.packSizeKg, packName(size.packType))
     is BatchSize.Litres -> stringResource(R.string.batch_litres, size.litres)
     is BatchSize.Weight -> stringResource(R.string.batch_weight, size.weight)
 }

@@ -1,6 +1,10 @@
 package com.conwic.mixmaster.ui.company
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,56 +68,64 @@ private fun OfflineLock(link: CompanyLink) {
     var following by remember { mutableStateOf(false) }
     var followProblem by remember { mutableStateOf<String?>(null) }
     val days = ((System.currentTimeMillis() - link.lastContactAt) / (24L * 60 * 60 * 1000)).toInt()
-    Column(
-        modifier = Modifier.fillMaxSize().padding(pagePadding()),
-        verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        ConwicLockup(height = 34.dp)
-        Text(text = stringResource(R.string.co_lock_title), style = MaterialTheme.typography.headlineMedium)
-        Text(
-            text = stringResource(R.string.co_lock_body, link.companyName, days),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        val problem = status.problem
-        if (problem != null || status.offline) {
+    // Scrolls, and is still centred when it fits: turned on its side, the phone is shorter than
+    // the lock with the new-address card under it, and the card was cut off at the bottom.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .padding(pagePadding()),
+            verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ConwicLockup(height = 34.dp)
+            Text(text = stringResource(R.string.co_lock_title), style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = stringResource(if (problem != null) problemText(problem) else R.string.co_err_offline),
+                text = stringResource(R.string.co_lock_body, link.companyName, days),
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        PrimaryButton(
-            text = stringResource(if (status.working) R.string.co_checking else R.string.co_try_again),
-            onClick = SyncEngine::syncNow,
-            enabled = !status.working,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        FollowCard(
-            busy = following,
-            onFollow = { address ->
-                following = true
-                followProblem = null
-                scope.launch {
-                    try {
-                        SyncEngine.followTo(context, address)
-                    } catch (p: CompanyProblem) {
-                        followProblem = p.code
-                    } finally {
-                        following = false
+            val problem = status.problem
+            if (problem != null || status.offline) {
+                Text(
+                    text = stringResource(if (problem != null) problemText(problem) else R.string.co_err_offline),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            PrimaryButton(
+                text = stringResource(if (status.working) R.string.co_checking else R.string.co_try_again),
+                onClick = SyncEngine::syncNow,
+                enabled = !status.working,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FollowCard(
+                busy = following,
+                onFollow = { address ->
+                    following = true
+                    followProblem = null
+                    scope.launch {
+                        try {
+                            SyncEngine.followTo(context, address)
+                        } catch (p: CompanyProblem) {
+                            followProblem = p.code
+                        } finally {
+                            following = false
+                        }
                     }
-                }
-            },
-        )
-        val shown = followProblem
-        if (shown != null) {
-            Text(
-                text = stringResource(problemText(shown)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
+                },
             )
+            val shown = followProblem
+            if (shown != null) {
+                Text(
+                    text = stringResource(problemText(shown)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }

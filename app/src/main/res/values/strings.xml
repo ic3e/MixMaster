@@ -553,9 +553,7 @@
     <string name="wh_pack_of">One pack is %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Left in the open pack (%1$s)</string>
     <string name="wh_open_pack_hint">Leave empty if there is none</string>
-    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
-    <string name="wh_packs_only">%1$d %2$s</string>
-    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_packs_and_amount">%1$s · %2$s</string>
     <string name="wh_on_its_way">On its way</string>
     <string name="wh_on_order_label">On the way</string>
     <string name="wh_mark_ordered">Mark as ordered</string>
@@ -723,7 +721,6 @@
     <string name="mix_total_time">Time from first to last</string>
     <string name="mix_average_step">Average mixing</string>
     <string name="mix_used">Material used</string>
-    <string name="mix_packs">%1$s %2$s</string>
     <string name="mix_default_time">No mixing time on this mix — counting down two minutes.</string>
     <string name="solution_mix_time">Mixing time (min)</string>
     <string name="solution_mix_time_hint">What the datasheet says to mix it for</string>
@@ -1007,4 +1004,41 @@
     <string name="solution_change_empty">(empty)</string>
     <string name="solution_changes_saved">Saved</string>
     <string name="solution_coat_open">%1$s · open now</string>
+    <string name="pack_bag">bag</string>
+    <string name="pack_bags">bags</string>
+    <plurals name="pack_bag_count">
+        <item quantity="one">%1$s bag</item>
+        <item quantity="other">%1$s bags</item>
+    </plurals>
+    <string name="pack_bucket">bucket</string>
+    <string name="pack_buckets">buckets</string>
+    <plurals name="pack_bucket_count">
+        <item quantity="one">%1$s bucket</item>
+        <item quantity="other">%1$s buckets</item>
+    </plurals>
+    <string name="pack_canister">canister</string>
+    <string name="pack_canisters">canisters</string>
+    <plurals name="pack_canister_count">
+        <item quantity="one">%1$s canister</item>
+        <item quantity="other">%1$s canisters</item>
+    </plurals>
+    <string name="pack_bottle">bottle</string>
+    <string name="pack_bottles">bottles</string>
+    <plurals name="pack_bottle_count">
+        <item quantity="one">%1$s bottle</item>
+        <item quantity="other">%1$s bottles</item>
+    </plurals>
+    <string name="pack_drum">drum</string>
+    <string name="pack_drums">drums</string>
+    <plurals name="pack_drum_count">
+        <item quantity="one">%1$s drum</item>
+        <item quantity="other">%1$s drums</item>
+    </plurals>
+    <string name="pack_tub">tub</string>
+    <string name="pack_tubs">tubs</string>
+    <plurals name="pack_tub_count">
+        <item quantity="one">%1$s tub</item>
+        <item quantity="other">%1$s tubs</item>
+    </plurals>
+    <string name="home_late">Late · %1$d</string>
 </resources>

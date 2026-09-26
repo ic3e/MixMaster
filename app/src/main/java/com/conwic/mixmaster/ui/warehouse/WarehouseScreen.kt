@@ -75,6 +75,8 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Ok
 import java.time.Instant
 import java.time.ZoneId
+import com.conwic.mixmaster.ui.components.packCount
+import com.conwic.mixmaster.ui.components.packName
 
 /**
  * What is actually in the shed.
@@ -234,7 +236,7 @@ fun WarehouseScreen(navController: NavHostController) {
                     Column(horizontalAlignment = Alignment.End) {
                         if (item.isKnownPack) {
                             Text(
-                                text = stringResource(R.string.wh_packs_only, item.fullPacks, item.packType),
+                                text = packCount(item.fullPacks, item.packType),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -429,7 +431,7 @@ private fun StockSheet(
                         R.string.wh_pack_of,
                         formatDecimal(item.packSize, 2),
                         item.packUnit,
-                        item.packType,
+                        packName(item.packType),
                     )
                 } else {
                     stringResource(R.string.wh_no_pack_size)
@@ -447,8 +449,7 @@ private fun StockSheet(
                         label = stringResource(R.string.wh_full_packs),
                         value = stringResource(
                             R.string.wh_packs_and_amount,
-                            item.fullPacks,
-                            item.packType,
+                            packCount(item.fullPacks, item.packType),
                             amountText(item.packedAmount, item.packUnit),
                         ),
                         canLess = item.fullPacks > 0,
@@ -702,7 +703,7 @@ private fun CountDialog(item: ProductStock, onDismiss: () -> Unit, onSave: (Int,
                             R.string.wh_pack_of,
                             formatDecimal(item.packSize, 2),
                             item.packUnit,
-                            item.packType,
+                            packName(item.packType),
                         )
                     } else {
                         stringResource(R.string.wh_no_pack_size)
@@ -732,7 +733,7 @@ private fun CountDialog(item: ProductStock, onDismiss: () -> Unit, onSave: (Int,
 private fun orderText(item: ProductStock): String {
     val packs = item.packsStillToOrder
     return if (packs != null && packs > 0) {
-        stringResource(R.string.wh_order_packs, packs, item.packType)
+        packCount(packs, item.packType)
     } else {
         amountText(item.stillToOrder, item.packUnit)
     }
@@ -745,8 +746,7 @@ private fun deliveryText(delivery: DeliveryEntity, item: ProductStock): String {
     return if (delivery.packs > 0) {
         stringResource(
             R.string.wh_packs_and_amount,
-            delivery.packs,
-            item.packType,
+            packCount(delivery.packs, item.packType),
             amountText(total, item.packUnit),
         )
     } else {

@@ -34,7 +34,6 @@ import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.pagePadding
-import com.conwic.mixmaster.domain.formatDecimal
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +47,7 @@ import com.conwic.mixmaster.ui.theme.CardShape
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.ui.components.packLabel
 
 @Composable
 fun ProductsScreen(navController: NavHostController) {
@@ -184,7 +184,7 @@ fun ProductsScreen(navController: NavHostController) {
                         name = product.name,
                         brand = product.brand,
                         detail = if (product.packageSize > 0.0) {
-                            "${formatDecimal(product.packageSize, 2)} ${product.packageUnit} ${product.packageType}"
+                            packLabel(product.packageSize, product.packageUnit, product.packageType)
                         } else {
                             null
                         },

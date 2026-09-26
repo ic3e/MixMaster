@@ -46,6 +46,7 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.CardShape
+import com.conwic.mixmaster.ui.components.packLabel
 
 /**
  * A bought item: what it is, how it is sold, and which recipes call for it.
@@ -114,7 +115,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                     Text(modifier = Modifier.weight(1f, fill = false), text = stringResource(R.string.pd_sold_as), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = if (current.packageSize > 0.0) {
-                            "${formatDecimal(current.packageSize, 2)} ${current.packageUnit} ${current.packageType}"
+                            packLabel(current.packageSize, current.packageUnit, current.packageType)
                         } else {
                             stringResource(R.string.wh_no_pack_size)
                         },

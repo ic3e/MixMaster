@@ -68,6 +68,11 @@ belonged to. It exits non-zero when it finds any. The rest still needs a person:
   the language setting. **That context belongs to no activity**: `PrintManager` refuses it (use
   `ActivityBaseContext.current()`), and anything resolving strings outside the activity — a
   `BroadcastReceiver`, for one — gets the device locale rather than the app's.
+- `LanguageStore.wrap` overrides **only the locale** (`Configuration().apply { setLocale(..) }`).
+  A copy of the whole configuration pinned the screen size too, and since MainActivity handles
+  rotation itself, every dialog kept measuring against the portrait width after a turn.
+- Pack kinds (`bag`, `canister`, …) are stored as English keys. Show them through
+  `ui/components/PackNames.kt` (`packName`, `packsName`, `packCount`), never raw.
 - A bare language tag (`et`) applied over a device locale with a country (`et_EE`) makes the config
   disagree with the system and relaunches the activity forever. `LanguageStore.localeFor` exists
   for that.

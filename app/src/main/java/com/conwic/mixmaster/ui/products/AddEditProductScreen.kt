@@ -44,6 +44,7 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.SuggestField
+import com.conwic.mixmaster.ui.components.packName
 
 /**
  * A bought item: what it is and how it is sold.
@@ -148,11 +149,13 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         onSelect = viewModel::setPackUnit,
                         modifier = Modifier.weight(FieldWeightNarrow),
                     )
+                    // Picked by the name in the app's language; kept as the key it is stored under.
+                    val typeNames = PackTypes.map { packName(it) }
                     DropdownField(
                         label = stringResource(R.string.product_container),
-                        selected = state.packType,
-                        options = PackTypes,
-                        onSelect = viewModel::setPackType,
+                        selected = packName(state.packType),
+                        options = typeNames,
+                        onSelect = { name -> PackTypes.getOrNull(typeNames.indexOf(name))?.let(viewModel::setPackType) },
                         modifier = Modifier.weight(FieldWeightWide),
                     )
                 }

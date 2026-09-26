@@ -73,9 +73,30 @@ object LanguageStore {
         // Still set, for the formatting the app doesn't do itself. AppLocale is what the app's
         // own dates read, because the framework takes this default back on every config change.
         Locale.setDefault(locale)
-        val config = Configuration(base.resources.configuration).apply {
-            setLocale(locale)
-        }
+        // The language and nothing else. A copy of the whole configuration pinned everything
+        // in it along with the language — the size of the screen among them — and this activity
+        // turns with the phone rather than being rebuilt, so after a turn to landscape every
+        // dialog still measured itself against the portrait width: the mixing screen came up
+        // as a strip down the middle with its list cut off at the bottom.
+        val config = Configuration().apply { setLocale(locale) }
         return base.createConfigurationContext(config)
+    }
+
+    /**
+     * Brings [resources] round to the screen as it now is, keeping the app's language, should the
+     * platform not have done it already. It does, for the language-only configuration above; this
+     * is the fallback that keeps a phone which does not from showing dialogs a screen too narrow.
+     */
+    @Suppress("DEPRECATION")
+    fun followScreen(resources: Resources, screen: Configuration, base: Context?) {
+        val current = resources.configuration
+        if (current.screenWidthDp == screen.screenWidthDp &&
+            current.screenHeightDp == screen.screenHeightDp &&
+            current.orientation == screen.orientation
+        ) {
+            return
+        }
+        val config = Configuration(screen).apply { setLocales(current.locales) }
+        resources.updateConfiguration(config, base?.resources?.displayMetrics ?: resources.displayMetrics)
     }
 }

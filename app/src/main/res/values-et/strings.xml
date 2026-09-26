@@ -521,9 +521,7 @@
     <string name="wh_pack_of">Üks pakend on %1$s %2$s (%3$s)</string>
     <string name="wh_open_pack">Avatud pakendis järel (%1$s)</string>
     <string name="wh_open_pack_hint">Jäta tühjaks, kui avatut ei ole</string>
-    <string name="wh_packs_and_amount">%1$d %2$s · %3$s</string>
-    <string name="wh_packs_only">%1$d %2$s</string>
-    <string name="wh_order_packs">%1$d %2$s</string>
+    <string name="wh_packs_and_amount">%1$s · %2$s</string>
     <string name="wh_on_its_way">Teel</string>
     <string name="wh_on_order_label">Teel</string>
     <string name="wh_mark_ordered">Märgi tellituks</string>
@@ -691,7 +689,6 @@
     <string name="mix_total_time">Aeg esimesest viimaseni</string>
     <string name="mix_average_step">Keskmine segamine</string>
     <string name="mix_used">Materjali kulus</string>
-    <string name="mix_packs">%1$s %2$s</string>
     <string name="mix_default_time">Sellel segul ei ole segamisaega — loeb kaks minutit.</string>
     <string name="solution_mix_time">Segamisaeg (min)</string>
     <string name="solution_mix_time_hint">Kui kaua andmeleht käsib segada</string>
@@ -975,4 +972,41 @@
     <string name="solution_change_empty">(tühi)</string>
     <string name="solution_changes_saved">Salvestatud</string>
     <string name="solution_coat_open">%1$s · praegu avatud</string>
+    <string name="pack_bag">kott</string>
+    <string name="pack_bags">kotid</string>
+    <plurals name="pack_bag_count">
+        <item quantity="one">%1$s kott</item>
+        <item quantity="other">%1$s kotti</item>
+    </plurals>
+    <string name="pack_bucket">ämber</string>
+    <string name="pack_buckets">ämbrid</string>
+    <plurals name="pack_bucket_count">
+        <item quantity="one">%1$s ämber</item>
+        <item quantity="other">%1$s ämbrit</item>
+    </plurals>
+    <string name="pack_canister">kanister</string>
+    <string name="pack_canisters">kanistrid</string>
+    <plurals name="pack_canister_count">
+        <item quantity="one">%1$s kanister</item>
+        <item quantity="other">%1$s kanistrit</item>
+    </plurals>
+    <string name="pack_bottle">pudel</string>
+    <string name="pack_bottles">pudelid</string>
+    <plurals name="pack_bottle_count">
+        <item quantity="one">%1$s pudel</item>
+        <item quantity="other">%1$s pudelit</item>
+    </plurals>
+    <string name="pack_drum">vaat</string>
+    <string name="pack_drums">vaadid</string>
+    <plurals name="pack_drum_count">
+        <item quantity="one">%1$s vaat</item>
+        <item quantity="other">%1$s vaati</item>
+    </plurals>
+    <string name="pack_tub">purk</string>
+    <string name="pack_tubs">purgid</string>
+    <plurals name="pack_tub_count">
+        <item quantity="one">%1$s purk</item>
+        <item quantity="other">%1$s purki</item>
+    </plurals>
+    <string name="home_late">Hilinenud · %1$d</string>
 </resources>

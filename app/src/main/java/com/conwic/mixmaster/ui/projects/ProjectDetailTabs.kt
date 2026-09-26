@@ -109,6 +109,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.TaskPriority
+import com.conwic.mixmaster.ui.components.packCount
 
 
 @Composable
@@ -1435,7 +1436,7 @@ fun MaterialsTab(
                     label = stringResource(R.string.prj_to_order),
                     value = when {
                         material.shortfall <= 0.0 -> stringResource(R.string.prj_nothing_to_order)
-                        packs != null -> stringResource(R.string.wh_order_packs, packs, material.stock.packType)
+                        packs != null -> packCount(packs, material.stock.packType)
                         else -> "${formatDecimal(material.shortfall, 2)} ${material.stock.packUnit}"
                     },
                     strong = material.shortfall > 0.0,
@@ -1826,7 +1827,7 @@ private fun pickupLines(context: android.content.Context, materials: List<Projec
         PickupLine(
             name = material.name,
             amount = if (packs != null && packs > 0) {
-                context.getString(R.string.wh_packs_and_amount, packs, material.stock.packType, figure)
+                context.getString(R.string.wh_packs_and_amount, packCount(context, packs.toDouble(), material.stock.packType), figure)
             } else {
                 figure
             },
@@ -1858,7 +1859,11 @@ private fun pickupShareIntent(
             appendLine(
                 if (packs != null && packs > 0) {
                     "${material.name}: " +
-                        context.getString(R.string.wh_packs_and_amount, packs, material.stock.packType, figure)
+                        context.getString(
+                            R.string.wh_packs_and_amount,
+                            packCount(context, packs.toDouble(), material.stock.packType),
+                            figure,
+                        )
                 } else {
                     "${material.name}: $figure"
                 },
@@ -1881,12 +1886,12 @@ private fun pickupShareIntent(
     return Intent.createChooser(send, title).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 }
 
-/** "2 canister · 43.4 kg", or the amount on its own when nobody has said what a pack holds. */
+/** "2 canisters · 43.4 kg", or the amount on its own when nobody has said what a pack holds. */
 @Composable
 private fun packAmountText(packs: Int?, packType: String, amount: Double, unit: String): String {
     val figure = "${formatDecimal(amount, 2)} $unit"
     return if (packs != null && packs > 0) {
-        stringResource(R.string.wh_packs_and_amount, packs, packType, figure)
+        stringResource(R.string.wh_packs_and_amount, packCount(packs, packType), figure)
     } else {
         figure
     }

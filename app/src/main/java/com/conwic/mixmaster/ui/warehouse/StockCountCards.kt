@@ -74,6 +74,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.abs
+import com.conwic.mixmaster.ui.components.packCount
 
 private fun dayOf(millis: Long): LocalDate =
     Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -389,7 +390,7 @@ internal fun CountSummaryCard(summary: CountSummary, shelf: List<ProductStock>, 
                             modifier = Modifier.weight(1f).padding(end = 10.dp),
                         )
                         Text(
-                            text = changeText(change, item),
+                            text = changeText(LocalContext.current, change, item),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                         )
@@ -475,12 +476,12 @@ private fun SummaryList(title: String, content: @Composable ColumnScope.() -> Un
  * "6 → 4 bag (−2)" where only whole packs moved, which is how it is said at the rack; the
  * total in the pack's unit where the open one changed too, since packs alone would hide that.
  */
-internal fun changeText(change: CountChange, item: ProductStock): String {
+internal fun changeText(context: Context, change: CountChange, item: ProductStock): String {
     val (before, after) = change.before to change.after
     val sameOpen = abs(before.open - after.open) < 0.0005
     return if (item.isKnownPack && sameOpen) {
         val delta = after.packs - before.packs
-        "${before.packs} → ${after.packs} ${item.packType} (${signed(delta.toDouble())})"
+        "${before.packs} → ${packCount(context, after.packs.toDouble(), item.packType)} (${signed(delta.toDouble())})"
     } else {
         val size = if (item.isKnownPack) item.packSize else 0.0
         val was = before.packs * size + before.open

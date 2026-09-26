@@ -81,6 +81,7 @@ import com.conwic.mixmaster.ui.theme.ChipShape
 import java.time.LocalDateTime
 import com.conwic.mixmaster.ui.components.CrashReportCard
 import com.conwic.mixmaster.ui.settings.UpdateBanner
+import com.conwic.mixmaster.ui.components.packCount
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -399,7 +400,7 @@ fun HomeScreen(navController: NavHostController) {
         if (state.overdueTasks.isNotEmpty()) {
             item {
                 Column {
-                    SectionLabel(text = "Late · ${state.overdueTasks.size}")
+                    SectionLabel(text = stringResource(R.string.home_late, state.overdueTasks.size))
                     CardFlat {
                         state.overdueTasks.forEachIndexed { index, item ->
                             TaskRow(
@@ -488,13 +489,13 @@ fun HomeScreen(navController: NavHostController) {
     }
 }
 
-/** "2 canister · 50 kg · Fri 25 Sep", for the question asked on the day it was due. */
+/** "2 canisters · 50 kg · Fri 25 Sep", for the question asked on the day it was due. */
 @Composable
 private fun deliveryLine(due: DueDelivery): String {
     val figure = "${formatDecimal(due.amount, 2)} ${due.packUnit}"
     val packs = due.delivery.packs
     val amount = if (packs > 0) {
-        stringResource(R.string.wh_packs_and_amount, packs, due.packType, figure)
+        stringResource(R.string.wh_packs_and_amount, packCount(packs, due.packType), figure)
     } else {
         figure
     }

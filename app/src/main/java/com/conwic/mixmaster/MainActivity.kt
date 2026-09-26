@@ -2,6 +2,7 @@ package com.conwic.mixmaster
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -58,6 +59,13 @@ class MainActivity : FragmentActivity() {
         unwrappedBase = newBase
         ActivityBaseContext.set(newBase)
         super.attachBaseContext(LanguageStore.wrap(newBase))
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Turning the phone does not rebuild the activity, so the language-configured resources
+        // have to hear about the new screen size for the dialogs measured from them.
+        runCatching { LanguageStore.followScreen(resources, newConfig, unwrappedBase) }
     }
 
     override fun onNewIntent(intent: Intent) {

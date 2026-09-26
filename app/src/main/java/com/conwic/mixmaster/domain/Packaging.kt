@@ -18,9 +18,7 @@ data class PackNeed(
     val packType: String,
     /** Whole packs to open, rounded up. Null when the pack size isn't known yet. */
     val packs: Int?,
-) {
-    val packLabel: String get() = "${formatDecimal(packSize, 2)} $packUnit $packType"
-}
+)
 
 /** Why a batch plan couldn't be worked out. Worded by the screen, which knows the language. */
 sealed interface BatchProblem {

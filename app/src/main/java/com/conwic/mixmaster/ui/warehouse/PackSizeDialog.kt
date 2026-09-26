@@ -31,10 +31,12 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FormTextField
 import com.conwic.mixmaster.ui.products.PackTypes
 import com.conwic.mixmaster.ui.products.PackUnits
+import com.conwic.mixmaster.ui.components.packLabel
+import com.conwic.mixmaster.ui.components.packName
 
 /** "23 kg bag" — the way a pack is said at the rack. */
-internal fun packLabel(option: PackOption): String =
-    "${formatDecimal(option.size, 2)} ${option.unit} ${option.type}"
+@Composable
+private fun optionLabel(option: PackOption): String = packLabel(option.size, option.unit, option.type)
 
 /**
  * The pack a product comes in, set where the question comes up — in the middle of a count, or
@@ -70,7 +72,7 @@ internal fun PackSizeDialog(
                     ChipRow(
                         options = suggestions.map { option ->
                             ChipOption(
-                                label = packLabel(option),
+                                label = optionLabel(option),
                                 selected = parsed == option.size && unit == option.unit && type == option.type,
                                 onClick = {
                                     size = formatDecimal(option.size, 2)
@@ -97,11 +99,13 @@ internal fun PackSizeDialog(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                // Picked by the name in the app's language; kept as the key it is stored under.
+                val typeNames = PackTypes.map { packName(it) }
                 DropdownField(
                     label = stringResource(R.string.product_container),
-                    selected = type,
-                    options = PackTypes,
-                    onSelect = { type = it },
+                    selected = packName(type),
+                    options = typeNames,
+                    onSelect = { name -> PackTypes.getOrNull(typeNames.indexOf(name))?.let { type = it } },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(

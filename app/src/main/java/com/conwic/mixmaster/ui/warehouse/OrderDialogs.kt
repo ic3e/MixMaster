@@ -28,6 +28,7 @@ import com.conwic.mixmaster.ui.components.PickerField
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import com.conwic.mixmaster.ui.components.packsName
 
 /**
  * Writing down an order that has been placed.
@@ -65,7 +66,7 @@ fun OrderDialog(
                     FormTextField(
                         value = packs,
                         onValueChange = { packs = it },
-                        label = stringResource(R.string.wh_order_packs_field, packType),
+                        label = stringResource(R.string.wh_order_packs_field, packsName(packType)),
                         keyboardType = KeyboardType.Number,
                     )
                 } else {
