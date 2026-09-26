@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.products
 
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -127,6 +129,7 @@ fun ProductsScreen(navController: NavHostController) {
                     // word floating on the border is what made the fields look stickered.
                     placeholder = { Text(stringResource(R.string.products_search)) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     shape = FieldShape,
                     colors = formFieldColors(),
                     trailingIcon = {

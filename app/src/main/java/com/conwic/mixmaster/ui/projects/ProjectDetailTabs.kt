@@ -946,7 +946,7 @@ private fun RoomSheet(
                 value = area,
                 onValueChange = { area = it },
                 label = stringResource(R.string.prj_room_area),
-                singleLine = false,
+                keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.fillMaxWidth(),
             )
             PrimaryButton(
@@ -993,14 +993,14 @@ private fun EditCoatSheet(
                 value = dose,
                 onValueChange = { dose = it },
                 label = stringResource(R.string.prj_coat_coverage),
-                singleLine = false,
+                keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.fillMaxWidth(),
             )
             FormTextField(
                 value = quantity,
                 onValueChange = { quantity = it },
                 label = stringResource(R.string.calc_coats),
-                singleLine = false,
+                keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.fillMaxWidth(),
             )
             PrimaryButton(

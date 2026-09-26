@@ -268,7 +268,7 @@ private fun SheetField(
                 modifier = Modifier.padding(top = 2.dp),
             )
         } else {
-            FormTextField(value = value, onValueChange = onValueChange, label = label)
+            FormTextField(value = value, onValueChange = onValueChange, label = label, keyboardType = KeyboardType.Uri)
         }
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),

@@ -2,6 +2,8 @@
 
 package com.conwic.mixmaster.ui.tasks
 
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -171,6 +173,7 @@ fun TaskEditorSheet(
                 value = title,
                 onValueChange = { title = it },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 shape = FieldShape,
                 colors = formFieldColors(),
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),

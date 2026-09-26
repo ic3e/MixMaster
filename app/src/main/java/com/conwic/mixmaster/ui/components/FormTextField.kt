@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import com.conwic.mixmaster.ui.theme.FieldShape
@@ -36,6 +37,15 @@ fun FormTextField(
     label: String,
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
+    /**
+     * Words start on a capital: without it the keyboard opened in lower case, and a catalogue
+     * typed on the phone filled with "ardex" next to "Ardex". Links and codes set [None].
+     */
+    capitalization: KeyboardCapitalization = if (keyboardType == KeyboardType.Text) {
+        KeyboardCapitalization.Sentences
+    } else {
+        KeyboardCapitalization.None
+    },
     singleLine: Boolean = true,
     /** Shown under the field. Red when [problem] is set, otherwise a plain hint. */
     problem: String? = null,
@@ -90,7 +100,7 @@ fun FormTextField(
             } else {
                 null
             },
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(capitalization = capitalization, keyboardType = keyboardType),
             shape = FieldShape,
             colors = formFieldColors(),
             modifier = Modifier.fillMaxWidth(),

@@ -509,6 +509,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                     value = state.datasheetUrl,
                     onValueChange = viewModel::setDatasheetUrl,
                     label = stringResource(R.string.product_datasheet_link),
+                    keyboardType = KeyboardType.Uri,
                 )
             }
         }

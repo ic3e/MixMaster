@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.company
 
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -306,6 +307,7 @@ private fun JoinCard(busy: Boolean, onJoin: (String) -> Unit) {
                 onValueChange = { code = it },
                 label = stringResource(R.string.co_code_label),
                 hint = stringResource(R.string.co_code_hint),
+                capitalization = KeyboardCapitalization.None,
                 modifier = Modifier.padding(top = 10.dp),
             )
             Row(
@@ -431,6 +433,7 @@ private fun SetUpCard(
                     value = yourName,
                     onValueChange = { yourName = it },
                     label = stringResource(R.string.co_your_name),
+                    capitalization = KeyboardCapitalization.Words,
                     modifier = Modifier.padding(top = 10.dp),
                 )
                 StartChoice(

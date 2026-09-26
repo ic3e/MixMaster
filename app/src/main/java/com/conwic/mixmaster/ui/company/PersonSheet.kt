@@ -2,6 +2,7 @@
 
 package com.conwic.mixmaster.ui.company
 
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -85,6 +86,7 @@ fun PersonSheet(
                 value = name,
                 onValueChange = { name = it },
                 label = stringResource(R.string.co_person_name),
+                capitalization = KeyboardCapitalization.Words,
             )
             Column {
                 SectionLabel(text = stringResource(R.string.co_person_role))
