@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,9 @@ private val NavInactive = Color(0xFF8E9095)
 
 private val NavBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
 
+/** The same shade the see-through white used to give on the charcoal, made solid. */
+private val NavSelected = Color.White.copy(alpha = 0.12f).compositeOver(Charcoal)
+
 @Composable
 fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     // fillMaxWidth on both: without it the Surface shrinks to the width of its items and the
@@ -74,9 +78,9 @@ fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            color = if (selected) Color.White.copy(alpha = 0.12f) else Color.Transparent,
-                        )
+                        // Solid: the bar under it lets the page through, and a lit-up tab with a card
+                        // showing through it read as part of the page rather than as the tab you are on.
+                        .background(color = if (selected) NavSelected else Color.Transparent)
                         .clickable { onNavigate(item.route) }
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
