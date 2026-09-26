@@ -1,14 +1,11 @@
 package com.conwic.mixmaster.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
@@ -17,9 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,31 +29,33 @@ import com.conwic.mixmaster.ui.calculator.CoatHandover
 import com.conwic.mixmaster.ui.calendarscreen.CalendarScreen
 import com.conwic.mixmaster.ui.components.BottomNavBar
 import com.conwic.mixmaster.ui.components.rememberMotionOff
-import com.conwic.mixmaster.ui.home.HomeScreen
 import com.conwic.mixmaster.ui.onboarding.OnboardingScreen
 import com.conwic.mixmaster.ui.products.AddEditProductScreen
 import com.conwic.mixmaster.ui.products.ProductDetailScreen
-import com.conwic.mixmaster.ui.products.ProductsScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
-import com.conwic.mixmaster.ui.projects.ProjectsScreen
-import com.conwic.mixmaster.ui.settings.SettingsScreen
 import com.conwic.mixmaster.ui.solutions.SolutionEditorScreen
-import com.conwic.mixmaster.ui.warehouse.WarehouseScreen
 import com.conwic.mixmaster.ui.signin.SignInScreen
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun MixMasterNavGraph(startDestination: String) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
+    // The bar shows while the tabs are on top, and marks whichever of them TabHost is showing.
+    val tabsEntry = backStackEntry?.takeIf { it.destination.route == Routes.HOME }
+    val tabFlow: StateFlow<String?> = remember(tabsEntry) {
+        tabsEntry?.savedStateHandle?.getStateFlow(SelectedTab, Routes.HOME) ?: MutableStateFlow<String?>(null)
+    }
+    val tab by tabFlow.collectAsState()
     // Read once, out here: the transition lambdas below are not composable, so they cannot ask.
     val calm = rememberMotionOff()
 
     Scaffold(
         bottomBar = {
-            if (currentRoute in Routes.bottomNavRoutes) {
-                BottomNavBar(currentRoute = currentRoute) { route ->
-                    if (route != currentRoute) navController.navigateToTopLevel(route)
+            if (tabsEntry != null) {
+                BottomNavBar(currentRoute = tab) { route ->
+                    if (route != tab) navController.navigateToTopLevel(route)
                 }
             }
         },
@@ -73,44 +73,18 @@ fun MixMasterNavGraph(startDestination: String) {
             // as one sheet — the new screen reads as coming over the old one rather than the two
             // of them being dragged across together. Going back runs it the other way, which is
             // the only thing on screen that says "back" when the gesture came from the edge.
-            enterTransition = {
-                when {
-                    calm -> EnterTransition.None
-                    betweenTabs() -> tabIn()
-                    else -> pushIn(forward = true)
-                }
-            },
-            exitTransition = {
-                when {
-                    calm -> ExitTransition.None
-                    betweenTabs() -> tabOut()
-                    else -> pushOut(forward = true)
-                }
-            },
-            popEnterTransition = {
-                when {
-                    calm -> EnterTransition.None
-                    betweenTabs() -> tabIn()
-                    else -> pushIn(forward = false)
-                }
-            },
-            popExitTransition = {
-                when {
-                    calm -> ExitTransition.None
-                    betweenTabs() -> tabOut()
-                    else -> pushOut(forward = false)
-                }
-            },
+            enterTransition = { if (calm) EnterTransition.None else pushIn(forward = true) },
+            exitTransition = { if (calm) ExitTransition.None else pushOut(forward = true) },
+            popEnterTransition = { if (calm) EnterTransition.None else pushIn(forward = false) },
+            popExitTransition = { if (calm) ExitTransition.None else pushOut(forward = false) },
             // fillMaxSize, not padding(insets): the bottom bar is only on the top-level screens,
             // so padding the NavHost made it change size when you opened a product or a project.
             // Navigation animates that size change with a spring — which is the "new card sliding
             // in". The inset is applied inside each destination instead, where it costs nothing.
             modifier = Modifier.fillMaxSize(),
-            // No size animation. Navigation otherwise tweens the host between the leaving and
-            // arriving page's sizes, clipped and centred — so whenever the arriving page came up
-            // with a stale size (a quick run of taps along the bar is enough), it was shown
-            // through a box growing out of the middle of the screen instead of fading in. Every
-            // page here fills the screen, so there is never a size change worth animating.
+            // No size animation: every page fills the screen, so there is never a size worth
+            // animating, and the default one is what grew pages out of a box in the middle of
+            // the screen. (It still runs when navigation drops a transition — see TabHost.)
             sizeTransform = null,
         ) {
             composable(Routes.SIGN_IN) {
@@ -135,7 +109,8 @@ fun MixMasterNavGraph(startDestination: String) {
                     )
                 }
             }
-            composable(Routes.HOME) { Inset(insets) { HomeScreen(navController = navController) } }
+            // All five bottom-nav pages live in this one destination — see TabHost for why.
+            composable(Routes.HOME) { entry -> Inset(insets) { TabHost(entry, navController, calm) } }
             composable(
                 route = Routes.CALCULATOR,
                 arguments = listOf(
@@ -192,10 +167,6 @@ fun MixMasterNavGraph(startDestination: String) {
                     )
                 }
             }
-            composable(Routes.WAREHOUSE) {
-                Inset(insets) { WarehouseScreen(navController = navController) }
-            }
-            composable(Routes.PRODUCTS) { Inset(insets) { ProductsScreen(navController = navController) } }
             composable(
                 route = Routes.PRODUCT_DETAIL,
                 arguments = listOf(navArgument("productId") { type = NavType.LongType }),
@@ -227,7 +198,6 @@ fun MixMasterNavGraph(startDestination: String) {
                     )
                 }
             }
-            composable(Routes.PROJECTS) { Inset(insets) { ProjectsScreen(navController = navController) } }
             composable(
                 route = Routes.PROJECT_DETAIL,
                 arguments = listOf(navArgument("projectId") { type = NavType.LongType }),
@@ -236,7 +206,6 @@ fun MixMasterNavGraph(startDestination: String) {
                 Inset(insets) { ProjectDetailScreen(navController = navController, projectId = projectId) }
             }
             composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
-            composable(Routes.SETTINGS) { Inset(insets) { SettingsScreen(navController = navController) } }
         }
     }
 }
@@ -248,46 +217,8 @@ private fun Inset(insets: PaddingValues, content: @Composable () -> Unit) {
 }
 
 /** How long a page takes to come over the one behind it, and the curve it does it on. */
-private const val PageMillis = 220
-private val PageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
-
-/**
- * Whether this move is between two of the bottom-nav destinations.
- *
- * Tapping Warehouse from Products is sideways — neither is inside the other, so a push that
- * says "forward" or "back" is saying something untrue. Worse, it could not even say it the same
- * way twice: switching tabs clears the stack down to Home, so navigation reads the move as a
- * push when you start on Home and as a pop from anywhere else, and the same tap animated one
- * way from one tab and the other way from the next.
- */
-private fun AnimatedContentTransitionScope<NavBackStackEntry>.betweenTabs(): Boolean =
-    initialState.destination.route in Routes.bottomNavRoutes &&
-        targetState.destination.route in Routes.bottomNavRoutes
-
-/**
- * A tab arriving, and the one it replaces leaving — one after the other, never at the same time.
- *
- * Matching the two transitions up was not enough. Navigation draws the arriving screen over the
- * leaving one on the way in and the leaving one over the arriving on the way back, and with two
- * screens crossfading through each other that reads as two different effects: the new page
- * appearing over the old, against the old page dissolving to show the new. Since a tab switch
- * gets classified as one or the other depending on which tab you started from, tapping along
- * the bar and back again went through both.
- *
- * So they do not overlap at all. The old one is gone in [TabFadeMillis] and only then does the
- * new one come up, growing the last fraction of the way in. Nothing is ever half-drawn over
- * anything else, which leaves nothing for the stacking order to change.
- */
-private const val TabFadeMillis = 90
-
-private fun tabIn(): EnterTransition =
-    fadeIn(tween(PageMillis - TabFadeMillis, delayMillis = TabFadeMillis)) +
-        scaleIn(
-            initialScale = 0.94f,
-            animationSpec = tween(PageMillis - TabFadeMillis, delayMillis = TabFadeMillis, easing = PageEase),
-        )
-
-private fun tabOut(): ExitTransition = fadeOut(tween(TabFadeMillis, easing = LinearEasing))
+internal const val PageMillis = 220
+internal val PageEase = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
 
 /** A page stepping in, from the right going deeper and from the left coming back. */
 private fun pushIn(forward: Boolean): EnterTransition =
