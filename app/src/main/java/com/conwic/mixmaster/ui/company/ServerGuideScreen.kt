@@ -50,7 +50,9 @@ fun ServerGuideScreen(navController: NavHostController) {
 
     val googleSteps = listOf(
         R.string.co_g1, R.string.co_g2, R.string.co_g3, R.string.co_g4,
-        R.string.co_g5, R.string.co_g6, R.string.co_g7, R.string.co_g8,
+        // The access setting is a step of its own: it sits half way down Google's form, and missing
+        // it is the one mistake that leaves the app shut out of a server that is otherwise right.
+        R.string.co_g5, R.string.co_g6, R.string.co_g6b, R.string.co_g7, R.string.co_g8,
     )
     val websiteSteps = listOf(
         R.string.co_w1, R.string.co_w2, R.string.co_w3, R.string.co_w4, R.string.co_w5, R.string.co_w6,

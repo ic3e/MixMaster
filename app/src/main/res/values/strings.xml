@@ -967,7 +967,8 @@
     <string name="co_g3">Open the file from your email, select everything in it (Ctrl+A) and copy it (Ctrl+C). In the project, delete what is already written there, paste (Ctrl+V) and save with the disk button.</string>
     <string name="co_g4">At the top, next to Run, pick “prepare” from the list and press Run.</string>
     <string name="co_g5">Google asks for permission. Click Review permissions and choose the account. A page says “Google hasn’t verified this app” — that is normal for something you made yourself. Click Advanced, then Go to … (unsafe), then Allow.</string>
-    <string name="co_g6">Click Deploy → New deployment. Click the gear next to “Select type” and choose Web app. Set Execute as: Me, and Who has access: Anyone. Click Deploy.</string>
+    <string name="co_g6">Click Deploy → New deployment. Click the gear next to “Select type” and choose Web app.</string>
+    <string name="co_g6b">The two settings that matter — check them both before you click Deploy: Execute as: Me, and Who has access: Anyone (plain “Anyone”, not “Anyone with a Google account”). If this is missed, the app can’t reach the server. It can be fixed later without a new address: Deploy → Manage deployments → pencil.</string>
     <string name="co_g7">Copy the Web app URL — it ends in /exec — and send it to your phone (email or a message to yourself).</string>
     <string name="co_g8">Back in MixMaster, paste that address where it asks for the server address.</string>
     <string name="co_g_note">The data is kept in a Google Sheet called “MixMaster data” in that account’s Drive — look, but don’t edit it. If the script is ever changed, publish it with Deploy → Manage deployments → pencil → New version, so its address stays the same.</string>

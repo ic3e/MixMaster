@@ -935,7 +935,8 @@
     <string name="co_g3">Avaa tiedosto sähköpostistasi, valitse kaikki (Ctrl+A) ja kopioi (Ctrl+C). Poista projektissa jo oleva teksti, liitä (Ctrl+V) ja tallenna levyke-painikkeella.</string>
     <string name="co_g4">Valitse ylhäällä Run-painikkeen vieressä olevasta listasta ”prepare” ja paina Run.</string>
     <string name="co_g5">Google pyytää lupaa. Napsauta Review permissions ja valitse tili. Sivulla lukee ”Google hasn’t verified this app” — se on tavallista itse tehdyssä. Napsauta Advanced, sitten Go to … (unsafe), sitten Allow.</string>
-    <string name="co_g6">Napsauta Deploy → New deployment. Napsauta ”Select type” -kohdan vieressä olevaa ratasta ja valitse Web app. Aseta Execute as: Me ja Who has access: Anyone. Napsauta Deploy.</string>
+    <string name="co_g6">Napsauta Deploy → New deployment. Napsauta ”Select type” -kohdan vieressä olevaa ratasta ja valitse Web app.</string>
+    <string name="co_g6b">Kaksi tärkeää asetusta — tarkista molemmat ennen kuin napsautat Deploy: Execute as: Me ja Who has access: Anyone (pelkkä ”Anyone”, ei ”Anyone with a Google account”). Jos tämä unohtuu, sovellus ei tavoita palvelinta. Sen voi korjata myöhemmin ilman uutta osoitetta: Deploy → Manage deployments → kynä.</string>
     <string name="co_g7">Kopioi Web app URL — se päättyy /exec — ja lähetä se puhelimeesi (sähköposti tai viesti itsellesi).</string>
     <string name="co_g8">Liitä osoite MixMasterissa kohtaan, jossa kysytään palvelimen osoitetta.</string>
     <string name="co_g_note">Tiedot säilytetään tilin Drivessa Google-taulukossa ”MixMaster data” — katsoa saa, mutta älä muokkaa. Jos skriptiä joskus muutetaan, julkaise se Deploy → Manage deployments → kynä → New version kautta, jotta osoite pysyy samana.</string>

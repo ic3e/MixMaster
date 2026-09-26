@@ -935,7 +935,8 @@
     <string name="co_g3">Ava fail oma e-postist, vali kõik (Ctrl+A) ja kopeeri (Ctrl+C). Kustuta projektis seal juba olev tekst, kleebi (Ctrl+V) ja salvesta ketta nupuga.</string>
     <string name="co_g4">Vali ülal Run nupu kõrval olevast nimekirjast „prepare” ja vajuta Run.</string>
     <string name="co_g5">Google küsib luba. Klõpsa Review permissions ja vali konto. Lehel on kirjas „Google hasn’t verified this app” — see on tavaline asja puhul, mille tegid ise. Klõpsa Advanced, siis Go to … (unsafe), siis Allow.</string>
-    <string name="co_g6">Klõpsa Deploy → New deployment. Klõpsa „Select type” kõrval olevat hammasratast ja vali Web app. Määra Execute as: Me ja Who has access: Anyone. Klõpsa Deploy.</string>
+    <string name="co_g6">Klõpsa Deploy → New deployment. Klõpsa „Select type” kõrval olevat hammasratast ja vali Web app.</string>
+    <string name="co_g6b">Kaks olulist seadet — kontrolli mõlemat enne Deploy vajutamist: Execute as: Me ja Who has access: Anyone (lihtsalt „Anyone”, mitte „Anyone with a Google account”). Kui see jääb tegemata, ei jõua rakendus serverini. Hiljem saab seda parandada ilma aadressi muutmata: Deploy → Manage deployments → pliiats.</string>
     <string name="co_g7">Kopeeri Web app URL — see lõpeb /exec — ja saada see oma telefoni (e-kiri või sõnum iseendale).</string>
     <string name="co_g8">Kleebi see aadress MixMasteris sinna, kus küsitakse serveri aadressi.</string>
     <string name="co_g_note">Andmeid hoitakse selle konto Drive’is Google’i tabelis „MixMaster data” — vaadata võib, muuta ei tasu. Kui skripti kunagi muudetakse, avalda see Deploy → Manage deployments → pliiats → New version kaudu, et aadress jääks samaks.</string>

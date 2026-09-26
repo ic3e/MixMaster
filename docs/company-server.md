@@ -87,7 +87,12 @@ Choose one:
    *"Google hasn't verified this app"*. This is normal for something you made yourself. Click
    **Advanced** → **Go to … (unsafe)** → **Allow**.
 6. **Deploy** → **New deployment** → the gear next to "Select type" → **Web app**.
-   Execute as: **Me**. Who has access: **Anyone**. Then **Deploy**.
+   Before clicking **Deploy**, check both settings. This is the step that is easiest to miss:
+   - Execute as: **Me**
+   - Who has access: **Anyone** (plain "Anyone", not "Anyone with a Google account")
+
+   If it was missed, fix it without getting a new address: Deploy → Manage deployments →
+   pencil → change it → Deploy.
 7. Copy the **Web app URL** (it ends in `/exec`) and send it to your phone.
 8. In the app: Settings → Company → *I'm the employer* (or *Move to another server*) → paste it.
 
