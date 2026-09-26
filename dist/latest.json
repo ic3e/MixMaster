@@ -1,8 +1,8 @@
 {
-  "versionCode": 171,
-  "versionName": "1.0.171",
-  "apk": "MixMaster_1.0.171.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.171.apk",
+  "versionCode": 172,
+  "versionName": "1.0.172",
+  "apk": "MixMaster_1.0.172.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.172.apk",
   "sizeBytes": 20500059,
-  "notes": "Put the project bars on Home's week as well"
+  "notes": "Say what is in each coat where the calculator asks which one"
 }
