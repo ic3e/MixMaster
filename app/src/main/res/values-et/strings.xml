@@ -745,7 +745,12 @@
     <string name="sc_notify_title">Inventuuri aeg</string>
     <string name="sc_notify_text">Viimane inventuur %1$s. Vajuta, et alustada.</string>
     <string name="sc_notify_text_never">Inventuuri pole veel tehtud. Vajuta, et alustada.</string>
-    <string name="sc_reminder_at">Kell %1$s</string>
+    <string name="sc_day_label">Päev</string>
+    <string name="sc_time_label">Kellaaeg</string>
+    <string name="sc_change_day">Muuda päeva</string>
+    <string name="sc_pick_day">Meeldetuletuse päev</string>
+    <string name="sc_day_same">Sama päev mis viimane inventuur</string>
+    <string name="sc_day_hint">Inventuur nihkub tähtajale lähimale valitud nädalapäevale.</string>
     <string name="sc_change_time">Muuda kellaaega</string>
     <string name="sc_pick_time">Meeldetuletuse kellaaeg</string>
     <string name="sc_done_heading">Inventuur tehtud</string>

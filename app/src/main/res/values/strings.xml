@@ -777,7 +777,12 @@
     <string name="sc_notify_title">Time for the stock count</string>
     <string name="sc_notify_text">Last count %1$s. Tap to start.</string>
     <string name="sc_notify_text_never">No count done yet. Tap to start.</string>
-    <string name="sc_reminder_at">At %1$s</string>
+    <string name="sc_day_label">Day</string>
+    <string name="sc_time_label">Time</string>
+    <string name="sc_change_day">Change day</string>
+    <string name="sc_pick_day">Reminder day</string>
+    <string name="sc_day_same">Same day as the last count</string>
+    <string name="sc_day_hint">The count moves to the chosen weekday nearest to when it falls due.</string>
     <string name="sc_change_time">Change time</string>
     <string name="sc_pick_time">Reminder time</string>
     <string name="sc_done_heading">Count finished</string>

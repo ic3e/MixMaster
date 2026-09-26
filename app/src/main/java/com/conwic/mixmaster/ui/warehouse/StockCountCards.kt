@@ -1,6 +1,16 @@
 package com.conwic.mixmaster.ui.warehouse
 
 import android.Manifest
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.conwic.mixmaster.domain.AppLocale
+import com.conwic.mixmaster.domain.SameDayAsLastCount
+import java.time.DayOfWeek
+import java.time.format.TextStyle
 import android.content.Context
 import android.text.format.DateFormat
 import androidx.compose.material3.AlertDialog
@@ -93,6 +103,7 @@ internal fun StockCountCard(
     // Asked for the moment a reminder is switched on — the one point where it is obvious why.
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     var pickingTime by remember { mutableStateOf(false) }
+    var pickingDay by remember { mutableStateOf(false) }
 
     val status = when {
         count.inProgress -> stringResource(
@@ -160,18 +171,20 @@ internal fun StockCountCard(
         )
         if (count.interval != CountInterval.OFF) {
             val time = timeText(context, count.reminderMinute)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.sc_reminder_at, time),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
-                )
-                ActionLink(text = stringResource(R.string.sc_change_time), onClick = { pickingTime = true })
-            }
+            ReminderSettingRow(
+                label = stringResource(R.string.sc_day_label),
+                value = weekdayName(count.reminderWeekday),
+                action = stringResource(R.string.sc_change_day),
+                onClick = { pickingDay = true },
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            ReminderSettingRow(
+                label = stringResource(R.string.sc_time_label),
+                value = time,
+                action = stringResource(R.string.sc_change_time),
+                onClick = { pickingTime = true },
+                modifier = Modifier.padding(top = 8.dp),
+            )
             Text(
                 text = stringResource(R.string.sc_reminder_hint, time),
                 style = MaterialTheme.typography.labelSmall,
@@ -179,6 +192,18 @@ internal fun StockCountCard(
                 modifier = Modifier.padding(top = 6.dp),
             )
         }
+    }
+
+    if (pickingDay) {
+        ReminderDayDialog(
+            selected = count.reminderWeekday,
+            onDismiss = { pickingDay = false },
+            onPick = { weekday ->
+                pickingDay = false
+                StockCountStore.setReminderWeekday(context, weekday)
+                StockCountReminder.schedule(context)
+            },
+        )
     }
 
     if (pickingTime) {
@@ -192,6 +217,78 @@ internal fun StockCountCard(
             },
         )
     }
+}
+
+/** A setting under the reminder chips: what it is, what it is set to, and the way to change it. */
+@Composable
+private fun ReminderSettingRow(
+    label: String,
+    value: String,
+    action: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        }
+        ActionLink(text = action, onClick = onClick)
+    }
+}
+
+/** "Monday" in the app's language, or the words for keeping to the last count's own day. */
+@Composable
+private fun weekdayName(weekday: Int): String =
+    if (weekday in 1..7) {
+        DayOfWeek.of(weekday).getDisplayName(TextStyle.FULL, AppLocale.current)
+            .replaceFirstChar { it.uppercase(AppLocale.current) }
+    } else {
+        stringResource(R.string.sc_day_same)
+    }
+
+/** One tap on a day picks it; there is nothing else on the dialog to confirm. */
+@Composable
+private fun ReminderDayDialog(selected: Int, onDismiss: () -> Unit, onPick: (Int) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.sc_pick_day)) },
+        text = {
+            // Scrolls: eight rows and a line of explanation do not fit a phone held sideways.
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    text = stringResource(R.string.sc_day_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                (listOf(SameDayAsLastCount) + (1..7)).forEach { day ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(FieldShape)
+                            .selectable(selected = day == selected, role = Role.RadioButton, onClick = { onPick(day) })
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = day == selected, onClick = null)
+                        Text(
+                            text = weekdayName(day),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 10.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.action_cancel)) }
+        },
+    )
 }
 
 /** The reminder time the way the phone writes times: 08:00, or 8:00 AM where that is the habit. */

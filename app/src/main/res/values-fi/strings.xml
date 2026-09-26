@@ -745,7 +745,12 @@
     <string name="sc_notify_title">Inventaarion aika</string>
     <string name="sc_notify_text">Edellinen inventaario %1$s. Aloita napauttamalla.</string>
     <string name="sc_notify_text_never">Inventaariota ei ole vielä tehty. Aloita napauttamalla.</string>
-    <string name="sc_reminder_at">Klo %1$s</string>
+    <string name="sc_day_label">Päivä</string>
+    <string name="sc_time_label">Kellonaika</string>
+    <string name="sc_change_day">Vaihda päivä</string>
+    <string name="sc_pick_day">Muistutuspäivä</string>
+    <string name="sc_day_same">Sama päivä kuin edellinen inventaario</string>
+    <string name="sc_day_hint">Inventaario siirtyy eräpäivää lähimpään valittuun viikonpäivään.</string>
     <string name="sc_change_time">Vaihda aika</string>
     <string name="sc_pick_time">Muistutuksen kellonaika</string>
     <string name="sc_done_heading">Inventaario tehty</string>
