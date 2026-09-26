@@ -1,0 +1,4 @@
+w: app/src/main/java/com/conwic/mixmaster/ui/calculator/MixingSession.kt:259:26 'val LocalLifecycleOwner: ProvidableCompositionLocal<LifecycleOwner>' is deprecated. Moved to lifecycle-runtime-compose library in androidx.lifecycle.compose package.
+w: app/src/main/java/com/conwic/mixmaster/ui/company/CompanyGate.kt:49:22 Condition is always 'true'.
+w: app/src/main/java/com/conwic/mixmaster/ui/components/BuildUpDiagram.kt:176:48 'val Icons.Filled.KeyboardArrowRight: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.KeyboardArrowRight.
+w: app/src/main/java/com/conwic/mixmaster/ui/security/AppLock.kt:85:26 'val LocalLifecycleOwner: ProvidableCompositionLocal<LifecycleOwner>' is deprecated. Moved to lifecycle-runtime-compose library in androidx.lifecycle.compose package.
