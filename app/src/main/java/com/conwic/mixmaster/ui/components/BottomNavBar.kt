@@ -48,12 +48,16 @@ private val navItems = listOf(
 
 private val NavInactive = Color(0xFF8E9095)
 
+private val NavBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+
 @Composable
 fun BottomNavBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     // fillMaxWidth on both: without it the Surface shrinks to the width of its items and the
     // dark bar stops short of the right edge of the screen.
     // Flat, like the design: the charcoal bar reads as its own layer without a drop shadow.
-    Surface(color = Charcoal, modifier = Modifier.fillMaxWidth()) {
+    // The top corners are rounded like a sheet's. Square, the dark block cut straight across the
+    // page and looked like the bottom of the screen had been painted over.
+    Surface(color = Charcoal, shape = NavBarShape, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
