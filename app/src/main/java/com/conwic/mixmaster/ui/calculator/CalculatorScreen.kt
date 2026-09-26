@@ -102,6 +102,7 @@ import com.conwic.mixmaster.ui.theme.FieldShape
 import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.components.FilterField
 import com.conwic.mixmaster.ui.components.FilterAll
+import com.conwic.mixmaster.domain.MixPart
 
 private fun productLabel(brand: String, name: String) = "$brand — $name"
 
@@ -249,20 +250,12 @@ fun CalculatorScreen(
         // "Coat 2" alone left that to memory.
         if (coats.size > 1) {
             item {
-                val shareOfRest = stringResource(R.string.solution_line_percent)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     coats.forEach { coat ->
-                        val parts = mixesById[coat.id]?.parts.orEmpty()
                         CoatChoice(
                             name = coat.coatName.ifBlank { coat.name },
                             ratio = coat.ratioLabel,
-                            parts = parts.map { part ->
-                                part.label to if (part.percentOfRest > 0.0) {
-                                    formatDecimal(part.percentOfRest, 2) + shareOfRest
-                                } else {
-                                    formatDecimal(part.ratioParts, 2)
-                                }
-                            },
+                            parts = recipeLines(mixesById[coat.id]?.parts.orEmpty()),
                             selected = coat.id == chosen?.id,
                             onClick = { viewModel.selectSolution(coat.id) },
                         )
@@ -283,6 +276,11 @@ fun CalculatorScreen(
                             modifier = Modifier.weight(1f).padding(end = 10.dp),
                         )
                         RatioBadge(text = product.ratioLabel)
+                    }
+                    // What goes in, at a glance, without opening the recipe. Left to the coat
+                    // cards above when the mix has more than one: they list it already.
+                    if (coats.size <= 1) {
+                        RecipeLines(recipeLines(data.parts), modifier = Modifier.padding(top = 8.dp))
                     }
                     Text(
                         text = stringResource(
@@ -1103,24 +1101,44 @@ private fun CoatChoice(
                 )
             }
         }
-        if (parts.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = scheme.outline)
-            parts.forEach { (what, amount) ->
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
-                    Text(
-                        text = "• $what",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = scheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = amount,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = scheme.onSurface,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
+        RecipeLines(parts, modifier = Modifier.padding(top = 6.dp))
+    }
+}
+
+/** A recipe's parts as the lists show them: the name, and its parts or its share of the rest. */
+@Composable
+private fun recipeLines(parts: List<MixPart>): List<Pair<String, String>> {
+    val shareOfRest = stringResource(R.string.solution_line_percent)
+    return parts.map { part ->
+        part.label to if (part.percentOfRest > 0.0) {
+            formatDecimal(part.percentOfRest, 2) + shareOfRest
+        } else {
+            formatDecimal(part.ratioParts, 2)
+        }
+    }
+}
+
+/** A thin rule, then a line a part — the same in the coat cards and in the recipe's own card. */
+@Composable
+private fun RecipeLines(parts: List<Pair<String, String>>, modifier: Modifier = Modifier) {
+    if (parts.isEmpty()) return
+    Column(modifier = modifier.fillMaxWidth()) {
+        HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp), color = MaterialTheme.colorScheme.outline)
+        parts.forEach { (what, amount) ->
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
+                Text(
+                    text = "• $what",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = amount,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
             }
         }
     }
