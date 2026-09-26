@@ -1,8 +1,8 @@
 {
-  "versionCode": 168,
-  "versionName": "1.0.168",
-  "apk": "MixMaster_1.0.168.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.168.apk",
-  "sizeBytes": 20479967,
-  "notes": "Centre the figures on Home's three cards"
+  "versionCode": 169,
+  "versionName": "1.0.169",
+  "apk": "MixMaster_1.0.169.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.169.apk",
+  "sizeBytes": 20483251,
+  "notes": "Name \"by the bag\" after the pack the batch is counted in"
 }
