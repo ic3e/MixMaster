@@ -123,13 +123,14 @@ fun BottomNavBar(
                         )
                     }
                     if (dot) {
-                        // In the button's lower corner, clear of the icon and the word: on the icon
-                        // it read as part of the drawing. Small and red, the colour the app already
-                        // uses for "check this".
+                        // Right on the button's lower corner, on the curve of its edge, clear of the
+                        // word: on the icon it read as part of the drawing, and just inside the
+                        // corner it crowded the end of "Warehouse". Small and red, the colour the
+                        // app already uses for "check this".
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 8.dp, bottom = 7.dp)
+                                .padding(end = 1.dp, bottom = 2.dp)
                                 .size(6.dp)
                                 .clip(CircleShape)
                                 .background(NavAlert),
