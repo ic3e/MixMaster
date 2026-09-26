@@ -1,8 +1,8 @@
 {
-  "versionCode": 146,
-  "versionName": "1.0.146",
-  "apk": "MixMaster_1.0.146.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.146.apk",
-  "sizeBytes": 20854059,
-  "notes": "Stock count: walk the shelf, see what changed, get reminded"
+  "versionCode": 147,
+  "versionName": "1.0.147",
+  "apk": "MixMaster_1.0.147.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.147.apk",
+  "sizeBytes": 20875475,
+  "notes": "Tidy the count summary, and let the reminder time be picked"
 }
