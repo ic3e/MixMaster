@@ -28,7 +28,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.json.JSONArray
 import org.json.JSONObject
+import java.security.MessageDigest
 import java.util.UUID
 
 /** How the phone stands with the company, for the Company screen. */
@@ -164,11 +166,19 @@ object SyncEngine {
             try {
                 talking.withLock {
                     _status.update { it.copy(working = true) }
-                    pushAll()
-                    if (pullDue) {
-                        pullWanted = false
-                        pullAll()
+                    try {
+                        pushAll()
+                        if (pullDue) {
+                            pullWanted = false
+                            pullAll()
+                        }
+                    } catch (p: CompanyProblem) {
+                        // The company has gone to another server: this phone goes after it, and
+                        // the next turn of the loop carries on there.
+                        if (p.code != "moved" || p.to == null) throw p
+                        follow(p.to)
                     }
+                    keepPeopleCopy()
                 }
                 _status.update { it.copy(working = false, offline = false, problem = null) }
             } catch (p: CompanyProblem) {
@@ -265,6 +275,141 @@ object SyncEngine {
             pullAll(onProgress)
         }
         refreshWaiting()
+    }
+
+    // ---- Moving servers --------------------------------------------------------------------
+
+    /**
+     * Goes after a company that has moved to [to]. Only once the new server has been seen to hold
+     * this company, and to know this phone's key, is the address changed: a phone must never
+     * empty itself because a server it was only trying out does not know it.
+     */
+    private suspend fun follow(to: String) {
+        val link = CompanyStore.current(app) ?: return
+        val hello = CompanyApi.hello(to)
+        if (!hello.claimed || hello.companyId != link.companyId) throw CompanyProblem("moved_unready")
+        val there = link.copy(server = to, kind = hello.kind)
+        try {
+            // Asks for nothing, only whether the key works.
+            CompanyApi.pull(there, Long.MAX_VALUE / 4)
+        } catch (p: CompanyProblem) {
+            throw if (p.code == "revoked") CompanyProblem("moved_unknown") else p
+        }
+        CompanyStore.save(app, there)
+        // The new server numbers its changes from the start: everything is asked for again.
+        // What this phone has not sent yet stays in the outbox and goes there instead.
+        marks().edit().remove("since").commit()
+        lastPullAt = 0L
+        pullWanted = true
+    }
+
+    /**
+     * The new address typed in by hand — for a company whose old server is gone and so cannot
+     * point the way. Tries what was typed and the likely places a server sits under it.
+     */
+    suspend fun followTo(context: Context, typed: String) = withContext(Dispatchers.IO) {
+        app = context.applicationContext
+        val candidates = ServerAddress.candidates(typed)
+        if (candidates.isEmpty()) throw CompanyProblem("not_server")
+        var problem: CompanyProblem? = null
+        for (server in candidates) {
+            try {
+                talking.withLock { follow(server) }
+                syncNow()
+                return@withContext
+            } catch (p: CompanyProblem) {
+                if (problem == null || problem.code == "not_server") problem = p
+            }
+        }
+        throw problem ?: CompanyProblem("not_server")
+    }
+
+    /** The steps of a move, for the Company screen to say which one it is on. */
+    enum class MoveStep { OldServer, NewServer, Upload }
+
+    /**
+     * Moves the whole company to the empty server at [to]: the same company, the same people and
+     * the same keys, so every phone follows on its own and nobody needs a new code.
+     *
+     * The old server is closed for writing first, then read to the end, so nothing anybody sent
+     * gets left behind; if it cannot be reached at all, this phone's own copy and its last list of
+     * people are what move. The crew's phones wait on the new server until everything is there.
+     */
+    suspend fun move(context: Context, to: String, kind: ServerKind, onStep: (MoveStep) -> Unit) = withContext(Dispatchers.IO) {
+        app = context.applicationContext
+        stop()
+        try {
+            talking.withLock {
+                val old = CompanyStore.current(app) ?: throw CompanyProblem("revoked")
+                onStep(MoveStep.OldServer)
+                var closed = false
+                val people = try {
+                    // Refused if an earlier try already closed it — no matter: everything on this
+                    // phone goes to the new server below anyway.
+                    try {
+                        pushAll()
+                    } catch (p: CompanyProblem) {
+                        if (p.code != "moved") throw p
+                    }
+                    CompanyApi.moveOut(old, to)
+                    closed = true
+                    pullAll(takingLeave = true)
+                    CompanyApi.exportPeople(old).also { CompanyStore.savePeopleExport(app, it) }
+                } catch (p: CompanyProblem) {
+                    if (p.code != "offline" && p.code != "not_server" && p.code != "server") throw p
+                    CompanyStore.peopleExport(app) ?: onlyMe(old)
+                }
+                onStep(MoveStep.NewServer)
+                try {
+                    CompanyApi.adopt(to, old, people)
+                } catch (p: CompanyProblem) {
+                    // Not moved after all: the old server is opened again, so nobody is left waiting.
+                    if (closed) runCatching { CompanyApi.moveOut(old, "") }
+                    throw p
+                }
+                CompanyStore.save(app, old.copy(server = to, kind = kind))
+                onStep(MoveStep.Upload)
+                queueEverything(app)
+                pushAll()
+                pullAll()
+                CompanyStore.current(app)?.let { CompanyApi.moveDone(it) }
+            }
+        } finally {
+            start(app)
+        }
+        refreshWaiting()
+    }
+
+    /**
+     * The owner alone, for a move with the old server gone and no copy of the list kept: the
+     * company still moves, and the crew are given new codes on the new server.
+     */
+    private fun onlyMe(link: CompanyLink): String {
+        val all = JSONObject().put("catalogue", true).put("projects", true).put("warehouse", true).put("site", true)
+        val hash = MessageDigest.getInstance("SHA-256").digest(link.token.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+        return JSONArray().put(
+            JSONObject()
+                .put("id", link.personId)
+                .put("name", link.name)
+                .put("owner", true)
+                .put("perms", all)
+                .put("status", "active")
+                .put("token_hash", hash)
+                .put("device", link.device),
+        ).toString()
+    }
+
+    /**
+     * The owner's phone keeps a fresh copy of the people list, keys included, so the company can
+     * still be moved if the server it is on disappears. Twice a day is plenty: people come and go
+     * far less often than that.
+     */
+    private suspend fun keepPeopleCopy() {
+        val link = CompanyStore.current(app) ?: return
+        if (!link.owner) return
+        if (System.currentTimeMillis() - CompanyStore.peopleExportAt(app) < 12 * 60 * 60 * 1000L) return
+        runCatching { CompanyStore.savePeopleExport(app, CompanyApi.exportPeople(link)) }
     }
 
     // ---- Out: triggers and the outbox --------------------------------------------------------
@@ -366,12 +511,13 @@ object SyncEngine {
 
     // ---- In ----------------------------------------------------------------------------------
 
-    private suspend fun pullAll(onProgress: (Int) -> Unit = {}) {
+    private suspend fun pullAll(onProgress: (Int) -> Unit = {}, takingLeave: Boolean = false) {
         var since = mark()
         var received = 0
         while (true) {
             val link = CompanyStore.current(app) ?: return
             val page = CompanyApi.pull(link, since)
+            if (page.movedTo != null && !takingLeave) throw CompanyProblem("moved", page.movedTo)
             noteAnswer(page.me, page.companyName)
             // What this phone sent comes back numbered like everybody else's; it already has it.
             apply(page.rows.filter { it.device == null || it.device != link.device })

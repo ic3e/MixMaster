@@ -60,6 +60,7 @@ import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.pagePadding
+import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.theme.Ok
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -106,6 +107,19 @@ fun CompanyScreen(navController: NavHostController) {
                 }
             }
         }
+        val notice = ui.notice
+        if (notice != null) {
+            item {
+                CardFlat(edge = Ok) {
+                    Text(text = stringResource(notice), style = MaterialTheme.typography.bodyMedium)
+                    ActionLink(
+                        text = stringResource(R.string.co_ok),
+                        onClick = viewModel::dismissNotice,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        }
         val busy = ui.busy
         if (busy != null) {
             item {
@@ -138,6 +152,7 @@ fun CompanyScreen(navController: NavHostController) {
                     onCheck = viewModel::check,
                     onForget = viewModel::forgetFound,
                     onSetUp = viewModel::setUp,
+                    onGuide = { navController.navigate(Routes.SERVER_GUIDE) },
                 )
             }
         } else {
@@ -167,6 +182,18 @@ fun CompanyScreen(navController: NavHostController) {
             } else {
                 item { MyPermsCard(perms = current.perms) }
             }
+            if (current.owner) {
+                item {
+                    MoveCard(
+                        ui = ui,
+                        onGuide = { navController.navigate(Routes.SERVER_GUIDE) },
+                        onCheck = viewModel::check,
+                        onForget = viewModel::forgetFound,
+                        onMove = viewModel::moveHere,
+                    )
+                }
+            }
+            item { FollowCard(busy = busy != null, onFollow = viewModel::followMove) }
             item {
                 LeaveButton(
                     link = current,
@@ -218,6 +245,10 @@ internal fun problemText(code: String): Int = when (code) {
     "last_owner" -> R.string.co_err_last_owner
     "other_company" -> R.string.co_err_other_company
     "revoked" -> R.string.co_err_revoked
+    "moved" -> R.string.co_err_moved
+    "moved_unready" -> R.string.co_err_moved_unready
+    "moved_unknown" -> R.string.co_err_moved_unknown
+    "busy" -> R.string.co_err_busy
     else -> R.string.co_err_server
 }
 
@@ -311,6 +342,7 @@ private fun SetUpCard(
     onCheck: (String) -> Unit,
     onForget: () -> Unit,
     onSetUp: (companyName: String, yourName: String, startEmpty: Boolean) -> Unit,
+    onGuide: () -> Unit,
 ) {
     var kind by rememberSaveable { mutableStateOf(ServerKind.WEBSITE.key) }
     var address by rememberSaveable { mutableStateOf("") }
@@ -328,6 +360,7 @@ private fun SetUpCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ActionLink(text = stringResource(R.string.co_guide_open), onClick = onGuide, modifier = Modifier.padding(top = 8.dp))
             val found = ui.found
             if (found == null) {
                 ChipRow(
@@ -644,6 +677,130 @@ private fun PeopleCard(
                 }
             }
         }
+    }
+}
+
+/**
+ * The owner's way to another server: a new website, another Google account. Everything goes over
+ * in one go, and every phone follows it on its own — nobody needs a new code.
+ */
+@Composable
+private fun MoveCard(
+    ui: CompanyUi,
+    onGuide: () -> Unit,
+    onCheck: (String) -> Unit,
+    onForget: () -> Unit,
+    onMove: () -> Unit,
+) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    var address by rememberSaveable { mutableStateOf("") }
+    var confirming by remember { mutableStateOf(false) }
+    val busy = ui.busy != null
+    Column {
+        SectionLabel(text = stringResource(R.string.co_server_title))
+        CardFlat {
+            Text(
+                text = stringResource(R.string.co_move_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            ActionLink(text = stringResource(R.string.co_guide_open), onClick = onGuide, modifier = Modifier.padding(top = 8.dp))
+            if (!open) {
+                ActionLink(
+                    text = stringResource(R.string.co_move_start),
+                    onClick = { open = true },
+                    enabled = !busy,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            } else {
+                val found = ui.found
+                if (found == null) {
+                    FormTextField(
+                        value = address,
+                        onValueChange = { address = it.trim() },
+                        label = stringResource(R.string.co_move_address),
+                        hint = stringResource(R.string.co_address_hint_website),
+                        keyboardType = KeyboardType.Uri,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                    PrimaryButton(
+                        text = stringResource(R.string.co_check),
+                        onClick = { onCheck(address) },
+                        enabled = address.isNotBlank() && !busy,
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    )
+                } else if (found.hello.claimed) {
+                    Text(
+                        text = stringResource(R.string.co_move_claimed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                    ActionLink(text = stringResource(R.string.co_other_address), onClick = onForget, modifier = Modifier.padding(top = 8.dp))
+                } else {
+                    Text(
+                        text = stringResource(R.string.co_move_ready, found.server.removePrefix("https://")),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Ok,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                    PrimaryButton(
+                        text = stringResource(R.string.co_move_button),
+                        onClick = { confirming = true },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    )
+                    ActionLink(text = stringResource(R.string.co_other_address), onClick = onForget, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+        }
+    }
+    if (confirming) {
+        ConfirmDialog(
+            title = stringResource(R.string.co_move_confirm_title),
+            message = stringResource(R.string.co_move_confirm_body),
+            confirmText = stringResource(R.string.co_move_button),
+            onConfirm = {
+                confirming = false
+                onMove()
+            },
+            onDismiss = { confirming = false },
+        )
+    }
+}
+
+/**
+ * For when the old server is gone and so cannot point the way: the new address, typed in. The
+ * phone keeps its place in the company — the new server knows its key.
+ */
+@Composable
+internal fun FollowCard(busy: Boolean, onFollow: (String) -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    var address by rememberSaveable { mutableStateOf("") }
+    if (!open) {
+        ActionLink(text = stringResource(R.string.co_follow_open), onClick = { open = true })
+        return
+    }
+    CardFlat {
+        Text(
+            text = stringResource(R.string.co_follow_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FormTextField(
+            value = address,
+            onValueChange = { address = it.trim() },
+            label = stringResource(R.string.co_move_address),
+            keyboardType = KeyboardType.Uri,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        PrimaryButton(
+            text = stringResource(R.string.co_follow_button),
+            onClick = { onFollow(address) },
+            enabled = address.isNotBlank() && !busy,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        )
     }
 }
 

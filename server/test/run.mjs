@@ -462,6 +462,89 @@ async function conversation(server) {
   check('then too_many', r.error === 'too_many', r);
 }
 
+// ---- Moving a company from one server to another ------------------------------------------------
+
+async function moving(oldServer, newServer, spareServer) {
+  const A = oldServer.call.bind(oldServer);
+  const B = newServer.call.bind(newServer);
+  const NEW = 'https://new.example/mixmaster/api.php';
+
+  let r = await A({ a: 'setup', company_name: 'ConWiC Oy', name: 'Tanel', device: 'devA' });
+  const owner = r.token;
+  const company = r.company;
+  const o = (call, body) => call({ token: owner, company: company.id, device: 'devA', ...body });
+  r = await o(A, { a: 'person_save', person: { name: 'Mari' } });
+  r = await A({ a: 'join', code: r.person.code, device: 'devW' });
+  const worker = r.token;
+  const w = (call, body) => call({ token: worker, company: company.id, device: 'devW', ...body });
+  r = await o(A, { a: 'person_save', person: { name: 'Late' } });
+  const lateCode = r.person.code;
+
+  await o(A, { a: 'push', rows: [{ t: 'products', id: '11', d: '{"name":"Base"}' }] });
+  await w(A, { a: 'push', rows: [{ t: 'stock', id: '11', d: '{"fullPacks":4}' }, { t: 'notes', id: '12', d: '{"text":"x"}' }] });
+
+  r = await w(A, { a: 'export' });
+  check('move: worker cannot export', r.error === 'not_allowed', r);
+  r = await o(A, { a: 'export' });
+  const people = r.people;
+  check('move: export', r.ok && people.length === 3 && people.every((p) => 'token_hash' in p)
+    && people.find((p) => p.name === 'Mari').token_hash?.length === 64
+    && people.find((p) => p.name === 'Late').code === lateCode, r);
+
+  r = await w(A, { a: 'move_out', to: NEW });
+  check('move: worker cannot move', r.error === 'not_allowed', r);
+  r = await o(A, { a: 'move_out', to: 'http://insecure.example' });
+  check('move: https only', r.error === 'bad_request', r);
+  r = await o(A, { a: 'move_out', to: NEW });
+  check('move: freeze old', r.ok, r);
+
+  r = await w(A, { a: 'push', rows: [{ t: 'stock', id: '11', d: '{"fullPacks":3}' }] });
+  check('move: old refuses writes, says where', r.error === 'moved' && r.to === NEW, r);
+  r = await w(A, { a: 'pull', since: 0 });
+  check('move: old still reads, says where', r.ok && r.moved_to === NEW && r.rows.length === 3, r);
+  r = await A({ a: 'hello' });
+  check('move: hello says where', r.moved_to === NEW, r);
+  r = await A({ a: 'join', code: lateCode, device: 'devL' });
+  check('move: old codes sent on', r.error === 'moved' && r.to === NEW, r);
+
+  r = await B({ a: 'adopt', token: worker, company, people });
+  check('move: only an owner adopts', r.error === 'not_allowed', r);
+  r = await B({ a: 'adopt', token: owner, company, people });
+  check('move: adopt', r.ok && r.company.id === company.id && r.company.name === 'ConWiC Oy', r);
+  r = await B({ a: 'adopt', token: owner, company, people });
+  check('move: adopt once', r.error === 'claimed', r);
+  r = await B({ a: 'hello' });
+  check('move: new is the same company', r.claimed && r.company.id === company.id && !r.moved_to, r);
+
+  r = await w(B, { a: 'pull', since: 0 });
+  check('move: worker key works on new', r.ok && r.me.name === 'Mari' && r.me.perms.warehouse === true, r);
+  r = await w(B, { a: 'push', rows: [{ t: 'stock', id: '11', d: '{"fullPacks":2}' }] });
+  check('move: crew waits while it arrives', r.error === 'busy', r);
+
+  const rows = (await o(A, { a: 'pull', since: 0 })).rows.map((x) => ({ t: x.t, id: x.id, d: x.d, x: x.x }));
+  r = await o(B, { a: 'push', rows });
+  check('move: owner fills new', r.ok && r.refused.length === 0, r);
+  r = await o(B, { a: 'move_done' });
+  check('move: done', r.ok, r);
+  r = await w(B, { a: 'push', rows: [{ t: 'stock', id: '11', d: '{"fullPacks":2}' }] });
+  check('move: crew writes again', r.ok, r);
+  r = await w(B, { a: 'pull', since: 0 });
+  check('move: everything there', r.ok && r.rows.length === 3 && r.rows.find((x) => x.t === 'stock').d === '{"fullPacks":2}', r.rows);
+
+  r = await B({ a: 'join', code: lateCode, device: 'devL' });
+  check('move: old code works on new', r.ok && r.me.name === 'Late', r);
+  r = await o(B, { a: 'people' });
+  check('move: people carried', r.ok && r.people.length === 3 && r.people.every((p) => p.status === 'active'), r.people);
+
+  r = await o(A, { a: 'move_out', to: '' });
+  r = await o(A, { a: 'push', rows: [{ t: 'products', id: '13', d: '{}' }] });
+  check('move: an unfinished move can be undone', r.ok, r);
+
+  const S = spareServer.call.bind(spareServer);
+  r = await S({ a: 'adopt', token: owner, company: { id: 'not hex!', name: 'x' }, people });
+  check('move: bad company id', r.error === 'bad_request', r);
+}
+
 const which = process.argv[2];
 const servers = [];
 if (!which || which === 'website') servers.push(websiteServer);
@@ -479,5 +562,18 @@ for (const make of servers) {
     server.stop();
   }
   console.log(`${server.name}: ${failures === before ? 'all good' : `${failures - before} failed`}`);
+}
+for (const make of servers) {
+  const trio = [await make(), await make(), await make()];
+  const before = failures;
+  try {
+    await moving(...trio);
+  } catch (e) {
+    failures++;
+    console.log(`  CRASH ${e.stack}`);
+  } finally {
+    trio.forEach((server) => server.stop());
+  }
+  console.log(`${trio[0].name} moving: ${failures === before ? 'all good' : `${failures - before} failed`}`);
 }
 process.exit(failures ? 1 : 0);

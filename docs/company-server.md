@@ -1,191 +1,171 @@
-# MixMaster company server: setup guide
+# MixMaster: running the company
 
-One company's data (products, recipes, projects, stock) shared by the employer's phone and the
-crew's phones, kept on a server the company owns. Nobody else is in between, and there is no
-subscription.
+This guide has three parts:
 
-The server is set up once, by the employer (or whoever looks after the app). It takes about
-15 minutes. After that everything is done from the app.
-
----
-
-## 1. Pick where the data lives
-
-| | **A. Company website** | **B. Google account** |
-|---|---|---|
-| Needs | Web hosting that runs PHP (almost all do) | Any Google account, a plain Gmail is enough |
-| Data kept in | A database file on the website | A Google Sheet in that account's Drive |
-| Costs | Nothing extra: the hosting is already paid | Nothing |
-| Doesn't work on | Wix, Squarespace, Webflow, Shopify, free WordPress.com | — |
-
-Both work the same way in the app, and the company can move from one to the other later
-(see section 6). If you can't tell what the website runs on, open
-**hostingchecker.com** and **builtwith.com** and type in the website's address.
+1. **For the employer.** The everyday things: people, codes, permissions. No technical words.
+2. **Setting up or moving the server.** Done once, and again only if the company ever moves its
+   data. The app carries its own step-by-step guide for this (Settings → Company → *How to set
+   up a server*). This part is the same, in more detail.
+3. **Handing over.** What the developer passes to the company, so nothing depends on them.
 
 ---
 
-## 2A. Company website
+# Part 1. For the employer
 
-**What you need:** the login to the website's hosting control panel (Zone, Veebimajutus,
-Hostinger, cPanel, Plesk…) and the `mixmaster` folder from `server/website/`.
+Everything is in the app: **Settings → Company**.
 
-1. Log in to the hosting control panel and open the **File Manager** (or connect with FTP,
-   for example with FileZilla).
-2. Go into the website's own folder. It is usually called `public_html`, `htdocs` or `www`.
-3. Upload the whole **`mixmaster`** folder there, so that the file ends up at
-   `public_html/mixmaster/api.php`. Upload the `data` folder that is inside it too.
-4. Test it: open **https://your-domain/mixmaster/api.php** in a browser. It should say:
-   > **MixMaster** — The server is running and waiting to be set up.
+### Adding someone
 
-   | If you see… | Do this |
-   |---|---|
-   | "…cannot open its database" | Ask the host to switch on SQLite for PHP (`pdo_sqlite`), or use MySQL (below). |
-   | The PHP code itself, or a download | The hosting does not run PHP. Use option B. |
-   | A security warning, or http only | Switch on the free SSL certificate (Let's Encrypt) in the control panel. |
-   | "Not found" | The folder went somewhere else. Check the address matches where `api.php` is. |
-
-5. On the **employer's phone**: MixMaster → Settings → **Company** →
-   *I'm the employer — set up the company* → **Company website** → type `your-domain/mixmaster`
-   → **Check server** → fill in the company name and your name → choose how to start → **Set up
-   company**.
-
-**Only if the host has no SQLite:** create a MySQL database in the control panel, copy
-`config.sample.php` to `config.php` in the same folder, fill in the database name, user and
-password, and upload it.
-
-**Backups:** the data is the file `mixmaster/data/mixmaster-….sqlite`. Download it with the
-File Manager now and then. The employer's phone can also make a backup (Settings → Backup).
-
----
-
-## 2B. Google account
-
-**What you need:** the company's Google account, a computer, and the file `server/google/Code.gs`.
-
-1. Sign in to the company's Google account and go to **script.google.com**.
-2. **New project**. Click "Untitled project" at the top and call it `MixMaster server`.
-3. Delete everything in the editor, paste in the **whole** of `Code.gs`, and save (Ctrl+S).
-4. In the bar above the code, pick **`prepare`** from the function list and press **Run**.
-   Google asks for permission:
-   **Review permissions** → pick the account → *"Google hasn't verified this app"* →
-   **Advanced** → **Go to MixMaster server (unsafe)** → **Allow**.
-   This warning comes up for any script you write yourself. It only lets the script keep its
-   own sheet. When it finishes, the log says **Ready**, and a sheet called *MixMaster data*
-   appears in Drive.
-5. **Deploy** → **New deployment** → the gear icon → **Web app**.
-   - Description: `MixMaster`
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-
-   → **Deploy** → copy the **Web app URL** (it ends in `/exec`).
-   "Anyone" means anyone can reach the address, the same as a website. Only phones holding an
-   access code get anything back.
-6. On the **employer's phone**: Settings → **Company** → *I'm the employer…* → **Google account**
-   → paste the URL → **Check server** → company name, your name → **Set up company**.
-
-**Changing the script later:** Deploy → **Manage deployments** → the pencil → Version:
-**New version** → Deploy. The address stays the same. (A *new deployment* would get a new
-address, and the phones would stop reaching it.)
-
-**The sheet:** you can open it to see the people and their codes, but don't edit it by hand. The
-app is what keeps it.
-
----
-
-## 3. Starting the company
-
-When the company is set up, the app asks how to start:
-
-- **Start with what is on this phone:** the products, recipes, projects and stock on the
-  employer's phone go up to the server. To start from an older backup, restore it first
-  (Settings → Backup → Restore), then set up.
-- **Start empty:** the phone is emptied first and the company starts with nothing.
-
----
-
-## 4. Adding people
-
-Settings → Company → **People** → **Add person**:
-
-1. Name, and **Worker** or **Owner**. Owners can change everything and manage people.
-2. For a worker, choose what they may change:
+1. **People → Add person.**
+2. Type their name. Choose **Worker**, or **Owner** for someone who runs the company with you.
+3. For a worker, switch on what they may **change**:
    - Products and recipes
    - Projects, floors and rooms
    - Stock counts, deliveries and orders
    - Mixes, notes and tasks
 
-   Everybody in the company can **see** everything. These switches only say what they can
-   **change**. The server checks every change, whatever the phone shows.
-3. **Save and make access code** → **Share** (WhatsApp, SMS, email).
+   Everybody can **see** everything. The switches only decide what they can change.
+4. **Save and make access code** → **Share**, and send it by WhatsApp, SMS or email.
 
-The worker installs MixMaster, then goes to **Home → Got an access code?** (or Settings →
-Company), pastes the code and taps **Join**. Their phone's own data makes way for the company's.
+They install MixMaster, tap **Got an access code?** on the Home screen, paste the code and tap
+**Join**.
 
-- A code works **once, on one phone**.
-- **Changing permissions:** open the person and change the switches. Their phone gets the change
-  the next time it is in touch with the server (within half a minute while the app is open).
-- **Lost or new phone:** open the person → **New access code**. The old phone is cut off, and
-  the company's data is erased from it when it next connects. The new code works on the new phone.
-- **Someone leaves:** open the person → **Remove from company**. Their phone is erased the next
-  time it connects. A phone that never connects again is locked after **14 days** without
-  reaching the server.
-- A worker can also leave by themselves (Company → Leave company). That erases the company's data
-  from their phone.
-- Workers can't make backups of the company's data.
+### Everyday changes
 
----
-
-## 5. Handing it over (developer → company)
-
-Whoever sets the server up first doesn't have to stay in charge:
-
-1. If possible, set the server up on the **company's own** website or Google account from the
-   start, not on a personal one.
-2. In People, add the employer as an **Owner** and give them the code. They join on their phone.
-3. The employer can then remove the developer, or keep them in (as a worker or an owner).
-4. Keep the hosting and Google passwords with the company. Don't send them in chat messages.
-
----
-
-## 6. Moving the server
-
-For example, from the developer's Google account to the company's website:
-
-1. Put the new server up (2A or 2B).
-2. On the employer's phone: Company → **Disconnect this phone**. The data stays on the phone.
-3. Company → set up with the **new** address and choose **Start with what is on this phone**.
-4. Give everybody a new code. Their old codes pointed at the old server.
-5. Delete the old server (the old folder, or the old script and sheet).
-
----
-
-## 7. What is shared
-
-| Shared | Not shared (yet) |
+| You want to… | Do this |
 |---|---|
-| Products and their packs | Photos and blueprint files (they stay on the phone that took them) |
-| Recipes and their coats | Language, theme, alarm sound |
-| Projects, floors, rooms and the coats on them | The stock-count reminder settings |
-| Tasks, notes and recorded mixes | |
-| Stock, deliveries and orders | |
-| The crew list | |
+| Let someone change more, or less | People → tap their name → change the switches → Save. Their phone gets it within a minute. |
+| Help someone with a new or lost phone | People → their name → **New access code**. The old phone is cut off and its company data erased the next time it connects. The new code works on the new phone. |
+| Remove someone who has left | People → their name → **Remove from company**. Their phone erases the company's data the next time it connects. |
+| See whether a phone is keeping up | People shows when each phone was last in touch. |
+
+A worker's phone that hasn't reached the server for **14 days** locks the company's data until it
+does. This is in case a phone is lost or kept away on purpose.
+
+### Moving to another server
+
+If the company's data ever has to live somewhere else (a new website, another Google account):
+
+1. Set up the new server (Part 2). It must be **empty**.
+2. Settings → Company → **Move to another server** → enter the new address → **Check** →
+   **Move the company here**.
+3. Keep the app open until it says it's done.
+
+Everybody's phone follows by itself the next time it connects. **Nobody needs a new code.**
+
+If the old server is already gone (the website closed, or the account lost), the move still works
+from your phone's own copy. Everybody else opens Settings → Company → **Company moved to a new
+server?** and enters the new address, which you send them. Someone added very recently may need
+a new code.
 
 ---
 
-## 8. When something is wrong
+# Part 2. Setting up the server
+
+**The app's own guide:** Settings → Company → *How to set up a server*. It sends the server file to
+your email, so you always have it, even without this document.
+
+Choose one:
+
+| | **A. Google account** (easiest) | **B. Company website** |
+|---|---|---|
+| Needs | Any Google account, a plain Gmail is enough | Web hosting that runs PHP (almost all do) |
+| Data kept in | A Google Sheet in that account's Drive | A database file on the website |
+| Costs | Nothing | Nothing extra |
+| Doesn't work on | — | Wix, Squarespace, Webflow, Shopify, free WordPress.com |
+
+## A. Google account
+
+1. In the app, open *How to set up a server* → **Google account** → **Send the server file to
+   myself**, and send it to your email.
+2. On a computer, sign in to the company's Google account, open **script.google.com** and click
+   **New project**.
+3. Open the file from your email. Select everything (Ctrl+A) and copy (Ctrl+C). In the project,
+   delete what is already there, paste (Ctrl+V) and save.
+4. At the top, next to **Run**, pick **`prepare`** from the list and press **Run**.
+5. Google asks for permission: **Review permissions** → choose the account. A page says
+   *"Google hasn't verified this app"*. This is normal for something you made yourself. Click
+   **Advanced** → **Go to … (unsafe)** → **Allow**.
+6. **Deploy** → **New deployment** → the gear next to "Select type" → **Web app**.
+   Execute as: **Me**. Who has access: **Anyone**. Then **Deploy**.
+7. Copy the **Web app URL** (it ends in `/exec`) and send it to your phone.
+8. In the app: Settings → Company → *I'm the employer* (or *Move to another server*) → paste it.
+
+The data is kept in a Google Sheet called *MixMaster data*. You can look at it, but don't edit it.
+If the script is ever changed, publish it with **Deploy → Manage deployments → pencil → New
+version**, so its address stays the same.
+
+## B. Company website
+
+1. In the app, open *How to set up a server* → **Company website** → **Send the website files to
+   myself**.
+2. On a computer, save the zip from the email and unzip it. Inside is a folder called `mixmaster`.
+3. Log in to the website's hosting control panel (where the website and domain are paid for) and
+   open the **File Manager**.
+4. Open the website's main folder (usually `public_html`, `htdocs` or `www`) and upload the whole
+   `mixmaster` folder into it.
+5. Open **https://your-website/mixmaster/api.php** in a browser. It should say *"The server is
+   running and waiting to be set up."*
+6. In the app, enter `your-website/mixmaster` as the server address.
+
+| If the browser shows… | Do this |
+|---|---|
+| "…cannot open its database" | Ask the host to switch on SQLite for PHP, or use MySQL (`config.sample.php` explains). |
+| The code itself, or a download | The hosting doesn't run PHP. Use the Google account instead. |
+| A security warning | Switch on the free certificate (Let's Encrypt) in the control panel. |
+
+Backups: the data is the file `mixmaster/data/mixmaster-….sqlite`. Download it now and then.
+
+## Starting the company
+
+When the app sets up the company, it asks how to start:
+
+- **Start with what is on this phone:** the products, recipes, projects and stock go up. To
+  start from an older backup, restore it first (Settings → Backup → Restore).
+- **Start empty:** the phone is emptied first.
+
+---
+
+# Part 3. Handing over (developer → company)
+
+When the app is handed over, nothing may depend on the developer. Check each of these:
+
+1. **The server is in the company's own account.** That means their Google account, or their
+   website hosting. If it was set up in the developer's account, move it (Part 1, *Moving to
+   another server*).
+2. **The employer is an Owner**, joined on their own phone. The developer is then removed from
+   People (or kept, if the company wants).
+3. **Passwords stay with the company.** Google account, hosting, email. Never send them in a chat.
+4. **The app's source code and signing key.** Transfer the GitHub repository (`ic3e/MixMaster`)
+   to a GitHub account the company owns, or give them a full copy. The signing key is
+   `keystore/debug.keystore` inside it. A new version of the app can only be installed over the
+   old one if it is signed with the **same key**. Without it, every phone would have to uninstall
+   and start again.
+5. **App updates.** The app looks for new versions at
+   `raw.githubusercontent.com/ic3e/MixMaster/main/dist/latest.json`. If the repository moves to
+   another name, the next version must point at the new place (`data/update/AppUpdates.kt`).
+   Until then, updates are installed by hand from the APK.
+6. **The server files** are inside the app (the guide sends them) and in the repository under
+   `server/`. The company doesn't need anything else to set up or move a server.
+
+---
+
+## When something is wrong
 
 | The app says | What it means |
 |---|---|
 | Couldn't reach the server | No internet, or a typo in the address. |
-| …not as a MixMaster server | Something answered at that address, but it isn't `api.php` (or, on Google, the deployment isn't set to *Anyone*). |
-| This server already has a company set up | It has been set up once already. Ask its owner for a code. |
+| …not as a MixMaster server | Something answered, but not the server. On Google, check the deployment is set to *Anyone* and the address ends in `/exec`. |
+| This server already has a company set up | It has been set up already. Ask its owner for a code. A move needs an empty server. |
 | That code doesn't work | Used already, or replaced by a newer one. Make a new code. |
 | Too many wrong codes | The server stops accepting codes for an hour after 30 wrong ones. |
-| The server now holds a different company | The server was set up again from scratch. Nothing was deleted from the phone. Set up or join again. |
-| Connect to the internet (whole screen) | A worker's phone hasn't reached the server for 14 days. It opens again as soon as it does. |
+| The company has moved to a new server | Enter the new address under *Company moved to a new server?*. |
+| The new server doesn't know this phone | Someone added just before a move with the old server gone. Give them a new code. |
+| Connect to the internet (whole screen) | A worker's phone hasn't reached the server for 14 days. It opens as soon as it does, or when the new address is entered. |
 
 ---
 
 For developers: the protocol is one address, JSON in and out (`hello`, `setup`, `join`, `pull`,
-`push`, `people`, `person_save`, `person_code`, `person_remove`, `leave`). Both servers are
-checked against the same conversation by `node server/test/run.mjs`.
+`push`, `people`, `person_save`, `person_code`, `person_remove`, `leave`, and for moving:
+`export`, `adopt`, `move_out`, `move_done`). Both servers are held to the same conversation by
+`node server/test/run.mjs`.

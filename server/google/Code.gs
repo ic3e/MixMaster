@@ -330,7 +330,21 @@ function mmHello() {
     kind: 'google',
     claimed: company !== null,
     company: company,
+    moved_to: mmMetaGet('moved_to', null),
   };
+}
+
+/**
+ * The company has moved to another server: nothing more is taken here, and every phone that asks
+ * is told where it went. Reading stays open, so the owner moving it can take the last of it along.
+ */
+function mmRefuseIfMoved() {
+  if (mmMetaGet('moved_to', null) !== null) mmFail('moved');
+}
+
+/** Half way through arriving from another server: the owner fills it first, everybody else waits. */
+function mmRefuseWhileArriving(person) {
+  if (mmMetaGet('moving', '0') === '1' && !person.owner) mmFail('busy');
 }
 
 function mmSetup(req) {
@@ -379,6 +393,7 @@ function mmJoin(req) {
   const device = mmCleanDevice(req.device);
   return mmLocked(function () {
     if (mmCompany() === null) mmFail('not_claimed');
+    mmRefuseIfMoved();
     // Guessing codes is made slow: a few dozen wrong ones an hour, then nothing until the next.
     const hour = Math.floor(Date.now() / 3600000);
     const tries = String(mmMetaGet('join_fails', '0:0')).split(':');
@@ -433,6 +448,7 @@ function mmPull(req) {
       rows: rows.map(mmRowOut),
       next: next,
       more: more,
+      moved_to: mmMetaGet('moved_to', null),
     };
   });
 }
@@ -450,6 +466,8 @@ function mmPush(req) {
   const device = mmCleanDevice(req.device);
   return mmLocked(function () {
     const person = mmAuth(req);
+    mmRefuseIfMoved();
+    mmRefuseWhileArriving(person);
     const sheet = mmSheet('Data');
     const last = sheet.getLastRow();
     const count = Math.max(last - 1, 0);
@@ -603,6 +621,119 @@ function mmLeave(req) {
   });
 }
 
+// ---- Moving the company to another server ------------------------------------------------------
+
+/** Everything about the people a new server needs to let the same phones in with the same keys. */
+function mmExport(req) {
+  return mmLocked(function () {
+    const me = mmAuth(req);
+    mmRequireOwner(me);
+    const people = mmPeopleAll()
+      .sort(function (a, b) { return a.id - b.id; })
+      .map(function (p) {
+        return {
+          id: p.id,
+          name: p.name,
+          owner: Boolean(p.owner),
+          perms: mmPermsOf(p),
+          status: p.status,
+          code: p.code || null,
+          token_hash: p.token_hash || null,
+          device: p.device || null,
+          created: p.created || null,
+          joined: p.joined || null,
+          seen: p.seen || null,
+        };
+      });
+    return { ok: true, company: mmCompany(), people: people };
+  });
+}
+
+/**
+ * An empty server taking in a company from another one: the same company, the same people, the
+ * same keys — so every phone carries on without a new code. The phone doing it has to be one of
+ * the owners on the list it brings. The data itself follows as ordinary changes.
+ */
+function mmAdopt(req) {
+  const input = req.company && typeof req.company === 'object' ? req.company : {};
+  const companyId = String(input.id || '');
+  const companyName = mmCleanName(input.name);
+  if (!/^[0-9a-f]{8,64}$/.test(companyId)) mmFail('bad_request');
+  const mine = req.token ? mmHash(String(req.token)) : '';
+  let ownerFound = false;
+  const list = Array.isArray(req.people) ? req.people : [];
+  const people = list.map(function (p) {
+    if (!p || typeof p !== 'object' || !(Number(p.id) > 0)) mmFail('bad_request');
+    const status = String(p.status || '');
+    if (['pending', 'active', 'left'].indexOf(status) < 0) mmFail('bad_request');
+    const hash = /^[0-9a-f]{64}$/.test(String(p.token_hash || '')) ? String(p.token_hash) : null;
+    const code = /^[0-9A-Z]{8}$/.test(String(p.code || '')) ? String(p.code) : null;
+    const owner = Boolean(p.owner);
+    if (owner && hash !== null && hash === mine && status === 'active') ownerFound = true;
+    return {
+      id: Number(p.id),
+      name: mmCleanName(p.name),
+      owner: owner,
+      perms: mmCleanPerms(p.perms),
+      status: status,
+      code: status === 'pending' ? code : null,
+      token_hash: status === 'active' ? hash : null,
+      device: mmCleanDevice(p.device),
+      created: Number(p.created || Date.now()),
+      joined: p.joined ? Number(p.joined) : null,
+      seen: p.seen ? Number(p.seen) : null,
+    };
+  });
+  if (!ownerFound) mmFail('not_allowed');
+  return mmLocked(function () {
+    if (mmCompany() !== null) mmFail('claimed');
+    ['People', 'Data'].forEach(function (name) {
+      const sheet = mmSheet(name);
+      if (sheet.getLastRow() > 1) sheet.deleteRows(2, sheet.getLastRow() - 1);
+    });
+    people.forEach(function (person) { mmPersonWrite(person); });
+    const top = people.reduce(function (max, p) { return Math.max(max, p.id); }, 0);
+    mmMetaSet('next_person', top);
+    mmMetaSet('company_id', companyId);
+    mmMetaSet('company_name', companyName);
+    mmMetaSet('created', Date.now());
+    mmMetaSet('seq', 0);
+    mmMetaSet('moving', '1');
+    mmProps().deleteProperty('moved_to');
+    mmBook().rename('MixMaster data – ' + companyName);
+    return { ok: true, company: mmCompany() };
+  });
+}
+
+/** The owner's word that everything has arrived: the rest of the crew can write again. */
+function mmMoveDone(req) {
+  return mmLocked(function () {
+    const me = mmAuth(req);
+    mmRequireOwner(me);
+    mmMetaSet('moving', '0');
+    return { ok: true };
+  });
+}
+
+/**
+ * Closes this server for writing and points every phone at the new one. Given an empty address it
+ * opens again — for a move that could not be finished.
+ */
+function mmMoveOut(req) {
+  return mmLocked(function () {
+    const me = mmAuth(req);
+    mmRequireOwner(me);
+    const to = String(req.to || '').trim();
+    if (!to) {
+      mmProps().deleteProperty('moved_to');
+      return { ok: true };
+    }
+    if (!/^https:\/\/\S+$/.test(to) || to.length > 500) mmFail('bad_request');
+    mmMetaSet('moved_to', to);
+    return { ok: true };
+  });
+}
+
 function mmHandle(req) {
   switch (String(req.a || '')) {
     case 'hello': return mmHello(req);
@@ -615,6 +746,10 @@ function mmHandle(req) {
     case 'person_code': return mmPersonCode(req);
     case 'person_remove': return mmPersonRemove(req);
     case 'leave': return mmLeave(req);
+    case 'export': return mmExport(req);
+    case 'adopt': return mmAdopt(req);
+    case 'move_out': return mmMoveOut(req);
+    case 'move_done': return mmMoveDone(req);
   }
   return mmFail('bad_request');
 }
@@ -636,7 +771,11 @@ function doPost(e) {
   try {
     return mmJson(mmHandle(req));
   } catch (err) {
-    if (err instanceof MmError) return mmJson({ ok: false, error: err.code });
+    if (err instanceof MmError) {
+      const out = { ok: false, error: err.code };
+      if (err.code === 'moved') out.to = mmMetaGet('moved_to', null);
+      return mmJson(out);
+    }
     console.error(err && err.stack ? err.stack : err);
     return mmJson({ ok: false, error: 'server' });
   }

@@ -12,7 +12,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.company.CompanyLink
+import com.conwic.mixmaster.data.company.CompanyProblem
 import com.conwic.mixmaster.data.company.CompanyStore
 import com.conwic.mixmaster.data.company.SyncEngine
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -28,6 +32,7 @@ import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.ConwicLockup
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.pagePadding
+import kotlinx.coroutines.launch
 
 /**
  * How long a worker's phone goes on showing the company's data without hearing from the server.
@@ -53,6 +58,11 @@ fun CompanyGate(content: @Composable () -> Unit) {
 @Composable
 private fun OfflineLock(link: CompanyLink) {
     val status by SyncEngine.status.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // A company that moved while this phone was away: the new address opens it again.
+    var following by remember { mutableStateOf(false) }
+    var followProblem by remember { mutableStateOf<String?>(null) }
     val days = ((System.currentTimeMillis() - link.lastContactAt) / (24L * 60 * 60 * 1000)).toInt()
     Column(
         modifier = Modifier.fillMaxSize().padding(pagePadding()),
@@ -81,6 +91,30 @@ private fun OfflineLock(link: CompanyLink) {
             enabled = !status.working,
             modifier = Modifier.fillMaxWidth(),
         )
+        FollowCard(
+            busy = following,
+            onFollow = { address ->
+                following = true
+                followProblem = null
+                scope.launch {
+                    try {
+                        SyncEngine.followTo(context, address)
+                    } catch (p: CompanyProblem) {
+                        followProblem = p.code
+                    } finally {
+                        following = false
+                    }
+                }
+            },
+        )
+        val shown = followProblem
+        if (shown != null) {
+            Text(
+                text = stringResource(problemText(shown)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 

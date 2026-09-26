@@ -10,8 +10,6 @@ on:
       - 'CLAUDE.md'
       - 'README.md'
       - 'docs/**'
-      # The company server runs on the company's hosting, not on the phone.
-      - 'server/**'
   workflow_dispatch: {}
 
 permissions:

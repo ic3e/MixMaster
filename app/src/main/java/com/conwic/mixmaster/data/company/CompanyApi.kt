@@ -15,12 +15,21 @@ import javax.net.ssl.SSLException
  * [code] is the server's own word for it ("revoked", "bad_code"…) or one of the app's:
  * "offline" (no answer at all), "not_server" (an answer, but not from a MixMaster server),
  * "https" (the address is not a secure one).
+ *
+ * [to] is set when the company has moved: the server's word for where it went.
  */
-class CompanyProblem(val code: String) : Exception(code)
+class CompanyProblem(val code: String, val to: String? = null) : Exception(code)
 
 data class Me(val id: Long, val name: String, val owner: Boolean, val perms: Perms)
 
-data class Hello(val kind: ServerKind, val claimed: Boolean, val companyName: String?)
+data class Hello(
+    val kind: ServerKind,
+    val claimed: Boolean,
+    val companyId: String?,
+    val companyName: String?,
+    /** Where the company went, when this server has handed it on. */
+    val movedTo: String?,
+)
 
 data class Joined(val token: String, val companyId: String, val companyName: String, val me: Me)
 
@@ -40,7 +49,14 @@ data class RemoteRow(val table: String, val id: Long, val data: String?, val del
     val key: String get() = "$table/$id"
 }
 
-data class Pulled(val me: Me, val companyName: String, val rows: List<RemoteRow>, val next: Long, val more: Boolean)
+data class Pulled(
+    val me: Me,
+    val companyName: String,
+    val rows: List<RemoteRow>,
+    val next: Long,
+    val more: Boolean,
+    val movedTo: String?,
+)
 
 data class Pushed(val me: Me, val companyName: String, val refused: List<RemoteRow>)
 
@@ -145,7 +161,9 @@ object CompanyApi {
                 val stream = if (status >= 400) conn.errorStream else conn.inputStream
                 val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
                 val json = runCatching { JSONObject(text) }.getOrNull() ?: throw CompanyProblem("not_server")
-                if (!json.optBoolean("ok", false)) throw CompanyProblem(json.optString("error", "server").ifBlank { "server" })
+                if (!json.optBoolean("ok", false)) {
+                    throw CompanyProblem(json.optString("error", "server").ifBlank { "server" }, json.text("to"))
+                }
                 return@withContext json
             } catch (e: CompanyProblem) {
                 throw e
@@ -175,7 +193,9 @@ object CompanyApi {
         return Hello(
             kind = ServerKind.of(json.optString("kind")),
             claimed = json.optBoolean("claimed", false),
-            companyName = json.optJSONObject("company")?.optString("name"),
+            companyId = json.optJSONObject("company")?.text("id"),
+            companyName = json.optJSONObject("company")?.text("name"),
+            movedTo = json.text("moved_to"),
         )
     }
 
@@ -211,6 +231,7 @@ object CompanyApi {
             rows = (0 until rows.length()).mapNotNull { readRow(rows.getJSONObject(it)) },
             next = json.optLong("next", since),
             more = json.optBoolean("more", false),
+            movedTo = json.text("moved_to"),
         )
     }
 
@@ -232,6 +253,34 @@ object CompanyApi {
 
     suspend fun leave(link: CompanyLink) {
         call(link.server, signed(link, "leave"))
+    }
+
+    // ---- Moving the company to another server -----------------------------------------------
+
+    /**
+     * The company's list of people as the server keeps it, keys and all (as hashes, which let
+     * nobody in). Kept on the owner's phone, so a company whose server is gone can still move.
+     */
+    suspend fun exportPeople(link: CompanyLink): String =
+        (call(link.server, signed(link, "export")).optJSONArray("people") ?: JSONArray()).toString()
+
+    /** An empty server takes the company in: same company, same people, same keys. */
+    suspend fun adopt(server: String, link: CompanyLink, people: String) {
+        val company = JSONObject().put("id", link.companyId).put("name", link.companyName)
+        call(
+            server,
+            JSONObject().put("a", "adopt").put("token", link.token).put("company", company).put("people", JSONArray(people)),
+        )
+    }
+
+    /** Closes the old server for writing and points everybody at [to]; an empty [to] opens it again. */
+    suspend fun moveOut(link: CompanyLink, to: String) {
+        call(link.server, signed(link, "move_out").put("to", to))
+    }
+
+    /** Everything has arrived: the rest of the crew can write to the new server. */
+    suspend fun moveDone(link: CompanyLink) {
+        call(link.server, signed(link, "move_done"))
     }
 
     // ---- The owner's list of people ----------------------------------------------------------
@@ -289,6 +338,10 @@ object CompanyApi {
         .put("projects", perms.projects)
         .put("warehouse", perms.warehouse)
         .put("site", perms.site)
+
+    /** A text field, or null when it is missing, null or empty. */
+    private fun JSONObject.text(name: String): String? =
+        if (isNull(name)) null else optString(name).takeIf { it.isNotBlank() }
 
     private fun readRow(json: JSONObject): RemoteRow? {
         val id = json.optString("id").toLongOrNull() ?: return null

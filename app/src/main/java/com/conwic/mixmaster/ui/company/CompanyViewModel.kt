@@ -45,6 +45,8 @@ data class CompanyUi(
     val peopleLoaded: Boolean = false,
     /** A code just made, waiting to be handed to its person. */
     val fresh: Person? = null,
+    /** Something that went well and is worth saying, until it is read. */
+    @StringRes val notice: Int? = null,
 )
 
 class CompanyViewModel(
@@ -85,6 +87,8 @@ class CompanyViewModel(
     }
 
     fun dismissProblem() = _ui.update { it.copy(problem = null) }
+
+    fun dismissNotice() = _ui.update { it.copy(notice = null) }
 
     // ---- Setting up (the employer) -----------------------------------------------------------
 
@@ -135,14 +139,21 @@ class CompanyViewModel(
             return
         }
         work(R.string.co_joining) {
-            val hello = CompanyApi.hello(code.server)
+            var server = code.server
+            var hello = CompanyApi.hello(server)
+            // A code made before the company moved still works: it went with the company.
+            val movedTo = hello.movedTo
+            if (movedTo != null) {
+                server = movedTo
+                hello = CompanyApi.hello(server)
+            }
             if (!hello.claimed) throw CompanyProblem("not_claimed")
             val device = SyncEngine.newDevice()
-            val joined = CompanyApi.join(code.server, code.code, device)
+            val joined = CompanyApi.join(server, code.code, device)
             // The key first, then the emptying: a phone that dies in between still knows its
             // company, and fills up from it on the next start.
             SyncEngine.stop()
-            saveLink(code.server, hello.kind, joined, device)
+            saveLink(server, hello.kind, joined, device)
             userPrefs.setRole(if (joined.me.owner) Role.EMPLOYER else Role.WORKER)
             withContext(Dispatchers.IO) { SyncEngine.clearShared(app) }
             SyncEngine.start(app)
@@ -187,6 +198,35 @@ class CompanyViewModel(
         if (!current.owner) return
         val people = CompanyApi.people(current)
         _ui.update { it.copy(people = people, peopleLoaded = true) }
+        // The copy a move needs if this server is ever lost, kept fresh while it is here.
+        CompanyStore.savePeopleExport(app, CompanyApi.exportPeople(current))
+    }
+
+    // ---- Moving servers ------------------------------------------------------------------------
+
+    /** Moves the company to the empty server just checked. Everybody else's phone follows. */
+    fun moveHere() {
+        val found = _ui.value.found ?: return
+        if (found.hello.claimed) return
+        work(R.string.co_move_old) {
+            SyncEngine.move(app, found.server, found.hello.kind) { step ->
+                val what = when (step) {
+                    SyncEngine.MoveStep.OldServer -> R.string.co_move_old
+                    SyncEngine.MoveStep.NewServer -> R.string.co_move_new
+                    SyncEngine.MoveStep.Upload -> R.string.co_move_upload
+                }
+                _ui.update { it.copy(busy = what) }
+            }
+            _ui.update { it.copy(found = null, notice = R.string.co_moved_ok) }
+            loadPeopleNow()
+        }
+    }
+
+    /** The company's new address, typed in because the old server is gone and cannot say. */
+    fun followMove(address: String) = work(R.string.co_checking) {
+        SyncEngine.followTo(app, address)
+        _ui.update { it.copy(notice = R.string.co_followed_ok) }
+        loadPeopleNow()
     }
 
     fun savePerson(id: Long, name: String, owner: Boolean, perms: Perms) {

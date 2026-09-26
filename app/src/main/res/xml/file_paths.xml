@@ -5,4 +5,6 @@
     <files-path name="sheets" path="sheets/" />
     <!-- The downloaded APK, handed to Android's installer. -->
     <cache-path name="updates" path="updates/" />
+    <!-- The company server's files, sent from the setup guide to whoever sets it up. -->
+    <cache-path name="server" path="server/" />
 </paths>

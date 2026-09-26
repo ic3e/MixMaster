@@ -389,7 +389,27 @@ function mm_hello($req)
         'kind' => 'website',
         'claimed' => $company !== null,
         'company' => $company,
+        'moved_to' => mm_meta_get('moved_to'),
     );
+}
+
+/**
+ * The company has moved to another server: nothing more is taken here, and every phone that asks
+ * is told where it went. Reading stays open, so the owner moving it can take the last of it along.
+ */
+function mm_refuse_if_moved()
+{
+    if (mm_meta_get('moved_to') !== null) {
+        mm_fail('moved');
+    }
+}
+
+/** Half way through arriving from another server: the owner fills it first, everybody else waits. */
+function mm_refuse_while_arriving($person)
+{
+    if (mm_meta_get('moving') === '1' && empty($person['owner'])) {
+        mm_fail('busy');
+    }
 }
 
 function mm_setup($req)
@@ -428,6 +448,7 @@ function mm_join($req)
         if (mm_company() === null) {
             mm_fail('not_claimed');
         }
+        mm_refuse_if_moved();
         // Guessing codes is made slow: a few dozen wrong ones an hour, then nothing until the next.
         $hour = (int) floor(mm_now() / 3600000);
         $tries = explode(':', (string) mm_meta_get('join_fails', '0:0'));
@@ -491,6 +512,7 @@ function mm_pull($req)
         'rows' => $out,
         'next' => $next,
         'more' => $more,
+        'moved_to' => mm_meta_get('moved_to'),
     );
 }
 
@@ -510,6 +532,8 @@ function mm_may_write($person, $table)
 function mm_push($req)
 {
     $person = mm_auth($req);
+    mm_refuse_if_moved();
+    mm_refuse_while_arriving($person);
     $rows = isset($req['rows']) && is_array($req['rows']) ? $req['rows'] : array();
     if (count($rows) > MM_MAX_PUSH) {
         mm_fail('bad_request');
@@ -645,6 +669,133 @@ function mm_leave($req)
     return array('ok' => true);
 }
 
+// ---- Moving the company to another server ------------------------------------------------------
+
+/** Everything about the people a new server needs to let the same phones in with the same keys. */
+function mm_export($req)
+{
+    $me = mm_auth($req);
+    mm_require_owner($me);
+    $rows = mm_db()->query('SELECT * FROM mm_people ORDER BY id')->fetchAll();
+    $people = array();
+    foreach ($rows as $row) {
+        $people[] = array(
+            'id' => (int) $row['id'],
+            'name' => $row['name'],
+            'owner' => !empty($row['owner']),
+            'perms' => mm_perms_of($row),
+            'status' => $row['status'],
+            'code' => $row['code'],
+            'token_hash' => $row['token_hash'],
+            'device' => $row['device'],
+            'created' => $row['created'] === null ? null : (int) $row['created'],
+            'joined' => $row['joined'] === null ? null : (int) $row['joined'],
+            'seen' => $row['seen'] === null ? null : (int) $row['seen'],
+        );
+    }
+    return array('ok' => true, 'company' => mm_company(), 'people' => $people);
+}
+
+/**
+ * An empty server taking in a company from another one: the same company, the same people, the
+ * same keys — so every phone carries on without a new code. The phone doing it has to be one of
+ * the owners on the list it brings. The data itself follows as ordinary changes.
+ */
+function mm_adopt($req)
+{
+    $in = isset($req['company']) && is_array($req['company']) ? $req['company'] : array();
+    $companyId = isset($in['id']) ? (string) $in['id'] : '';
+    $companyName = mm_clean_name(isset($in['name']) ? $in['name'] : '');
+    if (!preg_match('/^[0-9a-f]{8,64}$/', $companyId)) {
+        mm_fail('bad_request');
+    }
+    $token = isset($req['token']) ? (string) $req['token'] : '';
+    $mine = $token === '' ? '' : hash('sha256', $token);
+    $people = array();
+    $ownerFound = false;
+    $list = isset($req['people']) && is_array($req['people']) ? $req['people'] : array();
+    foreach ($list as $p) {
+        if (!is_array($p) || !isset($p['id']) || (int) $p['id'] <= 0) {
+            mm_fail('bad_request');
+        }
+        $status = isset($p['status']) ? (string) $p['status'] : '';
+        if (!in_array($status, array('pending', 'active', 'left'), true)) {
+            mm_fail('bad_request');
+        }
+        $hash = isset($p['token_hash']) && preg_match('/^[0-9a-f]{64}$/', (string) $p['token_hash']) ? (string) $p['token_hash'] : null;
+        $code = isset($p['code']) && preg_match('/^[0-9A-Z]{8}$/', (string) $p['code']) ? (string) $p['code'] : null;
+        $owner = !empty($p['owner']);
+        if ($owner && $hash !== null && $hash === $mine && $status === 'active') {
+            $ownerFound = true;
+        }
+        $people[] = array(
+            'id' => (int) $p['id'],
+            'name' => mm_clean_name(isset($p['name']) ? $p['name'] : ''),
+            'owner' => $owner ? 1 : 0,
+            'perms' => json_encode(mm_clean_perms(isset($p['perms']) ? $p['perms'] : null)),
+            'status' => $status,
+            'code' => $status === 'pending' ? $code : null,
+            'token_hash' => $status === 'active' ? $hash : null,
+            'device' => mm_clean_device(isset($p['device']) ? $p['device'] : ''),
+            'created' => isset($p['created']) ? (int) $p['created'] : mm_now(),
+            'joined' => isset($p['joined']) ? (int) $p['joined'] : null,
+            'seen' => isset($p['seen']) ? (int) $p['seen'] : null,
+        );
+    }
+    if (!$ownerFound) {
+        mm_fail('not_allowed');
+    }
+    return mm_write(function ($db) use ($companyId, $companyName, $people) {
+        if (mm_meta_get('company_id') !== null) {
+            mm_fail('claimed');
+        }
+        $insert = $db->prepare(
+            'INSERT INTO mm_people (id, name, owner, perms, status, code, token_hash, device, created, joined, seen) ' .
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        foreach ($people as $p) {
+            $insert->execute(array(
+                $p['id'], $p['name'], $p['owner'], $p['perms'], $p['status'], $p['code'],
+                $p['token_hash'], $p['device'], $p['created'], $p['joined'], $p['seen'],
+            ));
+        }
+        mm_meta_set('company_id', $companyId);
+        mm_meta_set('company_name', $companyName);
+        mm_meta_set('created', mm_now());
+        mm_meta_set('moving', '1');
+        return array('ok' => true, 'company' => mm_company());
+    });
+}
+
+/** The owner's word that everything has arrived: the rest of the crew can write again. */
+function mm_move_done($req)
+{
+    $me = mm_auth($req);
+    mm_require_owner($me);
+    mm_meta_set('moving', '0');
+    return array('ok' => true);
+}
+
+/**
+ * Closes this server for writing and points every phone at the new one. Given an empty address it
+ * opens again — for a move that could not be finished.
+ */
+function mm_move_out($req)
+{
+    $me = mm_auth($req);
+    mm_require_owner($me);
+    $to = isset($req['to']) ? trim((string) $req['to']) : '';
+    if ($to === '') {
+        mm_db()->prepare("DELETE FROM mm_meta WHERE k = 'moved_to'")->execute();
+        return array('ok' => true);
+    }
+    if (!preg_match('#^https://[^\s]+$#', $to) || strlen($to) > 500) {
+        mm_fail('bad_request');
+    }
+    mm_meta_set('moved_to', $to);
+    return array('ok' => true);
+}
+
 function mm_handle($req)
 {
     $action = isset($req['a']) ? (string) $req['a'] : '';
@@ -669,6 +820,14 @@ function mm_handle($req)
             return mm_person_remove($req);
         case 'leave':
             return mm_leave($req);
+        case 'export':
+            return mm_export($req);
+        case 'adopt':
+            return mm_adopt($req);
+        case 'move_out':
+            return mm_move_out($req);
+        case 'move_done':
+            return mm_move_done($req);
     }
     mm_fail('bad_request');
 }
@@ -712,6 +871,9 @@ function mm_main()
         $out = mm_handle($req);
     } catch (MmError $e) {
         $out = array('ok' => false, 'error' => $e->getMessage());
+        if ($e->getMessage() === 'moved') {
+            $out['to'] = mm_meta_get('moved_to');
+        }
     } catch (Exception $e) {
         error_log('MixMaster: ' . $e->getMessage());
         $out = array('ok' => false, 'error' => 'server');

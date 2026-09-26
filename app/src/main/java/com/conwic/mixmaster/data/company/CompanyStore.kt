@@ -75,6 +75,8 @@ object CompanyStore {
     private const val K_P_SITE = "pSite"
     private const val K_CONTACT = "lastContactAt"
     private const val K_ENDED = "endedCompany"
+    private const val K_PEOPLE = "peopleExport"
+    private const val K_PEOPLE_AT = "peopleExportAt"
 
     private val flow = MutableStateFlow<CompanyLink?>(null)
     private val ended = MutableStateFlow<String?>(null)
@@ -162,6 +164,16 @@ object CompanyStore {
         val keepEnded = prefs(context).getString(K_ENDED, null)
         prefs(context).edit().clear().apply { if (keepEnded != null) putString(K_ENDED, keepEnded) }.commit()
         flow.value = null
+    }
+
+    // ---- The owner's copy of the people list, for a move with the old server gone -------------
+
+    fun peopleExport(context: Context): String? = prefs(context).getString(K_PEOPLE, null)
+
+    fun peopleExportAt(context: Context): Long = prefs(context).getLong(K_PEOPLE_AT, 0L)
+
+    fun savePeopleExport(context: Context, json: String) {
+        prefs(context).edit().putString(K_PEOPLE, json).putLong(K_PEOPLE_AT, System.currentTimeMillis()).apply()
     }
 
     // ---- The note left when a company cut this phone off ---------------------------------------

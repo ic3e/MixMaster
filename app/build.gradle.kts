@@ -51,6 +51,14 @@ android {
         jvmTarget = "17"
     }
 
+    // The company server travels inside the app, so whoever runs the company after the app is
+    // handed over can always put one up — from the setup guide — without the source or its author.
+    sourceSets {
+        getByName("main") {
+            assets.srcDir(rootProject.file("server"))
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
