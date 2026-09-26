@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.components
 
+import com.conwic.mixmaster.ui.theme.PlainLetters
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -423,9 +424,16 @@ private fun BuildUpStrip(
     val total = films.sum()
     // Drawn straight onto the canvas, where nothing hands down the theme's type: without the
     // family named here the ruler's figures came out in Roboto.
-    val labelStyle = TextStyle(fontFamily = AppFontFamily, fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Rule)
+    val labelStyle = TextStyle(
+        fontFamily = AppFontFamily,
+        fontFeatureSettings = PlainLetters,
+        fontSize = 8.sp,
+        fontWeight = FontWeight.Bold,
+        color = Rule,
+    )
     val capStyle = TextStyle(
         fontFamily = AppFontFamily,
+        fontFeatureSettings = PlainLetters,
         fontSize = 8.sp,
         fontWeight = FontWeight.ExtraBold,
         letterSpacing = 0.5.sp,
