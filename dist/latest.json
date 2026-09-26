@@ -1,8 +1,8 @@
 {
-  "versionCode": 155,
-  "versionName": "1.0.155",
-  "apk": "MixMaster_1.0.155.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.155.apk",
+  "versionCode": 156,
+  "versionName": "1.0.156",
+  "apk": "MixMaster_1.0.156.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.156.apk",
   "sizeBytes": 21132111,
-  "notes": "Share one company's data through a server of the company's own"
+  "notes": "Tell whoever cannot change a project's layout that it is set elsewhere"
 }
