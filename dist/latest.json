@@ -1,8 +1,8 @@
 {
-  "versionCode": 183,
-  "versionName": "1.0.183",
-  "apk": "MixMaster_1.0.183.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.183.apk",
-  "sizeBytes": 20496079,
-  "notes": "Say each thing once, and only what is kept"
+  "versionCode": 184,
+  "versionName": "1.0.184",
+  "apk": "MixMaster_1.0.184.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.184.apk",
+  "sizeBytes": 20514531,
+  "notes": "The shelf's \u2212 / + waits for Save"
 }
