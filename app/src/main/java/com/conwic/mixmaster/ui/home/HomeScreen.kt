@@ -322,7 +322,7 @@ fun HomeScreen(navController: NavHostController) {
                         Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.home_prev_week))
                     }
                     Text(
-                        text = stringResource(R.string.home_week, state.weekLabel.removePrefix("W")),
+                        text = stringResource(R.string.home_week, state.weekNumber.toString()),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     IconButton(onClick = { viewModel.shiftWeek(1) }) {

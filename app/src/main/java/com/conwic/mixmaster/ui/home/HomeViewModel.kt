@@ -13,7 +13,7 @@ import com.conwic.mixmaster.domain.productStock
 import com.conwic.mixmaster.domain.bookingsByProduct
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
-import com.conwic.mixmaster.domain.formatWeek
+import com.conwic.mixmaster.domain.isoWeek
 import com.conwic.mixmaster.ui.tasks.ProjectOption
 import com.conwic.mixmaster.ui.tasks.TaskDraft
 import com.conwic.mixmaster.ui.tasks.toEntity
@@ -91,7 +91,8 @@ data class HomeUiState(
     val productCount: Int = 0,
     val todayTaskCount: Int = 0,
     val selectedDate: LocalDate = LocalDate.now(),
-    val weekLabel: String = "",
+    /** The week on show, as a number: the heading words it, in the language set. */
+    val weekNumber: Int = 0,
     val dayTasks: List<HomeTaskUi> = emptyList(),
     val overdueTasks: List<HomeTaskUi> = emptyList(),
     val undatedTasks: List<HomeTaskUi> = emptyList(),
@@ -263,7 +264,7 @@ class HomeViewModel(
             productCount = products.size,
             todayTaskCount = tasks.count { it.dueDate == today && !it.isDone },
             selectedDate = selected,
-            weekLabel = formatWeek(monday),
+            weekNumber = isoWeek(monday),
             dayTasks = dayTasks,
             overdueTasks = overdue,
             undatedTasks = undated,

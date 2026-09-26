@@ -8,7 +8,17 @@ import java.util.Locale
 /** ISO-8601 week number — the "week 38" that gets said out loud on site. */
 fun isoWeek(date: LocalDate): Int = date.get(WeekFields.ISO.weekOfWeekBasedYear())
 
-fun formatWeek(date: LocalDate): String = "W${isoWeek(date)}"
+/**
+ * "W38", "N38" or "vk 38" — the week as it is written in the language the app is in.
+ *
+ * It was "W" whatever the language, which is English: an Estonian week is a nädal and is written
+ * N38, a Finnish one a viikko and written vk 38.
+ */
+fun formatWeek(date: LocalDate, locale: Locale = AppLocale.current): String = when (locale.language) {
+    "et" -> "N${isoWeek(date)}"
+    "fi" -> "vk ${isoWeek(date)}"
+    else -> "W${isoWeek(date)}"
+}
 
 // Patterns only. A DateTimeFormatter captures a locale when it is built, so a formatter held in
 // a top-level val is stuck with whatever the language was at class load — which is how the app
@@ -21,9 +31,9 @@ private const val LONG_DAY_PATTERN = "EEEE, d MMMM"
 private fun LocalDate.formatIn(pattern: String, locale: Locale): String =
     format(DateTimeFormatter.ofPattern(pattern, locale))
 
-/** "Thursday, 18 September · W38", in whichever language is set. */
+/** "Thursday, 18 September · W38", in whichever language is set, week letter and all. */
 fun formatDayWithWeek(date: LocalDate, locale: Locale = AppLocale.current): String =
-    "${date.formatIn(LONG_DAY_PATTERN, locale)} · ${formatWeek(date)}"
+    "${date.formatIn(LONG_DAY_PATTERN, locale)} · ${formatWeek(date, locale)}"
 
 /**
  * "Fri 18 Sep · W38", or "Fri 18 Sep 2027 · W3" once the year stops being obvious.
@@ -34,7 +44,7 @@ fun formatDueDate(
     locale: Locale = AppLocale.current,
 ): String {
     val pattern = if (date.year == today.year) DAY_PATTERN else DAY_WITH_YEAR_PATTERN
-    return "${date.formatIn(pattern, locale)} · ${formatWeek(date)}"
+    return "${date.formatIn(pattern, locale)} · ${formatWeek(date, locale)}"
 }
 
 /** "18 Sep", or "18 Sep 2027" once the year stops being obvious. */
