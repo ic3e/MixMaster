@@ -31,7 +31,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
-import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.domain.formatDecimal
 import androidx.compose.ui.platform.LocalContext
 import com.conwic.mixmaster.data.docs.SheetStore
@@ -72,7 +72,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
     val product by viewModel.product.collectAsState()
     val usedIn by viewModel.usedIn.collectAsState()
     val onShelf by viewModel.onShelf.collectAsState()
-    val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
+    val access = rememberAccess()
     val current = product ?: return
     var confirmDelete by remember { mutableStateOf(false) }
 
@@ -86,7 +86,7 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 title = current.name,
                 onBack = { navController.popBackStack() },
                 actions = {
-                    if (role == Role.EMPLOYER) {
+                    if (access.catalogue) {
                         IconButton(onClick = { navController.navigate(Routes.productEdit(current.id)) }) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.action_edit))
                         }

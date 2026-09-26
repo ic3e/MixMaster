@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.data.db.entity.familyId
-import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.pagePadding
@@ -58,13 +58,13 @@ fun ProductsScreen(navController: NavHostController) {
         },
     )
     val state by viewModel.uiState.collectAsState()
-    val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
+    val access = rememberAccess()
     val solutions by viewModel.solutions.collectAsState()
     var tab by remember { mutableStateOf(0) }
 
     Scaffold(
         floatingActionButton = {
-            if (role == Role.EMPLOYER) {
+            if (access.catalogue) {
                 FloatingActionButton(
                     onClick = {
                         navController.navigate(if (tab == 0) Routes.PRODUCT_ADD else Routes.SOLUTION_ADD)
@@ -104,7 +104,7 @@ fun ProductsScreen(navController: NavHostController) {
                 )
             }
 
-            if (role == Role.WORKER) {
+            if (!access.catalogue) {
                 item {
                     CardFlat {
                         Text(

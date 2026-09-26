@@ -29,6 +29,7 @@ import androidx.navigation.navArgument
 import com.conwic.mixmaster.ui.calculator.CalculatorScreen
 import com.conwic.mixmaster.ui.calculator.CoatHandover
 import com.conwic.mixmaster.ui.calendarscreen.CalendarScreen
+import com.conwic.mixmaster.ui.company.CompanyScreen
 import com.conwic.mixmaster.ui.components.BottomNavBar
 import com.conwic.mixmaster.ui.components.rememberMotionOff
 import com.conwic.mixmaster.ui.onboarding.OnboardingScreen
@@ -222,6 +223,7 @@ fun MixMasterNavGraph(startDestination: String) {
             }
             composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
             composable(Routes.STOCK_COUNT) { Inset(insets) { StockCountScreen(navController = navController) } }
+            composable(Routes.COMPANY) { Inset(insets) { CompanyScreen(navController = navController) } }
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.conwic.mixmaster.di
 
 import android.content.Context
+import com.conwic.mixmaster.data.company.Access
+import com.conwic.mixmaster.data.company.CompanyStore
 import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.prefs.UserPrefs
 import com.conwic.mixmaster.data.repository.DeliveryRepository
@@ -12,6 +14,8 @@ import com.conwic.mixmaster.data.repository.TeamRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 
 /**
  * Minimal hand-rolled dependency container (no Hilt/Dagger) so the whole app builds with only
@@ -31,6 +35,11 @@ class AppContainer(context: Context) {
      */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val userPrefs: UserPrefs = UserPrefs(context)
+
+    /** What this phone may change: set by the employer in a company, by the role switch otherwise. */
+    val access: Flow<Access> = combine(userPrefs.role, CompanyStore.link(appContext)) { role, link ->
+        Access.of(role, link)
+    }
 
     val productRepository: ProductRepository by lazy { ProductRepository(database.productDao()) }
 

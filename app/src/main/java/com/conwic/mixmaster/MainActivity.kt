@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
+import com.conwic.mixmaster.data.company.SyncEngine
 import com.conwic.mixmaster.data.update.AppUpdates
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -24,6 +25,7 @@ import com.conwic.mixmaster.ui.calculator.MixAlarm
 import com.conwic.mixmaster.ui.calculator.MixingHost
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
+import com.conwic.mixmaster.ui.company.CompanyGate
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
@@ -88,8 +90,15 @@ class MainActivity : FragmentActivity() {
      * By the time the app is off screen the alarm has been seen, and an app that keeps the
      * right to show itself over a lock screen for the rest of the day is a hole in the lock.
      */
+    override fun onStart() {
+        super.onStart()
+        // In front: the company's news is asked for now, and every half minute while it stays.
+        SyncEngine.setForeground(this, true)
+    }
+
     override fun onStop() {
         super.onStop()
+        SyncEngine.setForeground(this, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(false)
             setTurnScreenOn(false)
@@ -164,7 +173,9 @@ class MainActivity : FragmentActivity() {
                         if (themeSetting != null && onboardingSeen != null && appLockEnabled != null) {
                             AppLockGate(enabled = appLockEnabled == true) {
                                 val start = if (onboardingSeen == true) Routes.HOME else Routes.SIGN_IN
-                                com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
+                                CompanyGate {
+                                    com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
+                                }
                                 // Above the whole app, not inside the calculator: a mix in the
                                 // mixer is the most important thing on the phone, and it has to
                                 // still be there when the app is opened again by its own alarm.

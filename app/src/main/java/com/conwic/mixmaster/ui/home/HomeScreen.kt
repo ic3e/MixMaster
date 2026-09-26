@@ -65,6 +65,8 @@ import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.StatCard
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.navigation.navigateToTopLevel
+import com.conwic.mixmaster.ui.company.JoinCompanyCard
+import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.warehouse.StockCountDueCard
 import com.conwic.mixmaster.ui.warehouse.rememberStockCount
 import com.conwic.mixmaster.ui.warehouse.ArrivalDialog
@@ -119,6 +121,9 @@ fun HomeScreen(navController: NavHostController) {
     var ordering by remember { mutableStateOf<ShortItem?>(null) }
 
     val stockCount = rememberStockCount()
+    // A worker on a phone of their own: most likely one that has not been given its code yet.
+    val access = rememberAccess()
+    val offerCompany = !access.inCompany && !access.owner
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -268,8 +273,10 @@ fun HomeScreen(navController: NavHostController) {
 
         if (hasUpdate) item { UpdateBanner(onOpen = { navController.navigateToTopLevel(Routes.SETTINGS) }) }
 
+        if (offerCompany) item { JoinCompanyCard(onOpen = { navController.navigate(Routes.COMPANY) }) }
+
         // Only added when due: an empty item still takes the list's gap either side of it.
-        if (stockCount.isDue()) item { StockCountDueCard(onOpen = { navController.navigate(Routes.STOCK_COUNT) }) }
+        if (stockCount.isDue() && access.warehouse) item { StockCountDueCard(onOpen = { navController.navigate(Routes.STOCK_COUNT) }) }
 
         item {
             // Three cards of one height, whatever the language does to the words: sized to

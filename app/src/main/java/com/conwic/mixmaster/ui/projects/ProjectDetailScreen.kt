@@ -58,7 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import com.conwic.mixmaster.data.model.Role
+import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.data.report.ReportGenerator
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ConfirmDialog
@@ -104,7 +104,8 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     val materials by viewModel.materials.collectAsState()
     val siteMaterials by viewModel.siteMaterials.collectAsState()
     val recordedMixes by viewModel.recordedMixes.collectAsState()
-    val role by container.userPrefs.role.collectAsState(initial = Role.EMPLOYER)
+    val access = rememberAccess()
+    val role = access.role
     val project = data.project ?: return
 
     var selectedTab by remember { mutableStateOf(0) }
@@ -121,7 +122,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
     // Written once and handed to whichever of the two arrangements is used, so the menu behind
     // it cannot drift apart between them.
     val barActions: @Composable RowScope.() -> Unit = {
-        if (role == Role.EMPLOYER) {
+        if (access.projects) {
             IconButton(onClick = { overflowOpen = true }) {
                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
             }
@@ -194,7 +195,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 0 -> OverviewTab(data = data, onAddressClick = { addressSheetOpen = true })
                 1 -> TasksTab(
                     data = data,
-                    isEmployer = role == Role.EMPLOYER,
+                    isEmployer = access.projects,
                     onToggle = viewModel::setTaskDone,
                     onSave = viewModel::saveTask,
                     onDelete = viewModel::deleteTask,
@@ -202,7 +203,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                 2 -> LayoutTab(
                     data = data,
                     roomCoats = roomCoats,
-                    isEmployer = role == Role.EMPLOYER,
+                    isEmployer = access.projects,
                     role = role,
                     onAddFloor = viewModel::addFloor,
                     onAddRoom = viewModel::addRoom,
@@ -245,7 +246,7 @@ fun ProjectDetailScreen(navController: NavHostController, projectId: Long) {
                     materials = materials,
                     siteMaterials = siteMaterials,
                     mixes = recordedMixes,
-                    isEmployer = role == Role.EMPLOYER,
+                    isEmployer = access.projects,
                     onRemoveMix = viewModel::removeRecordedMix,
                     onTakeOutOfStock = { viewModel.takeMaterialsOutOfStock() },
                 )

@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.warehouse
 
+import com.conwic.mixmaster.data.company.CompanyStore
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -43,6 +44,9 @@ object StockCountReminder {
         val manager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val pending = alarmIntent(context)
         runCatching { manager.cancel(pending) }
+        // In a company only the phones allowed to change the shelf are asked to count it.
+        val link = CompanyStore.current(context)
+        if (link != null && !link.owner && !link.perms.warehouse) return
         val state = StockCountStore.read(context)
         val dueAt = state.dueAt() ?: return
         val at = nextCountReminderAt(

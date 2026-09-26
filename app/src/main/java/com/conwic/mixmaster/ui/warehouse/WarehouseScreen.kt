@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import com.conwic.mixmaster.ui.company.rememberAccess
 import androidx.compose.ui.text.style.TextAlign
 import com.conwic.mixmaster.data.prefs.StockCountStore
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -109,6 +111,13 @@ fun WarehouseScreen(navController: NavHostController) {
     var settingPack by remember { mutableStateOf<ProductStock?>(null) }
     val count = rememberStockCount()
     val context = LocalContext.current
+    // In a company the employer decides who changes the shelf. The buttons stay where they are,
+    // so the page reads the same for everybody; a tap that is not yours to make says why.
+    val access = rememberAccess()
+    val notYours = stringResource(R.string.co_not_yours)
+    val allowed: (Boolean, () -> Unit) -> Unit = { may, action ->
+        if (may) action() else Toast.makeText(context, notYours, Toast.LENGTH_SHORT).show()
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -124,7 +133,7 @@ fun WarehouseScreen(navController: NavHostController) {
             StockCountCard(
                 count = count,
                 shelf = state.shelf,
-                onStart = { navController.navigate(Routes.STOCK_COUNT) },
+                onStart = { allowed(access.warehouse) { navController.navigate(Routes.STOCK_COUNT) } },
             )
         }
 
@@ -176,7 +185,7 @@ fun WarehouseScreen(navController: NavHostController) {
                             // used to be the product's sheet first, then the button at its foot.
                             ActionLink(
                                 text = stringResource(R.string.wh_order_short),
-                                onClick = { ordering = item },
+                                onClick = { allowed(access.warehouse) { ordering = item } },
                                 color = OnAccentCard,
                                 modifier = Modifier.padding(start = 10.dp),
                             )
@@ -275,7 +284,7 @@ fun WarehouseScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f).padding(end = 8.dp),
                         )
-                        ActionLink(text = stringResource(R.string.pack_set), onClick = { settingPack = item })
+                        ActionLink(text = stringResource(R.string.pack_set), onClick = { allowed(access.catalogue) { settingPack = item } })
                     }
                 }
             }
@@ -289,17 +298,23 @@ fun WarehouseScreen(navController: NavHostController) {
             deliveries = onTheWay[item.productId].orEmpty(),
             onDismiss = { detailId = null },
             onCount = {
-                detailId = null
-                counting = item
+                allowed(access.warehouse) {
+                    detailId = null
+                    counting = item
+                }
             },
-            onAdjust = { delta -> viewModel.adjustPacks(item.productId, delta) },
+            onAdjust = { delta -> allowed(access.warehouse) { viewModel.adjustPacks(item.productId, delta) } },
             onOrder = {
-                detailId = null
-                ordering = item
+                allowed(access.warehouse) {
+                    detailId = null
+                    ordering = item
+                }
             },
             onDelivery = { delivery ->
-                detailId = null
-                askingAbout = delivery
+                allowed(access.warehouse) {
+                    detailId = null
+                    askingAbout = delivery
+                }
             },
             onOpenProject = { projectId ->
                 detailId = null

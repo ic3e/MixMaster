@@ -41,6 +41,8 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
+import com.conwic.mixmaster.data.company.CompanyStore
+import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.data.prefs.AlertSoundStore
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
@@ -67,6 +69,7 @@ fun SettingsScreen(navController: NavHostController) {
         factory = viewModelFactory { initializer { SettingsViewModel(container.userPrefs, container.teamRepository) } },
     )
     val state by viewModel.uiState.collectAsState()
+    val company by remember { CompanyStore.link(context.applicationContext) }.collectAsState()
 
     // Whether this phone has a fingerprint, face or screen lock to check against at all.
     val lockAvailable = remember { canLockApp(context) }
@@ -87,6 +90,33 @@ fun SettingsScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { Text(text = stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMedium) }
+
+        item {
+            Column {
+                SectionLabel(text = stringResource(R.string.co_title))
+                CardFlat(
+                    modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.COMPANY) },
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        val linked = company
+                        Text(
+                            text = if (linked != null) {
+                                stringResource(R.string.co_settings_on, linked.companyName)
+                            } else {
+                                stringResource(R.string.co_settings_off)
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (linked != null) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        )
+                        ActionLink(
+                            text = stringResource(if (linked != null) R.string.co_settings_open else R.string.co_settings_set_up),
+                            onClick = { navController.navigate(Routes.COMPANY) },
+                        )
+                    }
+                }
+            }
+        }
 
         item {
             Column {
@@ -184,12 +214,13 @@ fun SettingsScreen(navController: NavHostController) {
                             ChipOption(
                                 label = stringResource(labelRes),
                                 selected = option == state.role,
-                                onClick = { viewModel.setRole(option) },
+                                // In a company the employer's list says who runs things, not this switch.
+                                onClick = { if (company == null) viewModel.setRole(option) },
                             )
                         },
                     )
                     Text(
-                        text = stringResource(
+                        text = if (company != null) stringResource(R.string.co_role_locked) else stringResource(
                             if (state.role == Role.EMPLOYER) R.string.role_employer_note else R.string.role_worker_note,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -308,27 +339,36 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_backup))
                 CardFlat {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        PrimaryButton(
-                            text = stringResource(R.string.settings_export),
-                            onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
-                            modifier = Modifier.weight(1f),
+                    // The company's data stays with the company: a worker's phone makes no copies of it.
+                    if (company?.owner == false) {
+                        Text(
+                            text = stringResource(R.string.co_backup_worker),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        GhostButton(
-                            text = stringResource(R.string.settings_restore),
-                            onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
-                            modifier = Modifier.weight(1f),
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            PrimaryButton(
+                                text = stringResource(R.string.settings_export),
+                                onClick = { exportLauncher.launch("mixmaster-backup.mmbackup") },
+                                modifier = Modifier.weight(1f),
+                            )
+                            GhostButton(
+                                text = stringResource(R.string.settings_restore),
+                                onClick = { importLauncher.launch(arrayOf("application/octet-stream", "*/*")) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.settings_restore_note),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp),
                         )
                     }
-                    Text(
-                        text = stringResource(R.string.settings_restore_note),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
                 }
             }
         }

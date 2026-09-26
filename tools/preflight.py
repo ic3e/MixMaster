@@ -31,6 +31,8 @@ def kotlin_files():
 
 def strip_code(body):
     """Comments and string literals out of the way, so brackets can be counted."""
+    # Character literals first: ')' or '"' would otherwise be counted, or start a string.
+    body = re.sub(r"'(\\.|[^'\\\n])'", "''", body)
     body = re.sub(r'"""(.|\n)*?"""', '""', body)
     body = re.sub(r'(?<!\\)"(\\.|[^"\\\n])*"', '""', body)
     body = re.sub(r'/\*(.|\n)*?\*/', '', body)

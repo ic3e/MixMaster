@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.conwic.mixmaster.MainActivity
+import com.conwic.mixmaster.data.company.CompanyStore
+import com.conwic.mixmaster.data.company.SyncEngine
 import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.db.DATABASE_NAME
 import java.io.File
@@ -43,6 +45,9 @@ object BackupManager {
         } catch (e: Exception) {
             false
         }
+        // On a phone in a company the restored rows are everybody's news: they go up at the next
+        // start, and the phone hears the whole company again to fill in what the backup lacks.
+        if (restored && CompanyStore.current(context) != null) SyncEngine.requeueOnStart(context)
         if (restored) restartApp(context)
         return restored
     }
