@@ -1,8 +1,8 @@
 {
-  "versionCode": 167,
-  "versionName": "1.0.167",
-  "apk": "MixMaster_1.0.167.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.167.apk",
+  "versionCode": 168,
+  "versionName": "1.0.168",
+  "apk": "MixMaster_1.0.168.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.168.apk",
   "sizeBytes": 20479967,
-  "notes": "Say pack names in the app's language, and let the mixer turn sideways"
+  "notes": "Centre the figures on Home's three cards"
 }
