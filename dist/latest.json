@@ -1,8 +1,8 @@
 {
-  "versionCode": 189,
-  "versionName": "1.0.189",
-  "apk": "MixMaster_1.0.189.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.189.apk",
-  "sizeBytes": 20514535,
-  "notes": "The lit-up tab is solid"
+  "versionCode": 190,
+  "versionName": "1.0.190",
+  "apk": "MixMaster_1.0.190.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.190.apk",
+  "sizeBytes": 20357505,
+  "notes": "One typeface, and a see-through +"
 }
