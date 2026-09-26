@@ -1,6 +1,5 @@
 package com.conwic.mixmaster.ui.components
 
-import com.conwic.mixmaster.ui.theme.Accent2
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
@@ -55,6 +54,12 @@ private val navItems = listOf(
 private val NavInactive = Color(0xFF8E9095)
 
 private val NavBarShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+
+/**
+ * The app's warning red, lifted: the one used on the cream page is too dark to see as a dot this
+ * small on the charcoal bar.
+ */
+private val NavAlert = Color(0xFFE0584F)
 
 /** The same shade the see-through white used to give on the charcoal, made solid. */
 private val NavSelected = Color.White.copy(alpha = 0.12f).compositeOver(Charcoal)
@@ -119,15 +124,15 @@ fun BottomNavBar(
                     }
                     if (dot) {
                         // In the button's lower corner, clear of the icon and the word: on the icon
-                        // it read as part of the drawing. Gold on the charcoal, where brown would
-                        // sink into it.
+                        // it read as part of the drawing. Small and red, the colour the app already
+                        // uses for "check this".
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 7.dp, bottom = 6.dp)
-                                .size(8.dp)
+                                .padding(end = 8.dp, bottom = 7.dp)
+                                .size(6.dp)
                                 .clip(CircleShape)
-                                .background(Accent2),
+                                .background(NavAlert),
                         )
                     }
                 }
