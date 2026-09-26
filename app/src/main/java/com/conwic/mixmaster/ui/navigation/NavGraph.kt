@@ -106,6 +106,12 @@ fun MixMasterNavGraph(startDestination: String) {
             // Navigation animates that size change with a spring — which is the "new card sliding
             // in". The inset is applied inside each destination instead, where it costs nothing.
             modifier = Modifier.fillMaxSize(),
+            // No size animation. Navigation otherwise tweens the host between the leaving and
+            // arriving page's sizes, clipped and centred — so whenever the arriving page came up
+            // with a stale size (a quick run of taps along the bar is enough), it was shown
+            // through a box growing out of the middle of the screen instead of fading in. Every
+            // page here fills the screen, so there is never a size change worth animating.
+            sizeTransform = null,
         ) {
             composable(Routes.SIGN_IN) {
                 Inset(insets) {
