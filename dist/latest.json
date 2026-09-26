@@ -1,8 +1,8 @@
 {
-  "versionCode": 195,
-  "versionName": "1.0.195",
-  "apk": "MixMaster_1.0.195.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.195.apk",
-  "sizeBytes": 20379853,
-  "notes": "The same names offered everywhere they come round again"
+  "versionCode": 196,
+  "versionName": "1.0.196",
+  "apk": "MixMaster_1.0.196.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.196.apk",
+  "sizeBytes": 20396729,
+  "notes": "A dot on the Warehouse tab while something is on order"
 }
