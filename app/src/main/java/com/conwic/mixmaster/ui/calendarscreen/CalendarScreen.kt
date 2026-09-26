@@ -54,20 +54,13 @@ import com.conwic.mixmaster.domain.formatMonthYear
 import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.shortWeekdayNames
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.text.style.TextOverflow
 import com.conwic.mixmaster.data.model.ProjectStatus
 import com.conwic.mixmaster.domain.formatDateRange
 import com.conwic.mixmaster.ui.components.tappableText
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.projects.labelRes
-import com.conwic.mixmaster.ui.theme.Accent
-import com.conwic.mixmaster.ui.theme.Accent2
 import com.conwic.mixmaster.ui.theme.CardShape
-import com.conwic.mixmaster.ui.theme.Danger
-import com.conwic.mixmaster.ui.theme.Ok
 
 @Composable
 fun CalendarScreen(navController: NavHostController) {
@@ -148,36 +141,10 @@ fun CalendarScreen(navController: NavHostController) {
                         modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
                         color = MaterialTheme.colorScheme.outlineVariant,
                     )
-                    state.monthProjects.forEach { project ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(ChipShape)
-                                .clickable { navController.navigate(Routes.projectDetail(project.id)) }
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(start = 4.dp, end = 10.dp)
-                                    .size(width = 18.dp, height = 6.dp)
-                                    .background(projectColour(project.colour, project.status == ProjectStatus.COMPLETED), ChipShape),
-                            )
-                            Text(
-                                text = project.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Text(
-                                text = formatDateRange(project.start, project.end),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
-                        }
-                    }
+                    ProjectLegend(
+                        projects = state.monthProjects,
+                        onOpen = { id -> navController.navigate(Routes.projectDetail(id)) },
+                    )
                 }
             }
         }
@@ -266,24 +233,6 @@ fun CalendarScreen(navController: NavHostController) {
     }
 }
 
-/**
- * The colours a project's bar can be. Picked to tell apart side by side and to sit with the
- * brand's browns; a finished job is drawn faded, still there but out of the way.
- */
-private val ProjectColours = listOf(
-    Accent,
-    Ok,
-    Accent2,
-    Color(0xFF4F6D8C),
-    Danger,
-    Color(0xFF7A5C8E),
-)
-
-private fun projectColour(index: Int, finished: Boolean): Color {
-    val colour = ProjectColours[index.mod(ProjectColours.size)]
-    return if (finished) colour.copy(alpha = 0.35f) else colour
-}
-
 @Composable
 private fun DayCell(cell: CalendarCell, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val background = when {
@@ -324,28 +273,6 @@ private fun DayCell(cell: CalendarCell, onClick: () -> Unit, modifier: Modifier 
                 )
             }
         }
-        cell.bars.forEach { bar ->
-            if (bar == null) {
-                Spacer(modifier = Modifier.padding(top = 2.dp).height(5.dp))
-            } else {
-                val round = 3.dp
-                Box(
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .padding(start = if (bar.startsHere) 4.dp else 0.dp, end = if (bar.endsHere) 4.dp else 0.dp)
-                        .fillMaxWidth()
-                        .height(5.dp)
-                        .background(
-                            projectColour(bar.colour, bar.finished),
-                            RoundedCornerShape(
-                                topStart = if (bar.startsHere) round else 0.dp,
-                                bottomStart = if (bar.startsHere) round else 0.dp,
-                                topEnd = if (bar.endsHere) round else 0.dp,
-                                bottomEnd = if (bar.endsHere) round else 0.dp,
-                            ),
-                        ),
-                )
-            }
-        }
+        ProjectBars(cell.bars)
     }
 }

@@ -82,6 +82,8 @@ import java.time.LocalDateTime
 import com.conwic.mixmaster.ui.components.CrashReportCard
 import com.conwic.mixmaster.ui.settings.UpdateBanner
 import com.conwic.mixmaster.ui.components.packCount
+import com.conwic.mixmaster.ui.calendarscreen.ProjectBars
+import com.conwic.mixmaster.ui.calendarscreen.ProjectLegend
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -341,6 +343,15 @@ fun HomeScreen(navController: NavHostController) {
                         )
                     }
                 }
+                // The same bars and colours as the calendar, and which job each one is.
+                if (state.weekProjects.isNotEmpty()) {
+                    Box(modifier = Modifier.padding(top = 6.dp)) {
+                        ProjectLegend(
+                            projects = state.weekProjects,
+                            onOpen = { id -> navController.navigate(Routes.projectDetail(id)) },
+                        )
+                    }
+                }
             }
         }
 
@@ -541,5 +552,7 @@ private fun WeekDayCell(day: WeekDayUi, onClick: () -> Unit, modifier: Modifier 
                     ),
             )
         }
+        // Full width of the day, which has no side padding, so a job runs on across the week.
+        ProjectBars(day.bars)
     }
 }

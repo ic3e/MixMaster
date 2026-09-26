@@ -27,6 +27,10 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
+import com.conwic.mixmaster.ui.calendarscreen.CalendarProject
+import com.conwic.mixmaster.ui.calendarscreen.DayBar
+import com.conwic.mixmaster.ui.calendarscreen.barsOn
+import com.conwic.mixmaster.ui.calendarscreen.projectSpans
 
 /** A task as the home list shows it — the row needs the whole task to open the editor. */
 data class HomeTaskUi(val task: TaskEntity, val projectName: String) {
@@ -40,6 +44,8 @@ data class WeekDayUi(
     val isToday: Boolean,
     val isSelected: Boolean,
     val taskCount: Int,
+    /** The projects running that day, as bars — the same as on the calendar. */
+    val bars: List<DayBar?> = emptyList(),
 )
 
 /**
@@ -90,6 +96,8 @@ data class HomeUiState(
     val overdueTasks: List<HomeTaskUi> = emptyList(),
     val undatedTasks: List<HomeTaskUi> = emptyList(),
     val week: List<WeekDayUi> = emptyList(),
+    /** Every project with a day in the week on show, for the key under it. */
+    val weekProjects: List<CalendarProject> = emptyList(),
     val projects: List<ProjectOption> = emptyList(),
 )
 
@@ -237,6 +245,7 @@ class HomeViewModel(
         }
 
         val monday = selected.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val weekProjects = projectSpans(projects, monday, monday.plusDays(6))
         val week = (0..6).map { offset ->
             val date = monday.plusDays(offset.toLong())
             WeekDayUi(
@@ -245,6 +254,7 @@ class HomeViewModel(
                 isToday = date == today,
                 isSelected = date == selected,
                 taskCount = tasks.count { it.dueDate == date && !it.isDone },
+                bars = barsOn(date, weekProjects),
             )
         }
 
@@ -258,6 +268,7 @@ class HomeViewModel(
             overdueTasks = overdue,
             undatedTasks = undated,
             week = week,
+            weekProjects = weekProjects,
             projects = projects.map { ProjectOption(it.id, it.name) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
