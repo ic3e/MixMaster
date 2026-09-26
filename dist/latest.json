@@ -1,8 +1,8 @@
 {
-  "versionCode": 160,
-  "versionName": "1.0.160",
-  "apk": "MixMaster_1.0.160.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.160.apk",
-  "sizeBytes": 20411507,
-  "notes": "Say which Google setup step went wrong, not only that something did"
+  "versionCode": 161,
+  "versionName": "1.0.161",
+  "apk": "MixMaster_1.0.161.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.161.apk",
+  "sizeBytes": 20412707,
+  "notes": "Give \"Who has access: Anyone\" a step of its own in the Google guide"
 }
