@@ -1,8 +1,8 @@
 {
-  "versionCode": 153,
-  "versionName": "1.0.153",
-  "apk": "MixMaster_1.0.153.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.153.apk",
-  "sizeBytes": 25594512,
-  "notes": "Share one company's data between the employer's and the crew's phones"
+  "versionCode": 154,
+  "versionName": "1.0.154",
+  "apk": "MixMaster_1.0.154.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.154.apk",
+  "sizeBytes": 20915451,
+  "notes": "Take Firebase back out: the company's own website server will hold the data"
 }
