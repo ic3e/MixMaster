@@ -36,8 +36,6 @@ import com.conwic.mixmaster.ui.products.AddEditProductScreen
 import com.conwic.mixmaster.ui.products.ProductDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
 import com.conwic.mixmaster.ui.solutions.SolutionEditorScreen
-import com.conwic.mixmaster.ui.sharing.CompanySharingScreen
-import com.conwic.mixmaster.ui.sharing.JoinLinks
 import com.conwic.mixmaster.ui.signin.SignInScreen
 import com.conwic.mixmaster.ui.warehouse.StockCountReminder
 import com.conwic.mixmaster.ui.warehouse.StockCountScreen
@@ -58,14 +56,6 @@ fun MixMasterNavGraph(startDestination: String) {
     val calm = rememberMotionOff()
 
     val ready = pastSignIn(backStackEntry)
-
-    // An invite link was tapped: to the join screen, with the code already in it.
-    val joinLink by JoinLinks.pending.collectAsState()
-    LaunchedEffect(joinLink != null, ready) {
-        if (joinLink != null && ready) {
-            navController.navigate(Routes.COMPANY_SHARING) { launchSingleTop = true }
-        }
-    }
 
     // The count reminder was tapped: straight to the count, once the app is past sign-in.
     val openCount by StockCountReminder.openRequested.collectAsState()
@@ -232,7 +222,6 @@ fun MixMasterNavGraph(startDestination: String) {
             }
             composable(Routes.CALENDAR) { Inset(insets) { CalendarScreen(navController = navController) } }
             composable(Routes.STOCK_COUNT) { Inset(insets) { StockCountScreen(navController = navController) } }
-            composable(Routes.COMPANY_SHARING) { Inset(insets) { CompanySharingScreen(navController = navController) } }
         }
     }
 }

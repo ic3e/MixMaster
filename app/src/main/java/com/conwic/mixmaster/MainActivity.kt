@@ -27,7 +27,6 @@ import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
-import com.conwic.mixmaster.ui.sharing.JoinLinks
 import com.conwic.mixmaster.ui.warehouse.StockCountReminder
 
 /**
@@ -64,16 +63,6 @@ class MainActivity : FragmentActivity() {
         setIntent(intent)
         wakeForAlarm(intent)
         StockCountReminder.takeOpenRequest(intent)
-        takeJoinLink(intent)
-    }
-
-    /** An invite link tapped in WhatsApp or an email: handed to the join screen. */
-    private fun takeJoinLink(intent: Intent?) {
-        val data = intent?.data ?: return
-        if (data.scheme == "mixmaster" && data.host == "join") {
-            JoinLinks.pending.value = data.toString()
-            intent.data = null
-        }
     }
 
     /**
@@ -116,7 +105,6 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         wakeForAlarm(intent)
         StockCountReminder.takeOpenRequest(intent)
-        takeJoinLink(intent)
         val container = (application as MixMasterApp).container
         // Booked afresh on every start: cheap, and it is the one moment it is certain to happen.
         StockCountReminder.schedule(this)

@@ -41,9 +41,7 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
-import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.ui.navigation.Routes
-import com.conwic.mixmaster.data.sync.SyncStore
 import com.conwic.mixmaster.data.prefs.AlertSoundStore
 import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
@@ -69,7 +67,6 @@ fun SettingsScreen(navController: NavHostController) {
         factory = viewModelFactory { initializer { SettingsViewModel(container.userPrefs, container.teamRepository) } },
     )
     val state by viewModel.uiState.collectAsState()
-    val shared by remember { SyncStore.link(context) }.collectAsState()
 
     // Whether this phone has a fingerprint, face or screen lock to check against at all.
     val lockAvailable = remember { canLockApp(context) }
@@ -177,33 +174,6 @@ fun SettingsScreen(navController: NavHostController) {
 
         item {
             Column {
-                SectionLabel(text = stringResource(R.string.settings_sharing))
-                CardFlat(
-                    modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.COMPANY_SHARING) },
-                ) {
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        val company = shared
-                        Text(
-                            text = if (company != null) {
-                                stringResource(R.string.settings_sharing_on, company.companyName)
-                            } else {
-                                stringResource(R.string.settings_sharing_off)
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = if (shared != null) FontWeight.Bold else FontWeight.Normal,
-                            modifier = Modifier.weight(1f).padding(end = 8.dp),
-                        )
-                        ActionLink(
-                            text = stringResource(if (shared != null) R.string.settings_sharing_open else R.string.settings_sharing_set_up),
-                            onClick = { navController.navigate(Routes.COMPANY_SHARING) },
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            Column {
                 SectionLabel(text = stringResource(R.string.settings_using_as))
                 CardFlat {
                     ChipRow(
@@ -214,13 +184,12 @@ fun SettingsScreen(navController: NavHostController) {
                             ChipOption(
                                 label = stringResource(labelRes),
                                 selected = option == state.role,
-                                // In a company the crew list says who sets up work, not this switch.
-                                onClick = { if (shared == null) viewModel.setRole(option) },
+                                onClick = { viewModel.setRole(option) },
                             )
                         },
                     )
                     Text(
-                        text = if (shared != null) stringResource(R.string.settings_role_locked) else stringResource(
+                        text = stringResource(
                             if (state.role == Role.EMPLOYER) R.string.role_employer_note else R.string.role_worker_note,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
