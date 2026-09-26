@@ -1,8 +1,8 @@
 {
-  "versionCode": 200,
-  "versionName": "1.0.200",
-  "apk": "MixMaster_1.0.200.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.200.apk",
-  "sizeBytes": 20396729,
-  "notes": "The order dot moves out onto the button's corner"
+  "versionCode": 201,
+  "versionName": "1.0.201",
+  "apk": "MixMaster_1.0.201.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.201.apk",
+  "sizeBytes": 20433309,
+  "notes": "Several blueprints to a job, and pictures you can zoom into"
 }
