@@ -1,8 +1,8 @@
 {
-  "versionCode": 163,
-  "versionName": "1.0.163",
-  "apk": "MixMaster_1.0.163.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.163.apk",
-  "sizeBytes": 20415199,
-  "notes": "Stop coats multiplying, and a recipe screen closing under a worker"
+  "versionCode": 164,
+  "versionName": "1.0.164",
+  "apk": "MixMaster_1.0.164.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.164.apk",
+  "sizeBytes": 20418275,
+  "notes": "Take a coat off a mix from its list, or all the copies at once"
 }
