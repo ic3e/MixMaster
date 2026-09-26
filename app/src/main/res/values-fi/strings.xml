@@ -1016,4 +1016,5 @@
     <string name="calc_by_the_tub">Purkeittain</string>
     <string name="calc_by_the_pack">Pakkauksittain</string>
     <string name="pack_generic">pakkaus</string>
+    <string name="calendar_project_line">%1$s · %2$s</string>
 </resources>

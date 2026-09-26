@@ -37,6 +37,17 @@ fun formatDueDate(
     return "${date.formatIn(pattern, locale)} · ${formatWeek(date)}"
 }
 
+/** "18 Sep", or "18 Sep 2027" once the year stops being obvious. */
+fun formatShortDate(
+    date: LocalDate,
+    today: LocalDate = LocalDate.now(),
+    locale: Locale = AppLocale.current,
+): String = date.formatIn(if (date.year == today.year) "d MMM" else "d MMM yyyy", locale)
+
+/** "1 Sep – 30 Sep", or the one day when a job starts and ends on it. */
+fun formatDateRange(first: LocalDate, last: LocalDate, locale: Locale = AppLocale.current): String =
+    if (first == last) formatShortDate(first, locale = locale) else "${formatShortDate(first, locale = locale)} – ${formatShortDate(last, locale = locale)}"
+
 /** The weekday's own short name — "Mon" / "esmasp." / "ma" — rather than the enum constant. */
 fun formatShortWeekday(date: LocalDate, locale: Locale = AppLocale.current): String =
     date.formatIn("EEE", locale).replaceFirstChar { it.uppercase(locale) }
