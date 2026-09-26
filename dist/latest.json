@@ -1,8 +1,8 @@
 {
-  "versionCode": 159,
-  "versionName": "1.0.159",
-  "apk": "MixMaster_1.0.159.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.159.apk",
-  "sizeBytes": 20405715,
-  "notes": "Let the company set up, keep and move its own server without anybody's help"
+  "versionCode": 160,
+  "versionName": "1.0.160",
+  "apk": "MixMaster_1.0.160.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.160.apk",
+  "sizeBytes": 20411507,
+  "notes": "Say which Google setup step went wrong, not only that something did"
 }
