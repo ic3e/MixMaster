@@ -1,8 +1,8 @@
 {
-  "versionCode": 145,
-  "versionName": "1.0.145",
-  "apk": "MixMaster_1.0.145.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.145.apk",
-  "sizeBytes": 20749711,
-  "notes": "Switch tabs without going through navigation"
+  "versionCode": 146,
+  "versionName": "1.0.146",
+  "apk": "MixMaster_1.0.146.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.146.apk",
+  "sizeBytes": 20854059,
+  "notes": "Stock count: walk the shelf, see what changed, get reminded"
 }
