@@ -1,8 +1,8 @@
 {
-  "versionCode": 164,
-  "versionName": "1.0.164",
-  "apk": "MixMaster_1.0.164.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.164.apk",
-  "sizeBytes": 20418275,
-  "notes": "Take a coat off a mix from its list, or all the copies at once"
+  "versionCode": 165,
+  "versionName": "1.0.165",
+  "apk": "MixMaster_1.0.165.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.165.apk",
+  "sizeBytes": 20457351,
+  "notes": "Recipe editor: coats as buttons, and a word about unsaved changes"
 }
