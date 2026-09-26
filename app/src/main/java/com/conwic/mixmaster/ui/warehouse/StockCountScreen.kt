@@ -46,6 +46,7 @@ import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.packSuggestions
 import com.conwic.mixmaster.domain.toNumberOrNull
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -89,6 +90,7 @@ fun StockCountScreen(navController: NavHostController) {
     // frame late, and feeding it back into the field would eat the comma being typed.
     val drafts = remember { mutableStateMapOf<Long, CountDraft>() }
     var confirmFinish by remember { mutableStateOf(false) }
+    var settingPack by remember { mutableStateOf<ProductStock?>(null) }
 
     val list = rows.orEmpty()
     val done = list.count { it.productId in count.counted }
@@ -150,6 +152,7 @@ fun StockCountScreen(navController: NavHostController) {
                         draft = draft,
                         onPacks = { saveDraft(item, draft.copy(packs = it)) },
                         onOpen = { saveDraft(item, draft.copy(open = it)) },
+                        onSetPack = { settingPack = item },
                         onTick = {
                             // Both ways: a green tick tapped again comes off, so a slip of the
                             // thumb while scrolling is undone by the same tap that made it.
@@ -191,6 +194,21 @@ fun StockCountScreen(navController: NavHostController) {
                     .padding(horizontal = pageSide(), vertical = 10.dp),
             )
         }
+    }
+
+    val packFor = settingPack
+    if (packFor != null) {
+        PackSizeDialog(
+            item = packFor,
+            suggestions = packSuggestions(packFor.name, packFor.brand, list),
+            onDismiss = { settingPack = null },
+            onSave = { pack ->
+                // What was typed was a loose amount; the row is packs and an open one from now on.
+                drafts.remove(packFor.productId)
+                viewModel.setPack(packFor.productId, pack)
+                settingPack = null
+            },
+        )
     }
 
     if (confirmFinish && done == 0) {
@@ -241,6 +259,7 @@ private fun CountRow(
     draft: CountDraft,
     onPacks: (String) -> Unit,
     onOpen: (String) -> Unit,
+    onSetPack: () -> Unit,
     onTick: () -> Unit,
 ) {
     // The green edge is what says "done" from across the list, without reading a word of it.
@@ -252,11 +271,19 @@ private fun CountRow(
                 detail = if (item.isKnownPack) {
                     stringResource(R.string.wh_pack_of, formatDecimal(item.packSize, 2), item.packUnit, item.packType)
                 } else {
-                    stringResource(R.string.wh_no_pack_size)
+                    stringResource(R.string.pack_not_set)
                 },
                 modifier = Modifier.weight(1f).padding(end = 10.dp),
             )
             SameButton(counted = counted, onClick = onTick)
+        }
+        if (!item.isKnownPack) {
+            // Set here, mid-count, rather than on the product's own form three screens away.
+            ActionLink(
+                text = stringResource(R.string.pack_set),
+                onClick = onSetPack,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
         if (item.isKnownPack) {
             Row(

@@ -8,6 +8,7 @@ import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
+import com.conwic.mixmaster.domain.PackOption
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.bookingsByProduct
 import com.conwic.mixmaster.domain.productStock
@@ -93,6 +94,17 @@ class WarehouseViewModel(
 
     fun setStock(productId: Long, fullPacks: Int, openAmount: Double) {
         viewModelScope.launch { stockRepository.set(productId, fullPacks, openAmount) }
+    }
+
+    /** Gives the product its pack, and re-reads what is on the shelf of it in those packs. */
+    fun setPack(productId: Long, pack: PackOption) {
+        viewModelScope.launch {
+            val product = productRepository.getById(productId) ?: return@launch
+            productRepository.saveProduct(
+                product.copy(packageSize = pack.size, packageUnit = pack.unit, packageType = pack.type),
+            )
+            stockRepository.rollUp(productId, pack.size)
+        }
     }
 
     fun adjustPacks(productId: Long, delta: Int) {

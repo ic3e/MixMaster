@@ -54,6 +54,7 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.db.entity.DeliveryEntity
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.packSuggestions
 import com.conwic.mixmaster.domain.formatDueDate
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.ui.LocalAppContainer
@@ -105,6 +106,7 @@ fun WarehouseScreen(navController: NavHostController) {
     var counting by remember { mutableStateOf<ProductStock?>(null) }
     var ordering by remember { mutableStateOf<ProductStock?>(null) }
     var askingAbout by remember { mutableStateOf<DeliveryEntity?>(null) }
+    var settingPack by remember { mutableStateOf<ProductStock?>(null) }
     val count = rememberStockCount()
     val context = LocalContext.current
 
@@ -263,12 +265,18 @@ fun WarehouseScreen(navController: NavHostController) {
                     )
                 }
                 if (!item.isKnownPack) {
-                    Text(
-                        text = stringResource(R.string.wh_no_pack_size),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.pack_not_set),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        )
+                        ActionLink(text = stringResource(R.string.pack_set), onClick = { settingPack = item })
+                    }
                 }
             }
         }
@@ -300,6 +308,19 @@ fun WarehouseScreen(navController: NavHostController) {
             onOpenProduct = {
                 detailId = null
                 navController.navigate(Routes.productDetail(item.productId))
+            },
+        )
+    }
+
+    val packFor = settingPack
+    if (packFor != null) {
+        PackSizeDialog(
+            item = packFor,
+            suggestions = packSuggestions(packFor.name, packFor.brand, state.shelf),
+            onDismiss = { settingPack = null },
+            onSave = { pack ->
+                viewModel.setPack(packFor.productId, pack)
+                settingPack = null
             },
         )
     }

@@ -770,4 +770,10 @@
     <string name="product_on_site_note">Ei osteta ega hoita laos, nagu kraanivesi. Jääb retseptidesse ja segamisse, kuid mitte laoseisu, inventuuri ega tellimustesse.</string>
     <string name="prj_on_site">Saadakse objektilt</string>
     <string name="prj_on_site_note">Laost ei võeta. Veendu, et see on objektil olemas.</string>
+
+    <!-- Setting a pack size where it is missing -->
+    <string name="pack_set">Määra pakendi suurus</string>
+    <string name="pack_not_set">Pakendi suurus puudub</string>
+    <string name="pack_suggested">Soovitused sama brändi teistelt toodetelt või tootelehelt:</string>
+    <string name="pack_rollup_note">Riiulil olev kogus jääb samaks, nüüdsest näidatakse seda täispakenditena.</string>
 </resources>

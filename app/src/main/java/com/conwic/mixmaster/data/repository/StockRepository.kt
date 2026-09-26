@@ -37,6 +37,26 @@ class StockRepository(private val stockDao: StockDao) {
     }
 
     /**
+     * Reads the shelf again in packs, once a product has been given a pack size.
+     *
+     * Until then everything of it was counted as one loose amount; 130 kg of a 25 kg bag is five
+     * bags and 5 kg open, and that is how the next count should find it. The same amount either
+     * way, so the date it was counted stays.
+     */
+    suspend fun rollUp(productId: Long, packSize: Double) {
+        if (packSize <= 0.0) return
+        val existing = stockDao.getForProduct(productId) ?: return
+        val whole = floor(existing.openAmount / packSize).toInt()
+        if (whole <= 0) return
+        stockDao.update(
+            existing.copy(
+                fullPacks = existing.fullPacks + whole,
+                openAmount = existing.openAmount - whole * packSize,
+            ),
+        )
+    }
+
+    /**
      * Puts a delivery on the shelf.
      *
      * Loose amounts are rolled up into whole packs where they make one, so a shed that takes in

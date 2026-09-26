@@ -802,4 +802,10 @@
     <string name="product_on_site_note">Not bought or kept in the shed, like water from the tap. It stays in recipes and mixing, but is left out of stock, counts and orders.</string>
     <string name="prj_on_site">Supplied on site</string>
     <string name="prj_on_site_note">Not taken from the shed. Make sure it is there on the day.</string>
+
+    <!-- Setting a pack size where it is missing -->
+    <string name="pack_set">Set pack size</string>
+    <string name="pack_not_set">No pack size yet</string>
+    <string name="pack_suggested">Suggested, from this brand’s other products or the datasheet:</string>
+    <string name="pack_rollup_note">What is on the shelf stays the same; from now on it is shown in whole packs.</string>
 </resources>

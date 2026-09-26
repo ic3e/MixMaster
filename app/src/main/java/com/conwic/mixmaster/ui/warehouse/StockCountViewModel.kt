@@ -8,6 +8,7 @@ import com.conwic.mixmaster.data.prefs.StockCountState
 import com.conwic.mixmaster.data.prefs.StockCountStore
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.StockRepository
+import com.conwic.mixmaster.domain.PackOption
 import com.conwic.mixmaster.domain.ProductStock
 import com.conwic.mixmaster.domain.productStock
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,6 +70,19 @@ class StockCountViewModel(
      * what was typed into it.
      */
     fun uncount(productId: Long) = StockCountStore.unmarkCounted(app, productId)
+
+    /** Gives the product its pack, and re-reads what is on the shelf of it in those packs. */
+    fun setPack(productId: Long, pack: PackOption) {
+        viewModelScope.launch {
+            writes.withLock {
+                val product = productRepository.getById(productId) ?: return@withLock
+                productRepository.saveProduct(
+                    product.copy(packageSize = pack.size, packageUnit = pack.unit, packageType = pack.type),
+                )
+                stockRepository.rollUp(productId, pack.size)
+            }
+        }
+    }
 
     /** Nothing counted, nothing to record: the count is dropped and the last one still stands. */
     fun stop(onDone: () -> Unit) {
