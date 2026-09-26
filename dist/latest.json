@@ -1,8 +1,8 @@
 {
-  "versionCode": 185,
-  "versionName": "1.0.185",
-  "apk": "MixMaster_1.0.185.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.185.apk",
+  "versionCode": 186,
+  "versionName": "1.0.186",
+  "apk": "MixMaster_1.0.186.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.186.apk",
   "sizeBytes": 20514535,
-  "notes": "Typed text starts on a capital"
+  "notes": "Round the top of the tab bar"
 }
