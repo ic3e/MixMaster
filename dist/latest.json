@@ -1,8 +1,8 @@
 {
-  "versionCode": 175,
-  "versionName": "1.0.175",
-  "apk": "MixMaster_1.0.175.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.175.apk",
-  "sizeBytes": 20499259,
-  "notes": "Set the mixing screen in the app's own type, and say \"start mixing\""
+  "versionCode": 177,
+  "versionName": "1.0.177",
+  "apk": "MixMaster_1.0.177.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.177.apk",
+  "sizeBytes": 20516551,
+  "notes": "Import Modifier where the order dialog now scrolls, and check for it"
 }
