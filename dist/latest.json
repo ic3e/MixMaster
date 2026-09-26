@@ -1,8 +1,8 @@
 {
-  "versionCode": 192,
-  "versionName": "1.0.192",
-  "apk": "MixMaster_1.0.192.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.192.apk",
+  "versionCode": 193,
+  "versionName": "1.0.193",
+  "apk": "MixMaster_1.0.193.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.193.apk",
   "sizeBytes": 20378141,
-  "notes": "Names already in use come up while typing, and win on save"
+  "notes": "Tab bar buttons all one size"
 }
