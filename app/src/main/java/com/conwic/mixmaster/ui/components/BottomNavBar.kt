@@ -3,7 +3,6 @@ package com.conwic.mixmaster.ui.components
 import com.conwic.mixmaster.ui.theme.Accent2
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.compositeOver
@@ -88,47 +87,49 @@ fun BottomNavBar(
                 val color = if (selected) Color.White else NavInactive
                 // An equal fifth each, the lit pill filling it: sized to its word, "Home" had a
                 // small pill and "Warehouse" a wide one, and it jumped as you moved between tabs.
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        // Solid: the bar under it lets the page through, and a lit-up tab with a card
-                        // showing through it read as part of the page rather than as the tab you are on.
-                        .background(color = if (selected) NavSelected else Color.Transparent)
-                        .clickable { onNavigate(item.route) }
-                        .padding(horizontal = 2.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    val label = stringResource(item.labelRes)
-                    val dot = item.route in dotted
-                    val waiting = stringResource(R.string.nav_orders_open)
-                    Box {
+                val label = stringResource(item.labelRes)
+                val dot = item.route in dotted
+                val waiting = stringResource(R.string.nav_orders_open)
+                Box(modifier = Modifier.weight(1f)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            // Solid: the bar under it lets the page through, and a lit-up tab with a
+                            // card showing through it read as part of the page rather than as the
+                            // tab you are on.
+                            .background(color = if (selected) NavSelected else Color.Transparent)
+                            .clickable { onNavigate(item.route) }
+                            .padding(horizontal = 2.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = if (dot) "$label, $waiting" else label,
                             tint = color,
                             modifier = Modifier.height(20.dp),
                         )
-                        if (dot) {
-                            // Gold on the charcoal, where brown would sink into it; off the corner
-                            // of the icon so it reads as a mark on the tab, not part of the drawing.
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 3.dp, y = (-2).dp)
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(Accent2),
-                            )
-                        }
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = color,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = color,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (dot) {
+                        // In the button's lower corner, clear of the icon and the word: on the icon
+                        // it read as part of the drawing. Gold on the charcoal, where brown would
+                        // sink into it.
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 7.dp, bottom = 6.dp)
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(Accent2),
+                        )
+                    }
                 }
             }
         }
