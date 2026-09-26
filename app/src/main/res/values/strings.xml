@@ -703,7 +703,7 @@
     <string name="mix_batch_of">Batch %1$d of %2$d</string>
     <string name="mix_part_batch_of">Part batch · %1$d of %2$d</string>
     <string name="mix_goes_in">Into the mixer</string>
-    <string name="mix_start">Start the mixer</string>
+    <string name="mix_start">Start mixing</string>
     <string name="mix_time_label">Mixing time</string>
     <string name="mix_running_note">Keep it turning until the timer is up.</string>
     <string name="mix_time_more">More mixing time</string>

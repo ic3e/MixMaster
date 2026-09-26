@@ -23,7 +23,18 @@ val BodyFontFamily = FontFamily(
     Font(R.font.manrope_extrabold, FontWeight.ExtraBold),
 )
 
+/**
+ * Every style the app uses is set here. One left out is not an error — Material quietly fills it
+ * with its own, in Roboto — which is how the mixing screen's title and its start button came out
+ * in a different typeface from the rest of the app.
+ */
 val MixMasterTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 48.sp,
+        lineHeight = 54.sp,
+    ),
     headlineLarge = TextStyle(
         fontFamily = DisplayFontFamily,
         fontWeight = FontWeight.ExtraBold,
@@ -35,6 +46,12 @@ val MixMasterTypography = Typography(
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
         lineHeight = 26.sp,
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = DisplayFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 19.sp,
+        lineHeight = 25.sp,
     ),
     titleLarge = TextStyle(
         fontFamily = DisplayFontFamily,
@@ -59,6 +76,12 @@ val MixMasterTypography = Typography(
         fontWeight = FontWeight.Medium,
         fontSize = 13.sp,
         lineHeight = 18.sp,
+    ),
+    bodySmall = TextStyle(
+        fontFamily = BodyFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
     ),
     labelLarge = TextStyle(
         fontFamily = DisplayFontFamily,

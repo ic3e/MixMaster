@@ -109,6 +109,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.math.min
 import com.conwic.mixmaster.ui.components.packCount
+import com.conwic.mixmaster.ui.theme.DisplayFontFamily
 
 /** When a datasheet says nothing, two minutes — the figure most of them give. */
 const val DefaultMixSeconds = 120
@@ -1060,10 +1061,14 @@ private fun BigButton(
         border = if (filled) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.fillMaxWidth().height(88.dp),
     ) {
+        // Set like every other button in the app — the heading face, capitals, a little
+        // spacing — only bigger, because it is pressed in gloves at the mixer.
         Text(
-            text = text,
-            style = MaterialTheme.typography.headlineSmall,
+            text = text.uppercase(),
+            fontFamily = DisplayFontFamily,
             fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp,
+            letterSpacing = 0.6.sp,
             textAlign = TextAlign.Center,
         )
     }
