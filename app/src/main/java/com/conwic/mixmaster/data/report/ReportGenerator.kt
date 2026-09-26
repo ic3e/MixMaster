@@ -25,6 +25,7 @@ import com.conwic.mixmaster.domain.RecordedMix
 import com.conwic.mixmaster.domain.quantityFromGrams
 import java.io.File
 import java.io.FileOutputStream
+import com.conwic.mixmaster.data.db.entity.technicalSheet
 
 private const val PAGE_WIDTH = 595 // A4 @ 72dpi
 private const val PAGE_HEIGHT = 842
@@ -235,7 +236,7 @@ object ReportGenerator {
                 listOfNotNull(
                     product.safetySheetUrl.takeIf { it.isNotBlank() }
                         ?.let { Triple(product.name, context.getString(R.string.product_safety_sheet), it) },
-                    product.technicalSheetUrl.takeIf { it.isNotBlank() }
+                    product.technicalSheet.takeIf { it.isNotBlank() }
                         ?.let { Triple(product.name, context.getString(R.string.product_technical_sheet), it) },
                 )
             }

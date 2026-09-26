@@ -231,18 +231,6 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
             }
         }
 
-        item { SectionLabel(text = stringResource(R.string.product_notes)) }
-
-        item {
-            CardFlat {
-                FormTextField(
-                    value = state.datasheetUrl,
-                    onValueChange = viewModel::setDatasheetUrl,
-                    label = stringResource(R.string.product_datasheet_link),
-                )
-            }
-        }
-
         item {
             PrimaryButton(
                 text = stringResource(R.string.product_save),

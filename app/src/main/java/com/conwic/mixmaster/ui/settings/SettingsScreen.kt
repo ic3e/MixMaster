@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +44,6 @@ import com.conwic.mixmaster.data.company.CompanyStore
 import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.data.prefs.AlertSoundStore
-import com.conwic.mixmaster.data.db.entity.TeamMemberEntity
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -66,16 +64,13 @@ fun SettingsScreen(navController: NavHostController) {
     val context = LocalContext.current
 
     val viewModel: SettingsViewModel = viewModel(
-        factory = viewModelFactory { initializer { SettingsViewModel(container.userPrefs, container.teamRepository) } },
+        factory = viewModelFactory { initializer { SettingsViewModel(container.userPrefs) } },
     )
     val state by viewModel.uiState.collectAsState()
     val company by remember { CompanyStore.link(context.applicationContext) }.collectAsState()
 
     // Whether this phone has a fingerprint, face or screen lock to check against at all.
     val lockAvailable = remember { canLockApp(context) }
-
-    // Non-null while the crew sheet is open; holds what it starts from.
-    var editingMember by remember { mutableStateOf<TeamMemberEntity?>(null) }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         uri?.let { BackupManager.export(context, it) }
@@ -231,80 +226,6 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
-        // In a company the Company screen's People are the crew — who is in, and what each may do.
-        // Two lists of people side by side, only one of which means anything, was a puzzle.
-        if (state.role == Role.EMPLOYER && company == null) {
-            item {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        SectionLabel(
-                            text = stringResource(R.string.settings_crew, state.team.size),
-                            modifier = Modifier.weight(1f, fill = false).padding(end = 10.dp),
-                        )
-                        ActionLink(
-                            text = stringResource(R.string.settings_add_member),
-                            onClick = {
-                                editingMember = TeamMemberEntity(name = "", email = "", role = Role.WORKER)
-                            },
-                        )
-                    }
-                    // 12 + 4 = the usual 16: the rows inset themselves so their text isn't
-                    // flush against the rounded clip below, which was slicing the left edge off
-                    // a leading T or j.
-                    CardFlat(contentPadding = 12.dp) {
-                        if (state.team.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.settings_crew_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 4.dp),
-                            )
-                        }
-                        state.team.forEachIndexed { index, member ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(CardShape)
-                                    .clickable { editingMember = member }
-                                    .padding(horizontal = 4.dp, vertical = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    // Visible overflow: a glyph whose ink reaches left of its own
-                                    // advance — Manrope's T and j do — was being clipped by the
-                                    // text box, which turned "Tanel" into "Ганel".
-                                    Text(
-                                        text = member.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        overflow = TextOverflow.Visible,
-                                    )
-                                    if (member.email.isNotBlank()) {
-                                        Text(
-                                            text = member.email,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            overflow = TextOverflow.Visible,
-                                        )
-                                    }
-                                }
-                                Text(
-                                    text = stringResource(if (member.role == Role.EMPLOYER) R.string.role_employer_short else R.string.role_worker_short),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            if (index != state.team.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
-                        }
-                    }
-                }
-            }
-        }
-
         item {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_security))
@@ -406,24 +327,6 @@ fun SettingsScreen(navController: NavHostController) {
         }
     }
 
-    editingMember?.let { member ->
-        TeamMemberSheet(
-            member = member,
-            onDismiss = { editingMember = null },
-            onSave = { saved ->
-                viewModel.saveTeamMember(saved)
-                editingMember = null
-            },
-            onRemove = if (member.id != 0L) {
-                {
-                    viewModel.removeTeamMember(member)
-                    editingMember = null
-                }
-            } else {
-                null
-            },
-        )
-    }
 }
 
 /**

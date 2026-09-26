@@ -110,6 +110,7 @@ import androidx.compose.ui.res.stringResource
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.model.TaskPriority
 import com.conwic.mixmaster.ui.components.packCount
+import com.conwic.mixmaster.data.db.entity.technicalSheet
 
 
 @Composable
@@ -135,8 +136,10 @@ fun OverviewTab(data: ProjectDetailData, onAddressClick: () -> Unit) {
                         Text(text = project.address.ifBlank { "—" }, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 4.dp))
                     }
                 }
-                InfoRow(label = stringResource(R.string.prj_start_date), value = project.startDate?.toString() ?: "—")
-                InfoRow(label = stringResource(R.string.prj_target_finish), value = project.targetFinishDate?.toString() ?: "—")
+                // In the app's own date words: these read "2026-09-02", the only dates in the app
+                // that were not.
+                InfoRow(label = stringResource(R.string.prj_start_date), value = project.startDate?.let { formatDueDate(it) } ?: "—")
+                InfoRow(label = stringResource(R.string.prj_target_finish), value = project.targetFinishDate?.let { formatDueDate(it) } ?: "—")
             }
         }
         item {
@@ -1300,7 +1303,7 @@ fun MaterialsTab(
                 listOfNotNull(
                     product.safetySheetUrl.takeIf { it.isNotBlank() }
                         ?.let { JobSheet(product.name, R.string.product_safety_sheet, it) },
-                    product.technicalSheetUrl.takeIf { it.isNotBlank() }
+                    product.technicalSheet.takeIf { it.isNotBlank() }
                         ?.let { JobSheet(product.name, R.string.product_technical_sheet, it) },
                 )
             }

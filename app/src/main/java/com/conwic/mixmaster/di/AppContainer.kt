@@ -10,7 +10,6 @@ import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.ProjectRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.data.repository.StockRepository
-import com.conwic.mixmaster.data.repository.TeamRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,5 +63,4 @@ class AppContainer(context: Context) {
 
     val solutionRepository: SolutionRepository by lazy { SolutionRepository(database.solutionDao(), database.usageLogDao()) }
 
-    val teamRepository: TeamRepository by lazy { TeamRepository(database.teamMemberDao()) }
 }

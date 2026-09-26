@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.conwic.mixmaster.data.db.entity.technicalSheet
 
 /** The units a product is bought in. */
 val PackUnits = listOf("kg", "L")
@@ -37,7 +38,6 @@ data class ProductFormState(
     val packUnit: String = "kg",
     val packType: String = "bag",
     val densityText: String = "",
-    val datasheetUrl: String = "",
     /** A link the manufacturer publishes, or a file:// URI of a PDF copied into the app. */
     val safetySheet: String = "",
     val technicalSheet: String = "",
@@ -86,9 +86,8 @@ class AddEditProductViewModel(
                         packUnit = existing.packageUnit,
                         packType = existing.packageType,
                         densityText = if (existing.densityKgPerL > 0.0) formatDecimal(existing.densityKgPerL, 3) else "",
-                        datasheetUrl = existing.datasheetUrl,
                         safetySheet = existing.safetySheetUrl,
-                        technicalSheet = existing.technicalSheetUrl,
+                        technicalSheet = existing.technicalSheet,
                         suppliedOnSite = existing.suppliedOnSite,
                     )
                 }
@@ -110,7 +109,6 @@ class AddEditProductViewModel(
     fun setPackType(value: String) = _formState.update { it.copy(packType = value) }
     fun setDensity(value: String) = _formState.update { it.copy(densityText = value) }
     fun setSuppliedOnSite(value: Boolean) = _formState.update { it.copy(suppliedOnSite = value) }
-    fun setDatasheetUrl(value: String) = _formState.update { it.copy(datasheetUrl = value) }
 
     fun setSafetySheet(value: String) = _formState.update { it.copy(safetySheet = value) }
 
@@ -163,7 +161,9 @@ class AddEditProductViewModel(
                     doseUnitLabel = "",
                     rangeNote = "",
                     sourceNote = "",
-                    datasheetUrl = state.datasheetUrl.trim(),
+                    // Carried by the technical sheet now, which was filled from it on the way in:
+                    // left standing, clearing the sheet would only bring the old link back.
+                    datasheetUrl = "",
                     ratioLabel = "",
                     packageSize = state.packSizeText.toNumberOr(0.0),
                     packageUnit = state.packUnit,

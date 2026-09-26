@@ -74,3 +74,12 @@ data class ProductEntity(
      */
     @ColumnInfo(defaultValue = "0") val suppliedOnSite: Boolean = false,
 )
+
+/**
+ * The product's technical sheet: its own, or the datasheet link from before there was one.
+ *
+ * The product form asked for a "Datasheet link" in its notes as well as the technical sheet above
+ * it — the same document twice — and the link was saved and never shown anywhere. The box is gone;
+ * a link already typed into it, and the ones the catalogue came with, turn up here instead.
+ */
+val ProductEntity.technicalSheet: String get() = technicalSheetUrl.ifBlank { datasheetUrl }

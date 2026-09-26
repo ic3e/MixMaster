@@ -131,13 +131,8 @@
     <string name="settings_using_as">Using the app as</string>
     <string name="role_employer">Set up work</string>
     <string name="role_worker">Do the work</string>
-    <string name="role_employer_note">Products, projects and the crew list can be edited.</string>
+    <string name="role_employer_note">Products, recipes, projects and the warehouse can be edited.</string>
     <string name="role_worker_note">Run the calculator, close tasks off, add photos and notes. Setup data is read-only.</string>
-    <string name="settings_crew">Crew · %1$d</string>
-    <string name="settings_add_member">+ Add member</string>
-    <string name="settings_crew_empty">Nobody on the list yet.</string>
-    <string name="role_employer_short">Sets up work</string>
-    <string name="role_worker_short">Does the work</string>
     <string name="settings_security">Security</string>
     <string name="settings_lock">Lock the app</string>
     <string name="settings_lock_note">Asks for the phone\'s fingerprint, face or screen lock on opening, and after a couple of minutes away.</string>
@@ -148,15 +143,6 @@
     <string name="settings_restore_note">Restoring replaces everything on this phone with the backup file and restarts the app.</string>
     <string name="settings_help">Help</string>
     <string name="settings_replay_tour">Replay the app tour</string>
-
-    <!-- Crew member sheet -->
-    <string name="crew_add">Add crew member</string>
-    <string name="crew_edit">Edit crew member</string>
-    <string name="crew_name">Name</string>
-    <string name="crew_contact">Email or phone</string>
-    <string name="crew_can_do">Can do</string>
-    <string name="crew_add_action">Add member</string>
-    <string name="crew_remove">Remove from team</string>
 
     <!-- Tasks -->
     <string name="task_none_project">No project</string>
@@ -179,7 +165,6 @@
     <string name="priority_high">High</string>
     <string name="priority_medium">Medium</string>
     <string name="priority_low">Low</string>
-    <string name="crew_roles_note">\"Set up work\" can add products and projects. \"Do the work\" runs the calculator and closes tasks off.</string>
 
     <!-- Calculator -->
     <string name="calc_title">Calculator</string>
@@ -419,12 +404,12 @@
     <string name="signin_employer">Employer / Office</string>
     <string name="signin_employer_sub">Set up projects, products &amp; the crew</string>
     <string name="signin_employer_b1">Create and edit projects, clients &amp; the product library</string>
-    <string name="signin_employer_b2">Assign tasks and rooms to the crew</string>
+    <string name="signin_employer_b2">Plan each job’s rooms, coats and tasks</string>
     <string name="signin_employer_b3">Generate reports and manage the team</string>
     <string name="signin_worker">Worker / Field crew</string>
     <string name="signin_worker_sub">Use what the office has set up</string>
     <string name="signin_worker_b1">Run the calculator with the office\'s product list</string>
-    <string name="signin_worker_b2">Check off tasks and rooms as they\'re done</string>
+    <string name="signin_worker_b2">Check off tasks as they\'re done</string>
     <string name="signin_worker_b3">Add site photos and notes — can\'t edit setup data</string>
     <string name="signin_continue">Continue as %1$s</string>
 
@@ -676,8 +661,6 @@
     <string name="part_remove_confirm_body">Part %1$d comes out of the mix.</string>
     <string name="coat_remove_confirm">Remove this coat?</string>
     <string name="coat_remove_confirm_body">%1$s comes off this room, and its material stops being booked.</string>
-    <string name="crew_remove_confirm">Remove this person?</string>
-    <string name="crew_remove_confirm_body">%1$s comes off the crew list.</string>
     <string name="prj_archive_confirm">Archive this job?</string>
     <string name="prj_archive_confirm_body">%1$s comes off the active list and stops booking material.</string>
     <string name="solution_coats">Coats</string>

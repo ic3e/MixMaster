@@ -47,6 +47,7 @@ import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.theme.CardShape
 import com.conwic.mixmaster.ui.components.packLabel
+import com.conwic.mixmaster.data.db.entity.technicalSheet
 
 /**
  * A bought item: what it is, how it is sold, and which recipes call for it.
@@ -145,8 +146,8 @@ fun ProductDetailScreen(navController: NavHostController, productId: Long) {
                 )
                 SheetRow(
                     label = stringResource(R.string.product_technical_sheet),
-                    value = current.technicalSheetUrl,
-                    onOpen = { SheetStore.open(context, current.technicalSheetUrl) },
+                    value = current.technicalSheet,
+                    onOpen = { SheetStore.open(context, current.technicalSheet) },
                 )
                 // What the shed holds, on the page about the thing it holds.
                 Row(

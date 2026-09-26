@@ -116,13 +116,8 @@
     <string name="settings_using_as">Kasutan rakendust kui</string>
     <string name="role_employer">Panen töö paika</string>
     <string name="role_worker">Teen tööd</string>
-    <string name="role_employer_note">Tooteid, projekte ja meeskonna nimekirja saab muuta.</string>
+    <string name="role_employer_note">Tooteid, retsepte, projekte ja ladu saab muuta.</string>
     <string name="role_worker_note">Kasuta kalkulaatorit, märgi ülesanded tehtuks, lisa fotosid ja märkmeid. Seadistusandmed on ainult lugemiseks.</string>
-    <string name="settings_crew">Meeskond · %1$d</string>
-    <string name="settings_add_member">+ Lisa liige</string>
-    <string name="settings_crew_empty">Nimekirjas pole veel kedagi.</string>
-    <string name="role_employer_short">Paneb töö paika</string>
-    <string name="role_worker_short">Teeb tööd</string>
     <string name="settings_security">Turvalisus</string>
     <string name="settings_lock">Lukusta rakendus</string>
     <string name="settings_lock_note">Küsib avamisel telefoni sõrmejälge, nägu või ekraanilukku, ja uuesti paari minuti pärast eemal.</string>
@@ -134,13 +129,6 @@
     <string name="settings_help">Abi</string>
     <string name="settings_replay_tour">Vaata tutvustust uuesti</string>
 
-    <string name="crew_add">Lisa meeskonnaliige</string>
-    <string name="crew_edit">Muuda meeskonnaliiget</string>
-    <string name="crew_name">Nimi</string>
-    <string name="crew_contact">E-post või telefon</string>
-    <string name="crew_can_do">Saab teha</string>
-    <string name="crew_add_action">Lisa liige</string>
-    <string name="crew_remove">Eemalda meeskonnast</string>
 
     <string name="task_none_project">Projektita</string>
     <string name="task_new">Uus ülesanne</string>
@@ -162,7 +150,6 @@
     <string name="priority_high">Kõrge</string>
     <string name="priority_medium">Keskmine</string>
     <string name="priority_low">Madal</string>
-    <string name="crew_roles_note">\"Panen töö paika\" saab lisada tooteid ja projekte. \"Teen tööd\" kasutab kalkulaatorit ja märgib ülesandeid tehtuks.</string>
 
     <string name="calc_title">Kalkulaator</string>
     <string name="calc_product">Toode</string>
@@ -395,12 +382,12 @@
     <string name="signin_employer">Tööandja / kontor</string>
     <string name="signin_employer_sub">Seadista projektid, tooted ja meeskond</string>
     <string name="signin_employer_b1">Loo ja muuda projekte, kliente ja tootekataloogi</string>
-    <string name="signin_employer_b2">Määra meeskonnale ülesandeid ja ruume</string>
+    <string name="signin_employer_b2">Planeeri iga objekti ruumid, kihid ja ülesanded</string>
     <string name="signin_employer_b3">Koosta raporteid ja halda meeskonda</string>
     <string name="signin_worker">Töötaja / objektimeeskond</string>
     <string name="signin_worker_sub">Kasuta seda, mille kontor on paika pannud</string>
     <string name="signin_worker_b1">Kasuta kalkulaatorit kontori tootenimekirjaga</string>
-    <string name="signin_worker_b2">Märgi ülesanded ja ruumid tehtuks</string>
+    <string name="signin_worker_b2">Märgi ülesanded tehtuks</string>
     <string name="signin_worker_b3">Lisa objektifotosid ja märkmeid — seadistusandmeid muuta ei saa</string>
     <string name="signin_continue">Jätka kui %1$s</string>
 
@@ -644,8 +631,6 @@
     <string name="part_remove_confirm_body">Osa %1$d võetakse segust välja.</string>
     <string name="coat_remove_confirm">Kas eemaldada see kiht?</string>
     <string name="coat_remove_confirm_body">%1$s võetakse sellelt ruumilt maha ja selle materjali enam ei broneerita.</string>
-    <string name="crew_remove_confirm">Kas eemaldada see inimene?</string>
-    <string name="crew_remove_confirm_body">%1$s kaob meeskonna nimekirjast.</string>
     <string name="prj_archive_confirm">Kas arhiveerida see töö?</string>
     <string name="prj_archive_confirm_body">%1$s kaob aktiivsete nimekirjast ega broneeri enam materjali.</string>
     <string name="solution_coats">Kihid</string>

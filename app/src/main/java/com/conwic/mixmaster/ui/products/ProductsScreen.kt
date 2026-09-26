@@ -222,7 +222,11 @@ fun ProductsScreen(navController: NavHostController) {
                             ProductIdentity(
                                 name = solution.name,
                                 brand = solution.brand,
-                                detail = if (coats > 1) stringResource(R.string.solution_coat_count, coats) else null,
+                                // Its type, where the form asks for one and nothing showed it.
+                                detail = listOfNotNull(
+                                    solution.category.takeIf { it.isNotBlank() },
+                                    if (coats > 1) stringResource(R.string.solution_coat_count, coats) else null,
+                                ).joinToString(" · ").ifBlank { null },
                                 modifier = Modifier.weight(1f).padding(end = 8.dp),
                             )
                             if (solution.ratioLabel.isNotBlank()) {
