@@ -70,9 +70,14 @@ fun BreakTimeScreen(onExit: () -> Unit) {
         val lifecycle = activity.lifecycle
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> view.onPause()
+                Lifecycle.Event.ON_PAUSE -> {
+                    // The page's sound runs on its own clock, which pausing the view does not stop.
+                    view.evaluateJavascript("window.pdSleep && window.pdSleep(true)", null)
+                    view.onPause()
+                }
                 Lifecycle.Event.ON_RESUME -> {
                     view.onResume()
+                    view.evaluateJavascript("window.pdSleep && window.pdSleep(false)", null)
                     val window = activity.window
                     WindowCompat.getInsetsController(window, window.decorView).hide(WindowInsetsCompat.Type.systemBars())
                 }
@@ -87,8 +92,10 @@ fun BreakTimeScreen(onExit: () -> Unit) {
         factory = { context ->
             WebView(context).apply {
                 settings.javaScriptEnabled = true
-                // The best score is kept in localStorage.
+                // The best score and the sound switch are kept in localStorage.
                 settings.domStorageEnabled = true
+                // The sound starts on the first tap anyway; this only stops the view holding it back.
+                settings.mediaPlaybackRequiresUserGesture = false
                 setBackgroundColor(android.graphics.Color.rgb(16, 20, 26))
                 isVerticalScrollBarEnabled = false
                 isHorizontalScrollBarEnabled = false

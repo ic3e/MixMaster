@@ -50,7 +50,8 @@
   #btnMenu { pointer-events: auto; flex: 0 0 auto; width: 44px; height: 44px; font-weight: 800; font-size: 15px; letter-spacing: 1px; color: var(--chalk); }
   #btnMenu:active { background: rgba(255,255,255,0.15); }
 
-  #side { position: absolute; right: 12px; top: 78px; width: 150px; display: flex; flex-direction: column; gap: 6px; }
+  /* --hud-top is the bottom of the task box, which grows with its text; set by the game. */
+  #side { position: absolute; right: 12px; top: var(--hud-top, 78px); width: 150px; display: flex; flex-direction: column; gap: 6px; }
   #weather { padding: 6px 9px; font-size: 11.5px; font-weight: 700; line-height: 1.45; font-variant-numeric: tabular-nums; }
   #weather span { color: var(--muted); font-weight: 500; }
   #energyRow { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
@@ -81,7 +82,7 @@
   #waitBadge small { display: block; font-weight: 600; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
 
   /* Top left, under the task: the bottom is thumbs and buttons, the right is the gauges. */
-  #toasts { position: absolute; left: 12px; right: 174px; top: 96px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  #toasts { position: absolute; left: 12px; right: 174px; top: calc(var(--hud-top, 78px) + 18px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
   .toast { max-width: 560px; padding: 8px 12px; font-size: 13px; font-weight: 600; line-height: 1.35; background: var(--panel-solid); border: 1px solid var(--line); border-left: 4px solid var(--hivis); border-radius: 10px; animation: tin 0.25s ease-out; }
   .toast.warn { border-left-color: var(--laser); }
   .toast.good { border-left-color: var(--ok); }
@@ -135,9 +136,13 @@
   .story li { margin-bottom: 4px; }
 
   @media (max-height: 460px) {
-    #side { top: 66px; width: 136px; } #map { width: 120px; height: 120px; }
+    #side { width: 150px; }
     #buttons { bottom: 10px; } #btnTool, #btnLaser, #btnWait, #btnCoffee { height: 40px; } #btnAction { height: 78px; }
-    #toasts { top: 70px; right: 330px; }
+    /* The map goes under the clock on the left: on the right the gauges and the buttons already
+       fill the height, and it ended up pushed off the bottom. */
+    #map { position: fixed; left: 12px; top: var(--hud-top, 66px); width: 124px; height: 124px; }
+    #weather { position: fixed; left: 12px; top: calc(var(--hud-top, 66px) + 132px); width: 124px; box-sizing: border-box; }
+    #toasts { top: var(--hud-top, 66px); left: 148px; right: 162px; }
     .brand { font-size: 34px; }
   }
   @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
@@ -190,10 +195,12 @@
     <div class="howto">
       <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool you carry.
       <b>Tool</b> swaps what's in your hands, <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
+      <b>Slide your thumb on the big button</b> to look round while you work — that is how you steer the trowel.
       <b>II</b> or the back gesture pauses.
     </div>
     <button class="big" id="btnStart">Clock in</button>
     <button class="ghost" id="btnReroll">Different day</button>
+    <button class="ghost" id="btnSound">Sound: on</button>
     <button class="ghost" id="btnQuitTitle" hidden>Back to MixMaster</button>
     <div class="best" id="bestLine"></div>
   </div>
