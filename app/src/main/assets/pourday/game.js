@@ -18,6 +18,8 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const hyp = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);
   const DEBUG = /[?&]debug\b/.test(location.search);
+  // inside MixMaster the app hands the page a way out, and a voice; in a plain browser, neither
+  const appBridge = window.MixMaster && typeof window.MixMaster.quit === 'function' ? window.MixMaster : null;
   const CALM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   function clock(m) {
@@ -291,6 +293,60 @@
       fibre: { title: 'Fibre concrete.', text: 'Nobody ordered fibre concrete. It comes out hairy. The slab will look like a wet dog.', used: 'Fibre concrete nobody ordered. The finished floor has a beard.', row: 'fibre concrete nobody ordered', cost: 40 },
       other: { title: '"Is this Riverside Road?"', text: 'It is not. This load belongs to a site across town, and the right mix for yours is on its way there instead.', used: 'You poured another site\'s concrete. Somewhere across town a very angry man is waiting for yours.', row: 'another site\'s load', cost: 50 },
     },
+    ufo: {
+      msgs: ['EAT POOP', 'F*** YOU', 'NICE SLAB', 'SEND COFFEE', 'LOL', 'HI', 'NO', '42'],
+      seen: 'Lights over the site. A saucer, no joke. It hovers over your slab, hums like a fridge, and burns "{m}" into it in neat capitals. Then it leaves. It didn\'t even say hello.',
+      away: 'While you were away something wrote "{m}" into the slab, in perfect capitals, with no footprints leading to it. The dog is not talking.',
+      voice: ['Greetings, concrete person. Your slab has been improved.', 'We have travelled forty light years to leave this message. You are welcome.', 'Take us to your foreman. Actually, don\'t.'],
+    },
+    ball: {
+      seen: 'A football bounces straight across your slab, then over the fence. A kid appears at the edge. "Can I have my ball back?" The ball is in the neighbour\'s garden. The dents are in your slab.',
+      away: 'Round dents in a line across the slab, like a very heavy rabbit crossed it. Somewhere, a kid has a football and no remorse.',
+      kid: '"Can I have my ball back?"',
+    },
+    cat: {
+      seen: 'A cat walks onto the slab like it owns it, turns round three times, and lies down in the middle.',
+      stays: 'The cat looks at you, blinks slowly, and stays exactly where it is. It knows you won\'t step on your own slab. Probably.',
+      goes: 'The cat gets up, stretches, and leaves at its own speed. Its outline stays behind.',
+      away: 'There is a perfect cat-shaped hollow in the middle of the slab, and paw prints leading to it and away from it. Mostly to it.',
+    },
+    drone: {
+      seen: 'A drone buzzes over the site, films your slab from above, and drops out of the sky into it. A teenager waves from the fence. "Can I have it back?" No.',
+      away: 'There\'s a drone-shaped crater in the slab. The drone is gone. Someone came for it, on foot, through the concrete.',
+      voice: 'Can I have my drone back? It\'s for my channel.',
+    },
+    bag: {
+      seen: 'The wind takes a plastic bag straight across the fresh slab. It bounces, drags, and smears a line through the whole thing, like it had somewhere to be.',
+      away: 'A long smear across the slab, and a plastic bag stuck in the far formwork, looking pleased with itself.',
+    },
+    badPour: {
+      thin: ['"You poured it {d} mm thin. The client paid for {t}. Somebody\'s paying the difference, and I\'ll give you a clue: it\'s not the client."', '"Minimalist slab, is it? Minimal slab, minimal pay. I\'m adjusting yours now."'],
+      thick: ['"{d} mm over? That\'s not a slab, that\'s a monument. The extra concrete comes out of your wages. Every cubic centimetre."', '"You know concrete costs money? Of course you don\'t. You\'ll know on Friday."'],
+      bumpy: ['"The laser says the floor has waves. Surfers love it. The client isn\'t a surfer."', '"±{r} mm. I\'ve seen flatter car parks after an earthquake."'],
+      slow: ['"The pour took {h}. The pump charges by the hour. Guess who\'s paying for the extra hour. Hint: it\'s the one reading this."', '"I could have poured that with a teaspoon faster. The teaspoon would also be cheaper."'],
+      close: 'He hangs up before you can explain. There was going to be an explanation.',
+    },
+    pay: {
+      base: 'Day rate',
+      thin: ['Slab {d} mm thin — the client paid for {t}', 'Minimalist thickness surcharge'],
+      thick: ['{d} mm over — free concrete, for the client', 'Monument surcharge ({d} mm proud)'],
+      bumpy: ['Waves in the floor (±{r} mm)', 'Surf park fee (±{r} mm)'],
+      slow: ['Pump overtime ({m} min of it)', 'The pour took {h}; the pump bills by the hour'],
+      marks: ['{n} marks set in for ever, €4 each like a museum', 'Footprint archive ({n} exhibits)'],
+      waste: ['{w} m³ dumped behind the office, €90 a cube'],
+      wait: ['Waiting time paid to a man doing a crossword in a mixer'],
+      late: ['Late by {m} min. Time is money. Yours.'],
+      wrong: ['The wrong concrete, poured anyway'],
+      manager: ['Emotional damages (the manager\'s)'],
+      falls: ['Dry cleaning: {n} × €10'],
+      edges: ['Edges closed too late, {n} of them'],
+      ufo: ['Unexplained lettering in the slab'],
+      hell: ['Told {n} people to go to hell: no charge, company policy'],
+      shine: ['Bonus: it actually shines'],
+      verdictGood: ['"Not bad. Don\'t let it go to your head, your head is already big enough."', '"Good slab. I\'ll pretend I did it when I tell the client."'],
+      verdictBad: ['"That\'s your whole day\'s pay gone. You know what that is? Character building."', '"You owe us money. We\'ll take it in coffee. Six months of coffee."', '"Next time I\'m hiring the dog. It leaves fewer marks and it works for sausages."'],
+      verdictMeh: ['"It\'ll do. Things that \'will do\' are why I drink."', '"Could be worse. Could also be a lot better. It\'s mostly the second one."'],
+    },
     homeEarly: 'The foreman: "95% or you sleep here." There\'s a sleeping bag in the van for a reason.',
   };
 
@@ -368,7 +424,7 @@
       prep: { unload: false, form: [false, false], laser: false },
       laserOn: false, laserBattery: true, laserPacked: false,
       pumpAt: 0, pumpHere: false, pipes: 0, pipesGone: 0,
-      trucks: [], truck: null, truckNo: 0, truckWaitPaid: 0,
+      trucks: [], truck: null, truckNo: 0, truckWaitPaid: 0, pourMins: 0,
       mixFactor: 1, water: 0, mixState: 'ok',
       blocked: -1, blowout: null, blowoutDone: false, batteryDone: false, fellInPour: false, stuckUntil: 0,
       pourStarted: false, pourDone: false, pourEnd: 0, pouredM3: 0, waste: 0, extraTrucks: 0,
@@ -797,11 +853,12 @@
     g.userData = { legL, legR, armL, armR, head, body, phase: Math.random() * 6 };
     return g;
   }
-  /** A dog: capsule body, a proper head with a snout and ears, a tail that wags. Faces +x. */
-  function makeDog() {
+  /** A dog: capsule body, a proper head with a snout and ears, a tail that wags. Faces +x. A cat is
+   *  the same animal with smaller bones, a flat face, tall ears and a tail held up like a question. */
+  function makeDog(cat) {
     const g = new THREE.Group();
-    const c = pick([0x8a5a2b, 0x2b2622, 0xd9c6a1, 0x6b6560, 0xa0522d]);
-    const size = rnd(0.8, 1.15);
+    const c = cat ? pick([0x7a7d80, 0xd98b3a, 0x1f1f22, 0xe8e2d6]) : pick([0x8a5a2b, 0x2b2622, 0xd9c6a1, 0x6b6560, 0xa0522d]);
+    const size = cat ? rnd(0.5, 0.58) : rnd(0.8, 1.15);
     const body = new THREE.Group();
     body.scale.setScalar(size);
     g.add(body);
@@ -810,19 +867,22 @@
     const head = new THREE.Group();
     head.position.set(0.38, 0.68, 0);
     body.add(head);
-    mesh(new THREE.SphereGeometry(0.1, 12, 10), c, 0, 0, 0, head);
-    capsule(0.045, 0.08, c, 0.1, -0.03, 0, head).rotation.z = Math.PI / 2;
-    mesh(new THREE.SphereGeometry(0.025, 6, 6), 0x111111, 0.175, -0.02, 0, head);
+    mesh(new THREE.SphereGeometry(cat ? 0.12 : 0.1, 12, 10), c, 0, 0, 0, head);
+    if (cat) mesh(new THREE.SphereGeometry(0.02, 6, 6), 0xd98a9a, 0.12, -0.01, 0, head);
+    else {
+      capsule(0.045, 0.08, c, 0.1, -0.03, 0, head).rotation.z = Math.PI / 2;
+      mesh(new THREE.SphereGeometry(0.025, 6, 6), 0x111111, 0.175, -0.02, 0, head);
+    }
     [-1, 1].forEach((s) => {
-      const ear = mesh(new THREE.ConeGeometry(0.035, 0.09, 6), c, -0.02, 0.1, s * 0.06, head);
-      ear.rotation.x = s * 0.35;
-      box(0.014, 0.014, 0.014, 0x111111, 0.075, 0.03, s * 0.045, head);
+      const ear = mesh(new THREE.ConeGeometry(cat ? 0.05 : 0.035, cat ? 0.12 : 0.09, cat ? 4 : 6), c, -0.02, cat ? 0.11 : 0.1, s * (cat ? 0.07 : 0.06), head);
+      ear.rotation.x = s * (cat ? 0.25 : 0.35);
+      box(0.014, cat ? 0.022 : 0.014, 0.014, cat ? 0x9bd14a : 0x111111, cat ? 0.1 : 0.075, 0.03, s * 0.045, head);
     });
     const tail = new THREE.Group();
     tail.position.set(-0.3, 0.52, 0);
     body.add(tail);
-    capsule(0.025, 0.2, c, 0, 0.12, 0, tail);
-    tail.rotation.z = 0.7;
+    capsule(0.025, cat ? 0.42 : 0.2, c, 0, cat ? 0.22 : 0.12, 0, tail);
+    tail.rotation.z = cat ? 0.15 : 0.7;
     const legs = [[0.2, 0.08], [0.2, -0.08], [-0.2, 0.08], [-0.2, -0.08]].map(([x, z]) => {
       const p = new THREE.Group();
       p.position.set(x, 0.38, z);
@@ -1203,6 +1263,47 @@
       ell(-7, 14, 3.5, 3); ell(7, 14, 3.5, 3);
     } else if (m.kind === 'line') {
       g.fillRect(-2, -40, 4, 80);
+    } else if (m.kind === 'glyph') {
+      // burned, not pressed: a brown scorch with a darker line through the middle of each stroke
+      g.globalAlpha = Math.min(1, a * 1.25);
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.font = '900 72px sans-serif';
+      g.lineJoin = 'round';
+      g.strokeStyle = 'rgba(90,62,38,0.45)';
+      g.lineWidth = 11;
+      g.strokeText(m.ch, 0, 2);
+      g.fillStyle = '#2b1e14';
+      g.fillText(m.ch, 0, 2);
+    } else if (m.kind === 'ball') {
+      g.globalAlpha = a * 0.55;
+      ell(0, 0, 9, 9);
+      g.globalAlpha = a;
+      g.fillStyle = '#5a5c5f';
+      ell(0, 0, 6, 6);
+    } else if (m.kind === 'curl') {
+      // a cat, asleep, as a hollow: round body, the head tucked in, the tail round the front
+      g.globalAlpha = a * 0.7;
+      ell(0, 0, 20, 16);
+      ell(14, -10, 8, 7);
+      g.globalAlpha = a;
+      g.strokeStyle = '#3c3e41';
+      g.lineWidth = 3;
+      g.beginPath(); g.arc(0, 0, 21, 0.4, 2.6); g.stroke();
+    } else if (m.kind === 'crater') {
+      g.globalAlpha = a * 0.5;
+      ell(0, 0, 22, 18, 0.4);
+      g.globalAlpha = a;
+      g.fillStyle = '#35373a';
+      ell(0, 0, 12, 10, 0.4);
+      g.strokeStyle = '#3a3c3f';
+      g.lineWidth = 2;
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x * 10, y * 8); g.lineTo(x * 24, y * 20); g.stroke(); });
+    } else if (m.kind === 'smear') {
+      g.globalAlpha = a * 0.45;
+      g.fillRect(-4, -14, 8, 28);
+      g.globalAlpha = a * 0.7;
+      g.fillRect(-1, -14, 2, 28);
     } else if (m.kind === 'rain') {
       // the same drops each redraw: the pattern comes from where the mark is, not from chance
       let seed = Math.floor((m.x + 20) * 997 + (m.z + 20) * 131);
@@ -1615,17 +1716,35 @@
     parent.add(g);
     return g;
   }
+  // tie wire comes on a bright galvanised coil; the pliers are the long-nosed tower pincers
+  const WIRE = new THREE.MeshPhongMaterial({ color: 0xdfe6ec, specular: 0xffffff, shininess: 90 });
+  function mkCoil(parent) {
+    const g = new THREE.Group();
+    for (let k = 0; k < 4; k++) {
+      const t = new THREE.Mesh(new THREE.TorusGeometry(0.085 + k * 0.004, 0.009, 6, 24), WIRE);
+      t.rotation.x = Math.PI / 2;
+      t.position.y = k * 0.012;
+      g.add(t);
+    }
+    // the loose end, sticking out the way it always does
+    const end = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.14, 4), WIRE);
+    end.rotation.z = Math.PI / 2 - 0.3;
+    end.position.set(0.14, 0.03, 0);
+    g.add(end);
+    parent.add(g);
+    return g;
+  }
   function mkPliers(parent, coil) {
     const g = new THREE.Group();
-    [-1, 1].forEach((s) => {
-      const arm = box(0.016, 0.012, 0.2, GRIP, s * 0.02, 0, 0.08, g);
-      arm.rotation.y = s * 0.12;
+    [-1, 1].forEach((sd) => {
+      const arm = box(0.024, 0.018, 0.24, GRIP, sd * 0.024, 0, 0.12, g);
+      arm.rotation.y = sd * 0.1;
     });
-    box(0.03, 0.02, 0.05, 0x44484d, 0, 0, -0.04, g);
-    if (coil) {
-      const c = mesh(new THREE.TorusGeometry(0.06, 0.014, 6, 16), 0x9ea3a8, 0.12, 0.014, 0.05, g);
-      c.rotation.x = Math.PI / 2;
-    }
+    box(0.05, 0.03, 0.05, 0x5a5f64, 0, 0, -0.01, g);
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.024, 0.09), WIRE);
+    nose.position.set(0, 0, -0.075);
+    g.add(nose);
+    if (coil) mkCoil(g).position.set(0.2, 0, 0.06);
     parent.add(g);
     return g;
   }
@@ -1666,6 +1785,7 @@
   hands.position.set(0.32, -0.34, -0.62);
   camera.add(hands);
   const viewTools = {};
+  let pliersBody = null;           // the pliers inside their group, which twists without the coil
   (function buildViewTools() {
     const hose = new THREE.Group();
     const h1 = cyl(0.035, 0.04, 0.55, 0x1d1f22, -0.02, -0.02, -0.3, hose);
@@ -1698,11 +1818,20 @@
     htb.rotation.y = Math.PI / 2 + 0.3;
     ht.position.set(-0.05, -0.16, -0.2);
     viewTools.handTrowel = ht;
+    // pliers in the right hand, the coil of wire in the left
     const pl = new THREE.Group();
     const plb = mkPliers(pl, false);
-    plb.rotation.set(-0.5, 0.2, 0);
-    pl.position.set(-0.02, -0.02, -0.12);
+    // the handles down in the fist, the nose up and forward, ready to twist
+    plb.rotation.set(0.5, 0.4, -0.3);
+    plb.scale.setScalar(1.35);
+    pl.position.set(-0.2, 0.1, -0.1);
+    const coilHand = new THREE.Group();
+    mkCoil(coilHand).rotation.x = 1.1;
+    coilHand.scale.setScalar(1.1);
+    coilHand.position.set(-0.22, -0.13, -0.02);
+    pl.add(coilHand);
     viewTools.pliers = pl;
+    pliersBody = plb;
     const cu = new THREE.Group();
     const cub = mkCutter(cu);
     cub.rotation.set(-0.15, 0, 0);
@@ -1719,7 +1848,7 @@
     const add = (id, fn) => { const g = new THREE.Group(); fn(g); g.visible = false; scene.add(g); lying[id] = g; };
     add('handTrowel', (g) => { mkHandTrowel(g).position.y = 0.004; });
     add('hammer', (g) => { const h = mkHammer(g); h.rotation.z = Math.PI / 2; h.position.set(0.18, 0.035, 0); });
-    add('pliers', (g) => { mkPliers(g, true).position.y = 0.01; });
+    add('pliers', (g) => { const p = mkPliers(g, true); p.position.y = 0.012; p.scale.setScalar(1.4); });
     add('cutter', (g) => { mkCutter(g).position.y = 0.02; });
     add('float', (g) => {
       box(0.9, 0.02, 0.2, 0xaeb4b9, 0, 0.012, 0, g);
@@ -2033,6 +2162,22 @@
         break;
       }
       case 'rx': tone(t, 'square', 2900, 2900, 0.035, 0.002, 0.045, dest); break;
+      case 'ufo': {
+        // a theremin with opinions
+        const o = ac.createOscillator(), g2 = ac.createGain(), v = ac.createOscillator(), vd = ac.createGain();
+        o.type = 'sine'; v.frequency.value = 6; vd.gain.value = 40;
+        o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(900, t + 1.6); o.frequency.exponentialRampToValueAtTime(420, t + 3.4);
+        v.connect(vd); vd.connect(o.frequency);
+        env(g2, t, 0.3, 0.16, 3.4);
+        o.connect(g2); g2.connect(dest);
+        o.start(t); v.start(t); o.stop(t + 3.8); v.stop(t + 3.8);
+        tone(t, 'sawtooth', 55, 52, 0.08, 0.5, 3.2, dest);
+        break;
+      }
+      case 'burn': burst(t, 'highpass', 3500, 0.5, 0.22, 0.02, 0.5, dest); tone(t, 'sine', 180, 120, 0.1, 0.01, 0.3, dest); break;
+      case 'bounce': tone(t, 'sine', 140, 70, 0.35, 0.002, 0.12, dest); burst(t, 'lowpass', 800, 0.8, 0.2, 0.002, 0.06, dest); break;
+      case 'drone': for (let k = 0; k < 4; k++) tone(t + k * 0.9, 'sawtooth', 220 + k * 6, 230 + k * 6, 0.05, 0.1, 0.9, dest); break;
+      case 'meow': tone(t, 'sawtooth', 520, 820, 0.07, 0.03, 0.18, dest); tone(t + 0.18, 'sawtooth', 820, 440, 0.07, 0.01, 0.35, dest); break;
       case 'bird': {
         const f = rnd(2800, 4200);
         for (let k = 0, n = irnd(2, 5); k < n; k++) tone(t + k * 0.13, 'sine', f * rnd(0.9, 1.1), f * rnd(1.15, 1.4), 0.04, 0.005, 0.07, dest);
@@ -2149,7 +2294,7 @@
   // light background music, made up as it goes: a pad over four chords, a soft bass, the odd
   // plucked note with an echo, a whisper of hi-hat. On unless switched off.
   let musicOn = store('pourday.music') !== 'off';
-  let musicGain = null, musicEcho = null, musicNext = 0, musicStep = 0;
+  let musicGain = null, musicEcho = null, musicNext = 0, musicStep = 0, musicWant = -1;
   const CHORDS = [[57, 60, 64, 67, 71], [53, 57, 60, 64, 67], [48, 52, 55, 59, 62], [55, 59, 62, 64, 67]];
   const MELODY = [57, 60, 62, 64, 67, 69, 72, 74, 76];
   const mtof = (n) => 440 * Math.pow(2, (n - 69) / 12);
@@ -2192,7 +2337,7 @@
   function setMusic(on) {
     musicOn = on;
     store('pourday.music', on ? 'on' : 'off');
-    if (ac) { musicBus(); musicGain.gain.setTargetAtTime(on ? 0.55 : 0, ac.currentTime, 0.3); }
+    if (ac) { musicBus(); musicWant = on ? 0.55 : 0; musicGain.gain.setTargetAtTime(musicWant, ac.currentTime, 0.3); }
   }
   /** Once a frame: every running sound up or down to where it should be. */
   function updateSound(dt, paused) {
@@ -2228,6 +2373,10 @@
     loopTo('rxTone', rx && Math.abs(dev) <= 3 ? 0.03 : 0);
     if (rx && Math.abs(dev) > 3 && performance.now() > rxNext) { rxNext = performance.now() + (dev > 0 ? 120 : 420); sfx('rx'); }
     musicTick();
+    if (musicGain) {
+      const want = musicOn ? (performance.now() < duckUntil ? 0.18 : 0.55) : 0;
+      if (want !== musicWant) { musicWant = want; musicGain.gain.setTargetAtTime(want, ac.currentTime, 0.3); }
+    }
     loopTo('engine', live && drives.length ? 0.2 : 0, drives.length ? drives[0].group.position.x : undefined, drives.length ? drives[0].group.position.z : undefined);
     if (live && !dark && day.rh < 85 && !inVan && performance.now() > birdAt) {
       birdAt = performance.now() + rnd(4000, 14000);
@@ -2235,6 +2384,51 @@
       sfx('bird', player.x + Math.cos(a) * 25, player.z + Math.sin(a) * 25);
     }
   }
+
+  // ------------------------------------------------------------------ voices
+  // The characters say their lines out loud: through the app's text-to-speech inside MixMaster
+  // (the WebView has none of its own), or the browser's elsewhere. Only what is in quotes is
+  // spoken — the narration stays on the screen. Each character has a pitch and a pace.
+  let voicesOn = store('pourday.voices') !== 'off';
+  const VOICES = { manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05] };
+  let duckUntil = 0;
+  function spoken(text) {
+    const q = String(text).match(/"[^"]+"/g);
+    return (q ? q.join(' ') : String(text))
+      .replace(/"/g, '').replace(/\([^)]*\)/g, '')
+      .replace(/\*\*\*/g, ' bleep ').replace(/€\s?(\d+)/g, '$1 euros').replace(/m³/g, ' cubic metres').replace(/m²/g, ' square metres')
+      .replace(/(\d)\s?mm\b/g, '$1 millimetres').replace(/(\d)\s?h\b/g, '$1 hours').replace(/(\d)\s?min\b/g, '$1 minutes').replace(/±/g, 'plus or minus ').replace(/°C/g, ' degrees')
+      .trim();
+  }
+  const saidLog = [];              // what was said lately, for the tests
+  function say(text, who) {
+    if (!voicesOn || !text) return;
+    const [p, r] = Array.isArray(who) ? who : (VOICES[who] || [1, 1]);
+    const line = spoken(text);
+    if (!line) return;
+    saidLog.push(line);
+    if (saidLog.length > 40) saidLog.shift();
+    duckUntil = performance.now() + line.length * 70 + 600;
+    try {
+      if (appBridge && typeof appBridge.speak === 'function') { appBridge.speak(line, p, r); return; }
+      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        const u = new SpeechSynthesisUtterance(line);
+        u.lang = 'en-GB'; u.pitch = p; u.rate = r;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      }
+    } catch (e) { /* no voice to be had: the line is on the screen anyway */ }
+  }
+  function hush() {
+    duckUntil = 0;
+    try {
+      if (appBridge && typeof appBridge.hush === 'function') appBridge.hush();
+      else if (window.speechSynthesis) window.speechSynthesis.cancel();
+    } catch (e) { /* nothing was talking */ }
+  }
+  function setVoices(on) { voicesOn = on; store('pourday.voices', on ? 'on' : 'off'); if (!on) hush(); }
+  /** A random person's voice, kept for the whole of their visit. */
+  function personVoice() { return [rnd(0.75, 1.45), rnd(0.95, 1.15)]; }
 
   // ------------------------------------------------------------------ the player
   const player = { x: POS.vanDoor.x, z: POS.vanDoor.z, yaw: -2.2, pitch: -0.12, fall: 0, bob: 0, stepAcc: 0, moving: false };
@@ -2344,6 +2538,15 @@
     return Math.sqrt(s / gs.cells.length);
   }
   function laserWorks() { return gs.prep.laser && gs.laserBattery; }
+  /** How the slab came out: mean thickness against the order, and how wavy it is around its own mean. */
+  function slabReport() {
+    const n = gs.cells.length || 1;
+    const mean = gs.cells.reduce((s, c) => s + c.fill, 0) / n;
+    const sd = Math.sqrt(gs.cells.reduce((s, c) => s + (c.fill - mean) * (c.fill - mean), 0) / n);
+    const allow = 40 + 20 * gs.pouredM3;
+    return { off: mean - day.thick, sd, slowBy: Math.max(0, gs.pourMins - allow) };
+  }
+  function fillIn(str, v) { return str.replace(/\{(\w)\}/g, (m, k) => (v[k] !== undefined ? v[k] : m)); }
   /** The machine tool in hand, if any, and the flag it leaves on a square it has been over. */
   /** The machine in hand while there is troweling to do, if any. */
   function machineTool() { return gs.phase === 'cure' && isMachine(gs.tool) ? gs.tool : null; }
@@ -2449,6 +2652,7 @@
     if (modalOpen) { modalQueue.push(spec); return; }
     modalOpen = spec;
     sfx(spec.sound || 'pop');
+    if (spec.voice) say(spec.say || spec.text, spec.voice);
     gs.waitMode = gs.waitMode === 'van' ? 'van' : null;
     if (gs.waitMode !== 'van') gs.fastForward = null;
     input.action = false;
@@ -2498,6 +2702,7 @@
       if (gs.waitMode === 'van') gs.energy = clamp(gs.energy + 0.12 * step, 0, 100);
       else gs.energy = clamp(gs.energy - 0.04 * step, 0, 100);
       if (gs.truck && gs.truck.waiting) gs.truckWaitPaid += 1.5 * step;
+      if (gs.phase === 'pour' && gs.truck && !gs.truck.waiting) gs.pourMins += step;
       while (gs.schedule.length && gs.schedule[0].at <= gs.t) {
         const ev = gs.schedule.shift();
         ev.fn(away);
@@ -2541,7 +2746,7 @@
         sfx('ring');
         setTimeout(() => sfx('phoneYell'), 1900);
         modal({
-          who: 'The manager, on speaker', title: 'He picks up on the first ring.', sound: 'none',
+          who: 'The manager, on speaker', title: 'He picks up on the first ring.', sound: 'none', voice: 'manager',
           text: pick(L.managerCall).replace(/\{n\}/g, n),
           choices: [
             { label: 'Hold the phone away from your ear', primary: true, fn: () => toast(pick(L.managerAfter), 'warn') },
@@ -2625,12 +2830,12 @@
   }
   const walkers = [];
   function spawnWalker(kind, path, speed, opts) {
-    const m = kind === 'dog' ? makeDog() : makePerson(chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {});
+    const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {});
     m.position.set(path[0].x, 0, path[0].z);
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     scene.add(m);
-    sfx(kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
-    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0 }, opts || {});
+    sfx(opts && opts.cat ? 'meow' : kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
+    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice() }, opts || {});
     walkers.push(w);
     return w;
   }
@@ -2657,11 +2862,11 @@
     return best;
   }
   function shoutAt(w) {
-    if (w.kind === 'driver') { toast(pick(w.who === 'pump' ? L.driverTalk : L.mixTalk)); sfx('voice', player.x, player.z); return; }
+    if (w.kind === 'driver') { const line = pick(w.who === 'pump' ? L.driverTalk : L.mixTalk); toast(line); say(line, w.who === 'pump' ? 'pump' : 'truck'); return; }
     w.shouted = performance.now() + 5000;
     const p = P(w.m.position.x, w.m.position.z);
     if (w.kind === 'dog') {
-      if (gs.sausage) {
+      if (gs.sausage && !w.cat) {
         gs.sausage = false;
         toast(L.dogSausage, 'good');
         sfx('bark', p.x, p.z);
@@ -2671,6 +2876,13 @@
         return;
       }
       sfx('shout');
+      if (w.cat) {
+        if (chance(0.5)) { toast(L.cat.stays, 'warn'); w.pause = Math.max(w.pause, 8); return; }
+        toast(L.cat.goes);
+        w.pause = 0; w.state = 'leaving'; w.afterPause = null;
+        reroute(w, [p, farPoint(pick(SIDES))], 2.2);
+        return;
+      }
       const leaves = chance(w.state === 'laps' ? 0.5 : 0.7);
       if (leaves) { toast(pick(L.dogShoo), 'good'); reroute(w, [p, farPoint(pick(SIDES))], 5.5); w.state = 'leaving'; }
       else { toast(pick(L.dogGame), 'warn'); if (w.state !== 'laps') { gs.stats.dogs++; remember('A dog did laps of the slab. You shouted. It loved it.'); } reroute(w, lapsFrom(p), 4.6); w.state = 'laps'; setTimeout(() => sfx('bark', w.m.position.x, w.m.position.z), 400); }
@@ -2683,8 +2895,8 @@
     setTimeout(() => sfx('voice', w.m.position.x, w.m.position.z), 500);
     const side = w.from || pick(SIDES);
     const r = weighted([[0.5, 'back'], [0.3, 'hurry'], [0.2, 'freeze']]);
-    if (r === 'back') { toast(pick(L.shoutBack), 'good'); reroute(w, aroundFrom(onSlab(p.x, p.z) ? edgePoint(side) : p, side)); if (onSlab(p.x, p.z)) w.path.unshift(p); }
-    else if (r === 'hurry') { toast(pick(L.shoutHurry), 'warn'); w.speed *= 1.8; }
+    if (r === 'back') { const l = pick(L.shoutBack); toast(l, 'good'); say(l, w.voice); reroute(w, aroundFrom(onSlab(p.x, p.z) ? edgePoint(side) : p, side)); if (onSlab(p.x, p.z)) w.path.unshift(p); }
+    else if (r === 'hurry') { const l = pick(L.shoutHurry); toast(l, 'warn'); say(l, w.voice); w.speed *= 1.8; }
     else { toast(pick(L.shoutFreeze), 'warn'); w.pause = 2.2; w.pose = 'look'; }
   }
   /** Somebody at the edge, asking. */
@@ -2701,11 +2913,11 @@
     const go = (path, speed) => { w.pause = 0; w.pose = null; reroute(w, path, speed); };
     const here = P(w.m.position.x, w.m.position.z);
     modal({
-      who: who.who, title: 'Can I cross?', text: who.ask, sound: 'voice',
+      who: who.who, title: 'Can I cross?', text: who.ask, sound: 'voice', voice: w.voice,
       choices: [
         { label: pick(L.hellLabels), primary: true, fn: () => {
           gs.stats.hell++;
-          if (chance(0.72)) { toast(who.back); go(aroundFrom(here, w.from), 1.4); }
+          if (chance(0.72)) { toast(who.back); say(who.back, w.voice); go(aroundFrom(here, w.from), 1.4); }
           else { const l = pick(L.crossAnyway); toast(l, 'warn'); remember(`${who.who}: told where to go, crossed anyway.`); gs.stats.crossed++; go(acrossFrom(here, w.from), 1.5); }
         } },
         { label: 'Walk around, please.', fn: () => {
@@ -2724,8 +2936,241 @@
     });
   }
 
+  // ------------------------------------------------------------------ odd things
+  // Visitors that are not people or dogs: a saucer with a message, a football, a cat that picks
+  // the middle of the slab for a nap, somebody's drone, a plastic bag with somewhere to be.
+  const ufo = (function () {
+    const g = new THREE.Group();
+    const hull = mesh(new THREE.SphereGeometry(2.2, 28, 12), new THREE.MeshPhongMaterial({ color: 0x9aa3ad, specular: 0xffffff, shininess: 90 }), 0, 0, 0, g);
+    hull.scale.y = 0.22;
+    mesh(new THREE.SphereGeometry(0.95, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0x7fd6ff, transparent: true, opacity: 0.75, shininess: 100 }), 0, 0.3, 0, g);
+    const lights = [];
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      lights.push(mesh(new THREE.SphereGeometry(0.11, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), Math.cos(a) * 2.05, 0, Math.sin(a) * 2.05, g));
+    }
+    const beam = new THREE.Mesh(new THREE.ConeGeometry(2.6, 9, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0x8dff9a, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    beam.position.y = -4.5;
+    g.add(beam);
+    g.visible = false;
+    scene.add(g);
+    return { g, lights, beam };
+  })();
+  const LIGHT_COLS = [0xff5a5a, 0xffd23f, 0x6bd68a, 0x5aa9ff, 0xd07aff];
+  const odd = [];                 // what is visiting right now
+
+  /**
+   * Letter positions for a message through the middle of the slab, written to be read from where
+   * you are standing: the tops of the letters away from you, the words running to your right.
+   * Along whichever of the slab's two ways reads best from there and fits; null if neither fits.
+   */
+  function layoutMessage(msg, c, strict) {
+    let fx = c.x - player.x, fz = c.z - player.z;
+    const fl = Math.hypot(fx, fz) || 1;
+    fx /= fl; fz /= fl;
+    const rx = -fz, rz = fx;                  // your right, looking at the middle of the slab
+    const axes = [[Math.sign(rx) || 1, 0], [0, Math.sign(rz) || 1]].sort((a, b) => Math.abs(b[0] * rx + b[1] * rz) - Math.abs(a[0] * rx + a[1] * rz));
+    const step = 1.0, n = msg.length;
+    for (const [ax, az] of strict ? axes.slice(0, 1) : axes) {
+      const out = [];
+      let fits = true;
+      for (let k = 0; k < n && fits; k++) {
+        const o = (k - (n - 1) / 2) * step;
+        const x = c.x + ax * o, z = c.z + az * o;
+        if (msg[k] === ' ') continue;
+        if (!onSlab(x, z)) fits = false;
+        else out.push({ ch: msg[k], x, z, rot: -Math.atan2(az, ax) });
+      }
+      if (fits) return out;
+    }
+    return null;
+  }
+  function pickMessage() {
+    // the middle if it is slab (a U has no middle), else the middle of some square
+    const centres = [site.mid].concat(gs.cells.slice().sort(() => Math.random() - 0.5).slice(0, 12).map((c) => P(gx(c.i) + 0.5, gz(c.j) + 0.5)));
+    // readable from where you stand if any message fits that way; sideways if it has to be
+    for (const strict of [true, false]) {
+      for (const m of L.ufo.msgs.slice().sort(() => Math.random() - 0.5)) {
+        for (const c of centres) { const lay = layoutMessage(m, c, strict); if (lay) return { m, lay, c }; }
+      }
+    }
+    return null;
+  }
+  /** A burned letter: deep, and it only wears out the way any mark does, while it's soft. */
+  function burnLetter(l) {
+    const c = cellAt(l.x, l.z);
+    if (!c) return;
+    c.marks.push({ kind: 'glyph', ch: l.ch, x: l.x, z: l.z, rot: l.rot, depth: 1 });
+    surfDirty = true;
+  }
+  function ufoVisit(away) {
+    const msg = pickMessage();
+    if (!msg) return;
+    gs.ufoDone = true;
+    gs.ufoMsg = msg.m;
+    if (away) {
+      msg.lay.forEach(burnLetter);
+      const line = L.ufo.away.replace('{m}', msg.m);
+      toast(line, 'warn');
+      remember(line);
+      return;
+    }
+    const m = msg.c;
+    odd.push({ kind: 'ufo', t: 0, msg, from: new THREE.Vector3(m.x - 90, 55, m.z - 50), over: new THREE.Vector3(m.x, 9, m.z), to: new THREE.Vector3(m.x + 140, 95, m.z + 70), burned: 0 });
+    toastOnce('ufoLights', 'Lights over the site. Something is coming down.', 'warn', 60000);
+  }
+  function ballVisit(away) {
+    const side = pick(SIDES), pts = [farPoint(side), slabPoint(), farPoint(OPP[side])];
+    if (away) { for (let k = 1; k < pts.length; k++) stampLine('ball', pts[k - 1], pts[k], 1.3); toast(L.ball.away, 'warn'); remember(L.ball.away); return; }
+    const ball = mesh(new THREE.SphereGeometry(0.11, 12, 10), new THREE.MeshLambertMaterial({ color: 0xf5f5f0, map: ballTex }), pts[0].x, 0.11, pts[0].z);
+    ball.castShadow = true;
+    odd.push({ kind: 'ball', m: ball, path: pts, seg: 0, acc: 0, dist: 0 });
+    sfx('bounce', pts[0].x, pts[0].z);
+  }
+  const ballTex = (function () {
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 32;
+    const g = c.getContext('2d');
+    g.fillStyle = '#f5f5f0'; g.fillRect(0, 0, 64, 32);
+    g.fillStyle = '#1d1f22';
+    [[8, 8], [28, 20], [48, 6], [56, 24], [18, 28]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill(); });
+    const t = new THREE.CanvasTexture(c);
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  })();
+  function catVisit(away) {
+    if (away) {
+      const p = slabPoint();
+      stampLine('paw', farPoint(pick(SIDES)), p, 0.3);
+      stamp('curl', p.x, p.z, rnd(0, 6), true);
+      toast(L.cat.away, 'warn');
+      remember(L.cat.away);
+      return;
+    }
+    const side = pick(SIDES), nap = slabPoint();
+    spawnWalker('dog', wander([farPoint(side), edgePoint(side), nap], 0.8), 1.6, {
+      cat: true, from: side, state: 'approach',
+      onArrive: (w) => {
+        w.state = 'napping';
+        w.pause = rnd(25, 40);
+        w.pose = 'sit';
+        stamp('curl', w.m.position.x, w.m.position.z, rnd(0, 6), true);
+        toast(L.cat.seen, 'warn');
+        w.afterPause = (c) => { c.state = 'leaving'; reroute(c, [P(c.m.position.x, c.m.position.z), farPoint(pick(SIDES))], 1.8); };
+      },
+    });
+  }
+  function droneVisit(away) {
+    const p = slabPoint();
+    if (away) { stamp('crater', p.x, p.z, rnd(0, 6), true); toast(L.drone.away, 'warn'); remember(L.drone.away); return; }
+    const g = new THREE.Group();
+    box(0.34, 0.08, 0.34, 0x2a2d31, 0, 0, 0, g);
+    const rotors = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => {
+      box(0.28, 0.02, 0.03, 0x3a3d41, a * 0.12, 0, b * 0.12, g).rotation.y = a * b * Math.PI / 4;
+      return cyl(0.13, 0.13, 0.008, 0x9aa1a7, a * 0.22, 0.05, b * 0.22, g, 12);
+    });
+    const from = farPoint(pick(SIDES));
+    g.position.set(from.x, 7, from.z);
+    scene.add(g);
+    odd.push({ kind: 'drone', m: g, rotors, from, to: p, t: 0 });
+  }
+  function bagVisit(away) {
+    const side = pick(SIDES), pts = [edgePoint(side), slabPoint(), edgePoint(OPP[side])];
+    if (away) { for (let k = 1; k < pts.length; k++) stampLine('smear', pts[k - 1], pts[k], 0.35); toast(L.bag.away, 'warn'); remember(L.bag.away); return; }
+    const bag = box(0.3, 0.22, 0.2, new THREE.MeshLambertMaterial({ color: 0xf2f2ee, transparent: true, opacity: 0.85 }), pts[0].x, 0.2, pts[0].z);
+    odd.push({ kind: 'bag', m: bag, path: pts, seg: 0, acc: 0, dist: 0 });
+  }
+  function updateOdd(dt) {
+    for (let k = odd.length - 1; k >= 0; k--) {
+      const o = odd[k];
+      o.t = (o.t || 0) + dt;
+      if (o.kind === 'ufo') {
+        const g = ufo.g;
+        g.visible = true;
+        ufo.lights.forEach((l, n) => l.material.color.setHex(LIGHT_COLS[(n + Math.floor(o.t * 6)) % LIGHT_COLS.length]));
+        g.rotation.y += dt * 1.5;
+        if (!o.hummed) { o.hummed = true; sfx('ufo'); }
+        if (o.t < 4) { const e = 1 - Math.pow(1 - o.t / 4, 3); g.position.lerpVectors(o.from, o.over, e); ufo.beam.visible = false; }
+        else if (o.t < 4 + o.msg.lay.length * 0.6 + 2) {
+          g.position.set(o.over.x + Math.sin(o.t * 1.3) * 0.3, o.over.y + Math.sin(o.t * 2.1) * 0.25, o.over.z + Math.cos(o.t * 1.1) * 0.3);
+          ufo.beam.visible = true;
+          const due = Math.floor((o.t - 5) / 0.6);
+          while (o.burned < o.msg.lay.length && o.burned <= due) {
+            const l = o.msg.lay[o.burned++];
+            burnLetter(l);
+            sfx('burn', l.x, l.z);
+            for (let n = 0; n < 8; n++) emit(l.x + rnd(-0.3, 0.3), groundY(l.x, l.z) + 0.05, l.z + rnd(-0.3, 0.3), rnd(-0.2, 0.2), rnd(0.5, 1.2), rnd(-0.2, 0.2), 1.2, 0x9a9da0, 0.08, 0.3);
+          }
+          if (o.burned === o.msg.lay.length && !o.spoke) {
+            o.spoke = true;
+            const line = L.ufo.seen.replace('{m}', o.msg.m);
+            toast(line, 'warn');
+            remember(line);
+            say(pick(L.ufo.voice), 'alien');
+          }
+        } else if (o.t < 4 + o.msg.lay.length * 0.6 + 4.5) {
+          ufo.beam.visible = false;
+          const e = Math.pow((o.t - (4 + o.msg.lay.length * 0.6 + 2)) / 2.5, 2);
+          g.position.lerpVectors(o.over, o.to, e);
+        } else { g.visible = false; odd.splice(k, 1); }
+        continue;
+      }
+      if (o.kind === 'ball' || o.kind === 'bag') {
+        const a = o.path[o.seg], b = o.path[o.seg + 1];
+        if (!b) {
+          scene.remove(o.m); odd.splice(k, 1);
+          if (o.kind === 'ball') { toast(L.ball.seen, 'warn'); remember('A football bounced across the slab.'); say(L.ball.kid, 'kid'); } else { toast(L.bag.seen, 'warn'); remember('A plastic bag dragged a line across the slab.'); }
+          continue;
+        }
+        const len = hyp(a.x, a.z, b.x, b.z) || 0.001, speed = o.kind === 'ball' ? 5 : 2.4;
+        o.acc += (speed * dt) / len;
+        if (o.acc >= 1) { o.acc = 0; o.seg++; continue; }
+        const x = lerp(a.x, b.x, o.acc), z = lerp(a.z, b.z, o.acc);
+        o.dist += speed * dt;
+        if (o.kind === 'ball') {
+          const hop = Math.abs(Math.sin((o.dist / 1.3) * Math.PI));
+          o.m.position.set(x, groundY(x, z) + 0.11 + hop * 0.45, z);
+          o.m.rotation.x += dt * 12;
+          if (o.dist > 1.3) { o.dist = 0; if (stamp('ball', x, z, 0, true)) sfx('bounce', x, z); }
+        } else {
+          o.m.position.set(x, groundY(x, z) + 0.12 + Math.abs(Math.sin(o.t * 5)) * 0.25, z);
+          o.m.rotation.set(Math.sin(o.t * 3) * 0.5, o.t * 2, Math.cos(o.t * 4) * 0.4);
+          if (o.dist > 0.3) { o.dist = 0; stamp('smear', x, z, headingOf(b.x - a.x, b.z - a.z), true); }
+        }
+        continue;
+      }
+      if (o.kind === 'drone') {
+        o.rotors.forEach((r) => { r.rotation.y += dt * 40; });
+        if (o.t < 5) {
+          const e = o.t / 5;
+          o.m.position.set(lerp(o.from.x, o.to.x, e) + Math.sin(o.t * 3) * 0.6, 7 + Math.sin(o.t * 2) * 0.5, lerp(o.from.z, o.to.z, e) + Math.cos(o.t * 2.5) * 0.6);
+          o.m.rotation.set(Math.sin(o.t * 4) * 0.15, o.t, Math.cos(o.t * 3) * 0.15);
+          if (!o.buzz) { o.buzz = true; sfx('drone', o.m.position.x, o.m.position.z); }
+        } else if (!o.down) {
+          // the battery gives up
+          o.m.position.y -= dt * 9;
+          o.m.rotation.x += dt * 6;
+          const gy = groundY(o.m.position.x, o.m.position.z) + 0.05;
+          if (o.m.position.y <= gy) {
+            o.down = true;
+            o.m.position.y = gy;
+            stamp('crater', o.m.position.x, o.m.position.z, rnd(0, 6), true);
+            sfx('thud', o.m.position.x, o.m.position.z);
+            for (let n = 0; n < 14; n++) emit(o.m.position.x, gy, o.m.position.z, rnd(-1.5, 1.5), rnd(1, 2.5), rnd(-1.5, 1.5), 0.6, 0x85888a, 0.05);
+            toast(L.drone.seen, 'warn');
+            remember('A drone crashed into the slab.');
+            say(L.drone.voice, 'kid');
+          }
+        } else if (o.t > 30) { scene.remove(o.m); odd.splice(k, 1); }
+      }
+    }
+  }
+
   function nuisance(away) {
-    const kinds = [[0.44, 'cross'], [day.dogChance, 'dog'], [0.1, 'bird'], [0.12, 'foreman'], [0.08, 'kid']];
+    const mins = ((gs.t % 1440) + 1440) % 1440, dark = mins < 360 || mins > 1170;
+    const kinds = [[0.4, 'cross'], [day.dogChance, 'dog'], [0.08, 'bird'], [0.1, 'foreman'], [0.07, 'kid'], [0.08, 'ball'], [0.07, 'cat'], [0.05, 'drone']];
+    if (!gs.ufoDone) kinds.push([dark ? 0.14 : 0.05, 'ufo']);
+    if (day.wind >= 5) kinds.push([0.08, 'bag']);
     if (day.rh > 76 && !gs.rained) kinds.push([0.12, 'rain']);
     const kind = weighted(kinds);
     if (kind === 'cross') {
@@ -2776,6 +3221,11 @@
         },
       });
       toastOnce('dogcoming', 'A dog is heading for the slab. Look at it and shoo it — or throw it something.', 'warn', 60000);
+    } else if (kind === 'ufo') { ufoVisit(away);
+    } else if (kind === 'ball') { ballVisit(away);
+    } else if (kind === 'cat') { catVisit(away);
+    } else if (kind === 'drone') { droneVisit(away);
+    } else if (kind === 'bag') { bagVisit(away);
     } else if (kind === 'bird') {
       const { x, z } = slabPoint();
       stampLine('paw', { x, z }, { x: x + 0.6, z: z + 0.3 }, 0.2);
@@ -2783,7 +3233,7 @@
     } else if (kind === 'foreman') {
       if (away) { toast('Three missed calls from the foreman. And one voice message that is just breathing.'); return; }
       modal({
-        who: 'Foreman, on the phone', title: 'Ring ring.', text: pick(L.foreman), sound: 'ring',
+        who: 'Foreman, on the phone', title: 'Ring ring.', text: pick(L.foreman), sound: 'ring', voice: 'foreman',
         choices: [
           { label: 'It\'s basically hard.', fn: () => toast('It is not basically hard. You both know it.') },
           { label: 'Tell the truth.', fn: () => toast('Foreman: "Concrete is just stubborn water." He hangs up.') },
@@ -2954,7 +3404,7 @@
     if (gs.phase === 'prep') gs.phase = 'pipes';
     if (boom) {
       gs.boomSetAt = gs.t + 2;
-      modal({ who: 'Pump driver', title: 'The boom pump is here.', text: pick(L.pumpArrive) + '\n\nNo pipes to carry today. He puts the legs down and swings the boom over the slab; the hose hangs off the end and he follows you with it on his remote. Mostly.', choices: [{ label: 'Lovely', primary: true }] });
+      modal({ who: 'Pump driver', title: 'The boom pump is here.', voice: 'pump', text: pick(L.pumpArrive) + '\n\nNo pipes to carry today. He puts the legs down and swings the boom over the slab; the hose hangs off the end and he follows you with it on his remote. Mostly.', choices: [{ label: 'Lovely', primary: true }] });
       at(gs.t + 12, () => {
         gs.pipes = 6;
         gs.tools.hose = { in: 'ground', x: SLAB.x1 - 1.5, z: gz(ENTRY.j) + 0.5, yaw: Math.PI / 2 };
@@ -2963,7 +3413,7 @@
       });
     } else {
       pile.visible = true;
-      modal({ who: 'Pump driver', title: 'The pump is here.', text: pick(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
+      modal({ who: 'Pump driver', title: 'The pump is here.', voice: 'pump', text: pick(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
       buildPipeMarkers();
     }
     const first = Math.max(7 * 60 + 30 + day.truckDelays[0], gs.t + 25);
@@ -3033,14 +3483,14 @@
     if (day.trouble === 'empty') {
       remember('The mixer came empty.');
       modal({
-        who: 'Mixer driver', title: 'The drum is empty.', text: pick(L.emptyTruck) + '\n\nThe plant can send another one.',
+        who: 'Mixer driver', title: 'The drum is empty.', text: pick(L.emptyTruck) + '\n\nThe plant can send another one.', voice: 'truck',
         choices: [{ label: 'Get on the phone to the plant', primary: true, fn: () => { toast('The plant: "Another one\'s on its way." Somebody at the plant is laughing.', 'warn'); another(45, 80); } }],
       });
       return;
     }
     const w = L.wrong[day.wrongKind];
     modal({
-      who: `Truck ${gs.truck.no}`, title: w.title, text: w.text,
+      who: `Truck ${gs.truck.no}`, title: w.title, text: w.text, voice: 'truck',
       choices: [
         { label: 'Send it back', primary: true, fn: () => { toast('Back it goes. The right load is 50 to 90 minutes away. The waiting starts now.', 'warn'); remember(`Truck ${gs.truck.no} brought the wrong concrete. You sent it back.`); another(50, 90); } },
         { label: 'Pour it anyway', danger: true, fn: () => {
@@ -3089,7 +3539,7 @@
       choices.push({ label: 'Pour!', primary: true });
     }
     modal({
-      who: `Mixer driver · ${volumeNeeded().toFixed(1)} m³ needed`, title: 'The concrete is here.',
+      who: `Mixer driver · ${volumeNeeded().toFixed(1)} m³ needed`, title: 'The concrete is here.', voice: 'truck',
       text: pick(L.truckDriver) + '\n\n' + mixText + `\n\n${day.boom ? 'Pick up the hose hanging off the boom, over the east edge — the boom follows you' : 'Pick up the hose at the end of the line, on the east edge'} — and look at where it goes. Float it to the laser with the float from the tarp. Aim for ${day.thick} mm everywhere. Don't pour more than you need: ${orderedM3().toFixed(1)} m³ ordered, in ${trucksOrdered()} ${trucksOrdered() > 1 ? 'trucks' : 'truck'}.`,
       choices,
     });
@@ -3107,7 +3557,7 @@
       return;
     }
     modal({
-      who: 'The plant', title: 'Out of concrete.',
+      who: 'The plant', title: 'Out of concrete.', voice: 'plant',
       text: `You're short. The plant can send one more truck, "in about an hour and a half, the driver is on his lunch".`,
       choices: [
         { label: 'Order one more truck', primary: true, fn: () => { gs.extraTrucks++; gs.extraLoad = Math.max(1, Math.ceil(gs.cells.reduce((sum, c) => sum + Math.max(0, day.thick - c.fill), 0) / 1000 * 1.1 * 2) / 2); remember('You ran out of concrete and ordered an extra truck.'); scheduleTruck(gs.t + irnd(70, 110)); } },
@@ -3145,6 +3595,26 @@
       choices: [{ label: 'To the tank', primary: true }],
     });
     at(gs.t + 6, () => { toast(pick(L.wash)); });
+    const rep = slabReport(), v = { d: Math.abs(rep.off).toFixed(0), t: day.thick, r: rep.sd.toFixed(1), h: dur(gs.pourMins) };
+    const moan = [];
+    if (rep.off < -4) moan.push(fillIn(pick(L.badPour.thin), v));
+    if (rep.off > 5) moan.push(fillIn(pick(L.badPour.thick), v));
+    if (rep.sd > 5) moan.push(fillIn(pick(L.badPour.bumpy), v));
+    if (rep.slowBy > 10) moan.push(fillIn(pick(L.badPour.slow), v));
+    if (moan.length) {
+      at(gs.t + 4, () => {
+        remember('The foreman called about the pour. Words like "pay" and "cut" were used.');
+        modal({
+          who: 'Phone · the foreman', title: moan.length > 1 ? 'He has a list.' : 'He has a point.', sound: 'ring', voice: 'foreman',
+          text: moan.join('\n\n') + '\n\n' + L.badPour.close,
+          choices: [
+            { label: 'Yes, boss.', primary: true, fn: () => toast('"Yes boss" is free. It\'s the only thing today that was.') },
+            { label: 'Blame the laser', fn: () => toast('The laser has a lawyer. You do not.', 'warn') },
+            { label: 'Pretend the line is breaking up', fn: () => { toast('"You\'re… breaking… up." He texts instead: "PAY CUT." In capitals.', 'warn'); sfx('buzz'); } },
+          ],
+        });
+      });
+    }
     at(gs.t + 8, () => { if (day.boom) gs.boomFoldAt = gs.t; });
     at(gs.t + 10, () => { pipeGroup.clear(); gs.pipesGone = 1; });
     at(gs.t + 16, () => {
@@ -3288,6 +3758,7 @@
       ['Times on your butt', String(gs.stats.falls)],
     ];
     $('#eStats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('');
+    paySlip(late, goodBlades);
     const hour = (gs.t % 1440) / 60;
     const home = gs.t >= 1440 ? `You get home at ${clock(gs.t)}. The cat has moved into your side of the bed.`
       : hour >= 21 ? `Home at ${clock(gs.t)}. Dinner is cold, like your trowel.`
@@ -3296,6 +3767,43 @@
     const story = gs.story.slice(-7).concat([home]);
     $('#eStory').innerHTML = story.map((s) => `<li>${s.replace(/</g, '&lt;')}</li>`).join('');
     $('#end').hidden = false;
+  }
+
+  /** What the day was worth, after the company has had its say. It can go below zero. */
+  function paySlip(late, goodBlades) {
+    const rep = slabReport(), P2 = L.pay, lines = [];
+    const markN = gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind !== 'glyph').length, 0);
+    const glyphs = gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0);
+    const v = { d: Math.abs(rep.off).toFixed(0), t: day.thick, r: rep.sd.toFixed(1), m: Math.round(rep.slowBy), h: dur(gs.pourMins), n: 0, w: gs.waste.toFixed(1) };
+    const cut = (key, eur, extra) => { if (eur >= 1) lines.push([fillIn(pick(P2[key]), Object.assign({}, v, extra || {})), -Math.round(eur)]); };
+    if (rep.off < -4) cut('thin', Math.min(160, -rep.off * 8));
+    if (rep.off > 5) cut('thick', Math.min(200, (day.area * rep.off / 1000) * 120 + 10));
+    if (rep.sd > 5) cut('bumpy', Math.min(150, (rep.sd - 5) * 15 + 10));
+    if (rep.slowBy > 10) cut('slow', Math.min(150, rep.slowBy * 1.5));
+    if (markN) cut('marks', Math.min(160, markN * 4), { n: markN });
+    if (gs.waste > 0.05) cut('waste', gs.waste * 90);
+    if (gs.truckWaitPaid >= 1) cut('wait', Math.min(150, gs.truckWaitPaid));
+    if (late > 15) cut('late', late, { m: Math.round(late) });
+    if (gs.wrongLoad) cut('wrong', L.wrong[gs.wrongLoad].cost / 2);
+    if (gs.yelled) cut('manager', 50);
+    if (gs.stats.falls) cut('falls', gs.stats.falls * 10, { n: gs.stats.falls });
+    if (gs.edgeNotes.length) cut('edges', gs.edgeNotes.length * 15, { n: gs.edgeNotes.length });
+    if (glyphs) cut('ufo', 25 + glyphs * 5);
+    if (gs.stats.hell) lines.push([fillIn(pick(P2.hell), { n: gs.stats.hell }), 0]);
+    if (goodBlades >= 2 && rep.sd < 3) lines.push([pick(P2.shine), 40]);
+    const base = 220, net = base + lines.reduce((s, l) => s + l[1], 0);
+    const verdict = pick(net >= 180 ? P2.verdictGood : net <= 60 ? P2.verdictBad : P2.verdictMeh);
+    const eur = (x) => (x < 0 ? '−' : x > 0 ? '+' : '') + '€' + Math.abs(x);
+    const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const stampText = net < 0 ? 'You owe us' : net < base * 0.6 ? 'Docked' : '';
+    $('#ePay').innerHTML = `<h4><span>Pay slip</span><span>${clock(gs.arrived)}–${clock(gs.t)}</span></h4>`
+      + `<div class="row"><span>${esc(P2.base)}</span><b>€${base}</b></div>`
+      + lines.map(([t, x]) => `<div class="row"><span>${esc(t)}</span><b class="${x < 0 ? 'neg' : x > 0 ? 'pos' : 'zero'}">${x ? eur(x) : 'no charge'}</b></div>`).join('')
+      + `<div class="net"><span>Take home</span><b class="${net < 0 ? 'neg' : ''}">${net < 0 ? '−' : ''}€${Math.abs(net)}</b></div>`
+      + `<div class="verdict">${esc(verdict)}</div>`
+      + (stampText ? `<div class="stampx">${stampText}</div>` : '');
+    setTimeout(() => say(verdict, 'manager'), 900);
+    return net;
   }
 
   // ------------------------------------------------------------------ picking tools up, putting them down
@@ -3980,6 +4488,7 @@
     return a + d * k;
   }
   function updateWalkers(dt) {
+    updateOdd(dt);
     for (let k = walkers.length - 1; k >= 0; k--) {
       const w = walkers[k], u = w.m.userData, dog = w.kind === 'dog';
       const x0 = w.m.position.x, z0 = w.m.position.z;
@@ -4022,7 +4531,7 @@
         if (dog && chance(0.28) && w.path[w.seg + 1]) {
           w.pose = pick(['sniff', 'sniff', 'sit', 'bark']);
           w.pause = rnd(0.7, 1.8);
-          if (w.pose === 'bark') sfx('bark', x0, z0);
+          if (w.pose === 'bark') sfx(w.cat ? 'meow' : 'bark', x0, z0);
           if (w.pose === 'sit') stamp('paw', x0, z0, w.heading, true);
         }
         continue;
@@ -4317,7 +4826,10 @@
     const anim = markerAnim();
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
     const sway = player.moving && !CALM ? Math.sin(player.bob) * 0.015 : 0;
-    hands.position.set(0.32 + sway, -0.34 + Math.abs(sway) * 0.6, -0.62);
+    // on a tall screen the right hand comes in, or it would be holding things off the edge of it
+    const halfW = 0.62 * Math.tan((camera.fov * Math.PI) / 360) * camera.aspect;
+    const hx = Math.min(0.32, halfW * 0.6), hy = camera.aspect < 1 ? -0.3 : -0.34;
+    hands.position.set(hx + sway, hy + Math.abs(sway) * 0.6, -0.62);
     viewTools.pipe.visible = gs.carrying === 'pipe';
     viewTools.pipe.rotation.z = sway * 2;
     viewTools.laser.visible = gs.carrying === 'laser';
@@ -4368,11 +4880,12 @@
       viewTools.handTrowel.rotation.set(0.05, Math.sin(toolT * 5) * 0.5, Math.sin(toolT * 5) * 0.08);
     } else { viewTools.handTrowel.position.set(-0.05, -0.16, -0.2); viewTools.handTrowel.rotation.set(0.35, 0, 0); }
     // pliers: twist, twist, twist
+    // (the pliers turn about their own length; the coil in the other hand stays put)
     if (anim === 'tie') {
-      viewTools.pliers.rotation.set(-0.6, 0, Math.sin(toolT * 14) * 0.9);
-      viewTools.pliers.position.set(-0.08, -0.2, -0.2);
+      pliersBody.rotation.set(0.7, 0.4, -0.3 + Math.sin(toolT * 14) * 0.9);
+      viewTools.pliers.position.set(-0.16, 0, -0.16);
       if (Math.sin(toolT * 14) > 0.95 && chance(0.5)) sfx('twist');
-    } else { viewTools.pliers.rotation.set(0, 0, 0); viewTools.pliers.position.set(-0.02, -0.02, -0.12); }
+    } else { pliersBody.rotation.set(0.5, 0.4, -0.3); viewTools.pliers.position.set(-0.2, 0.1, -0.1); }
     // the cutter's handles squeeze together, the jaws close
     const squeeze = anim === 'cut' ? (0.5 + 0.5 * Math.sin(toolT * 3)) : 0;
     const cp = viewTools.cutter.userData.parts;
@@ -4749,6 +5262,9 @@
   const soundLabel = () => { $('#btnSound').textContent = soundOn ? 'Sound: on' : 'Sound: off'; };
   soundLabel();
   $('#btnSound').addEventListener('click', () => { audioStart(); setSound(!soundOn); soundLabel(); sfx('chime'); });
+  const voicesLabel = () => { $('#btnVoices').textContent = voicesOn ? 'Voices: on' : 'Voices: off'; };
+  voicesLabel();
+  $('#btnVoices').addEventListener('click', () => { setVoices(!voicesOn); voicesLabel(); if (voicesOn) say('"Voices on. God help us."', 'foreman'); });
   const musicLabel = () => { $('#btnMusic').textContent = musicOn ? 'Music: on' : 'Music: off'; };
   musicLabel();
   $('#btnMusic').addEventListener('click', () => { audioStart(); setMusic(!musicOn); musicLabel(); });
@@ -4782,6 +5298,7 @@
   }
   function pauseMenu() {
     if (modalOpen || gs.phase === 'title' || gs.phase === 'end') return;
+    hush();
     const choices = [
       { label: 'Resume', primary: true },
       { label: 'How to play', fn: () => howToPlay() },
@@ -4791,7 +5308,8 @@
       }) },
     ];
     choices.splice(2, 0, { label: soundOn ? 'Sound: on — switch off' : 'Sound: off — switch on', fn: () => { setSound(!soundOn); soundLabel(); } },
-      { label: musicOn ? 'Music: on — switch off' : 'Music: off — switch on', fn: () => { setMusic(!musicOn); musicLabel(); } });
+      { label: musicOn ? 'Music: on — switch off' : 'Music: off — switch on', fn: () => { setMusic(!musicOn); musicLabel(); } },
+      { label: voicesOn ? 'Voices: on — switch off' : 'Voices: off — switch on', fn: () => { setVoices(!voicesOn); voicesLabel(); } });
     if (bridge) choices.push({ label: 'Back to MixMaster', danger: true, fn: quit });
     modal({
       who: 'Paused', title: 'Take five.',
@@ -4842,6 +5360,9 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
+      visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
+      odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
+      get said() { return saidLog; },
       get audio() { return ac && ac.state; }, get sound() { return soundOn; }, get scene() { return scene; }, get camera() { return camera; },
     };
   }

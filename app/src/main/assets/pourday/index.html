@@ -141,6 +141,14 @@
 
   #end .rank { font-weight: 800; font-size: 30px; line-height: 1.1; color: var(--hivis); text-transform: uppercase; letter-spacing: 1px; }
   #end .score { margin-top: 4px; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .pay { position: relative; margin-top: 14px; background: #efe9dc; color: #23211d; border-radius: 6px; padding: 11px 14px 10px; font-size: 12.5px; line-height: 1.3; font-variant-numeric: tabular-nums; transform: rotate(-0.5deg); box-shadow: 0 6px 18px rgba(0,0,0,0.35); overflow: hidden; }
+  .pay h4 { margin: 0 0 5px; display: flex; justify-content: space-between; font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; color: #6b655a; }
+  .pay .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.14); }
+  .pay .row b { white-space: nowrap; font-weight: 800; }
+  .pay .neg { color: #b3261e; } .pay .pos { color: #1f7a3a; } .pay .zero { color: #6b655a; font-weight: 600; }
+  .pay .net { display: grid; grid-template-columns: 1fr auto; margin-top: 7px; font-size: 17px; font-weight: 900; }
+  .pay .verdict { margin-top: 7px; font-style: italic; color: #3d3a33; }
+  .pay .stampx { position: absolute; right: 12px; bottom: 44px; padding: 3px 10px; border: 3px solid rgba(179,38,30,0.7); border-radius: 6px; color: rgba(179,38,30,0.75); font-weight: 900; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; transform: rotate(-14deg); pointer-events: none; }
   .stats { margin-top: 12px; display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .stats span { color: var(--muted); } .stats b { text-align: right; }
   .story { margin-top: 14px; font-size: 13px; line-height: 1.55; color: #d8d5ce; }
@@ -221,6 +229,7 @@
     <button class="ghost" id="btnReroll">Different day</button>
     <button class="ghost" id="btnSound">Sound: on</button>
     <button class="ghost" id="btnMusic">Music: on</button>
+    <button class="ghost" id="btnVoices">Voices: on</button>
     <button class="ghost" id="btnQuitTitle" hidden>Back to MixMaster</button>
     <div class="best" id="bestLine"></div>
   </div>
@@ -231,6 +240,7 @@
     <div class="who">End of shift</div>
     <div class="rank" id="eRank"></div>
     <div class="score" id="eScore"></div>
+    <div class="pay" id="ePay"></div>
     <div class="stats" id="eStats"></div>
     <ul class="story" id="eStory"></ul>
     <button class="big" id="btnAgain">Another day</button>
