@@ -20,6 +20,14 @@
     <!-- A restart cancels every alarm the app had booked. A batch that is still due gets booked
          again, so a phone that reboots mid-mix does not lose the mix. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- The break-time game reads its lines out with the phone's text-to-speech. From Android 11
+         an app can only reach a speech engine it has declared it looks for. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
     <application
         android:name=".MixMasterApp"
         android:allowBackup="true"

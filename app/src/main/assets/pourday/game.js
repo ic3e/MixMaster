@@ -163,16 +163,16 @@
       { who: 'The electrician', ask: '"Mate, I just need to get to that socket. Two steps. Tiny steps."', back: '"Fine! I\'ll go round. Like an animal."' },
       { who: 'The client', ask: '"It\'s technically my concrete. I\'ll just have a look from the middle."', back: '"I\'m paying for this, you know." You know.' },
       { who: 'Delivery driver', ask: '"Parcel for... someone? Is this the shortcut?"', back: '"Wow. Okay. Five stars anyway."' },
-      { who: 'Site manager in white trainers', ask: '"Just checking progress! Don\'t mind me."', back: '"I\'ll write that down." He does not have a pen.' },
+      { who: 'Site manager in white trainers', g: 'm', ask: '"Just checking progress! Don\'t mind me."', back: '"I\'ll write that down." He does not have a pen.' },
       { who: 'A jogger', ask: '(already jogging towards the slab) "Sorry! I\'m on a streak!"', back: '"Rude!" (jogs off, streak intact)' },
-      { who: 'Man with a clipboard', ask: '"Council inspection. I need to measure something in the middle."', back: '"I\'ll measure it from here then." He squints heroically.' },
+      { who: 'Man with a clipboard', g: 'm', ask: '"Council inspection. I need to measure something in the middle."', back: '"I\'ll measure it from here then." He squints heroically.' },
       { who: 'The plumber', ask: '"My van\'s just there. Straight line is fastest, yeah?"', back: '"Wow. And I thought plumbers were rude."' },
-      { who: 'A man walking a pram', ask: '"It\'s set by now, surely? It looks set."', back: '"It LOOKS set." It is not set.' },
+      { who: 'A man walking a pram', g: 'm', ask: '"It\'s set by now, surely? It looks set."', back: '"It LOOKS set." It is not set.' },
       { who: 'Two teenagers', ask: '"Bro, can we walk on it? For content?"', back: '"Unsubscribed." They film you instead.' },
-      { who: 'The architect', ask: '"I just want to feel the space. From the middle. Barefoot, ideally."', back: '"The space will have to wait, then." He feels it from the edge.' },
-      { who: 'Lady with shopping bags', ask: '"Oh, it\'s wet? It doesn\'t look wet. I\'ll be quick."', back: '"In my day builders were polite." In her day builders were you.' },
-      { who: 'Postman', ask: '"Letter for the building. Which is where, exactly? Over there?"', back: '"The building doesn\'t even exist yet!" He wanders off to deliver it to a hole.' },
-      { who: 'The neighbour\'s kid', ask: '"Can I write my name in it? Just my initials. Small."', back: '"You\'re no fun." Correct.' },
+      { who: 'The architect', g: 'm', ask: '"I just want to feel the space. From the middle. Barefoot, ideally."', back: '"The space will have to wait, then." He feels it from the edge.' },
+      { who: 'Lady with shopping bags', g: 'f', ask: '"Oh, it\'s wet? It doesn\'t look wet. I\'ll be quick."', back: '"In my day builders were polite." In her day builders were you.' },
+      { who: 'Postman', g: 'm', ask: '"Letter for the building. Which is where, exactly? Over there?"', back: '"The building doesn\'t even exist yet!" He wanders off to deliver it to a hole.' },
+      { who: 'The neighbour\'s kid', g: 'kid', ask: '"Can I write my name in it? Just my initials. Small."', back: '"You\'re no fun." Correct.' },
       { who: 'Surveyor with a tripod', ask: '"I need a point in the middle. Two minutes. Three legs, very light."', back: '"Three legs, three holes. Understood."' },
     ],
     hellLabels: [
@@ -866,6 +866,8 @@
     } else {
       mesh(new THREE.SphereGeometry(0.126, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2.1), pick(HAIR), 0, 0.015, -0.012, head);
     }
+    // a ponytail, under whatever is on top
+    if (opts.g === 'f') capsule(0.042, 0.15, pick(HAIR), 0, -0.07, -0.125, head).rotation.x = 0.35;
     g.userData = { legL, legR, armL, armR, head, body, phase: Math.random() * 6 };
     return g;
   }
@@ -2416,20 +2418,57 @@
       .replace(/(\d)\s?mm\b/g, '$1 millimetres').replace(/(\d)\s?h\b/g, '$1 hours').replace(/(\d)\s?min\b/g, '$1 minutes').replace(/±/g, 'plus or minus ').replace(/°C/g, ' degrees')
       .trim();
   }
+  // Each character is cast one of the phone's own voices for the day: a man's voice for the men and
+  // a woman's for the women where the phone lets on which is which, and nobody sharing a voice with
+  // anybody else while there are voices to go round — so the accents get mixed too.
+  const GENDER = { manager: 'm', foreman: 'm', pump: 'm', truck: 'm', plant: 'f', alien: '', kid: '' };
+  let voiceBook = null;            // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
+  let cast = {};                   // who speaks with which today
+  function voicesOnOffer() {
+    if (voiceBook && voiceBook.length) return voiceBook;
+    let list = [];
+    try {
+      if (appBridge && typeof appBridge.voices === 'function') list = JSON.parse(appBridge.voices() || '[]');
+      else if (window.speechSynthesis) {
+        list = window.speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang))
+          .map((v) => ({ n: v.name, l: v.lang, g: /female|woman/i.test(v.name) ? 'f' : /\bmale\b|\bman\b/i.test(v.name) ? 'm' : '' }));
+      }
+    } catch (e) { list = []; }
+    voiceBook = Array.isArray(list) ? list : [];
+    return voiceBook;
+  }
+  function castFor(key, g) {
+    if (cast[key]) return cast[key];
+    const book = voicesOnOffer();
+    if (!book.length) return '';   // the engine isn't up yet: cast them on their next line
+    const taken = new Set(Object.values(cast));
+    const fits = (v) => !g || v.g === g;
+    const pools = [book.filter((v) => fits(v) && !taken.has(v.n)), book.filter((v) => !v.g && !taken.has(v.n)), book.filter(fits), book];
+    cast[key] = pick(pools.find((pl) => pl.length)).n;
+    return cast[key];
+  }
+  function newCast() { cast = {}; voiceBook = null; }
   const saidLog = [];              // what was said lately, for the tests
   function say(text, who) {
     if (!voicesOn || !text) return;
-    const [p, r] = Array.isArray(who) ? who : (VOICES[who] || [1, 1]);
+    let p = 1, r = 1, key = '', g = '';
+    if (Array.isArray(who)) [p, r] = who;
+    else if (who && typeof who === 'object') ({ p, r, key, g } = who);
+    else if (VOICES[who]) { [p, r] = VOICES[who]; key = who; g = GENDER[who] || ''; }
+    const name = key ? castFor(key, g) : '';
     const line = spoken(text);
     if (!line) return;
     saidLog.push(line);
     if (saidLog.length > 40) saidLog.shift();
     duckUntil = performance.now() + line.length * 70 + 600;
     try {
+      if (appBridge && typeof appBridge.speakAs === 'function') { appBridge.speakAs(line, p, r, name); return; }
       if (appBridge && typeof appBridge.speak === 'function') { appBridge.speak(line, p, r); return; }
       if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
         const u = new SpeechSynthesisUtterance(line);
         u.lang = 'en-GB'; u.pitch = p; u.rate = r;
+        const v = name && window.speechSynthesis.getVoices().find((x) => x.name === name);
+        if (v) u.voice = v;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
       }
@@ -2443,8 +2482,12 @@
     } catch (e) { /* nothing was talking */ }
   }
   function setVoices(on) { voicesOn = on; store('pourday.voices', on ? 'on' : 'off'); if (!on) hush(); }
-  /** A random person's voice, kept for the whole of their visit. */
-  function personVoice() { return [rnd(0.75, 1.45), rnd(0.95, 1.15)]; }
+  /** A person's voice, kept for the whole of their visit: their own from the phone's, a little higher or lower. */
+  let personN = 0;
+  function personVoice(g) {
+    if (g === 'kid') return { p: 1.55, r: 1.1, key: 'kid', g: '' };
+    return { p: rnd(0.85, 1.2), r: rnd(0.95, 1.12), key: 'person' + (++personN), g: g || '' };
+  }
 
   // ------------------------------------------------------------------ the player
   const player = { x: POS.vanDoor.x, z: POS.vanDoor.z, yaw: -2.2, pitch: -0.12, fall: 0, bob: 0, stepAcc: 0, moving: false };
@@ -2847,12 +2890,14 @@
   }
   const walkers = [];
   function spawnWalker(kind, path, speed, opts) {
-    const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {});
+    const g = kind === 'dog' ? '' : (opts && opts.who && opts.who.g) || (chance(0.5) ? 'f' : 'm');
+    const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(Object.assign({ g }, chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {}));
+    if (g === 'kid') m.scale.setScalar(0.72);
     m.position.set(path[0].x, 0, path[0].z);
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     scene.add(m);
     sfx(opts && opts.cat ? 'meow' : kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
-    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice() }, opts || {});
+    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g) }, opts || {});
     walkers.push(w);
     return w;
   }
@@ -5353,6 +5398,7 @@
 
   // ------------------------------------------------------------------ title
   function showTitle() {
+    newCast();
     day = newDay();
     gs = freshState();
     buildSite();
@@ -5499,6 +5545,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
+      sayTest: (t, w) => say(t, w), L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
       odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
