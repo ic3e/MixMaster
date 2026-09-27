@@ -343,11 +343,27 @@
       ufo: ['Unexplained lettering in the slab'],
       hell: ['Told {n} people to go to hell: no charge, company policy'],
       shine: ['Bonus: it actually shines'],
+      noPan: ['No pan pass. The client paid for a floor, not a beach'],
+      noBlade: ['No blade pass. You\'ll call it "matte finish". They won\'t', 'Shine not included'],
+      roughEdges: ['{n} edges left rough, like your manners'],
+      thrown: ['{n} tools thrown in the van: dents at cost, plus feelings', 'Tool abuse ({n} airborne)'],
       verdictGood: ['"Not bad. Don\'t let it go to your head, your head is already big enough."', '"Good slab. I\'ll pretend I did it when I tell the client."'],
       verdictBad: ['"That\'s your whole day\'s pay gone. You know what that is? Character building."', '"You owe us money. We\'ll take it in coffee. Six months of coffee."', '"Next time I\'m hiring the dog. It leaves fewer marks and it works for sausages."'],
       verdictMeh: ['"It\'ll do. Things that \'will do\' are why I drink."', '"Could be worse. Could also be a lot better. It\'s mostly the second one."'],
     },
     homeEarly: 'The foreman: "95% or you sleep here." There\'s a sleeping bag in the van for a reason.',
+    tooLate: {
+      text: 'The slab is as hard as it will ever be, and it isn\'t finished: {what}. Blades now would only polish a stone.\n\nYour phone buzzes. The foreman: "It\'s set, isn\'t it. Throw the kit in the van and go home. We\'ll talk about it tomorrow. We\'ll talk about it a lot."',
+      stare: ['You stare at it. It stares back. It doesn\'t get any softer.', 'You poke it with your boot. Your boot loses.', 'You wait for a miracle. The miracle is also on its lunch break.'],
+    },
+    packUp: {
+      start: ['Every finisher\'s dream. You start throwing.', 'You march to the van, and the tools learn to fly.', 'Therapy is expensive. Throwing tools is free.'],
+      hand: ['The hammer goes first. It had it coming.', 'The float spins like a helicopter. Nobody claps.', 'The pliers hit the van, then the van floor. Two dents for the price of one.', 'The hand trowel sails in like it knows the way.'],
+      machine: ['You throw a power trowel. You didn\'t know you could. Neither did your back.', 'The power trowel lands in the van with a noise the neighbours will describe to the police.'],
+      rideOn: 'The ride-on stays where it is. It weighs 400 kg and you are angry, not strong.',
+      laser: 'The laser goes in last-but-one. It beeps once in protest.',
+      end: 'Door slammed. Engine on. You don\'t look back. The slab does.',
+    },
   };
 
   // ------------------------------------------------------------------ one day
@@ -424,7 +440,7 @@
       prep: { unload: false, form: [false, false], laser: false },
       laserOn: false, laserBattery: true, laserPacked: false,
       pumpAt: 0, pumpHere: false, pipes: 0, pipesGone: 0,
-      trucks: [], truck: null, truckNo: 0, truckWaitPaid: 0, pourMins: 0,
+      trucks: [], truck: null, truckNo: 0, truckWaitPaid: 0, pourMins: 0, gaveUp: false, packing: null, thrown: null,
       mixFactor: 1, water: 0, mixState: 'ok',
       blocked: -1, blowout: null, blowoutDone: false, batteryDone: false, fellInPour: false, stuckUntil: 0,
       pourStarted: false, pourDone: false, pourEnd: 0, pouredM3: 0, waste: 0, extraTrucks: 0,
@@ -2703,6 +2719,7 @@
       else gs.energy = clamp(gs.energy - 0.04 * step, 0, 100);
       if (gs.truck && gs.truck.waiting) gs.truckWaitPaid += 1.5 * step;
       if (gs.phase === 'pour' && gs.truck && !gs.truck.waiting) gs.pourMins += step;
+      if (gs.H >= 99.9 && (gs.phase === 'cure' || gs.phase === 'wash') && !gs.gaveUp && !gs.packing && !slabFinished()) tooLate();
       while (gs.schedule.length && gs.schedule[0].at <= gs.t) {
         const ev = gs.schedule.shift();
         ev.fn(away);
@@ -3287,6 +3304,10 @@
   function startDay() {
     $('#title').hidden = true;
     $('#hud').hidden = false;
+    // in case a day was left halfway through throwing the tools in the van
+    $('#buttons').style.visibility = '';
+    $('#targetInfo').style.visibility = '';
+    vanHole.visible = vanDoorPanel.visible = false;
     gs.phase = 'morning';
     const alarm = pick(L.alarm);
     const driveTo = (snooze) => {
@@ -3657,7 +3678,7 @@
       toast('Laser in its case, the receiver in the glovebox. No more beeping today.', 'good');
     });
     addMarker('lunch', POS.kioskFront, 'Lunch', 1.2, () => gs.phase === 'cure' && gs.H < 90, () => { lunch(); });
-    addMarker('home', POS.vanDoor, 'Go home', 1.2, () => gs.phase === 'cure' && gs.panPasses.length > 0 && gs.carrying !== 'laser', () => { tryGoHome(); });
+    addMarker('home', POS.vanDoor, 'Go home', 1.2, () => !gs.packing && ((gs.phase === 'cure' && (gs.panPasses.length > 0 || gs.gaveUp) && (gs.carrying !== 'laser' || gs.gaveUp)) || (gs.phase === 'wash' && gs.gaveUp)), () => { tryGoHome(); });
     site.edges.forEach((e, k) => {
       // straight edges take the small machine or the hand trowel; corners and collars only the hand
       const straight = e.kind === 'edge';
@@ -3687,6 +3708,8 @@
   }
 
   function tryGoHome() {
+    if (gs.packing) return false;
+    if (gs.gaveUp || (gs.H >= 99.9 && !slabFinished())) { gs.gaveUp = true; packUp(); return true; }
     const missing = [];
     if (gs.H < 95) missing.push(`It's only ${Math.floor(gs.H)}% hard. 95% or you sleep here.`);
     if (!gs.panPasses.length) missing.push('No pan pass yet.');
@@ -3699,6 +3722,112 @@
     }
     endDay();
     return true;
+  }
+
+  /** The slab's work is done: pans, blades, and every edge. (The laser is only a tool.) */
+  function slabFinished() { return gs.panPasses.length > 0 && gs.bladePasses.length > 0 && gs.edgesDone >= site.edges.length; }
+  /** 100% and not finished: nothing more will go on this slab today. */
+  function tooLate() {
+    gs.gaveUp = true;
+    const what = [];
+    if (!gs.panPasses.length) what.push('no pan pass');
+    if (!gs.bladePasses.length) what.push('no blade pass');
+    if (gs.edgesDone < site.edges.length) what.push(`${site.edges.length - gs.edgesDone} edges still rough`);
+    remember('It went to 100% before the slab was done.');
+    modal({
+      who: 'Hardness 100%', title: 'It\'s gone off.', sound: 'buzz', voice: 'foreman',
+      text: L.tooLate.text.replace('{what}', what.join(', ')),
+      choices: [
+        { label: 'Throw everything in the van', primary: true, fn: () => packUp() },
+        { label: 'Stare at it a bit longer', fn: () => toast(pick(L.tooLate.stare), 'warn') },
+      ],
+    });
+  }
+
+  // ------------------------------------------------------------------ throwing it all in the van
+  // You march to the van and throw the tools in, one after another, the machines last. Each flies
+  // from your hand in an arc and lands in the van with a noise; the van rocks. Then the door, the
+  // engine, and the day is over.
+  // the van's side door faces north-ish; the tools go through it, and you throw from out in front of it
+  const VAN_SIDE = new THREE.Vector3(Math.sin(0.25), 0, -Math.cos(0.25));
+  const VAN_IN = new THREE.Vector3(POS.van.x + VAN_SIDE.x * 0.7 + 0.3, 1.35, POS.van.z + VAN_SIDE.z * 0.7);
+  const VAN_THROW = P(POS.van.x + VAN_SIDE.x * 6.2 + 1.2, POS.van.z + VAN_SIDE.z * 6.2);
+  // the side door, slid open: a dark hole in the side of the van, and the door panel slid back
+  const vanHole = box(1.35, 1.5, 0.02, 0x131518, 0.3, 1.25, -1.045, van);
+  const vanDoorPanel = box(1.35, 1.5, 0.03, 0xdcdad4, -1.15, 1.25, -1.07, van);
+  vanHole.visible = vanDoorPanel.visible = false;
+  let vanRock = 0;
+  function packUp() {
+    if (gs.packing) return;
+    if (held()) putDown(true);
+    gs.waitMode = null; gs.fastForward = null; showWait();
+    // stand back from the van, facing the door, which is open
+    player.x = VAN_THROW.x; player.z = VAN_THROW.z;
+    vanHole.visible = vanDoorPanel.visible = true;
+    $('#buttons').style.visibility = 'hidden';
+    $('#targetInfo').style.visibility = 'hidden';
+    player.yaw = Math.atan2(-(VAN_IN.x - player.x), -(VAN_IN.z - player.z));
+    player.pitch = 0.08;
+    const items = [];
+    ['hammer', 'pliers', 'cutter', 'handTrowel', 'float'].forEach((id) => {
+      const t = gs.tools[id];
+      if (t && t.in === 'ground') items.push({ id, obj: lying[id], machine: false });
+    });
+    if (tripod.visible || gs.carrying === 'laser') { gs.carrying = null; items.push({ id: 'laser', obj: tripod, machine: false }); }
+    ['trowelSmall', 'trowelBig'].forEach((id) => {
+      const t = gs.tools[id];
+      if (t && t.in === 'ground') items.push({ id, obj: machines[id].group, machine: true });
+    });
+    const t0 = 0.9;
+    items.forEach((it, k) => { it.at = t0 + k * 0.65; it.dur = it.machine ? 1.25 : 0.85; });
+    gs.packing = { t: 0, items, doneAt: (items.length ? items[items.length - 1].at + items[items.length - 1].dur : t0) + 1.2, stage: 0, hand: 0, machine: 0 };
+    toast(pick(L.packUp.start), 'warn');
+    if (gs.tools.rideOn && gs.tools.rideOn.in === 'ground') setTimeout(() => toast(L.packUp.rideOn), 1800);
+  }
+  function updatePack(dt) {
+    const pk = gs.packing;
+    van.rotation.z = Math.sin(toolT * 38) * vanRock * 0.025;
+    van.position.y = Math.abs(Math.sin(toolT * 38)) * vanRock * 0.03;
+    vanRock *= Math.exp(-dt * 4);
+    if (!pk) return;
+    pk.t += dt;
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw), rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
+    for (const it of pk.items) {
+      if (it.landed || pk.t < it.at) continue;
+      if (!it.from) {
+        // off it goes, from your right hand
+        it.from = new THREE.Vector3(player.x + fx * 0.5 + rx * 0.3, 1.25, player.z + fz * 0.5 + rz * 0.3);
+        it.obj.visible = true;
+        if (it.id !== 'laser') gs.tools[it.id].in = 'flying';
+        sfx(it.machine ? 'thunk' : 'pickup');
+        if (it.machine && !pk.saidMachine) { pk.saidMachine = true; toast(pick(L.packUp.machine), 'warn'); }
+        else if (it.id === 'laser') toast(L.packUp.laser);
+        else if (!it.machine && !pk.saidHand) { pk.saidHand = true; setTimeout(() => toast(pick(L.packUp.hand)), 500); }
+      }
+      const u = clamp((pk.t - it.at) / it.dur, 0, 1), h = it.machine ? 1.2 : 1.9;
+      it.obj.position.set(lerp(it.from.x, VAN_IN.x, u), lerp(it.from.y, VAN_IN.y, u) + h * 4 * u * (1 - u), lerp(it.from.z, VAN_IN.z, u));
+      it.obj.rotation.set(u * (it.machine ? 3 : 9), u * 4, u * (it.machine ? 2 : 6));
+      if (u >= 1) {
+        it.landed = true;
+        it.obj.visible = false;
+        it.obj.rotation.set(0, 0, 0);
+        if (it.id === 'laser') { gs.laserPacked = true; } else gs.tools[it.id].in = 'van';
+        if (it.machine) pk.machine++; else pk.hand++;
+        vanRock = it.machine ? 1 : 0.45;
+        sfx(it.machine ? 'thud' : 'clank', VAN_IN.x, VAN_IN.z);
+        if (it.machine) sfx('clank', VAN_IN.x, VAN_IN.z);
+      }
+    }
+    if (pk.stage === 0 && pk.t >= pk.doneAt) { pk.stage = 1; sfx('door', VAN_IN.x, VAN_IN.z); vanRock = 0.6; vanHole.visible = vanDoorPanel.visible = false; toast(L.packUp.end); }
+    if (pk.stage === 1 && pk.t >= pk.doneAt + 0.9) { pk.stage = 2; sfx('engine', VAN_IN.x, VAN_IN.z); }
+    if (pk.stage === 2 && pk.t >= pk.doneAt + 2.4) {
+      gs.thrown = { hand: pk.hand, machine: pk.machine };
+      remember(pk.hand + pk.machine ? `You threw ${pk.hand + pk.machine} tools in the van and drove off without looking back.` : 'You drove off without looking back.');
+      gs.packing = null;
+      $('#buttons').style.visibility = '';
+      $('#targetInfo').style.visibility = '';
+      endDay();
+    }
   }
 
   // ------------------------------------------------------------------ troweling
@@ -3732,7 +3861,7 @@
     const late = Math.max(0, gs.arrived - 6 * 60);
     const goodPans = gs.panPasses.filter((p) => p.good).length;
     const goodBlades = gs.bladePasses.filter((p) => p.good).length;
-    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
+    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.gaveUp ? 80 : 0) - (site.edges.length - Math.min(gs.edgesDone, site.edges.length)) * 12 - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
       + Math.min(goodPans, 3) * 40 + Math.min(goodBlades, 3) * 40 + gs.stats.hell * 5;
     score = Math.round(clamp(score, 0, 1200));
     const rank = score >= 950 ? 'Slab wizard' : score >= 800 ? 'Proper concrete person' : score >= 620 ? 'Adequate slab operator' : score >= 420 ? 'Footprint curator' : 'The dog\'s favourite';
@@ -3789,10 +3918,15 @@
     if (gs.stats.falls) cut('falls', gs.stats.falls * 10, { n: gs.stats.falls });
     if (gs.edgeNotes.length) cut('edges', gs.edgeNotes.length * 15, { n: gs.edgeNotes.length });
     if (glyphs) cut('ufo', 25 + glyphs * 5);
+    if (!gs.panPasses.length) cut('noPan', 60);
+    if (!gs.bladePasses.length) cut('noBlade', 50);
+    if (gs.edgesDone < site.edges.length) cut('roughEdges', (site.edges.length - gs.edgesDone) * 10, { n: site.edges.length - gs.edgesDone });
+    if (gs.thrown && gs.thrown.hand + gs.thrown.machine) cut('thrown', gs.thrown.hand * 5 + gs.thrown.machine * 35, { n: gs.thrown.hand + gs.thrown.machine });
     if (gs.stats.hell) lines.push([fillIn(pick(P2.hell), { n: gs.stats.hell }), 0]);
     if (goodBlades >= 2 && rep.sd < 3) lines.push([pick(P2.shine), 40]);
     const base = 220, net = base + lines.reduce((s, l) => s + l[1], 0);
-    const verdict = pick(net >= 180 ? P2.verdictGood : net <= 60 ? P2.verdictBad : P2.verdictMeh);
+    const owe = P2.verdictBad.filter((v) => /owe us/.test(v)), bad = P2.verdictBad.filter((v) => !/owe us/.test(v));
+    const verdict = pick(net < 0 ? owe : net >= 180 ? P2.verdictGood : net <= 60 ? bad : P2.verdictMeh);
     const eur = (x) => (x < 0 ? '−' : x > 0 ? '+' : '') + '€' + Math.abs(x);
     const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
     const stampText = net < 0 ? 'You owe us' : net < base * 0.6 ? 'Docked' : '';
@@ -4329,6 +4463,7 @@
     const wants = len > 0.08;
     if (wants && (gs.waitMode === 'guard' || gs.fastForward)) { gs.waitMode = null; gs.fastForward = null; showWait(); }
     if (gs.waitMode === 'van') { player.x = POS.van.x + 0.6; player.z = POS.van.z - 0.2; player.moving = false; return; }
+    if (gs.packing) { player.moving = false; return; }
     if (player.fall > 0 || performance.now() < gs.stuckUntil || gs.fitting) { player.moving = false; return; }
     const c = cellAt(player.x, player.z);
     const wet = gs.phase === 'pour' && c && c.fill > 20;
@@ -4443,6 +4578,7 @@
   const btnTool = $('#btnTool'), btnAlt = $('#btnLaser');
   const actLabel = $('#actLabel'), actFill = $('#actFill');
   function updateAction(dt) {
+    if (gs.packing) { input.action = false; return; }
     updateTarget();
     const ctx = context();
     if (!ctx || ctx.kind !== lastCtxKind) holdT = 0;
@@ -4737,6 +4873,7 @@
     camera.rotation.set(player.pitch, player.yaw, roll);
     camera.updateMatrixWorld();
     placeTools(dt);
+    updatePack(dt);
   }
 
   // ------------------------------------------------------------------ the boom
@@ -5007,8 +5144,10 @@
         const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (tarp): level · Laser shows the height` : `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.`;
         return `Pour to ${day.thick} mm: ${f}% filled, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
-      case 'wash': return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
+      case 'wash': if (gs.gaveUp) return gs.packing ? 'Throwing the tools in the van.' : 'It\'s gone off, tools unwashed. Walk to the van and go home.<small>They\'ll be concrete tools now. Very sturdy.</small>'; return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
       case 'cure': {
+        if (gs.packing) return 'Throwing the tools in the van.<small>Therapy, but cheaper.</small>';
+        if (gs.gaveUp) return 'It\'s gone off. Nothing more goes on this slab today.<small>Walk to the van: the tools go in, you go home.</small>';
         const marks = gs.cells.filter((c) => c.marks.length && !c.defect).length;
         const warn = marks && gs.H < 80 ? `<small>${marks} m² with marks — ${gs.H < 50 ? 'float or pan' : 'pan'} them out before 80%.</small>` : '';
         if (gs.H < 25) return `Let it harden. Guard it, eat, or nap.${warn || '<small>Pans from 25%.</small>'}`;
@@ -5360,6 +5499,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
+      packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
       odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
       get said() { return saidLog; },
