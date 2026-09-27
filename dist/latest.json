@@ -1,8 +1,8 @@
 {
-  "versionCode": 203,
-  "versionName": "1.0.203",
-  "apk": "MixMaster_1.0.203.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.203.apk",
-  "sizeBytes": 20802579,
-  "notes": "Pour Day full screen, with its way out inside the game"
+  "versionCode": 204,
+  "versionName": "1.0.204",
+  "apk": "MixMaster_1.0.204.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.204.apk",
+  "sizeBytes": 20820987,
+  "notes": "Pour Day: a trowel that sits on the slab, marks you can see, and sound"
 }
