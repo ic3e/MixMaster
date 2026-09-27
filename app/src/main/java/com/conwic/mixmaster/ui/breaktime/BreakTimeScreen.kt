@@ -8,6 +8,8 @@ import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -24,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.ui.LocalAppActivity
 import java.util.Locale
 import org.json.JSONArray
@@ -39,6 +42,9 @@ import org.json.JSONObject
  * The people in it talk out loud through the phone's own text-to-speech, handed over from here:
  * the WebView has no speech of its own.
  *
+ * Co-workers can play one day together, phone to phone (see [GameNet]): the page asks for the
+ * "Nearby devices" permission through here the first time somebody hosts or joins.
+ *
  * Full screen: the status and navigation bars are hidden while it is open and come back with a
  * swipe from the edge. The way out is inside the game — its pause menu has "Back to MixMaster" —
  * and the phone's back gesture pauses rather than leaves, because a thumb looking round near the
@@ -52,6 +58,15 @@ fun BreakTimeScreen(onExit: () -> Unit) {
     val appContext = LocalContext.current.applicationContext
     val voice = remember { GameVoice(appContext) }
     DisposableEffect(voice) { onDispose { voice.shutdown() } }
+    val net = remember { GameNet(appContext) }
+    DisposableEffect(net) { onDispose { net.stop() } }
+    // the answer to a permission question goes to whoever asked it
+    val permissionAnswer = remember { arrayOfNulls<(Boolean) -> Unit>(1) }
+    val askPermissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        val then = permissionAnswer[0]
+        permissionAnswer[0] = null
+        then?.invoke(result.values.all { it })
+    }
 
     BackHandler {
         val view = web
@@ -116,8 +131,22 @@ fun BreakTimeScreen(onExit: () -> Unit) {
                 overScrollMode = View.OVER_SCROLL_NEVER
                 // Waiting on concrete is the whole point; the screen should not go dark on it.
                 keepScreenOn = true
+                // what Nearby hears goes to the page as an event
+                net.emit = { json -> evaluateJavascript("window.pdNet && window.pdNet.onEvent(${JSONObject.quote(json)})", null) }
                 // Called from the page's own thread, so handed over to the main one.
-                addJavascriptInterface(GameBridge(onQuit = { post { exit() } }, voice = voice), "MixMaster")
+                addJavascriptInterface(
+                    GameBridge(
+                        onQuit = { post { exit() } },
+                        voice = voice,
+                        net = net,
+                        onMain = { f -> post { f() } },
+                        withPermissions = { then ->
+                            permissionAnswer[0] = then
+                            askPermissions.launch(GameNet.permissions())
+                        },
+                    ),
+                    "MixMaster",
+                )
                 loadUrl("file:///android_asset/pourday/index.html")
                 web = this
             }
@@ -134,9 +163,37 @@ fun BreakTimeScreen(onExit: () -> Unit) {
  * What the game may ask of the app: to be closed, and to say a line out loud, in one of the phone's
  * voices. It only ever loads its own page.
  */
-private class GameBridge(private val onQuit: () -> Unit, private val voice: GameVoice) {
+private class GameBridge(
+    private val onQuit: () -> Unit,
+    private val voice: GameVoice,
+    private val net: GameNet,
+    private val onMain: (() -> Unit) -> Unit,
+    private val withPermissions: ((Boolean) -> Unit) -> Unit,
+) {
     @JavascriptInterface
     fun quit() = onQuit()
+
+    /** The app's version: phones playing together have to be on the same one. */
+    @JavascriptInterface
+    fun version(): String = BuildConfig.VERSION_NAME
+
+    @JavascriptInterface
+    fun netHost(name: String) = onMain { withPermissions { ok -> if (ok) net.host(name.take(24)) else net.denied() } }
+
+    @JavascriptInterface
+    fun netJoin(name: String) = onMain { withPermissions { ok -> if (ok) net.join(name.take(24)) else net.denied() } }
+
+    @JavascriptInterface
+    fun netConnect(endpointId: String) = onMain { net.connect(endpointId) }
+
+    @JavascriptInterface
+    fun netSend(data: String) = onMain { net.send(data) }
+
+    @JavascriptInterface
+    fun netSendTo(endpointId: String, data: String) = onMain { net.sendTo(endpointId, data) }
+
+    @JavascriptInterface
+    fun netLeave() = onMain { net.stop() }
 
     @JavascriptInterface
     fun speak(text: String, pitch: Float, rate: Float) = voice.say(text.take(600), pitch, rate, "")

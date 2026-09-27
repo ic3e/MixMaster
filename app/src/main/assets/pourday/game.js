@@ -494,6 +494,25 @@
         '"I\'m off. Same time tomorrow? Please say no."',
       ],
     },
+    crewShout: [
+      '"Oi! Get off my bit!"',
+      '"Where\'s the float? Did you take the float?"',
+      '"Are you working or modelling?"',
+      '"Pour it HERE, not everywhere!"',
+      '"Stop standing in my concrete!"',
+      '"Coffee. Van. Now."',
+      '"Is that your footprint? That\'s your footprint."',
+    ],
+    crewShoutOut: [
+      'They pretend not to hear.',
+      'They wave. It is not a friendly wave.',
+      'They shout something back. The pump drowns it out. Probably for the best.',
+    ],
+    crewFlip: [
+      'You return it. Teamwork.',
+      'That\'s how you know they care.',
+      'The pump driver saw. He approves.',
+    ],
     vanSpill: [
       'You open the doors. Out comes {t}, the way it always does.',
       'Doors open. Out slides {t}. The van has been holding a grudge since Tuesday.',
@@ -1596,9 +1615,10 @@
     surfDirty = true;
   }
   /** New concrete over whatever was there. */
-  function paintPour(x, z) { disc(x, z, 0.7, speckle, 0.85); }
+  function paintPour(x, z) { netPaint('pour', x, z); disc(x, z, 0.7, speckle, 0.85); }
   /** A float drawn across: straight, overlapping strokes. */
   function paintFloat(x, z, rot) {
+    netPaint('float', x, z, rot);
     surf.save();
     surf.translate(cx(x), cz(z));
     surf.rotate(-rot);
@@ -1618,6 +1638,7 @@
   }
   /** The float pans: a rough, grainy surface in overlapping circles. */
   function paintPan(x, z, r) {
+    netPaint('pan', x, z, r);
     r = r || 0.46;
     const X = cx(x), Z = cz(z), R = r * PPM;
     disc(x, z, r, speckle, 0.16);
@@ -1635,6 +1656,7 @@
   }
   /** The blades: closed, smooth and lighter — where the shine comes from. */
   function paintBlade(x, z, r) {
+    netPaint('blade', x, z, r);
     r = r || 0.46;
     const X = cx(x), Z = cz(z), R = r * PPM;
     disc(x, z, r, '#eeeff0', 0.1);
@@ -1652,6 +1674,7 @@
   }
   /** Fibre concrete: little hairs all through the surface. */
   function paintFibres(x, z) {
+    netPaint('fibres', x, z);
     surf.strokeStyle = '#6e6a60';
     surf.lineWidth = 1;
     surf.globalAlpha = 0.5;
@@ -1664,6 +1687,7 @@
   }
   /** Too early: the machine digs in and throws up ridges. */
   function paintGouge(x, z, rot) {
+    netPaint('gouge', x, z, rot);
     surf.save();
     surf.translate(cx(x), cz(z));
     surf.rotate(rot);
@@ -2923,7 +2947,7 @@
   }
   const saidLog = [];              // what was said lately, for the tests
   function say(text, who) {
-    if (!voicesOn || !text) return;
+    if (!voicesOn || !text || netRemote || netCapture) return;
     let p = 1, r = 1, key = '', g = '';
     if (Array.isArray(who)) [p, r] = who;
     else if (who && typeof who === 'object') ({ p, r, key, g } = who);
@@ -3158,6 +3182,8 @@
   // ------------------------------------------------------------------ HUD bits
   const toastBox = $('#toasts');
   function toast(text, kind) {
+    if (netCapture) { netCapture.push([text, kind]); return; }
+    if (netRemote) return;
     const d = document.createElement('div');
     d.className = 'toast' + (kind ? ' ' + kind : '');
     d.textContent = text;
@@ -3179,6 +3205,7 @@
   const modalQueue = [];
   let modalOpen = null;
   function modal(spec) {
+    if (isHost() && net.started && !spec.personal && gs.phase !== 'morning') netSend({ t: 'note', who: spec.who || '', title: spec.title || '', text: (spec.text || '').slice(0, 400), voice: typeof spec.voice === 'string' ? spec.voice : '', say: spec.say || '' });
     if (modalOpen) { modalQueue.push(spec); return; }
     modalOpen = spec;
     sfx(spec.sound || 'pop');
@@ -3219,6 +3246,7 @@
     return gs.waitMode === 'van' || hyp(player.x, player.z, site.mid.x, site.mid.z) > 18;
   }
   function simulate(dm, away) {
+    if (isGuest()) return;
     while (dm > 0) {
       const step = Math.min(dm, 2);
       gs.t += step;
@@ -3363,6 +3391,7 @@
     return pts;
   }
   const walkers = [];
+  let walkerUid = 0;
   function spawnWalker(kind, path, speed, opts) {
     const g = kind === 'dog' ? '' : (opts && opts.who && opts.who.g) || (chance(0.5) ? 'f' : 'm');
     const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(Object.assign({ g }, chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {}));
@@ -3371,7 +3400,7 @@
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     scene.add(m);
     sfx(opts && opts.cat ? 'meow' : kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
-    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g) }, opts || {});
+    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g), uid: ++walkerUid }, opts || {});
     walkers.push(w);
     return w;
   }
@@ -3394,11 +3423,17 @@
     };
     walkers.forEach((w) => { if (performance.now() > w.shouted) check(w, w.m.position.x, w.m.position.y + (w.kind === 'dog' ? 0.45 : 1.2), w.m.position.z); });
     if (helper.m) check({ kind: 'driver', who: 'helper', isHelper: true, voice: helper.voice }, helper.m.position.x, 1.2, helper.m.position.z);
+    if (inTeam()) {
+      net.crew.forEach((c) => { if (c.id !== net.me && c.m) check({ kind: 'driver', who: 'crew', crewId: c.id, name: c.name }, c.x, 1.3, c.z); });
+      net.remoteWalkers.forEach((w, uid) => check({ kind: w.kind === 'p' ? 'person' : 'dog', remoteWid: uid, m: w.m, cat: w.kind === 'c' }, w.m.position.x, w.m.position.y + (w.kind === 'p' ? 1.2 : 0.45), w.m.position.z));
+    }
     if (pumpGuy.visible) check({ kind: 'driver', who: 'pump' }, pumpGuy.position.x, 1.2, pumpGuy.position.z);
     if (mixGuy.visible) check({ kind: 'driver', who: 'mixer' }, mixGuy.position.x, 1.2, mixGuy.position.z);
     return best;
   }
   function shoutAt(w) {
+    if (w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'shout' }); toast(`You shout at ${w.name}. ${fresh(L.crewShoutOut)}`); sfx('shout'); return; }
+    if (w.remoteWid) { netSend({ t: 'shout', wid: w.remoteWid }); sfx('shout'); return; }
     if (w.kind === 'driver' && w.isHelper) { const l = fresh(L.helper.talk); toast(`${helper.name}: ${l}`); say(l, helper.voice); return; }
     if (w.kind === 'driver') { const line = pick(w.who === 'pump' ? L.driverTalk : L.mixTalk); toast(line); say(line, w.who === 'pump' ? 'pump' : 'truck'); return; }
     w.shouted = performance.now() + 5000;
@@ -3854,6 +3889,12 @@
     gs.phase = 'prep';
     gs.arrived = gs.t;
     player.x = POS.vanDoor.x; player.z = POS.vanDoor.z;
+    // a crew doesn't all stand in the same boots: co-workers turn up a little way along
+    if (isGuest()) {
+      const k = ((net.me.charCodeAt(0) || 0) + (net.me.charCodeAt(net.me.length - 1) || 0)) % 3 + 1;
+      const q = vanPoint(-6.4, (k % 2 ? 1 : -1) * 1.7 * Math.ceil(k / 2) + 0.01);
+      [player.x, player.z] = collide(q.x, q.z);
+    }
     player.yaw = Math.atan2(player.x - 0, player.z - 0);
     gs.pumpAt = 7 * 60 + day.pumpDelay;
     const late = gs.t - 6 * 60;
@@ -3879,6 +3920,8 @@
       gs.prep.unload = true; gs.toolsUnloaded = true;
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
       vanBack.want = 1;
+      // whoever opened it unpacks it; the others hear where everything landed
+      if (netRemote) return true;
       vanBack.onOpen = () => {
         unloadTools();
         sfx('clank', POS.vanDoor.x, POS.vanDoor.z);
@@ -3894,7 +3937,7 @@
     });
     addMarker('laserFetch', POS.vanSide, 'Take the laser', 1.2, () => gs.prep.unload && gs.laserInVan && !gs.prep.laser && !gs.carrying && vanBack.open >= 1, () => {
       gs.laserInVan = false;
-      gs.carrying = 'laser';
+      if (!netRemote) gs.carrying = 'laser';
       sfx('clank', POS.vanSide.x, POS.vanSide.z);
       toast('Laser case out of the van. Carry it to the spot by the slab and set it up.');
     }, { tool: 'hands' });
@@ -3902,11 +3945,11 @@
       addMarker('form' + k, f, 'Check formwork', 1.8, () => !gs.prep.form[k] && !gs.pourStarted, () => {
         gs.prep.form[k] = true;
         toast(pick(f.run === site.weak ? L.formWeak : L.formOk), f.run === site.weak ? 'good' : '');
-        if (chance(0.18)) setTimeout(() => breakHandTool('hammer', fresh(L.hammerBreaks), 18), 1200);
+        if (!netRemote && chance(0.18)) setTimeout(() => breakHandTool('hammer', fresh(L.hammerBreaks), 18), 1200);
       }, { tool: 'hammer' });
     });
     addMarker('laser', POS.tripod, 'Set up laser', 2.6, () => !gs.prep.laser && gs.carrying === 'laser', () => {
-      gs.carrying = null;
+      if (!netRemote) gs.carrying = null;
       gs.prep.laser = true;
       tripod.visible = true;
       sfx('beep', POS.tripod.x, POS.tripod.z);
@@ -3929,7 +3972,7 @@
         t.bar.position.y = rebarY() + 0.03;
         sfx('snip', t.x, t.z);
         toast(fresh(L.cut));
-        if (chance(0.12)) setTimeout(() => breakHandTool('cutter', fresh(L.cutterBreaks), 35), 1200);
+        if (!netRemote && chance(0.12)) setTimeout(() => breakHandTool('cutter', fresh(L.cutterBreaks), 35), 1200);
       }, { tool: 'cutter', w: 2.2 });
     });
   }
@@ -4189,6 +4232,8 @@
 
   function buildLateMarkers() {
     addMarker('wash', POS.ibcFront, 'Wash tools', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05), () => {
+      // a co-worker's washing: their tool comes clean on its own; the host sees if that's the lot
+      if (netRemote) { if (gs.phase === 'wash' && !isGuest() && !dirtyTools().filter((t) => !isMachine(t)).length) enterCure(); return true; }
       const id = held();
       if (id && dirtOf(id) > 0.05) {
         const set = dirtSet(id);
@@ -4216,6 +4261,7 @@
     else toast('Tools washed. You washed your boots too, then stepped in the slurry. Classic.');
     {
       modal({
+        personal: true,
         who: 'Now it hardens', title: 'The waiting part.',
         text: `It's ${Math.round(tempAt(gs.t))} °C with ${day.rh}% humidity and a ${day.thick} mm slab of ${day.area} m². Keep an eye on the hardness meter.\n\n` +
           `• Pans from about 25%: take a power trowel from the bottom of the van\'s ramp — they come with pans on. One to three passes.${day.area > 50 ? ' The ride-on does a big slab in half the time.' : ''}\n• Blades from about 55%: fit them on the machine (button next to Put down), then pass again.\n• Corners and pipe collars with the hand trowel; straight edges with the hand trowel or the small edge trowel.\n• Pack up the laser and put it in the van.\n• Nobody leaves before 95%.\n\n` +
@@ -4232,20 +4278,20 @@
     // the laser goes back in its case, the receiver with it: nothing left to beep at
     addMarker('laserPack', POS.tripod, 'Pack up the laser', 2.4, () => gs.pourDone && gs.prep.laser && !gs.laserPacked && gs.carrying !== 'laser' && tripod.visible, () => {
       tripod.visible = false;
-      gs.carrying = 'laser';
+      if (!netRemote) gs.carrying = 'laser';
       gs.laserOn = false;
       sfx('clank', POS.tripod.x, POS.tripod.z);
       toast('Laser off, tripod folded. To the van with it, receiver and all.');
     }, { tool: 'hands' });
     addMarker('laserVan', POS.vanSide, 'Laser in the van', 1.2, () => gs.carrying === 'laser' && gs.prep.laser, () => {
-      gs.carrying = null;
+      if (!netRemote) gs.carrying = null;
       gs.laserPacked = true;
       gs.laserInVan = true;
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
       toast('Laser in its case, the receiver in the glovebox. No more beeping today.', 'good');
     });
     addMarker('lunch', POS.kioskFront, 'Lunch', 1.2, () => gs.phase === 'cure' && gs.H < 90, () => { lunch(); });
-    addMarker('home', POS.vanDoor, 'Go home', 1.2, () => !gs.packing && ((gs.phase === 'cure' && (gs.panPasses.length > 0 || gs.gaveUp) && (gs.carrying !== 'laser' || gs.gaveUp)) || (gs.phase === 'wash' && gs.gaveUp)), () => { tryGoHome(); });
+    addMarker('home', POS.vanDoor, 'Go home', 1.2, () => !isGuest() && !gs.packing && ((gs.phase === 'cure' && (gs.panPasses.length > 0 || gs.gaveUp) && (gs.carrying !== 'laser' || gs.gaveUp)) || (gs.phase === 'wash' && gs.gaveUp)), () => { tryGoHome(); });
     site.edges.forEach((e, k) => {
       // straight edges take the small machine or the hand trowel; corners and collars only the hand
       const straight = e.kind === 'edge';
@@ -4253,8 +4299,7 @@
         if (gs.H < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
-        addDirt(gs.tool, 0.12);
-        troweledOut(e.x, e.z, player.x, player.z);
+        if (!netRemote) { addDirt(gs.tool, 0.12); troweledOut(e.x, e.z, player.x, player.z); }
         const left = site.edges.length - gs.edgesDone;
         if (gs.H > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
         else toastOnce('edge', `${e.label} done. ${left ? `${left} to go.` : 'That\'s all the edges.'}`, 'good', 8000);
@@ -4264,7 +4309,9 @@
   }
 
   function lunch() {
+    if (isGuest()) toastOnce('lunchcrew', `The clock is ${net.hostName}'s: your lunch doesn't stop it.`, '', 600000);
     modal({
+      personal: true,
       who: 'Kebab & Coffee', title: 'What\'ll it be?', text: L.lunch,
       choices: [
         { label: 'Kebab, extra garlic (40 min)', primary: true, fn: () => { gs.energy = clamp(gs.energy + 45, 0, 100); gs.needs.poo += 45; gs.needs.wee += 10; simulate(40, true); toast('Kebab. The garlic will guard the slab for you for the rest of the day.', 'good'); remember('Kebab with extra garlic.'); } },
@@ -4332,13 +4379,13 @@
     if (gs.edgesDone < site.edges.length) missing.push(`${site.edges.length - gs.edgesDone} edges, corners or collars still to trowel.`);
     if (gs.prep.laser && !gs.laserPacked) missing.push('The laser is still out. Pack it up and put it in the van.');
     if (missing.length) {
-      modal({ who: 'Foreman, in your head', title: 'Not yet.', text: missing.join('\n'), choices: [{ label: 'Fine', primary: true }] });
+      modal({ personal: true, who: 'Foreman, in your head', title: 'Not yet.', text: missing.join('\n'), choices: [{ label: 'Fine', primary: true }] });
       return false;
     }
     const out = toolsOut(), dirty = dirtyTools();
     if (out.length || dirty.length) {
       modal({
-        who: 'Before you go', title: 'The van isn\'t packed.', sound: 'buzz',
+        personal: true, who: 'Before you go', title: 'The van isn\'t packed.', sound: 'buzz',
         text: [out.length ? `Still out on site: ${theList(out)}.` : '', dirty.length ? `Still covered in concrete: ${theList(dirty)}.` : ''].filter(Boolean).join('\n') +
           '\n\nEvery tool goes back in the van, washed. The manager checks. The manager always checks.',
         choices: [
@@ -4475,7 +4522,9 @@
     cellsDirty = true;
     surfDirty = true;
     sfx(good ? 'chime' : 'buzz');
-    toast(`${kind === 'pan' ? 'Pan' : 'Blade'} pass ${kind === 'pan' ? gs.panPasses.length : gs.bladePasses.length} done at ${Math.floor(H)}%. ${verdict}`, good ? 'good' : 'warn');
+    const passLine = `${kind === 'pan' ? 'Pan' : 'Blade'} pass ${kind === 'pan' ? gs.panPasses.length : gs.bladePasses.length} done at ${Math.floor(H)}%. ${verdict}`;
+    toast(passLine, good ? 'good' : 'warn');
+    if (isHost() && net.started) netSend({ t: 'toast', text: passLine, kind: good ? 'good' : 'warn' });
   }
 
   /** Home with tools still out or filthy: the manager has seen the photos by the time you're in the car. */
@@ -4540,8 +4589,13 @@
     const story = gs.story.slice(-7).concat([home]);
     $('#eStory').innerHTML = story.map((s) => `<li>${s.replace(/</g, '&lt;')}</li>`).join('');
     $('#end').hidden = false;
+    $('#btnAgain').hidden = false;
+    if (isHost() && net.started) {
+      netSend({ t: 'end', rank: $('#eRank').textContent, score: $('#eScore').textContent, pay: $('#ePay').innerHTML, stats: $('#eStats').innerHTML, story: $('#eStory').innerHTML, verdict: lastVerdict });
+    }
   }
 
+  let lastVerdict = '';
   /** What the day was worth, after the company has had its say. It can go below zero. */
   function paySlip(late, goodBlades) {
     const rep = slabReport(), P2 = L.pay, lines = [];
@@ -4571,21 +4625,28 @@
     if (gs.thrown && gs.thrown.hand + gs.thrown.machine) cut('thrown', gs.thrown.hand * 5 + gs.thrown.machine * 35, { n: gs.thrown.hand + gs.thrown.machine });
     if (gs.stats.hell) lines.push([fillIn(pick(P2.hell), { n: gs.stats.hell }), 0]);
     if (gs.stats.flips) lines.push([`Fingers given: ${gs.stats.flips}. No charge, but HR has been told`, 0]);
+    if (inTeam()) {
+      const crew = [[net.name, gs.stats.prints]].concat([...net.crew.values()].map((c) => [c.name, c.prints]));
+      crew.sort((a, b) => b[1] - a[1]);
+      lines.push([`Crew: ${crew.map((c) => c[0]).join(', ')}. The day rate is each`, 0]);
+      if (crew[0][1] > 0) lines.push([`Footprints: ${crew.map((c) => `${c[0]} ${c[1]}`).join(', ')}. ${crew[0][0]} buys the coffee`, 0]);
+    }
     if (goodBlades >= 2 && rep.sd < 3) lines.push([pick(P2.shine), 40]);
-    const base = 220, net = base + lines.reduce((s, l) => s + l[1], 0);
+    const base = 220, takeHome = base + lines.reduce((s, l) => s + l[1], 0);
     const owe = P2.verdictBad.filter((v) => /owe us/.test(v)), bad = P2.verdictBad.filter((v) => !/owe us/.test(v));
-    const verdict = pick(net < 0 ? owe : net >= 180 ? P2.verdictGood : net <= 60 ? bad : P2.verdictMeh);
+    const verdict = pick(takeHome < 0 ? owe : takeHome >= 180 ? P2.verdictGood : takeHome <= 60 ? bad : P2.verdictMeh);
     const eur = (x) => (x < 0 ? '−' : x > 0 ? '+' : '') + '€' + Math.abs(x);
     const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    const stampText = net < 0 ? 'You owe us' : net < base * 0.6 ? 'Docked' : '';
+    const stampText = takeHome < 0 ? 'You owe us' : takeHome < base * 0.6 ? 'Docked' : '';
     $('#ePay').innerHTML = `<h4><span>Pay slip</span><span>${clock(gs.arrived)}–${clock(gs.t)}</span></h4>`
       + `<div class="row"><span>${esc(P2.base)}</span><b>€${base}</b></div>`
       + lines.map(([t, x]) => `<div class="row"><span>${esc(t)}</span><b class="${x < 0 ? 'neg' : x > 0 ? 'pos' : 'zero'}">${x ? eur(x) : 'no charge'}</b></div>`).join('')
-      + `<div class="net"><span>Take home</span><b class="${net < 0 ? 'neg' : ''}">${net < 0 ? '−' : ''}€${Math.abs(net)}</b></div>`
+      + `<div class="net"><span>Take home</span><b class="${takeHome < 0 ? 'neg' : ''}">${takeHome < 0 ? '−' : ''}€${Math.abs(takeHome)}</b></div>`
       + `<div class="verdict">${esc(verdict)}</div>`
       + (stampText ? `<div class="stampx">${stampText}</div>` : '');
+    lastVerdict = verdict;
     setTimeout(() => say(verdict, 'manager'), 900);
-    return net;
+    return takeHome;
   }
 
   // ------------------------------------------------------------------ picking tools up, putting them down
@@ -4610,6 +4671,7 @@
     if (!id) return;
     const t = gs.tools[id];
     t.in = 'ground';
+    delete t.by;
     if (TOOLS[id].ride) {
       // off to the left of the seat
       const [nx, nz] = collide(player.x - Math.cos(player.yaw) * 1.5, player.z + Math.sin(player.yaw) * 1.5);
@@ -4627,6 +4689,7 @@
     if (held()) putDown(true);
     const t = gs.tools[id];
     t.in = 'hand';
+    t.by = net.me;
     gs.tool = id;
     if (TOOLS[id].ride) {
       player.x = t.x + Math.sin(t.yaw) * 0.3;
@@ -4704,7 +4767,7 @@
   }
   function toolContext() {
     const w = walkerInSight();
-    if (w) return { kind: 'shout', label: w.kind === 'driver' ? (w.isHelper ? `Talk to ${helper.name}` : 'Talk') : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
+    if (w) return { kind: 'shout', label: w.kind === 'driver' ? (w.isHelper ? `Talk to ${helper.name}` : w.crewId ? `Shout at ${w.name}` : 'Talk') : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
     const t = gs.tool;
     if (gs.phase === 'pour') {
       if (t === 'hose') {
@@ -4748,6 +4811,7 @@
       if (holdT >= holdOf(m)) {
         holdT = 0;
         const ok = m.done();
+        if (ok !== false) netMarker(m.id);
         if (ok !== false && !m.active()) m.group.visible = false;
       }
       return;
@@ -4772,8 +4836,8 @@
     target.fill += add * (1 - spread);
     nb.forEach((n) => { n.fill += (add * spread) / nb.length; });
     const m3 = add / 1000;
-    gs.truck.left -= m3;
-    gs.pouredM3 += m3;
+    if (isGuest()) net.pourM3 += m3;
+    else { gs.truck.left -= m3; gs.pouredM3 += m3; }
     cellsDirty = true;
     pourSeconds += dt;
     paintT -= dt;
@@ -4782,8 +4846,13 @@
       paintPour(target._hx + rnd(-0.2, 0.2), target._hz + rnd(-0.2, 0.2));
       if (gs.wrongLoad === 'fibre') paintFibres(target._hx, target._hz);
     }
+    if (isGuest()) return;
+    pourTrouble(dt);
+    if (gs.truck.left <= 0) truckEmpty();
+  }
+  /** What goes wrong while pouring, whoever is holding the hose: `dt` seconds of it. */
+  function pourTrouble(dt) {
     const progress = filledShare();
-    // what goes wrong while pouring
     if (gs.mixState === 'stiff' && chance(0.025 * dt)) {
       gs.blocked = irnd(1, 5);
       gs.stats.blockages++;
@@ -4801,7 +4870,6 @@
       gs.laserOn = false;
       toast(L.battery, 'warn');
     }
-    if (gs.truck.left <= 0) truckEmpty();
   }
   function blockMarker() {
     const k = gs.blocked;
@@ -4824,7 +4892,10 @@
     sfx('splash', s.p.x, s.p.z); sfx('thud', s.p.x, s.p.z);
     shake = 0.6;
     remember(`The formwork burst on the ${s.name}.`);
-    const m = addMarker('blowout', s.p, 'Fix the formwork!', 2.8, () => !!gs.blowout, () => {
+    blowoutMarker(s.p);
+  }
+  function blowoutMarker(p) {
+    const m = addMarker('blowout', p, 'Fix the formwork!', 2.8, () => !!gs.blowout, () => {
       gs.blowout = null;
       gs.blowoutDone = true;
       toast('Stakes, a board and a lot of swearing. It holds.', 'good');
@@ -4855,13 +4926,8 @@
     sfx('clank', x, z);
     remember('The mesh came up through the pour.');
     const due = gs.t + 9;
-    const m = addMarker('rebarUp', P(x, z), 'Push the mesh down!', 1.6, () => !gs.rebarFixed && gs.t < due, () => {
-      gs.rebarFixed = true;
-      liftBars.visible = false;
-      sfx('wet', x, z);
-      toast('Pushed down, stood on, sworn at. It stays. For now.', 'good');
-      removeMarker(m);
-    }, { w: 2.4 });
+    gs.rebarDue = due;
+    const m = rebarMarker(x, z, due);
     at(due, () => {
       if (gs.rebarFixed) return;
       removeMarker(m);
@@ -4898,7 +4964,8 @@
     const w = walkerInSight();
     const ufoNear = odd.some((o) => o.kind === 'ufo');
     setTimeout(() => {
-      if (w && w.isHelper) { const l = fresh(L.helper.flipped).replace('{n}', helper.name); toast(l); say(l, helper.voice); } else if (w && w.kind === 'driver') {
+      if (w && w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'flip' }); toast(`You give ${w.name} the finger. ${w.name} saw it.`); } else if (w && w.remoteWid) toast(fresh(L.flip.person), 'warn');
+      else if (w && w.isHelper) { const l = fresh(L.helper.flipped).replace('{n}', helper.name); toast(l); say(l, helper.voice); } else if (w && w.kind === 'driver') {
         if (w.who === 'pump') { const l = 'The pump driver flips you back with both hands, which is impressive while holding a remote.'; toast(l); }
         else { toast('The mixer driver honks twice. It means the same thing.'); sfx('honk', mixer.position.x, mixer.position.z); }
       } else if (w && w.kind === 'dog') toast(fresh(L.flip.dog));
@@ -5018,6 +5085,17 @@
     const v = vanPoint(rnd(-8, -6), rnd(-3, 3));
     helper.goal = v;
     helper.job = rnd(15, 30);
+  }
+
+  function rebarMarker(x, z, due) {
+    const m = addMarker('rebarUp', P(x, z), 'Push the mesh down!', 1.6, () => !gs.rebarFixed && gs.t < due, () => {
+      gs.rebarFixed = true;
+      liftBars.visible = false;
+      sfx('wet', x, z);
+      toast('Pushed down, stood on, sworn at. It stays. For now.', 'good');
+      removeMarker(m);
+    }, { w: 2.4 });
+    return m;
   }
 
   // ------------------------------------------------------------------ the pump driver lends a hand
@@ -5153,7 +5231,7 @@
     }
     c.fill -= amt;
     if (low) low.fill += amt;
-    else { gs.waste += amt / 1000; toastOnce('overboard', 'Nowhere low nearby, so over the formwork it goes. Waste, but level waste.', 'warn', 30000); }
+    else { if (isGuest()) net.wasteM3 += amt / 1000; else gs.waste += amt / 1000; toastOnce('overboard', 'Nowhere low nearby, so over the formwork it goes. Waste, but level waste.', 'warn', 30000); }
     cellsDirty = true;
     paintT -= dt;
     if (paintT <= 0) {
@@ -5250,7 +5328,7 @@
         else paintBlade(disc.x, disc.z, disc.r);
       }
     }
-    if (covered && passCoverage(key) >= 0.9) {
+    if (covered && passCoverage(key) >= 0.9 && !isGuest()) {
       if (pans && gs.panPasses.length >= 3) { gs.cells.forEach((c) => { c.covP = false; }); return; }
       if (!pans && gs.bladePasses.length >= 3) { gs.cells.forEach((c) => { c.covB = false; }); return; }
       completePass(pans ? 'pan' : 'blade');
@@ -5354,7 +5432,9 @@
   $('#btnCoffee').addEventListener('click', () => coffee());
   $('#btnFlip').addEventListener('click', () => flip());
   $('#btnFinish').addEventListener('click', () => {
+    if (isGuest()) { netSend({ t: 'finish' }); toast(`You tell ${net.hostName} the pour is done.`); return; }
     modal({
+      personal: true,
       who: 'Finish the pour?', title: `${Math.round(filledShare() * 100)}% filled, ±${rms().toFixed(1)} mm.`,
       text: 'Once it\'s finished there\'s no more floating to the laser — it goes to the pans from here.',
       choices: [{ label: 'Finish the pour', primary: true, fn: () => finishPour() }, { label: 'Keep floating' }],
@@ -5395,6 +5475,7 @@
       : 'Waiting · time flies<small>Move to stop</small>';
   }
   function waitMenu() {
+    if (isGuest()) { toast(`Only ${net.hostName} can make time fly. Ask nicely. Or shout.`); return; }
     if (gs.waitMode || gs.fastForward) {
       if (gs.waitMode === 'van') { player.x = POS.vanDoor.x; player.z = POS.vanDoor.z; toast(fresh(L.vanNap)); }
       gs.waitMode = null; gs.fastForward = null; showWait();
@@ -5409,7 +5490,7 @@
     }
     if (!choices.length) { toast('Nothing to wait for. There is always something to do. That\'s the job.'); return; }
     choices.push({ label: 'Never mind' });
-    modal({ who: 'Wait', title: 'Let time do its thing.', text: gs.poured ? `Hardness ${Math.floor(gs.H)}%. Pans in ${dur(etaTo(25))}, blades in ${dur(etaTo(55))}, 95% in ${dur(etaTo(95))}.` : '', choices });
+    modal({ personal: true, who: 'Wait', title: 'Let time do its thing.', text: gs.poured ? `Hardness ${Math.floor(gs.H)}%. Pans in ${dur(etaTo(25))}, blades in ${dur(etaTo(55))}, 95% in ${dur(etaTo(95))}.` : '', choices });
   }
 
   // ------------------------------------------------------------------ per frame
@@ -5574,7 +5655,9 @@
     const hose = gs.tools.hose;
     if (hose && (hose.in === 'hand' || hose.in === 'ground' || hose.in === 'pumpman')) {
       const end = new THREE.Vector3();
-      if (hose.in === 'hand') { end.set(0.36, -0.75, -0.35); camera.localToWorld(end); }
+      const holder = hose.in === 'hand' && hose.by && hose.by !== net.me ? net.crew.get(hose.by) : null;
+      if (holder && holder.m) end.set(holder.x - Math.sin(holder.yaw) * 0.45, 1.0, holder.z - Math.cos(holder.yaw) * 0.45);
+      else if (hose.in === 'hand') { end.set(0.36, -0.75, -0.35); camera.localToWorld(end); }
       else if (hose.in === 'pumpman') end.set(pumpGuy.position.x + Math.sin(pumpGuy.rotation.y) * 0.5, pumpGuy.position.y + 1.0, pumpGuy.position.z + Math.cos(pumpGuy.rotation.y) * 0.5);
       else end.set(hose.x, groundY(hose.x, hose.z) + 0.05, hose.z);
       const last = PIPE_ROUTE[5];
@@ -5778,11 +5861,13 @@
   function updateWorld(dt) {
     updateBoom(dt);
     updateVanBack(dt);
-    updateHelper(dt);
     updateFlip(dt);
-    maybePumpHelp();
-    updatePumpHelp(dt);
     updateChatter();
+    if (!isGuest()) {
+      updateHelper(dt);
+      maybePumpHelp();
+      updatePumpHelp(dt);
+    }
     for (let k = drives.length - 1; k >= 0; k--) {
       const d = drives[k];
       d.t += dt / d.seconds;
@@ -5790,19 +5875,19 @@
       d.group.position.x = lerp(d.from, d.to, e);
       if (d.t >= 1) { drives.splice(k, 1); if (d.done) d.done(); }
     }
-    updateWalkers(dt);
+    if (!isGuest()) updateWalkers(dt);
     // the drum turns about its own axis: slowly one way to keep the load mixed, faster the other
     // way to bring it up and out while it pours
     if (mixer.visible) drumSpin.rotation.x += dt * (stream.visible ? -2.4 : 0.7);
     if (tripod.visible) laserHead.rotation.y += dt * 6;
     beam.visible = gs.laserOn && laserWorks();
     // blowout drains the edge
-    if (gs.blowout && gs.phase === 'pour') {
+    if (gs.blowout && gs.phase === 'pour' && !isGuest()) {
       gs.cells.forEach((c) => { if (gs.blowout.cells.has(c.idx) && c.fill > 0) { c.fill = Math.max(0, c.fill - 14 * dt); } });
       cellsDirty = true;
     }
     // soup levels itself, slowly
-    if (gs.phase === 'pour' && (gs.mixState === 'soup' || gs.water)) {
+    if (gs.phase === 'pour' && (gs.mixState === 'soup' || gs.water) && !isGuest()) {
       const k = (gs.mixState === 'soup' ? 0.35 : 0.12) * dt;
       for (const c of gs.cells) {
         if (isOn(c.i + 1, c.j)) { const r = gs.grid[c.idx + 1]; const f = (c.fill - r.fill) * k; c.fill -= f; r.fill += f; }
@@ -6139,7 +6224,8 @@
       const m = machines[id], tl = gs.tools[id];
       m.group.visible = !!tl && tl.in !== 'van';
       if (!m.group.visible) return;
-      const inHand = tl.in === 'hand';
+      const inHand = tl.in === 'hand' && (tl.by ? tl.by === net.me : gs.tool === id);
+      const remoteOn = tl.in === 'hand' && !inHand && crewActing(tl.by, 'trowel');
       if (inHand && m.twin) {
         tl.yaw = player.yaw;
         tl.x = player.x + fx * 0.3; tl.z = player.z + fz * 0.3;
@@ -6151,7 +6237,7 @@
         if (!gs.fitting) moveMachine(tl, m.R, player.x + fx * dist, player.z + fz * dist, running);
         tl.yaw = Math.atan2(player.x - tl.x, player.z - tl.z);
       }
-      const on = inHand && running;
+      const on = (inHand && running) || remoteOn;
       m.spin = lerp(m.spin, gs.broken[id] ? 0 : on ? 17 : inHand && !gs.fitting ? 5 : 0, 1 - Math.exp(-dt * 3));
       if (gs.broken[id] && chance(dt * 3)) emit(tl.x, 0.6, tl.z, rnd(-0.2, 0.2), rnd(0.6, 1.2), rnd(-0.2, 0.2), 1.8, 0x3a3c3f, 0.12, -0.1);
       const fit = gs.fit[id];
@@ -6259,7 +6345,7 @@
         if (gs.H < 95) return `Wait for 95%, then go home.<small>${dur(etaTo(95))} to go. Another blade pass shines it up.</small>`;
         const out = toolsOut(), dirty = dirtyTools();
         if (out.length || dirty.length) return `Pack up: ${out.length ? `bring ${theList(out)} back to the van` : ''}${out.length && dirty.length ? '; ' : ''}${dirty.length ? `wash ${theList(dirty)}` : ''}.<small>Then home. The manager checks the van. The manager always checks the van.</small>`;
-        return 'It\'s 95%, the van is packed. Go home.';
+        return isGuest() ? `It's 95% and the van is packed. ${net.hostName} calls it a day.` : 'It\'s 95%, the van is packed. Go home.';
       }
       default: return '';
     }
@@ -6431,6 +6517,7 @@
     surfWait -= dt;
     if (surfDirty && surfWait <= 0) { surfWait = 0.1; refreshSurface(); }
     if (playing && !modalOpen) updateEffects(dt);
+    if (playing) netTick(dt);
     updateParticles(dt);
     updateSound(dt, modalOpen || !playing);
     jib.rotation.y = Math.sin(now / 21000) * 1.4 + 0.6;
@@ -6521,7 +6608,10 @@
   // ------------------------------------------------------------------ breakages
   // Things break: a machine's gearbox gives up, a hammer loses its head, a float pole folds. There's
   // a spare hand tool in the van; a spare machine comes out from the yard later. All of it is paid for.
-  function charge(label, eur) { gs.charges.push([label, eur]); }
+  function charge(label, eur) {
+    if (isGuest()) { netSend({ t: 'charge', label: `${label} (${net.name})`, eur }); return; }
+    gs.charges.push([label, eur]);
+  }
   function breakHandTool(id, line, eur) {
     if (gs.broken[id + 'Once']) return false;
     gs.broken[id + 'Once'] = true;
@@ -6546,6 +6636,7 @@
     say(line, 'me');
     charge(`${TOOLS[id].name}: gearbox, replaced`, id === 'rideOn' ? 420 : 180);
     remember(`The ${TOOLS[id].name.toLowerCase()} died under you.`);
+    if (isGuest()) netSend({ t: 'repair', id });
     at(gs.t + irnd(35, 55), () => {
       gs.broken[id] = false;
       gs.fit[id] = 'pans';
@@ -6676,15 +6767,594 @@
     BOOM_AT.z = clamp(ez - 4, -8, 2);
   }
 
+  // ------------------------------------------------------------------ playing together
+  // Up to four phones on one site, phone to phone (the app carries the messages over Nearby). One
+  // hosts: it runs the clock, the trucks, the pump, the dog and the pay slip, and tells the others
+  // how things stand five times a second. Everyone works the same slab: whoever pours, floats or
+  // trowels a square changes it for everybody, a job done by one is done for all, and a tool in one
+  // pair of hands isn't in anybody else's. The day itself grows from one number, the seed, on every
+  // phone alike, so only what changes has to travel.
+  const NET_VER = 1;
+  const CREW_COLOURS = [0xff7a1a, 0x3ec1ff, 0xd4f53c, 0xff4fa3];
+  const net = {
+    role: 'solo', me: 'H', name: '', hostId: '', hostName: '', seed: 0, started: false,
+    peers: new Map(), found: new Map(), crew: new Map(), joined: 0,
+    lastT: 0, meAt: 0, diffAt: 0, snapAt: 0,
+    shadowCells: [], shadowTools: {}, paintOut: [], pourM3: 0, wasteM3: 0,
+    remoteWalkers: new Map(), remoteHelper: null,
+  };
+  let netRemote = false;          // a co-worker's job being played out here: no toasts, no voices
+  let netCapture = null;          // toasts collected to send back to whoever asked
+  function isGuest() { return net.role === 'guest'; }
+  function isHost() { return net.role === 'host'; }
+  function inTeam() { return net.started && (net.role === 'host' || net.role === 'guest'); }
+  const canNet = () => !!(appBridge && typeof appBridge.netHost === 'function');
+  const appVersion = () => { try { return appBridge && appBridge.version ? String(appBridge.version()) : 'web'; } catch (e) { return 'web'; } };
+  function netSend(o) { try { appBridge.netSend(JSON.stringify(o)); } catch (e) { /* no link */ } }
+  function netSendTo(id, o) { try { appBridge.netSendTo(id, JSON.stringify(o)); } catch (e) { /* no link */ } }
+  /** From the host: to every co-worker but the one it came from. */
+  function netRelay(from, o) { net.peers.forEach((p, id) => { if (id !== from) netSendTo(id, o); }); }
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  function crewName(id) { if (id === net.me) return net.name || 'You'; const c = net.crew.get(id); return c ? c.name : id === 'H' ? net.hostName || 'The host' : 'Somebody'; }
+
+  // ---------------- one day, grown from one number on every phone
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function seeded(seed, fn) {
+    const orig = Math.random;
+    Math.random = mulberry32(seed);
+    try { return fn(); } finally { Math.random = orig; }
+  }
+
+  // ---------------- the lobby, on the title card
+  function lobbyStatus(text) { $('#lobbyStatus').textContent = text; }
+  function crewNames() { return [net.role === 'host' ? net.name : net.hostName].concat([...net.crew.values()].filter((c) => c.id !== 'H').map((c) => c.name)); }
+  function lobbyList() {
+    const box = $('#lobbyList');
+    box.innerHTML = '';
+    if (net.role === 'joining') {
+      net.found.forEach((name, id) => {
+        const b = document.createElement('button');
+        b.textContent = `Join ${name}'s day`;
+        b.addEventListener('click', () => { lobbyStatus(`Knocking on ${name}'s van…`); appBridge.netConnect(id); });
+        box.appendChild(b);
+      });
+    }
+    if (net.role === 'host' || net.role === 'guest') {
+      const d = document.createElement('div');
+      d.className = 'crew';
+      d.textContent = 'Crew: ' + crewNames().join(', ');
+      box.appendChild(d);
+    }
+    titleButtons();
+  }
+  function titleButtons() {
+    const waiting = net.role === 'guest' || net.role === 'joining';
+    const start = $('#btnStart');
+    start.disabled = waiting;
+    start.textContent = net.role === 'guest' ? `Waiting for ${net.hostName}…` : net.role === 'joining' ? 'Pick a day to join' : isHost() ? `Clock in, crew of ${net.crew.size + 1}` : 'Clock in';
+    $('#btnReroll').hidden = waiting;
+    $('#btnLeave').hidden = net.role === 'solo';
+    $('#btnHost').disabled = $('#btnJoin').disabled = net.role !== 'solo';
+  }
+  function myName() {
+    const v = ($('#lobbyName').value || '').trim().slice(0, 16) || 'Worker';
+    store('pourday.name', v);
+    return v;
+  }
+  function hostDay() {
+    net.role = 'host'; net.me = 'H'; net.name = myName(); net.crew.clear(); net.peers.clear(); net.joined = 0;
+    lobbyStatus('Asking the phone for "Nearby devices"…');
+    appBridge.netHost(net.name);
+    showTitle();
+    lobbyList();
+  }
+  function joinDay() {
+    net.role = 'joining'; net.name = myName(); net.found.clear(); net.crew.clear(); net.peers.clear();
+    lobbyStatus('Asking the phone for "Nearby devices"…');
+    appBridge.netJoin(net.name);
+    lobbyList();
+  }
+  /** Back to playing alone, from anywhere: the lobby, a shared day, or a host who has gone home. */
+  function leaveCrew(why) {
+    if (isHost()) netSend({ t: 'bye' });
+    try { if (canNet()) appBridge.netLeave(); } catch (e) { /* already gone */ }
+    net.role = 'solo'; net.me = 'H'; net.started = false; net.hostId = ''; net.hostName = '';
+    net.peers.clear(); net.found.clear();
+    net.crew.forEach((c) => { if (c.m) scene.remove(c.m); if (c.stream) scene.remove(c.stream); });
+    net.crew.clear();
+    net.remoteWalkers.forEach((w) => scene.remove(w.m));
+    net.remoteWalkers.clear();
+    if (net.remoteHelper) { scene.remove(net.remoteHelper); net.remoteHelper = null; }
+    if (gs.phase !== 'title') { closeAllModals(); resetWorld(); }
+    showTitle();
+    lobbyStatus(why || 'One phone hosts the day; the others join it. Up to four of you, within shouting distance.');
+    lobbyList();
+    if (why) $('#lobby').hidden = false;
+  }
+  function closeAllModals() { modalQueue.length = 0; if (modalOpen) { $('#modal').hidden = true; modalOpen = null; } }
+  function sendLobby() {
+    if (!isHost()) return;
+    netSend({ t: 'lobby', seed: net.seed, host: net.name, crew: [...net.crew.values()].map((c) => [c.id, c.name]) });
+    lobbyList();
+  }
+  /** Clock in: the same for everybody, the day from the seed and its jobs from the next one. */
+  function beginDay() {
+    audioStart();
+    resetWorld();
+    seeded(net.seed + 1, () => { gs = freshState(); buildSite(); });
+    cellsDirty = true;
+    buildLateMarkers();
+    startDay();
+    if (net.role === 'host' || net.role === 'guest') {
+      net.started = true;
+      net.shadowCells = gs.grid.map(cellKey);
+      net.shadowTools = {};
+      net.paintOut.length = 0;
+      net.lastT = 0;
+    }
+  }
+
+  // ---------------- what the app hears
+  window.pdNet = { onEvent(json) { let e; try { e = JSON.parse(json); } catch (x) { return; } netEvent(e); } };
+  function netEvent(e) {
+    switch (e.t) {
+      case 'hosting': lobbyStatus('Your day is open. Co-workers join from their own phones: Play together, then Join a day.'); break;
+      case 'searching': lobbyStatus('Looking for a day nearby… Bluetooth on, and stand close.'); break;
+      case 'found': if (net.role === 'joining' && net.found.get(e.id) !== e.name) { net.found.set(e.id, e.name); lobbyStatus('Found one. Tap to join:'); lobbyList(); } break;
+      case 'lost': net.found.delete(e.id); lobbyList(); break;
+      case 'denied': leaveCrew('Without "Nearby devices" the phones can\'t find each other. It can be allowed for MixMaster in the phone\'s settings.'); break;
+      case 'error': leaveCrew(`That didn't work (${e.text}). Is Bluetooth on? Location too, on older phones.`); break;
+      case 'failed': lobbyStatus(`Couldn't get through to ${e.name}. Try again, closer.`); break;
+      case 'connected':
+        if (net.role === 'host') { net.peers.set(e.id, { name: e.name }); lobbyStatus(`${e.name} is coming…`); }
+        else {
+          net.role = 'guest'; net.hostId = e.id; net.hostName = e.name;
+          net.peers.set(e.id, { name: e.name });
+          netSendTo(e.id, { t: 'hello', name: net.name, ver: NET_VER, app: appVersion() });
+          lobbyStatus(`On ${e.name}'s site. Waiting for ${e.name} to clock in.`);
+          lobbyList();
+        }
+        break;
+      case 'disconnected':
+        if (isGuest() || net.role === 'joining') { if (e.id === net.hostId) leaveCrew(`${net.hostName}'s phone left the site. The day is over for you.`); }
+        else if (isHost()) crewGone(e.id);
+        break;
+      case 'msg': { let m; try { m = JSON.parse(e.data); } catch (x) { return; } netMsg(e.id, m); break; }
+      default: break;
+    }
+  }
+  function netMsg(from, m) {
+    switch (m.t) {
+      // at the host
+      case 'hello': {
+        if (m.ver !== NET_VER || m.app !== appVersion()) { netSendTo(from, { t: 'nope', why: `different versions of MixMaster (you ${m.app}, ${net.name} ${appVersion()}). Update both phones.` }); return; }
+        if (net.started) { netSendTo(from, { t: 'nope', why: `${net.name} has already clocked in. Join the next day.` }); return; }
+        const c = crewMember(from, m.name);
+        c.colour = CREW_COLOURS[++net.joined % CREW_COLOURS.length];
+        netSendTo(from, { t: 'welcome', you: from });
+        sendLobby();
+        lobbyStatus(`${m.name} is on your site.`);
+        break;
+      }
+      case 'me': { const c = net.crew.get(from); if (c) crewUpdate(c, m); break; }
+      case 'pour': hostPour(m.m3 || 0, m.w || 0); break;
+      case 'charge': gs.charges.push([m.label, m.eur]); break;
+      case 'repair': at(gs.t + irnd(35, 55), () => { gs.broken[m.id] = false; gs.fit[m.id] = 'pans'; }); break;
+      case 'finish': if (gs.phase === 'pour') { toast(`${crewName(from)} says the pour is done.`); finishPour(); } break;
+      case 'shout': hostShout(from, m.wid); break;
+      // either way
+      case 'cells':
+        applyCells(m);
+        if (isHost()) netRelay(from, Object.assign({}, m, { from }));
+        break;
+      case 'tools':
+        applyTools(m.d, isHost() ? from : m.from);
+        if (isHost()) netRelay(from, { t: 'tools', d: m.d, from });
+        break;
+      case 'mk':
+        remoteMarker(m.id, isHost() ? from : m.from);
+        if (isHost()) netRelay(from, { t: 'mk', id: m.id, from });
+        break;
+      case 'poke':
+        if (isHost() && m.to !== 'H') netSendTo(m.to, Object.assign({}, m, { from }));
+        else pokeReceived(isHost() ? from : m.from, m.kind);
+        break;
+      // at a co-worker
+      case 'welcome': net.me = m.you; break;
+      case 'nope': leaveCrew(`Can't join: ${m.why}`); break;
+      case 'lobby':
+        net.hostName = m.host;
+        net.crew.clear();
+        m.crew.forEach(([id, name]) => { if (id !== net.me) crewMember(id, name); });
+        crewMember('H', m.host);
+        if (gs.phase !== 'title') { closeAllModals(); resetWorld(); }
+        net.started = false;
+        showTitle(m.seed);
+        lobbyStatus(`On ${m.host}'s site. Waiting for ${m.host} to clock in.`);
+        lobbyList();
+        break;
+      case 'start': beginDay(); break;
+      case 'snap': applySnap(m); break;
+      case 'note': toast(`${m.who ? m.who + ': ' : ''}${m.title}`, 'warn'); if (m.voice) say(m.say || m.text, m.voice); break;
+      case 'toast': toast(m.text, m.kind); break;
+      case 'end': guestEnd(m); break;
+      case 'bye': leaveCrew(`${net.hostName} went home. The day is over for you.`); break;
+      default: break;
+    }
+  }
+
+  // ---------------- the crew: the other people on the site
+  function crewMember(id, name) {
+    let c = net.crew.get(id);
+    if (!c) {
+      c = { id, name, x: 0, z: 0, yaw: 0, tx: 0, tz: 0, tool: 'hands', act: '', ax: 0, az: 0, flip: 0, prints: 0, falls: 0, flips: 0, colour: id === 'H' ? CREW_COLOURS[0] : CREW_COLOURS[(net.crew.size + 1) % CREW_COLOURS.length], m: null, stream: null, seen: 0, phase: 0 };
+      net.crew.set(id, c);
+    }
+    c.name = name;
+    return c;
+  }
+  function crewUpdate(c, s) {
+    c.tx = s.x; c.tz = s.z; c.yaw = s.yaw; c.tool = s.tool; c.act = s.act || ''; c.ax = s.ax; c.az = s.az; c.flip = s.fl || 0;
+    c.prints = s.pr || 0; c.falls = s.fa || 0; c.flips = s.fp || 0; c.seen = performance.now();
+    if (!c.m) { c.x = s.x; c.z = s.z; }
+  }
+  function crewMesh(c) {
+    const m = makePerson({ vest: c.colour, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', shirt: 0x3b3f45 });
+    m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    const tag = textSprite(c.name, { w: 1.5, color: '#fff3e6' });
+    tag.position.y = 2.3;
+    m.add(tag);
+    scene.add(m);
+    c.m = m;
+    c.stream = cyl(0.05, 0.05, 1, 0x7d7f80, 0, 0, 0, scene, 8);
+    c.stream.visible = false;
+  }
+  function crewGone(id) {
+    const c = net.crew.get(id);
+    net.peers.delete(id);
+    if (!c) return;
+    // whatever was in their hands stays where they stood
+    Object.entries(gs.tools || {}).forEach(([tid, t]) => { if (t.in === 'hand' && t.by === id) gs.tools[tid] = { in: 'ground', x: c.x, z: c.z, yaw: c.yaw }; });
+    if (c.m) scene.remove(c.m);
+    if (c.stream) scene.remove(c.stream);
+    net.crew.delete(id);
+    toast(`${c.name} left the site.`, 'warn');
+    if (!net.started) sendLobby();
+  }
+  function crewActing(id, kind) { const c = net.crew.get(id); return !!(c && c.act === kind); }
+  function updateCrew(dt) {
+    net.crew.forEach((c) => {
+      if (c.id === net.me) return;
+      if (!c.m) crewMesh(c);
+      const p = c.m.position, u = c.m.userData;
+      const k = 1 - Math.exp(-dt * 9);
+      const ox = p.x, oz = p.z;
+      c.x = lerp(c.x, c.tx, k); c.z = lerp(c.z, c.tz, k);
+      p.set(c.x, onSlab(c.x, c.z) && gs.phase === 'pour' ? groundY(c.x, c.z) * 0.4 : groundY(c.x, c.z), c.z);
+      c.m.rotation.y = turnTo(c.m.rotation.y, c.yaw + Math.PI, k);
+      const moved = hyp(p.x, p.z, ox, oz);
+      c.phase += moved * 4.5;
+      if (moved > 0.004) { u.legL.rotation.x = Math.sin(c.phase) * 0.55; u.legR.rotation.x = -Math.sin(c.phase) * 0.55; }
+      else { u.legL.rotation.x *= 0.85; u.legR.rotation.x *= 0.85; }
+      const working = c.act === 'pour' || c.act === 'level' || c.act === 'repair' || c.act === 'shovel' || c.act === 'trowel' || c.act === 'marker';
+      u.armR.rotation.x = lerp(u.armR.rotation.x, c.flip ? -2.9 : working ? -1.1 + Math.sin(toolT * 6) * 0.25 : c.tool !== 'hands' ? -0.5 : 0, k);
+      u.armL.rotation.x = lerp(u.armL.rotation.x, working ? -0.9 : 0, k);
+      // concrete out of the hose they're holding
+      const pour = c.act === 'pour' && gs.tools.hose && gs.tools.hose.by === c.id;
+      c.stream.visible = pour;
+      if (pour) stretch(c.stream, new THREE.Vector3(c.x - Math.sin(c.yaw) * 0.5, 1.0, c.z - Math.cos(c.yaw) * 0.5), new THREE.Vector3(c.ax, surfY(fillAt(c.ax, c.az)), c.az));
+    });
+  }
+  function myState() {
+    const acting = input.action && lastCtxKind && lastCtxKind !== 'none' ? lastCtxKind : '';
+    return { x: r2(player.x), z: r2(player.z), yaw: r2(player.yaw), tool: gs.tool, act: acting, ax: target ? r2(target._hx) : 0, az: target ? r2(target._hz) : 0, fl: flipT > 0 ? 1 : 0, pr: gs.stats.prints, fa: gs.stats.falls, fp: gs.stats.flips };
+  }
+  function pokeReceived(fromId, kind) {
+    const name = crewName(fromId);
+    if (kind === 'flip') { toast(`${name} gives you the finger. ${fresh(L.crewFlip)}`, 'warn'); return; }
+    const l = fresh(L.crewShout);
+    toast(`${name}: ${l}`, 'warn');
+    say(l, { p: 1, r: 1.05, key: 'crew' + fromId, g: 'm' });
+  }
+
+  // ---------------- the slab: every square anybody changed, and what their tools drew on it
+  function cellKey(c) {
+    let h = 0;
+    for (const m of c.marks) h = (h * 31 + Math.round(m.depth * 100) + Math.round(m.x * 10)) | 0;
+    return `${Math.round(c.fill * 2)}|${c.covP ? 1 : 0}${c.covB ? 1 : 0}${c.defect ? 1 : 0}|${c.pan}|${c.blade}|${c.marks.length}|${h}`;
+  }
+  function cellRec(c) {
+    return [c.idx, Math.round(c.fill * 2) / 2, (c.covP ? 1 : 0) | (c.covB ? 2 : 0) | (c.defect ? 4 : 0), c.pan, c.blade,
+      c.marks.map((m) => [m.kind, r2(m.x), r2(m.z), r2(m.rot), r2(m.depth), m.ch || ''])];
+  }
+  function applyCells(msg) {
+    (msg.d || []).forEach((r) => {
+      const c = gs.grid[r[0]];
+      if (!c) return;
+      c.fill = r[1]; c.covP = !!(r[2] & 1); c.covB = !!(r[2] & 2); c.defect = !!(r[2] & 4); c.pan = r[3]; c.blade = r[4];
+      c.marks = r[5].map(([kind, x, z, rot, depth, ch]) => (ch ? { kind, x, z, rot, depth, ch } : { kind, x, z, rot, depth }));
+      net.shadowCells[c.idx] = cellKey(c);
+    });
+    if ((msg.d || []).length) { cellsDirty = true; surfDirty = true; }
+    netRemote = true;
+    try { (msg.p || []).forEach(([kind, x, z, a]) => { const f = PAINTS[kind]; if (f) f(x, z, a || undefined); }); } finally { netRemote = false; }
+  }
+  const PAINTS = { pour: paintPour, float: paintFloat, pan: paintPan, blade: paintBlade, fibres: paintFibres, gouge: paintGouge };
+  function netPaint(kind, x, z, a) { if (inTeam() && !netRemote && net.paintOut.length < 400) net.paintOut.push([kind, r2(x), r2(z), a === undefined ? 0 : r2(a)]); }
+  function toolRec(id) {
+    const t = gs.tools[id];
+    return [t.in, r2(t.x || 0), r2(t.z || 0), r2(t.yaw || 0), t.by || '', gs.fit[id] || '', r2(dirtOf(id)), gs.broken[id] ? 1 : 0];
+  }
+  function applyTools(d, from) {
+    Object.entries(d || {}).forEach(([id, r]) => {
+      const [inn, x, z, yaw, by0, fit, dirt, br] = r;
+      const by = by0 || (inn === 'hand' ? (from === undefined ? '' : from) : '');
+      const now = gs.tools[id];
+      // two hands on one tool: whoever had it first keeps it
+      if (isHost() && inn === 'hand' && now && now.in === 'hand' && now.by && now.by !== by) { netSendTo(from, { t: 'tools', d: { [id]: toolRec(id) } }); return; }
+      const mine = gs.tool === id;
+      gs.tools[id] = { in: inn, x, z, yaw };
+      if (by) gs.tools[id].by = by;
+      if (fit) gs.fit[id] = fit;
+      gs.dirt[id] = { d: dirt, at: (gs.dirt[id] && gs.dirt[id].d > 0.05 && gs.dirt[id].at) || gs.t };
+      gs.broken[id] = !!br;
+      net.shadowTools[id] = JSON.stringify(toolRec(id));
+      if (mine && !(inn === 'hand' && by === net.me)) { gs.tool = 'hands'; toast(`${crewName(by)} has the ${TOOLS[id].name.toLowerCase()} now.`, 'warn'); }
+    });
+  }
+  function sendDiffs() {
+    const cells = [];
+    for (const c of gs.cells) { const k = cellKey(c); if (net.shadowCells[c.idx] !== k) { net.shadowCells[c.idx] = k; cells.push(cellRec(c)); } }
+    const paint = net.paintOut.splice(0, 120);
+    // in pieces a phone-to-phone message can carry
+    let chunk = [], size = 0;
+    const flush = (p) => {
+      const o = { t: 'cells', d: chunk, p: p || [] };
+      if (isHost()) o.from = 'H';
+      netSend(o);
+      chunk = []; size = 0;
+    };
+    cells.forEach((r) => { const n = JSON.stringify(r).length; if (size + n > 20000) flush(); chunk.push(r); size += n; });
+    if (chunk.length || paint.length) flush(paint);
+    const tools = {};
+    let any = false;
+    Object.keys(gs.tools).forEach((id) => { const k = JSON.stringify(toolRec(id)); if (net.shadowTools[id] !== k) { net.shadowTools[id] = k; tools[id] = JSON.parse(k); any = true; } });
+    if (any) netSend(isHost() ? { t: 'tools', d: tools, from: 'H' } : { t: 'tools', d: tools });
+    if (isGuest() && (net.pourM3 > 0 || net.wasteM3 > 0)) { netSend({ t: 'pour', m3: r4(net.pourM3), w: r4(net.wasteM3) }); net.pourM3 = 0; net.wasteM3 = 0; }
+  }
+  /** A co-worker's job, done on this phone too: the same flags, none of their hands. */
+  const NO_SYNC = new Set(['loo', 'lunch', 'pile', 'home']);
+  function netMarker(id) {
+    if (!inTeam() || NO_SYNC.has(id)) return;
+    netSend(isHost() ? { t: 'mk', id, from: 'H' } : { t: 'mk', id });
+  }
+  function remoteMarker(id, from) {
+    const m = markers.find((x) => x.id === id);
+    if (!m) return;
+    let ready;
+    if (/^pipe\d$/.test(id)) ready = gs.pipes === Number(id.slice(4));
+    else if (id === 'laserFetch') ready = gs.laserInVan;
+    else if (id === 'laser') ready = !gs.prep.laser;
+    else if (id === 'laserVan') ready = !gs.laserPacked;
+    else if (id === 'laserPack') ready = !gs.laserPacked && tripod.visible;
+    else if (id === 'wash') ready = true;
+    else ready = m.active();
+    if (!ready) return;
+    netRemote = true;
+    try { m.done(); } finally { netRemote = false; }
+    if (!m.active()) m.group.visible = false;
+    toastOnce('mk' + id, `${crewName(from)}: ${m.label.replace(/!$/, '')} — done.`, '', 4000);
+  }
+
+  // ---------------- at the host
+  function hostPour(m3, w) {
+    gs.waste += w;
+    if (!gs.truck || m3 <= 0) return;
+    gs.truck.left -= m3;
+    gs.pouredM3 += m3;
+    pourTrouble(m3 / 0.11);
+    if (gs.truck && gs.truck.left <= 0) truckEmpty();
+  }
+  function hostShout(from, wid) {
+    const w = walkers.find((x) => x.uid === wid);
+    if (!w) return;
+    netCapture = [];
+    try { shoutAt(w); } finally {
+      const texts = netCapture;
+      netCapture = null;
+      texts.forEach(([text, kind]) => netSendTo(from, { t: 'toast', text, kind }));
+    }
+  }
+  /** The passes are the host's to call: when the crew between them has been over nine squares in ten. */
+  function hostPassWatch() {
+    if (gs.phase !== 'cure' || !gs.poured) return;
+    [['covP', 'pan', gs.panPasses], ['covB', 'blade', gs.bladePasses]].forEach(([key, kind, done]) => {
+      if (passCoverage(key) < 0.9) return;
+      if (done.length >= 3) gs.cells.forEach((c) => { c[key] = false; });
+      else completePass(kind);
+    });
+  }
+  function snapshot() {
+    const done = (arr) => arr.map((t) => (t.done ? 1 : 0)).join('');
+    const crew = [['H', net.name].concat(Object.values(myState()))];
+    net.crew.forEach((c) => { if (c.id !== 'H') crew.push([c.id, c.name, c.tx, c.tz, c.yaw, c.tool, c.act, c.ax, c.az, c.flip, c.prints, c.falls, c.flips]); });
+    return {
+      t: 'snap', tm: r2(gs.t), ph: gs.phase, pz: modalOpen && modalOpen.who === 'Paused' ? 1 : 0, H: r2(gs.H), pa: gs.pumpAt, nt: gs.nextTruckAt || 0, ar: gs.arrived, pe: gs.pourEnd,
+      fl: [gs.poured, gs.pourStarted, gs.pourDone, gs.washed, gs.gaveUp, gs.laserInVan, gs.laserBattery, gs.laserPacked, gs.pumpHere, gs.pipesGone, gs.prep.unload, gs.prep.laser].map((v) => (v ? 1 : 0)).join(''),
+      fm: gs.prep.form.map((v) => (v ? 1 : 0)).join(''),
+      pipes: gs.pipes, bl: gs.blocked, bo: gs.blowout ? [gs.blowout.name, r2(gs.blowout.p.x), r2(gs.blowout.p.z)] : 0,
+      rb: liftBars.visible ? [r2(liftBars.position.x), r2(liftBars.position.z), gs.rebarDue || 0] : 0,
+      tr: gs.truck ? [gs.truck.no, r4(gs.truck.left), gs.truck.waiting ? 1 : 0] : 0, ms: gs.mixState, pm: r4(gs.pouredM3), wa: r4(gs.waste),
+      pp: gs.panPasses, bp: gs.bladePasses, ti: done(site.ties), cu: done(site.cuts), ed: done(site.edges), en: gs.edgesDone,
+      veh: [pump.visible ? [r2(pump.position.x), r2(pump.position.z)] : 0, mixer.visible ? [r2(mixer.position.x), r2(mixer.position.z)] : 0,
+        pumpGuy.visible ? [r2(pumpGuy.position.x), r2(pumpGuy.position.z), r2(pumpGuy.rotation.y)] : 0, pile.visible ? 1 : 0, vanBack.want, tripod.visible ? 1 : 0, performance.now() < rainUntil ? 1 : 0],
+      wk: walkers.map((w) => [w.uid, w.kind === 'dog' ? (w.cat ? 'c' : 'd') : 'p', r2(w.m.position.x), r2(w.m.position.z), r2(w.m.rotation.y)]),
+      hp: helper.m ? [r2(helper.m.position.x), r2(helper.m.position.z), r2(helper.m.rotation.y), helper.name] : 0,
+      uf: ufo.g.visible ? [r2(ufo.g.position.x), r2(ufo.g.position.y), r2(ufo.g.position.z), ufo.beam.visible ? 1 : 0] : 0,
+      crew,
+    };
+  }
+
+  // ---------------- at a co-worker: the day as the host has it
+  function applySnap(s) {
+    if (!net.started || !gs || gs.phase === 'end') return;
+    const dm = s.tm - (net.lastT || s.tm);
+    net.lastT = s.tm;
+    // the host's pause stops the clock for the whole crew
+    if (s.pz && !net.hostPaused) toast(`${net.hostName} stopped the clock. Everything waits for them. As usual.`);
+    else if (!s.pz && net.hostPaused) toast(`${net.hostName} is back. The clock runs again.`);
+    net.hostPaused = !!s.pz;
+    gs.t = s.tm;
+    if (gs.phase !== 'morning' || s.ph !== 'prep') gs.phase = s.ph;
+    gs.H = s.H; gs.pumpAt = s.pa; gs.nextTruckAt = s.nt; gs.pourEnd = s.pe;
+    if (dm > 0 && dm < 240) {
+      gs.energy = clamp(gs.energy - 0.04 * dm, 0, 100);
+      if (gs.phase !== 'morning') needsTick(dm);
+    }
+    const f = s.fl.split('').map((c) => c === '1');
+    [gs.poured, gs.pourStarted, gs.pourDone, gs.washed, gs.gaveUp, gs.laserInVan, gs.laserBattery, gs.laserPacked, gs.pumpHere] = f;
+    if (f[9] && !gs.pipesGone) { gs.pipesGone = 1; pipeGroup.clear(); }
+    gs.prep.unload = gs.prep.unload || f[10];
+    gs.prep.laser = gs.prep.laser || f[11];
+    s.fm.split('').forEach((c, k) => { if (c === '1') gs.prep.form[k] = true; });
+    if (gs.pourDone) gs.laserOn = false;
+    // the pipe line, a length at a time
+    if (!gs.pipesGone) while (gs.pipes < s.pipes) { const k = gs.pipes++; pipeMeshes.push(pipeBetween(k === 0 ? POS.pumpOut : PIPE_ROUTE[k - 1], PIPE_ROUTE[k])); }
+    if (gs.pumpHere && !day.boom && !markers.some((m) => m.id === 'pile')) buildPipeMarkers();
+    // trouble, and the markers that go with it
+    gs.blocked = s.bl;
+    const blockM = markers.find((m) => m.id === 'block');
+    if (s.bl >= 0 && !blockM) blockMarker(); else if (s.bl < 0 && blockM) removeMarker(blockM);
+    const blowM = markers.find((m) => m.id === 'blowout');
+    if (s.bo) { if (!gs.blowout) gs.blowout = { name: s.bo[0], p: P(s.bo[1], s.bo[2]), cells: new Set() }; if (!blowM) blowoutMarker(gs.blowout.p); }
+    else { gs.blowout = null; if (blowM) removeMarker(blowM); }
+    const rebM = markers.find((m) => m.id === 'rebarUp');
+    if (s.rb) { liftBars.visible = true; liftBars.position.set(s.rb[0], liftBars.position.y || 0.2, s.rb[1]); if (!rebM && !gs.rebarFixed) { gs.rebarDue = s.rb[2]; rebarMarker(s.rb[0], s.rb[1], s.rb[2]); } }
+    else { liftBars.visible = false; if (rebM) removeMarker(rebM); }
+    gs.truck = s.tr ? { no: s.tr[0], left: s.tr[1], waiting: !!s.tr[2] } : null;
+    gs.mixState = s.ms; gs.pouredM3 = s.pm; gs.waste = s.wa;
+    gs.panPasses = s.pp; gs.bladePasses = s.bp;
+    const flags = (str, arr, fn) => str.split('').forEach((c, k) => { if (c === '1' && arr[k] && !arr[k].done) { arr[k].done = true; if (fn) fn(arr[k]); } });
+    flags(s.ti, site.ties, (t) => { t.bar.visible = false; t.twist.visible = true; });
+    flags(s.cu, site.cuts, (t) => { t.bar.scale.y = 0.08; t.bar.position.y = rebarY() + 0.03; });
+    flags(s.ed, site.edges);
+    gs.edgesDone = s.en;
+    // the trucks, the pump man, the van, the laser, the weather
+    const [pv, mv, gv, pl, vw, tv, rain] = s.veh;
+    pump.visible = !!pv; if (pv) pump.position.set(pv[0], 0, pv[1]);
+    mixer.visible = !!mv; if (mv) mixer.position.set(mv[0], 0, mv[1]);
+    pumpGuy.visible = !!gv; if (gv) { pumpGuy.position.set(gv[0], pumpGuy.position.y, gv[1]); pumpGuy.rotation.y = gv[2]; }
+    pile.visible = !!pl;
+    vanBack.want = vw;
+    tripod.visible = !!tv;
+    if (rain) rainUntil = performance.now() + 1500;
+    // the people and animals the host's day sent over
+    const seen = new Set();
+    s.wk.forEach(([uid, kind, x, z, ry]) => {
+      seen.add(uid);
+      let w = net.remoteWalkers.get(uid);
+      if (!w) {
+        const m = kind === 'p' ? makePerson(chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {}) : makeDog(kind === 'c');
+        m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+        m.position.set(x, 0, z);
+        scene.add(m);
+        w = { m, kind, x, z, ry, phase: 0 };
+        net.remoteWalkers.set(uid, w);
+      }
+      w.x = x; w.z = z; w.ry = ry;
+    });
+    net.remoteWalkers.forEach((w, uid) => { if (!seen.has(uid)) { scene.remove(w.m); net.remoteWalkers.delete(uid); } });
+    if (s.hp) {
+      if (!net.remoteHelper) { net.remoteHelper = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm' }); scene.add(net.remoteHelper); }
+      net.remoteHelper.userData.goal = s.hp;
+    } else if (net.remoteHelper) { scene.remove(net.remoteHelper); net.remoteHelper = null; }
+    ufo.g.visible = !!s.uf;
+    if (s.uf) { ufo.g.position.set(s.uf[0], s.uf[1], s.uf[2]); ufo.beam.visible = !!s.uf[3]; }
+    // the crew, the host among them
+    const here = new Set();
+    s.crew.forEach(([id, name, x, z, yaw, tool, act, ax, az, fl, pr, fa, fp]) => {
+      if (id === net.me) return;
+      here.add(id);
+      const c = crewMember(id, name);
+      crewUpdate(c, { x, z, yaw, tool, act, ax, az, fl, pr, fa, fp });
+    });
+    net.crew.forEach((c, id) => { if (!here.has(id)) { if (c.m) scene.remove(c.m); if (c.stream) scene.remove(c.stream); net.crew.delete(id); } });
+  }
+  /** Walkers, the helper and the saucer between snapshots: eased to where the host says they are. */
+  function renderRemoteWorld(dt) {
+    const k = 1 - Math.exp(-dt * 8);
+    net.remoteWalkers.forEach((w) => {
+      const p = w.m.position, u = w.m.userData, ox = p.x, oz = p.z;
+      p.x = lerp(p.x, w.x, k); p.z = lerp(p.z, w.z, k);
+      p.y = groundY(p.x, p.z);
+      w.m.rotation.y = turnTo(w.m.rotation.y, w.ry, k);
+      const moved = hyp(p.x, p.z, ox, oz);
+      w.phase += moved * (w.kind === 'p' ? 4.5 : 9);
+      if (u.legs) u.legs.forEach((l, n) => { l.rotation.z = moved > 0.003 ? Math.sin(w.phase + (n % 2) * Math.PI) * 0.6 : l.rotation.z * 0.9; });
+      else if (u.legL) { u.legL.rotation.x = moved > 0.003 ? Math.sin(w.phase) * 0.5 : u.legL.rotation.x * 0.85; u.legR.rotation.x = -u.legL.rotation.x; }
+    });
+    const h = net.remoteHelper;
+    if (h && h.userData.goal) {
+      const [x, z, ry] = h.userData.goal;
+      h.position.x = lerp(h.position.x, x, k); h.position.z = lerp(h.position.z, z, k);
+      h.rotation.y = turnTo(h.rotation.y, ry, k);
+    }
+    if (ufo.g.visible) { ufo.g.rotation.y += dt * 1.5; ufo.lights.forEach((l, n) => l.material.color.setHex(LIGHT_COLS[(n + Math.floor(toolT * 6)) % LIGHT_COLS.length])); }
+    if (mixer.visible && gs.truck) {
+      mixGuy.visible = true;
+      mixGuy.position.set(mixer.position.x + 4.4, 0, mixer.position.z + 1.9);
+      mixGuy.rotation.y = -1.9;
+    } else mixGuy.visible = false;
+  }
+  function guestEnd(m) {
+    closeAllModals();
+    gs.phase = 'end';
+    $('#hud').hidden = true;
+    $('#eRank').textContent = m.rank;
+    $('#eScore').textContent = m.score;
+    $('#ePay').innerHTML = m.pay;
+    $('#eStats').innerHTML = m.stats;
+    $('#eStory').innerHTML = m.story;
+    $('#btnAgain').hidden = true;
+    $('#end').hidden = false;
+    if (m.verdict) setTimeout(() => say(m.verdict, 'manager'), 900);
+  }
+
+  /** Every frame, for a day played together. */
+  function netTick(dt) {
+    if (!inTeam()) return;
+    const now = performance.now();
+    if (gs.phase !== 'end' && gs.phase !== 'title') {
+      if (isGuest() && now - net.meAt > 120) { net.meAt = now; netSend(Object.assign({ t: 'me' }, myState())); }
+      if (now - net.diffAt > 200) { net.diffAt = now; sendDiffs(); }
+      if (isHost() && now - net.snapAt > 200) { net.snapAt = now; hostPassWatch(); netSend(snapshot()); }
+    }
+    updateCrew(dt);
+    if (isGuest()) renderRemoteWorld(dt);
+  }
+
   // ------------------------------------------------------------------ title
-  function showTitle() {
+  function showTitle(seed) {
     newCast();
     chatterAt = 0;
-    day = newDay();
-    placeLayout();
-    gs = freshState();
-    buildSite();
-    buildHall();
+    net.seed = seed === undefined ? Math.floor(Math.random() * 2147483647) : seed;
+    seeded(net.seed, () => {
+      day = newDay();
+      // a boom follows one hose on one phone; a day for a crew has the line pump
+      if (net.role === 'host' || net.role === 'guest') day.boom = false;
+      placeLayout();
+      gs = freshState();
+      buildSite();
+      buildHall();
+    });
     freshSurface();
     cellsDirty = true;
     const season = { winter: 'Winter', spring: 'Spring', summer: 'Summer', autumn: 'Autumn' }[day.season];
@@ -6745,16 +7415,22 @@
   musicLabel();
   $('#btnMusic').addEventListener('click', () => { audioStart(); setMusic(!musicOn); musicLabel(); });
   $('#btnStart').addEventListener('click', () => {
-    audioStart();
-    resetWorld();
-    gs = freshState();
-    // the same day as on the card, with its jobs laid out fresh
-    buildSite();
-    cellsDirty = true;
-    buildLateMarkers();
-    startDay();
+    if (isGuest() || net.role === 'joining') return;
+    if (isHost()) {
+      // the whole crew clocks in together; nobody joins a day already under way
+      if (!net.crew.size) { toast('Nobody has joined yet. Wait for them, or leave and play on your own.', 'warn'); return; }
+      netSend({ t: 'start' });
+    }
+    beginDay();
   });
-  $('#btnReroll').addEventListener('click', () => showTitle());
+  $('#btnReroll').addEventListener('click', () => { showTitle(); sendLobby(); });
+  // playing together
+  $('#lobbyName').value = store('pourday.name') || '';
+  $('#btnTogether').hidden = !canNet();
+  $('#btnTogether').addEventListener('click', () => { $('#lobby').hidden = !$('#lobby').hidden; titleButtons(); });
+  $('#btnHost').addEventListener('click', () => { audioStart(); hostDay(); });
+  $('#btnJoin').addEventListener('click', () => { audioStart(); joinDay(); });
+  $('#btnLeave').addEventListener('click', () => leaveCrew());
 
   // Inside MixMaster the app hands the page a way out; in a plain browser there isn't one.
   const bridge = window.MixMaster && typeof window.MixMaster.quit === 'function' ? window.MixMaster : null;
@@ -6767,8 +7443,9 @@
   const PHASE_NAMES = { morning: 'the morning', prep: 'prep', pipes: 'the pipes', pour: 'the pour', wash: 'washing up', cure: 'curing' };
   function howToPlay() {
     modal({
+      personal: true,
       who: 'How to play', title: 'The short version.',
-      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.',
+      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.\n\nWith co-workers: "Play together" on the title, phones close by with Bluetooth on. One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.',
       choices: [{ label: 'Back to work', primary: true }],
     });
   }
@@ -6778,18 +7455,24 @@
     const choices = [
       { label: 'Resume', primary: true },
       { label: 'How to play', fn: () => howToPlay() },
-      { label: 'Start a new day', fn: () => modal({
-        who: 'New day', title: 'Walk off this one?', text: 'This slab stays how it is. The foreman will hear about it.',
-        choices: [{ label: 'New day', danger: true, fn: () => { resetWorld(); showTitle(); } }, { label: 'Keep going', primary: true }],
+      isGuest() ? { label: `Leave ${net.hostName}'s day`, danger: true, fn: () => leaveCrew() } : { label: isHost() ? 'Start a new day, for everyone' : 'Start a new day', fn: () => modal({
+        who: 'New day', title: 'Walk off this one?', text: 'This slab stays how it is. The foreman will hear about it.', personal: true,
+        choices: [{ label: 'New day', danger: true, fn: () => { resetWorld(); showTitle(); sendLobby(); } }, { label: 'Keep going', primary: true }],
       }) },
     ];
+    if (isHost()) choices.push({ label: 'End the crew, play alone', fn: () => leaveCrew() });
     choices.splice(2, 0, { label: soundOn ? 'Sound: on — switch off' : 'Sound: off — switch on', fn: () => { setSound(!soundOn); soundLabel(); } },
       { label: musicOn ? 'Music: on — switch off' : 'Music: off — switch on', fn: () => { setMusic(!musicOn); musicLabel(); } },
       { label: voicesOn ? 'Voices: on — switch off' : 'Voices: off — switch on', fn: () => { setVoices(!voicesOn); voicesLabel(); } });
     if (bridge) choices.push({ label: 'Back to MixMaster', danger: true, fn: quit });
     modal({
-      who: 'Paused', title: 'Take five.',
-      text: `${clock(gs.t)}, ${PHASE_NAMES[gs.phase] || 'on site'}.` + (gs.poured ? ` Hardness ${Math.floor(gs.H)}%.` : '') + ' Time stops while you\'re here. The concrete will pretend it did too.',
+      personal: true,
+      // The host keeps the clock, so the host's break stops it for everyone; a co-worker's doesn't.
+      who: 'Paused', title: isGuest() ? 'Take five. (Nobody else does.)' : isHost() && net.started ? 'Take five. Everyone does.' : 'Take five.',
+      text: `${clock(gs.t)}, ${PHASE_NAMES[gs.phase] || 'on site'}.` + (gs.poured ? ` Hardness ${Math.floor(gs.H)}%.` : '')
+        + (isGuest() ? ` The clock is ${net.hostName}'s and it doesn't stop for you. The crew is still working.`
+          : isHost() && net.started ? ' The clock stops for the whole crew until you\'re back. They can see that.'
+          : ' Time stops while you\'re here. The concrete will pretend it did too.'),
       choices,
     });
   }
@@ -6800,7 +7483,7 @@
     if (!modalOpen) pauseMenu();
     return 'paused';
   };
-  $('#btnAgain').addEventListener('click', () => { resetWorld(); showTitle(); });
+  $('#btnAgain').addEventListener('click', () => { resetWorld(); showTitle(); sendLobby(); });
 
   if (document.fonts && document.fonts.load) {
     Promise.all([document.fonts.load('800 20px Manrope'), document.fonts.load('700 20px Manrope')]).catch(() => {}).then(() => {});
@@ -6818,7 +7501,8 @@
       doMarker(id) {
         const m = markers.find((x) => x.id === id && x.active());
         if (!m) return false;
-        m.done();
+        const ok = m.done();
+        if (ok !== false) netMarker(id);
         // the van opens at once in a test, rather than over a second of frames
         if (id === 'unload') { vanBack.open = 1; if (vanBack.onOpen) { const f = vanBack.onOpen; vanBack.onOpen = null; f(); } updateVanBack(0); }
         return true;
@@ -6844,7 +7528,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      sayTest: (t, w) => say(t, w), net, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
       toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),

@@ -128,6 +128,15 @@
   .daycard b { display: block; font-size: 17px; color: var(--chalk); font-weight: 800; font-variant-numeric: tabular-nums; }
   .howto { margin-top: 14px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
   .howto b { color: var(--chalk); }
+  .lobby { margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,0.04); text-align: left; }
+  .lobby .lrow { display: flex; gap: 8px; margin-bottom: 8px; }
+  .lobby input { flex: 1; min-width: 0; height: 42px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,0.3); color: inherit; padding: 0 12px; font: inherit; font-size: 15px; font-weight: 700; }
+  .lobby .lbtn { flex: 1; height: 44px; border-radius: 10px; border: 1px solid var(--hivis); background: var(--hivis-dim); color: #ffe0cc; font-weight: 800; font-size: 12.5px; letter-spacing: 0.6px; text-transform: uppercase; }
+  .lobby .lbtn:disabled { opacity: 0.4; }
+  .lobby .lstatus { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+  .lobby .llist button { display: block; width: 100%; margin-top: 8px; height: 46px; border-radius: 10px; border: 1px solid var(--hivis); background: var(--panel-solid); color: inherit; font-weight: 800; font-size: 14px; }
+  .lobby .crew { margin-top: 8px; font-weight: 800; font-size: 13px; color: #ffe0cc; }
+  .big:disabled { opacity: 0.55; }
   .big { margin-top: 16px; width: 100%; height: 54px; border: none; border-radius: 14px; background: var(--hivis); color: #1a1208; font-weight: 800; font-size: 17px; letter-spacing: 1px; text-transform: uppercase; }
   .ghost { margin-top: 8px; width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 14px; background: transparent; font-weight: 700; font-size: 14px; }
   .best { margin-top: 10px; text-align: center; font-size: 12px; color: var(--muted); }
@@ -225,12 +234,20 @@
     <div class="daycard" id="dayCard"></div>
     <div class="howto">
       <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool in your hands.
-      Tools wait on the <b>blue tarp</b> by the van: look at one and press <b>Pick up</b>; the same button puts it down. <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
+      Open the van: the tools wait on its <b>ramp</b>. Look at one and press <b>Pick up</b>; the same button puts it down. <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
       <b>Slide your thumb on the big button</b> to look round while you work — that is how you steer the trowel.
       <b>II</b> or the back gesture pauses.
     </div>
     <button class="big" id="btnStart">Clock in</button>
     <button class="ghost" id="btnReroll">Different day</button>
+    <button class="ghost" id="btnTogether" hidden>Play together (phones nearby)</button>
+    <div class="lobby" id="lobby" hidden>
+      <div class="lrow"><input id="lobbyName" maxlength="16" placeholder="Your name" autocomplete="off" spellcheck="false"></div>
+      <div class="lrow"><button class="lbtn" id="btnHost">Host a day</button><button class="lbtn" id="btnJoin">Join a day</button></div>
+      <div class="lstatus" id="lobbyStatus">One phone hosts the day; the others join it. Up to four of you, within shouting distance.</div>
+      <div class="llist" id="lobbyList"></div>
+      <button class="ghost" id="btnLeave" hidden>Leave</button>
+    </div>
     <button class="ghost" id="btnSound">Sound: on</button>
     <button class="ghost" id="btnMusic">Music: on</button>
     <button class="ghost" id="btnVoices">Voices: on</button>

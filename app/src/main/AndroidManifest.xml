@@ -21,6 +21,21 @@
          again, so a phone that reboots mid-mix does not lose the mix. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- The break-time game can be played by co-workers together, phone to phone, over Google's
+         Nearby Connections: Bluetooth to find each other, Wi-Fi Direct or Bluetooth to talk. From
+         Android 12 that is the "Nearby devices" permission; before 13 Wi-Fi scanning still wants
+         location. Asked for only when somebody hosts or joins a day. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="32" />
+
     <!-- The break-time game reads its lines out with the phone's text-to-speech. From Android 11
          an app can only reach a speech engine it has declared it looks for. -->
     <queries>
