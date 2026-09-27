@@ -75,6 +75,11 @@
       '04:45. The alarm. Your back already knows what day it is.',
       '04:45. The alarm goes off. So does your knee, in sympathy.',
       '04:45. It is dark, it is cold, and somewhere a concrete plant is warming up just for you.',
+      '04:45. The alarm. You lie there and briefly consider faking your own death. Too much paperwork.',
+      '04:45. Your phone says "Good morning!". Your phone has never poured a slab.',
+      '04:45. You dreamt you were an accountant. You wake up crying, and not from relief.',
+      '04:45. Your knees vote to stay in bed. It is not a democracy.',
+      '04:45. The cat watches you get dressed with open contempt.',
     ],
     drive: [
       ['Clear roads. Suspicious.', 0],
@@ -86,32 +91,59 @@
       'First on site. The birds look at you like you owe them money.',
       'Nobody here. Just you, the slab base and a cat that belongs to no one.',
       'The site is quiet. Enjoy it. It will not last.',
+      'The site is so quiet you can hear your pension shrinking.',
+      'A crow on the fence watches you unlock the van. It has seen this before. It knows how it ends.',
+      'Frost on the formwork. Frost on the van. Frost, somehow, in your coffee.',
+      'The portaloo door swings in the wind like it\'s waving. Or warning.',
+      'First one here again. Nobody gives medals for this. You checked.',
     ],
     pumpArrive: [
       '"Morning. Where do you want the pipes? Don\'t say \'in the van\'."',
       '"I\'ve been driving since four. If this pour blocks, I\'m blaming you personally."',
       '"Nice base. Shame about what\'s going to happen to it."',
+      '"Morning. Is that the base? Brave."',
+      '"I\'ve got three more pours after this, so if you could finish yesterday, that\'d be great."',
+      '"Last guy I pumped for cried. Happy tears. Mostly."',
+      '"Don\'t touch the remote. The last person who touched the remote is now a garden feature."',
+      '"Nice day for it. Well. For it. Not for you."',
+      '"I brought the long pipes today. They\'re heavier. You\'re welcome."',
     ],
     pumpLate: [
       'Pump driver: "Running a bit late, the last site had a dog." ETA {eta}.',
       'Pump driver: "Coming! Just finishing my second breakfast." ETA {eta}.',
       'Pump driver: "The satnav took me to a lake. I\'m on my way." ETA {eta}.',
+      'Pump driver: "Five minutes!" In pump-driver time that\'s a unit of hope, not of time. ETA {eta}.',
+      'Pump driver: "Stuck behind a funeral. Very slow. Very respectful. Very long." ETA {eta}.',
+      'Pump driver: "Had to go back for the pipes. And my teeth." ETA {eta}.',
     ],
     truckLate: [
       'Plant: "The truck left ten minutes ago." It did not. ETA {eta}.',
       'Plant: "The driver is on his way, he just had to finish his sausage." ETA {eta}.',
       'Plant: "Traffic." Plant always says traffic. ETA {eta}.',
+      'Plant: "He\'s five minutes away." He is in a lay-by eating a pasty. ETA {eta}.',
+      'Plant: "Your order? Oh, THAT order." ETA {eta}.',
+      'Plant: "The driver\'s new. He\'s found the site twice. Neither was yours." ETA {eta}.',
     ],
     truckDriver: [
       '"Plant says S3. The plant also says it loves you."',
       '"Where do you want it? Don\'t say \'on the slab\', everyone says that."',
       '"Quick one today? I have a funeral at two. Mine, if I\'m late."',
+      '"Nine cubes of happiness. Well, eight and a half. The plant rounds up."',
+      '"Where\'s the boss? Oh, you\'re the boss? Condolences."',
+      '"Third coffee, fourth site. One of us is going to crack today and it\'s going to be the concrete."',
+      '"It\'s been in the drum since six. It\'s had a longer morning than you."',
+      '"Sign here. And here. And here: that one says it\'s your fault."',
+      '"I\'ve got a joke about concrete. It takes a while to set up."',
     ],
     pipe: [
       'Clunk. The coupling bites your finger. You learn a new word.',
       'Pipe in. It weighs exactly as much as you remember, plus two kilos.',
       'You clamp it. The clamp clamps you back.',
       'Pipe down. Your back files a complaint with HR.',
+      'The pipe slips. Your shin catches it. Your shin will remember this every winter.',
+      'You carry the pipe like a coffin at a funeral nobody wanted to go to.',
+      'Another pipe. The pile isn\'t getting smaller. The pile is breeding.',
+      'Pipe clamped. Somewhere, a physiotherapist smiles and doesn\'t know why.',
     ],
     pourJokes: [
       'Pump driver, from his remote: "Faster! I get paid by the hour, but I don\'t like it."',
@@ -119,30 +151,50 @@
       'Somebody on the pavement films you. Wave. Now you\'re content.',
       'Your phone buzzes. It\'s the foreman asking if it\'s done yet. It is 08:15.',
       'A bird lands on the formwork, looks at the concrete, and decides against it. Smart bird.',
+      'Pump driver, from his remote: "You\'re doing great! That was sarcasm. I can\'t turn it off."',
+      'Mixer driver: "Every time I come here it\'s you. Do you ever go home?" You do not.',
+      'Pump driver: "If it blocks now I\'m telling everyone it was you. Even if it wasn\'t. Especially if it wasn\'t."',
+      'Mixer driver: "My doctor says I need more exercise. I told him I watch you work."',
+      'Pump driver: "Faster! The boom\'s insurance is by the minute!"',
+      'A pigeon sits on the pump and watches. Even the pigeon is on a break.',
+      'Mixer driver: "Nice pour. Shame about your posture."',
+      'Pump driver: "My kid wants to do this when she grows up. I\'ve started saving for her therapy."',
     ],
     falls: [
       'You sit down in it. The slab now has a perfect print of your behind.',
       'Your boot stays. You don\'t. Graceful, in a way.',
       'You slip, flail, and land on your butt. The pump driver claps.',
       'Down you go. Somewhere, a health and safety officer feels a chill.',
+      'You fall with the grace of a wardrobe. The slab keeps a copy for posterity.',
+      'Down you go. Your phone, loyal to the end, goes in first.',
+      'You slip. For one moment you\'re flying. Then you\'re concrete.',
+      'You land on your back and look at the sky. The sky has no advice either.',
+      'Splat. The pump driver films it. You\'ll be in a group chat by lunch.',
+      'You go down knees first. Your knees had already handed in their notice.',
     ],
     stuck: [
       'Your boot is stuck. You stand there like a garden gnome until it lets go.',
       'The concrete has your left boot. It is negotiating.',
+      'Your boot is stuck. You wiggle. The concrete wiggles back. It has you.',
+      'One boot out, one boot in. You hop like a flamingo in hi-vis until it lets go.',
     ],
     blocked: [
       'BANG. The line is blocked. The pump driver looks at you. You look at the pipe. Hit it.',
       'The pump groans and stops. Blocked. Somewhere a pipe needs a hammer.',
+      'The line thumps and goes quiet. The pump driver says a word that stops the birds singing. Find the blockage.',
     ],
     unblocked: [
       'Clang clang clang. It coughs, spits and runs again. So does your nose.',
       'You hit the pipe. It forgives you. The pump driver does not.',
+      'BANG BANG BANG. The pipe coughs up a stone the size of a potato and carries on. So do you, slightly deafer.',
     ],
     blowout: 'The formwork on the {side} opens up. Concrete is leaving the building. Fix it!',
     battery: 'The laser beeps once and dies. The spare batteries are in the van. Of course they are.',
     wash: [
       'The pump driver hoses down his pipes, the pump, your van and, briefly, you.',
       'The pump driver washes out his pipes. The run-off heads straight for the neighbour\'s rose bed.',
+      'The pump driver sprays the last of the grout out of his hopper, humming. He\'s done for the day. You are not.',
+      'The pump driver coils his hose and watches you with the peace of a man who is paid either way.',
     ],
     thumb: [
       [15, 'Your thumb goes in to the second knuckle. It is basically porridge.'],
@@ -156,6 +208,12 @@
       'Thermos coffee. Tastes like 6 a.m. and diesel. Perfect.',
       'You pour a cup. The steam is the only warm thing on this site.',
       'Coffee. Your heart rate rejoins the conversation.',
+      'Coffee. It tastes of thermos and bad decisions.',
+      'You drink it too fast and burn your tongue. The first feeling in your face since five.',
+      'Coffee number something. Your hands stop shaking. Then start again, faster.',
+      'The coffee is lukewarm, and so is your commitment.',
+      'You drink it standing up, like a horse. Horses have better pensions.',
+      'One sip and you can hear colours. That\'s the good stuff.',
     ],
     noCoffee: 'The thermos is empty. So is your soul. The kebab stand sells coffee.',
     cross: [
@@ -174,6 +232,12 @@
       { who: 'Postman', g: 'm', ask: '"Letter for the building. Which is where, exactly? Over there?"', back: '"The building doesn\'t even exist yet!" He wanders off to deliver it to a hole.' },
       { who: 'The neighbour\'s kid', g: 'kid', ask: '"Can I write my name in it? Just my initials. Small."', back: '"You\'re no fun." Correct.' },
       { who: 'Surveyor with a tripod', ask: '"I need a point in the middle. Two minutes. Three legs, very light."', back: '"Three legs, three holes. Understood."' },
+      { who: 'A pensioner with a walking stick', ask: '"I\'ve walked this way for fifty years. I\'m not stopping for a puddle."', back: '"Fifty years!" They go round, telling the whole street about it.' },
+      { who: 'A dog walker with six dogs', ask: '"They go where they want, I just hold the leads. Can we cross?"', back: '"Come on, all of you." Six dogs look at the slab like it owes them money, then go round.' },
+      { who: 'The client\'s mother', g: 'f', ask: '"My son is paying for this. I\'d like to stand in the middle and judge it."', back: '"I\'ll judge it from here, then. It\'s grey." She is right.' },
+      { who: 'A man in a suit', g: 'm', ask: '"I\'m late for a meeting, and the meeting is on the other side of your concrete."', back: '"I\'ll tell them I was held up by a floor." He jogs the long way round, in loafers.' },
+      { who: 'A cyclist', ask: '"Shortcut! Can I just ride across? Bikes are light!"', back: '"Car-brain!" They ride off round the fence, ringing the bell at you.' },
+      { who: 'Door-to-door salesperson', ask: '"Have you thought about double glazing? For the floor? I\'ll come to you. Across."', back: '"I\'ll leave a leaflet." The leaflet blows onto the slab. Of course it does.' },
     ],
     hellLabels: [
       'Go to hell!', 'Around. AROUND.', 'Walk on it and you live in it.', 'Over my dead trowel.',
@@ -185,15 +249,25 @@
       '"Nobody told me!" There are four signs. They go round.',
       '"Sorry, boss." They back off the way they came, tiptoeing, which helps nobody.',
       '"Jeez. Fine." They walk round, making a point of how far it is.',
+      '"Okay, okay, it\'s your precious floor." They go round. It is your precious floor.',
+      '"I was only going to step on it a little bit!" They go the long way, muttering "a little bit".',
+      '"Somebody got out of bed on the wrong side." You got up at 04:45. There is no right side.',
+      '"Fine. I\'ll walk round your stupid rectangle." It\'s an L, actually.',
+      '"I\'m leaving a review!" Of what? Of you. One star.',
     ],
     shoutHurry: [
       'They hear "run". They run. Across it. Faster. Deeper.',
       '"I\'m nearly over!" They are not nearly over.',
       'They speed up, apologising with every single footprint.',
+      'They run. On fresh concrete. Like a cartoon. Every step a crater.',
+      '"Nearly there!" They were nearly there. Now they\'re nearly there with deeper holes.',
+      'They tiptoe faster. Tiptoes go deeper. Physics is not on your side today.',
     ],
     shoutFreeze: [
       'They freeze mid-step like a gnome. Then they carry on, as if the shout was weather.',
       'They stop, look at you, look at their shoe, and keep going. Slower. Deeper.',
+      'They freeze, then back out slowly, stepping in their own prints. It does not help.',
+      'They stop dead in the middle and ask "which way is out?". All ways are out. All of them.',
     ],
     driverTalk: [
       'Pump driver: "You know what the difference is between a pump driver and a concrete finisher? I go home at eleven."',
@@ -201,12 +275,26 @@
       'Pump driver: "My wife thinks I\'m a pilot. Don\'t tell her."',
       'Pump driver: "I once pumped a whole pool through a keyhole. Different day. Different keyhole."',
       'Pump driver: "Is that your float? Looks like it\'s seen things."',
+      'Pump driver: "I\'ve seen worse finishers. Not today. But I have."',
+      'Pump driver: "Thirty years on the pump. My ears ring in the key of C."',
+      'Pump driver: "My back\'s fine. The rest of me is on a waiting list."',
+      'Pump driver: "Retire? I\'ll retire when the pump does. The pump\'s younger than me."',
+      'Pump driver: "People ask if I like my job. I tell them I love the diesel. It\'s not a lie."',
+      'Pump driver: "My doctor told me to reduce stress, so I stopped answering the plant."',
+      'Pump driver: "Seen the forecast? Me neither. I just assume rain and disappointment."',
+      'Pump driver: "I\'ve got a joke about the plant. It\'ll be here in forty minutes. Maybe."',
     ],
     mixTalk: [
       'Mixer driver: "Plant says it\'s S3. Plant also says it\'s Tuesday."',
       'Mixer driver: "Take your time. I\'m paid by the hour. You\'re paying, by the hour."',
       'Mixer driver: "If you want it wetter, I\'ve got a hose. If you want it drier, I\'ve got a hose and regrets."',
       'Mixer driver: "Thirty years on the drum. Still dizzy."',
+      'Mixer driver: "The drum spins, I spin. My inner ear retired in 2009."',
+      'Mixer driver: "Plant says it\'s the good stuff today. Plant says that about everything. Plant said that about my ex."',
+      'Mixer driver: "My wife asked what I do all day. I said I wait for people like you. She said: same."',
+      'Mixer driver: "This truck is older than my marriage and it runs better."',
+      'Mixer driver: "Don\'t mind me. I\'m just here to be paid for standing."',
+      'Mixer driver: "Don\'t worry, I\'ve got all day. That\'s not a kindness, it\'s a threat."',
     ],
     crossAnyway: [
       'They walk across anyway. Confident stride, size 45. Perfect prints.',
@@ -214,12 +302,18 @@
       '"I\'m light!" They are not light.',
       '"I\'ll walk on the lines." There are no lines. There are only footprints now.',
       'They take their shoes off first, as a courtesy. Barefoot prints. Toes and everything.',
+      'They cross while holding eye contact the whole way. A power move. Ankle-deep.',
+      '"Don\'t worry, I\'m a tiptoer." Tiptoe prints go deeper. They know that now.',
+      'They cross, take a selfie in the middle, then cross back for a better angle.',
     ],
     crossAway: [
       'While you were away someone crossed the slab. Size 45, confident stride. Probably the electrician.',
       'You find footprints across the slab. They stop in the middle, turn around, and go back. Why.',
       'Someone crossed while you were gone. There\'s a coffee cup lid in the middle as a signature.',
       'While you were away someone walked across, stopped in the middle and, from the prints, did a little dance.',
+      'While you were away someone pushed a bicycle across the slab. The tyre track goes right through the middle, like a signature.',
+      'Prints across the slab and a lost glove in the middle. You will never find the owner. You will think about them forever.',
+      'Someone crossed while you were gone and wrote SORRY at the far edge with a stick. Very polite. Very deep.',
     ],
     dog: {
       who: 'A dog',
@@ -232,10 +326,16 @@
     dogShoo: [
       'The dog gives you a look of deep disappointment and trots off.',
       'SHOO works. The dog leaves, slowly, to show it was its own idea.',
+      'The dog leaves, but looks back once, just to make you feel bad. It works.',
+      'The dog sighs like a teenager and walks off. It will be back. They always come back.',
+      'The dog goes. The owner appears, shouts "He\'s friendly!", and doesn\'t apologise. The dog was never the problem.',
     ],
     dogGame: [
       'The dog hears "PLAY WITH ME". Laps of honour on the slab.',
       'The dog thinks shouting is a game. It is winning.',
+      'The dog does a victory lap. Then a lap of honour. Then a lap just for you.',
+      'The dog finds the wettest corner and rolls in it. Joy has a shape, and the shape is in your slab.',
+      'You shout. The dog barks back. You are now in an argument, and you are losing.',
     ],
     dogSausage: 'The dog catches the sausage mid-air and leaves with it. Best trade of the day.',
     bird: 'A seagull landed on the slab, walked three steps, and left you a little something extra.',
@@ -243,12 +343,24 @@
       '"Is it hard yet? The client wants to drive a forklift on it at two."',
       '"Quick one — can we do the second floor tomorrow? There is no second floor. Doesn\'t matter."',
       '"Just checking you\'re not on your phone." You are, because he called.',
+      '"The client wants it a bit more... greyer? I said yes. Make it greyer."',
+      '"Are you on site? I can\'t see you on the camera. There is no camera. Or is there."',
+      '"Good news: the client loves it. Bad news: they want another one. Worse news: tomorrow."',
+      '"Just so you know, the budget\'s gone. Don\'t ask where. Keep pouring."',
+      '"HR says I have to ask if you\'re happy at work. Are you? Great, I\'ll put yes."',
+      '"How\'s the slab? No, don\'t tell me. I\'ll hear it from the client, it\'s more exciting."',
+      '"Can you pick up some screws on the way home? And a new van? Joking. Screws."',
     ],
     lunch: 'KEBAB & COFFEE. The owner nods at you like he knows exactly how your day is going.',
     vanNap: [
       'You wake up with the seatbelt printed on your face.',
       'You dreamt about troweling. Very relaxing. Then you woke up and had to do it.',
       'You nap. The radio plays the same four songs. Your dream now has a chorus.',
+      'You wake up with the steering wheel printed on your forehead. You look like a target.',
+      'You dreamt the slab was done. Cruelty, in dream form.',
+      'You wake up and for three seconds you don\'t know where you are. Then you smell diesel.',
+      'A neighbour knocks on the window to check you\'re alive. You\'re not sure either.',
+      'You slept so hard you drooled on the delivery note. Now it\'s a wet delivery note.',
     ],
     formOk: [
       'Formwork is solid. The carpenter lives to see another day.',
@@ -262,10 +374,14 @@
       'Wire round, three twists, snip. The bar stays down. Your fingers do not thank you.',
       'Tied. The mesh no longer wants to float up through your nice slab.',
       'A tie, a twist, a word you don\'t say in front of the client.',
+      'Tied. Your thumb now has a spiral dent in it, like a fossil.',
+      'Twist, twist, snip. The wire\'s sharp end finds your palm. It always finds your palm.',
     ],
     cut: [
       'Snip. The bar that was waiting to impale somebody is now a stub.',
       'You cut the bar. It pings off into the fence. Nobody saw. Probably.',
+      'The bar gives up with a clang. Your shoulder gives up quietly.',
+      'Snip. The stub is safe now. The offcut is in your boot. You\'ll find it later.',
     ],
     tooSoftMachine: 'It\'s soup. The machine would sink to the gearbox. Give it time.',
     tooSoftBlades: 'Blades on this? It would tear the paste off. Pans first, and patience.',
@@ -276,11 +392,18 @@
       '"The client asked me if the footprints are a design feature. I said yes. So now you\'re going to design me a new slab. For free."',
       '"{n}. I counted them from the photo you didn\'t send me. The client sent it. With a lot of question marks."',
       '"Every one of those {n} marks is coming out of your Christmas party. You are not going to the Christmas party."',
+      '"{n} marks. Do you know how many marks a professional leaves? None. Do you know how many you left? I just told you."',
+      '"The client\'s kid counted {n} footprints and asked if a giant lives there. I said no, just an idiot."',
+      '"{n}! I\'m looking at the price of a grinder right now. Guess whose wages it comes out of."',
+      '"You\'re not a finisher, you\'re a stamp collector. {n} stamps. Frame them. Hang them in the job centre."',
     ],
     managerAfter: [
       'He hangs up. Your ear is still ringing at 95%.',
       'He hangs up mid-word. You suspect the word was not "well done".',
       'The call ends. A pigeon on the formwork looks at you with something like pity.',
+      'The call ends. Your phone is warm. Your face is warmer.',
+      'He hangs up and texts you a single emoji. It is a brick.',
+      'Silence. Then your phone buzzes: "Also you\'re doing Saturday."',
     ],
     emptyTruck: [
       'The driver swings the chute round, pulls the lever, and... nothing. "It was full when I left." It was not full when he left.',
@@ -294,10 +417,10 @@
       other: { title: '"Is this Riverside Road?"', text: 'It is not. This load belongs to a site across town, and the right mix for yours is on its way there instead.', used: 'You poured another site\'s concrete. Somewhere across town a very angry man is waiting for yours.', row: 'another site\'s load', cost: 50 },
     },
     ufo: {
-      msgs: ['EAT POOP', 'F*** YOU', 'NICE SLAB', 'SEND COFFEE', 'LOL', 'HI', 'NO', '42'],
+      msgs: ['EAT POOP', 'F*** YOU', 'NICE SLAB', 'SEND COFFEE', 'LOL', 'HI', 'NO', '42', 'WHY', 'OOPS', 'BAD JOB', 'GO HOME', 'SOS'],
       seen: 'Lights over the site. A saucer, no joke. It hovers over your slab, hums like a fridge, and burns "{m}" into it in neat capitals. Then it leaves. It didn\'t even say hello.',
       away: 'While you were away something wrote "{m}" into the slab, in perfect capitals, with no footprints leading to it. The dog is not talking.',
-      voice: ['Greetings, concrete person. Your slab has been improved.', 'We have travelled forty light years to leave this message. You are welcome.', 'Take us to your foreman. Actually, don\'t.'],
+      voice: ['Greetings, concrete person. Your slab has been improved.', 'We have travelled forty light years to leave this message. You are welcome.', 'Take us to your foreman. Actually, don\'t.', 'Your species builds with liquid rock and then walks on it. Fascinating. Stupid, but fascinating.', 'We have probed many species. We will not be probing you. You smell of diesel.', 'Resistance is futile. So, apparently, is troweling.'],
     },
     ball: {
       seen: 'A football bounces straight across your slab, then over the fence. A kid appears at the edge. "Can I have my ball back?" The ball is in the neighbour\'s garden. The dents are in your slab.',
@@ -320,11 +443,11 @@
       away: 'A long smear across the slab, and a plastic bag stuck in the far formwork, looking pleased with itself.',
     },
     badPour: {
-      thin: ['"You poured it {d} mm thin. The client paid for {t}. Somebody\'s paying the difference, and I\'ll give you a clue: it\'s not the client."', '"Minimalist slab, is it? Minimal slab, minimal pay. I\'m adjusting yours now."'],
-      thick: ['"{d} mm over? That\'s not a slab, that\'s a monument. The extra concrete comes out of your wages. Every cubic centimetre."', '"You know concrete costs money? Of course you don\'t. You\'ll know on Friday."'],
-      bumpy: ['"The laser says the floor has waves. Surfers love it. The client isn\'t a surfer."', '"±{r} mm. I\'ve seen flatter car parks after an earthquake."'],
-      slow: ['"The pour took {h}. The pump charges by the hour. Guess who\'s paying for the extra hour. Hint: it\'s the one reading this."', '"I could have poured that with a teaspoon faster. The teaspoon would also be cheaper."'],
-      close: 'He hangs up before you can explain. There was going to be an explanation.',
+      thin: ['"You poured it {d} mm thin. The client paid for {t}. Somebody\'s paying the difference, and I\'ll give you a clue: it\'s not the client."', '"Minimalist slab, is it? Minimal slab, minimal pay. I\'m adjusting yours now."', '"The client asked if it\'s a slab or a rumour. {d} mm thin. It\'s a rumour."', '"{d} millimetres short. You know what else is going to be short? Friday."', '"You saved concrete. Congratulations. Nobody asked you to save concrete. We have concrete. We don\'t have patience."'],
+      thick: ['"{d} mm over? That\'s not a slab, that\'s a monument. The extra concrete comes out of your wages. Every cubic centimetre."', '"You know concrete costs money? Of course you don\'t. You\'ll know on Friday."', '"{d} mm over. Were you aiming for the laser or the ceiling?"', '"That\'s not a floor, that\'s a bunker. Expecting something?"', '"The engineer says the building now weighs more than the drawings. So does my disappointment."'],
+      bumpy: ['"The laser says the floor has waves. Surfers love it. The client isn\'t a surfer."', '"±{r} mm. I\'ve seen flatter car parks after an earthquake."', '"The client put a marble on it. The marble is still rolling. It has a family now."', '"±{r} mm. I\'ve seen flatter mattresses. In skips."', '"It\'s not uneven, it\'s organic. That\'s what I\'ll tell the client. You can tell the job centre."'],
+      slow: ['"The pour took {h}. The pump charges by the hour. Guess who\'s paying for the extra hour. Hint: it\'s the one reading this."', '"I could have poured that with a teaspoon faster. The teaspoon would also be cheaper."', '"{h} to pour that? My nan pours gravy faster, and she\'s been dead for six years."', '"The pump driver billed us for {h}. And for emotional support."', '"The truck waited so long the driver started a family. Congratulations to them."'],
+      close: ['He hangs up before you can explain. There was going to be an explanation.', 'He hangs up. Even the dial tone sounds disappointed.', 'He\'s gone. You say "yes, boss" to nobody, out of habit.'],
     },
     pay: {
       base: 'Day rate',
@@ -333,33 +456,101 @@
       bumpy: ['Waves in the floor (±{r} mm)', 'Surf park fee (±{r} mm)'],
       slow: ['Pump overtime ({m} min of it)', 'The pour took {h}; the pump bills by the hour'],
       marks: ['{n} marks set in for ever, €4 each like a museum', 'Footprint archive ({n} exhibits)'],
-      waste: ['{w} m³ dumped behind the office, €90 a cube'],
-      wait: ['Waiting time paid to a man doing a crossword in a mixer'],
-      late: ['Late by {m} min. Time is money. Yours.'],
-      wrong: ['The wrong concrete, poured anyway'],
-      manager: ['Emotional damages (the manager\'s)'],
-      falls: ['Dry cleaning: {n} × €10'],
-      edges: ['Edges closed too late, {n} of them'],
-      ufo: ['Unexplained lettering in the slab'],
-      hell: ['Told {n} people to go to hell: no charge, company policy'],
-      shine: ['Bonus: it actually shines'],
+      waste: ['{w} m³ dumped behind the office, €90 a cube', 'Surplus concrete ({w} m³), now a sculpture behind the office', 'Concrete you ordered, paid for and threw away: {w} m³'],
+      wait: ['Waiting time paid to a man doing a crossword in a mixer', 'The mixer driver\'s crossword time, billed', 'Truck waiting time (the driver finished a novel)'],
+      late: ['Late by {m} min. Time is money. Yours.', 'Late by {m} min. The birds noticed', 'Tardiness tax ({m} min)'],
+      wrong: ['The wrong concrete, poured anyway', 'Wrong load, poured with confidence'],
+      manager: ['Emotional damages (the manager\'s)', 'Therapy for the manager', 'The manager\'s blood pressure tablets'],
+      falls: ['Dry cleaning: {n} × €10', 'Laundry, {n} × €10. The dog would have come home cleaner'],
+      edges: ['Edges closed too late, {n} of them', 'Edges closed after they set ({n}). Brave, not clever'],
+      ufo: ['Unexplained lettering in the slab', 'Alien vandalism (not covered by insurance)', 'Removing an interstellar insult'],
+      hell: ['Told {n} people to go to hell: no charge, company policy', 'Told {n} people to go to hell: free, and honestly the best part of your day'],
+      shine: ['Bonus: it actually shines', 'Bonus: the client could see their face in it. They didn\'t like the face, but still'],
       noPan: ['No pan pass. The client paid for a floor, not a beach'],
       noBlade: ['No blade pass. You\'ll call it "matte finish". They won\'t', 'Shine not included'],
       roughEdges: ['{n} edges left rough, like your manners'],
       thrown: ['{n} tools thrown in the van: dents at cost, plus feelings', 'Tool abuse ({n} airborne)'],
-      verdictGood: ['"Not bad. Don\'t let it go to your head, your head is already big enough."', '"Good slab. I\'ll pretend I did it when I tell the client."'],
-      verdictBad: ['"That\'s your whole day\'s pay gone. You know what that is? Character building."', '"You owe us money. We\'ll take it in coffee. Six months of coffee."', '"Next time I\'m hiring the dog. It leaves fewer marks and it works for sausages."'],
-      verdictMeh: ['"It\'ll do. Things that \'will do\' are why I drink."', '"Could be worse. Could also be a lot better. It\'s mostly the second one."'],
+      verdictGood: ['"Not bad. Don\'t let it go to your head, your head is already big enough."', '"Good slab. I\'ll pretend I did it when I tell the client."', '"Good work. Don\'t tell anyone I said that. Especially you."', '"If you keep this up I\'ll have to pay you properly. So don\'t keep it up."', '"The client cried. Good tears. I checked."'],
+      verdictBad: ['"That\'s your whole day\'s pay gone. You know what that is? Character building."', '"You owe us money. We\'ll take it in coffee. Six months of coffee."', '"Next time I\'m hiring the dog. It leaves fewer marks and it works for sausages."', '"I\'ve seen better floors in a skip. The skip was cheaper, too."', '"Take tomorrow off. Take the month off. Take a hint."', '"Somewhere there\'s a job you\'d be good at. We haven\'t found it, but it\'s out there."', '"You owe us money. We\'ll take it out of your next life."'],
+      verdictMeh: ['"It\'ll do. Things that \'will do\' are why I drink."', '"Could be worse. Could also be a lot better. It\'s mostly the second one."', '"It\'s fine. Fine is the worst word I know, and I just used it on you."', '"Not good, not bad. You\'re the beige of concrete."', '"The client says it\'s a floor. That\'s the nicest thing anyone\'s said about your work."'],
     },
+    // said out loud now and then, when nothing else is being said
+    thoughts: [
+      '"My back makes a new noise now. It sounds like gravel."',
+      '"My dad did concrete. His knees are in a museum."',
+      '"The careers adviser said: something with your hands. She didn\'t say it would be this."',
+      '"If I die here, pour me into the slab. At least I\'d finally be level."',
+      '"Thirty more years of this and I\'ll have a lovely pension. Of about eleven euros."',
+      '"Somewhere an office worker is complaining that the coffee machine is slow. Lovely for him."',
+      '"There\'s concrete in my ear. I don\'t remember putting it there."',
+      '"My doctor told me to avoid heavy lifting. I laughed so hard I pulled something."',
+      '"Retirement plan: become the slab."',
+      '"I should have been a dentist. Same kneeling. More money. Fewer dogs."',
+      '"Every slab I pour will outlive me. Nice to be remembered as a car park."',
+      '"Hands: cracked. Knees: gone. Spirit: set at ninety-five percent."',
+      '"I\'m not tired. I\'m pre-cured."',
+      '"One day robots will do this. The robots will also get yelled at. That\'s something."',
+      '"Holiday this year: the other side of the van."',
+      '"I could quit. I could. I won\'t. But I could."',
+      '"Nobody ever wrote a song about a nice flat floor. Cowards."',
+      '"If I lie down right here, how long before anyone notices? Probably the pump driver. For the wrong reasons."',
+    ],
+    // [from, voice, text]
+    texts: [
+      ['Mum', 'mum', '"Are you still doing concrete? Your cousin is a dentist now. Just saying."'],
+      ['Mum', 'mum', '"Wear a hat. And call your mother. I am your mother."'],
+      ['Mum', 'mum', '"Saw a documentary about backs. Yours was in it. The last ten minutes."'],
+      ['Mum', 'mum', '"Your father wants to know if you\'re rich yet. I told him to sit down."'],
+      ['Home', 'partner', '"Dinner at 7. By which I mean I ate at 7."'],
+      ['Home', 'partner', '"The kids asked what you look like. I showed them a bag of cement."'],
+      ['Home', 'partner', '"If you\'re late again your side of the bed goes to the dog. The dog has already accepted."'],
+      ['Home', 'partner', '"Bring milk. And a reason to stay married. Milk first."'],
+      ['The bank', 'bank', '"Your balance is low. Recommended action: pour faster."'],
+      ['The bank', 'bank', '"Congratulations! Your overdraft has been promoted to a lifestyle."'],
+      ['HR', 'hr', '"Reminder: mandatory wellbeing webinar at 14:00. Attendance is compulsory. Wellbeing is optional."'],
+      ['HR', 'hr', '"Your holiday request has been received, laughed at, and filed."'],
+      ['HR', 'hr', '"Please rate your happiness at work from one to ten. Answers below eight will be investigated."'],
+      ['The physio', 'physio', '"Appointment reminder: your spine, Tuesday. Please bring as much of it as you can."'],
+      ['Unknown number', 'spam', '"You have won a free cruise! Reply STOP to keep working."'],
+      ['The client', 'client', '"Quick question: can the floor be heated? It\'s being poured right now? Great, so yes?"'],
+      ['The client', 'client', '"My brother-in-law says you should use more concrete. He sells concrete."'],
+      ['Your kid', 'kid', '"Teacher asked what you do. I said you make grey floors and swear at them. I got a sticker."'],
+      ['Your kid', 'kid', '"Can I have the car when you die? It\'s for a school project."'],
+      ['The dentist', 'dentist', '"You missed your appointment again. Your teeth have started seeing other people."'],
+      ['The gym', 'gym', '"We miss you! It\'s been 814 days." You lift concrete for a living. The gym can shut up.'],
+    ],
+    radio: [
+      '"Traffic news: a concrete mixer is stuck on the ring road. The driver says he\'s five minutes away."',
+      '"And the weather: rain later, arriving at precisely the moment you don\'t want it."',
+      '"Economy news: concrete up twelve percent. Concrete workers\' wages: still waiting for the truck."',
+      '"Scientists confirm the human back was not designed for this. More at eleven."',
+      '"And now a song for all the finishers out there. It\'s called Nobody Walk On It."',
+      '"A caller asks if it\'s normal for a new floor to have footprints. Our expert says: only if you\'re lucky."',
+      '"A study finds nine in ten builders talk to their tools more than their families. The tenth has no family. He has tools."',
+      '"Breaking news: a local man has walked across fresh concrete. Police describe him as fine. For now."',
+      '"You\'re listening to Site FM, the only station that plays the same four songs until you love them. Or break."',
+      '"Competition time! The first caller who can name a day they weren\'t tired wins nothing. There have been no callers."',
+      '"Horoscope for concrete workers: today the stars are aligned. Your spine is not."',
+    ],
+    neighbour: [
+      '"Some of us are trying to sleep!" The window slams. Then opens again. "And your van\'s on my verge!"',
+      '"Is that going to be a car park? I\'ll park there, then." It\'s a kitchen.',
+      '"My nephew does concrete. He says you\'re doing it wrong." The nephew has never seen you.',
+      '"In my day we poured floors by hand! With spoons!" The window closes on its own lie.',
+      '"Can you keep the scraping down? I\'m on a video call!" You are also on a call. With your knees.',
+      '"Was it you who parked the mixer on my tulips?" It was not. You\'ll take the blame anyway. It\'s that kind of day.',
+      '"Lovely work! Very grey!" The only compliment you\'ll get this year. You write it down.',
+      '"When you\'re done, can you do my patio? For free? Since you\'re here?"',
+    ],
     homeEarly: 'The foreman: "95% or you sleep here." There\'s a sleeping bag in the van for a reason.',
     tooLate: {
       text: 'The slab is as hard as it will ever be, and it isn\'t finished: {what}. Blades now would only polish a stone.\n\nYour phone buzzes. The foreman: "It\'s set, isn\'t it. Throw the kit in the van and go home. We\'ll talk about it tomorrow. We\'ll talk about it a lot."',
-      stare: ['You stare at it. It stares back. It doesn\'t get any softer.', 'You poke it with your boot. Your boot loses.', 'You wait for a miracle. The miracle is also on its lunch break.'],
+      stare: ['You stare at it. It stares back. It doesn\'t get any softer.', 'You poke it with your boot. Your boot loses.', 'You wait for a miracle. The miracle is also on its lunch break.', 'You tell it you\'re disappointed. It doesn\'t care. It\'s concrete.', 'You kneel and whisper "why". The slab has no answer. The slab never has an answer.', 'You take a photo for the foreman. Then delete it. Then take another one. Worse.'],
     },
     packUp: {
-      start: ['Every finisher\'s dream. You start throwing.', 'You march to the van, and the tools learn to fly.', 'Therapy is expensive. Throwing tools is free.'],
-      hand: ['The hammer goes first. It had it coming.', 'The float spins like a helicopter. Nobody claps.', 'The pliers hit the van, then the van floor. Two dents for the price of one.', 'The hand trowel sails in like it knows the way.'],
-      machine: ['You throw a power trowel. You didn\'t know you could. Neither did your back.', 'The power trowel lands in the van with a noise the neighbours will describe to the police.'],
+      start: ['Every finisher\'s dream. You start throwing.', 'You march to the van, and the tools learn to fly.', 'Therapy is expensive. Throwing tools is free.', 'You don\'t pack the tools. You deliver them. At speed.', 'Health and safety would call this manual handling. You call it closure.'],
+      hand: ['The hammer goes first. It had it coming.', 'The float spins like a helicopter. Nobody claps.', 'The pliers hit the van, then the van floor. Two dents for the price of one.', 'The hand trowel sails in like it knows the way.', 'The rebar cutter tumbles end over end and lands jaws-first, biting the van. Revenge.', 'The pliers go in. The wire goes in. A small piece of your dignity goes in with them.', 'The float flies like a javelin. Olympic form. Tragic context.'],
+      machine: ['You throw a power trowel. You didn\'t know you could. Neither did your back.', 'The power trowel lands in the van with a noise the neighbours will describe to the police.', 'The power trowel lands on the float. The float is flatter now. Finally, something flat.', 'The edge trowel clears the door by a millimetre. The most accurate thing you\'ve done all day.'],
       rideOn: 'The ride-on stays where it is. It weighs 400 kg and you are angry, not strong.',
       laser: 'The laser goes in last-but-one. It beeps once in protest.',
       end: 'Door slammed. Engine on. You don\'t look back. The slab does.',
@@ -2408,7 +2599,11 @@
   // (the WebView has none of its own), or the browser's elsewhere. Only what is in quotes is
   // spoken — the narration stays on the screen. Each character has a pitch and a pace.
   let voicesOn = store('pourday.voices') !== 'off';
-  const VOICES = { manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05] };
+  const VOICES = {
+    manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
+    me: [1.0, 1.02], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
+    dentist: [1.05, 1.0], physio: [0.95, 1.0], gym: [1.2, 1.25], spam: [0.75, 1.2],
+  };
   let duckUntil = 0;
   function spoken(text) {
     const q = String(text).match(/"[^"]+"/g);
@@ -2421,7 +2616,7 @@
   // Each character is cast one of the phone's own voices for the day: a man's voice for the men and
   // a woman's for the women where the phone lets on which is which, and nobody sharing a voice with
   // anybody else while there are voices to go round — so the accents get mixed too.
-  const GENDER = { manager: 'm', foreman: 'm', pump: 'm', truck: 'm', plant: 'f', alien: '', kid: '' };
+  const GENDER = { manager: 'm', foreman: 'm', pump: 'm', truck: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
   let voiceBook = null;            // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
   let cast = {};                   // who speaks with which today
   function voicesOnOffer() {
@@ -2448,6 +2643,15 @@
     return cast[key];
   }
   function newCast() { cast = {}; voiceBook = null; }
+  /** A line from a list, not one used lately: the list is gone through before anything comes round again. */
+  const usedLines = new Set();
+  function fresh(list) {
+    let left = list.filter((l) => !usedLines.has(l));
+    if (!left.length) { list.forEach((l) => usedLines.delete(l)); left = list; }
+    const l = pick(left);
+    usedLines.add(l);
+    return l;
+  }
   const saidLog = [];              // what was said lately, for the tests
   function say(text, who) {
     if (!voicesOn || !text) return;
@@ -2807,9 +3011,9 @@
         setTimeout(() => sfx('phoneYell'), 1900);
         modal({
           who: 'The manager, on speaker', title: 'He picks up on the first ring.', sound: 'none', voice: 'manager',
-          text: pick(L.managerCall).replace(/\{n\}/g, n),
+          text: fresh(L.managerCall).replace(/\{n\}/g, n),
           choices: [
-            { label: 'Hold the phone away from your ear', primary: true, fn: () => toast(pick(L.managerAfter), 'warn') },
+            { label: 'Hold the phone away from your ear', primary: true, fn: () => toast(fresh(L.managerAfter), 'warn') },
             { label: 'Blame the dog', fn: () => toast('"THE DOG IS NOT ON THE PAYROLL." He has a point. The dog would be cheaper.', 'warn') },
             { label: 'Call it a "textured finish"', fn: () => toast('A long silence. Then: "Send me the invoice for the textured finish. Addressed to yourself."', 'warn') },
           ],
@@ -2946,8 +3150,8 @@
         return;
       }
       const leaves = chance(w.state === 'laps' ? 0.5 : 0.7);
-      if (leaves) { toast(pick(L.dogShoo), 'good'); reroute(w, [p, farPoint(pick(SIDES))], 5.5); w.state = 'leaving'; }
-      else { toast(pick(L.dogGame), 'warn'); if (w.state !== 'laps') { gs.stats.dogs++; remember('A dog did laps of the slab. You shouted. It loved it.'); } reroute(w, lapsFrom(p), 4.6); w.state = 'laps'; setTimeout(() => sfx('bark', w.m.position.x, w.m.position.z), 400); }
+      if (leaves) { toast(fresh(L.dogShoo), 'good'); reroute(w, [p, farPoint(pick(SIDES))], 5.5); w.state = 'leaving'; }
+      else { toast(fresh(L.dogGame), 'warn'); if (w.state !== 'laps') { gs.stats.dogs++; remember('A dog did laps of the slab. You shouted. It loved it.'); } reroute(w, lapsFrom(p), 4.6); w.state = 'laps'; setTimeout(() => sfx('bark', w.m.position.x, w.m.position.z), 400); }
       w.pause = 0;
       return;
     }
@@ -2957,9 +3161,9 @@
     setTimeout(() => sfx('voice', w.m.position.x, w.m.position.z), 500);
     const side = w.from || pick(SIDES);
     const r = weighted([[0.5, 'back'], [0.3, 'hurry'], [0.2, 'freeze']]);
-    if (r === 'back') { const l = pick(L.shoutBack); toast(l, 'good'); say(l, w.voice); reroute(w, aroundFrom(onSlab(p.x, p.z) ? edgePoint(side) : p, side)); if (onSlab(p.x, p.z)) w.path.unshift(p); }
-    else if (r === 'hurry') { const l = pick(L.shoutHurry); toast(l, 'warn'); say(l, w.voice); w.speed *= 1.8; }
-    else { toast(pick(L.shoutFreeze), 'warn'); w.pause = 2.2; w.pose = 'look'; }
+    if (r === 'back') { const l = fresh(L.shoutBack); toast(l, 'good'); say(l, w.voice); reroute(w, aroundFrom(onSlab(p.x, p.z) ? edgePoint(side) : p, side)); if (onSlab(p.x, p.z)) w.path.unshift(p); }
+    else if (r === 'hurry') { const l = fresh(L.shoutHurry); toast(l, 'warn'); say(l, w.voice); w.speed *= 1.8; }
+    else { toast(fresh(L.shoutFreeze), 'warn'); w.pause = 2.2; w.pose = 'look'; }
   }
   /** Somebody at the edge, asking. */
   function askToCross(w) {
@@ -2977,10 +3181,10 @@
     modal({
       who: who.who, title: 'Can I cross?', text: who.ask, sound: 'voice', voice: w.voice,
       choices: [
-        { label: pick(L.hellLabels), primary: true, fn: () => {
+        { label: fresh(L.hellLabels), primary: true, fn: () => {
           gs.stats.hell++;
           if (chance(0.72)) { toast(who.back); say(who.back, w.voice); go(aroundFrom(here, w.from), 1.4); }
-          else { const l = pick(L.crossAnyway); toast(l, 'warn'); remember(`${who.who}: told where to go, crossed anyway.`); gs.stats.crossed++; go(acrossFrom(here, w.from), 1.5); }
+          else { const l = fresh(L.crossAnyway); toast(l, 'warn'); remember(`${who.who}: told where to go, crossed anyway.`); gs.stats.crossed++; go(acrossFrom(here, w.from), 1.5); }
         } },
         { label: 'Walk around, please.', fn: () => {
           if (chance(0.85)) { toast('They walk around, muttering about "concrete people".'); go(aroundFrom(here, w.from), 1.3); }
@@ -3168,7 +3372,7 @@
             const line = L.ufo.seen.replace('{m}', o.msg.m);
             toast(line, 'warn');
             remember(line);
-            say(pick(L.ufo.voice), 'alien');
+            say(fresh(L.ufo.voice), 'alien');
           }
         } else if (o.t < 4 + o.msg.lay.length * 0.6 + 4.5) {
           ufo.beam.visible = false;
@@ -3236,14 +3440,14 @@
     if (day.rh > 76 && !gs.rained) kinds.push([0.12, 'rain']);
     const kind = weighted(kinds);
     if (kind === 'cross') {
-      const who = pick(L.cross);
+      const who = fresh(L.cross);
       if (away) {
         if (chance(0.65)) {
           const side = pick(SIDES);
           const p = acrossFrom(farPoint(side), side);
           let n = 0;
           for (let k = 1; k < p.length; k++) n += stampLine('boot', p[k - 1], p[k], 0.72);
-          if (n) { gs.stats.crossed++; const line = pick(L.crossAway); toast(line, 'warn'); remember(line); }
+          if (n) { gs.stats.crossed++; const line = fresh(L.crossAway); toast(line, 'warn'); remember(line); }
         }
         return;
       }
@@ -3256,7 +3460,7 @@
           gs.stats.dogs++;
           const pts = lapsFrom(farPoint(pick(SIDES)));
           for (let k = 1; k < pts.length; k++) stampLine('paw', pts[k - 1], pts[k], 0.42);
-          const line = pick(L.dog.away);
+          const line = fresh(L.dog.away);
           toast(line, 'warn');
           remember(line);
         }
@@ -3276,7 +3480,7 @@
             if (d.state !== 'eyeing') return;
             d.state = 'laps';
             gs.stats.dogs++;
-            toast(pick(L.dogGame), 'warn');
+            toast(fresh(L.dogGame), 'warn');
             remember('A dog did laps of the slab.');
             reroute(d, lapsFrom(P(d.m.position.x, d.m.position.z)), 4.4);
           };
@@ -3295,7 +3499,7 @@
     } else if (kind === 'foreman') {
       if (away) { toast('Three missed calls from the foreman. And one voice message that is just breathing.'); return; }
       modal({
-        who: 'Foreman, on the phone', title: 'Ring ring.', text: pick(L.foreman), sound: 'ring', voice: 'foreman',
+        who: 'Foreman, on the phone', title: 'Ring ring.', text: fresh(L.foreman), sound: 'ring', voice: 'foreman',
         choices: [
           { label: 'It\'s basically hard.', fn: () => toast('It is not basically hard. You both know it.') },
           { label: 'Tell the truth.', fn: () => toast('Foreman: "Concrete is just stubborn water." He hangs up.') },
@@ -3340,7 +3544,7 @@
     if (c && (gs.phase === 'pour' || gs.H < 30)) sfx('splash');
     if (c && gs.phase === 'pour') { c.fill = Math.max(0, c.fill - 12); cellsDirty = true; }
     else if (c) stamp('butt', player.x, player.z, player.yaw, true);
-    const line = text || pick(L.falls);
+    const line = text || fresh(L.falls);
     toast(line, 'warn');
     remember(line);
   }
@@ -3354,9 +3558,9 @@
     $('#targetInfo').style.visibility = '';
     vanHole.visible = vanDoorPanel.visible = false;
     gs.phase = 'morning';
-    const alarm = pick(L.alarm);
+    const alarm = fresh(L.alarm);
     const driveTo = (snooze) => {
-      const d = pick(L.drive);
+      const d = fresh(L.drive);
       gs.t = 5 * 60 + 25 + snooze + d[1];
       modal({
         who: 'On the way', title: 'The drive in', text: d[0],
@@ -3387,11 +3591,11 @@
     } else if (late > 15) {
       toast(`You arrive at ${clock(gs.t)}. Not first on site. The birds are disappointed.`, 'warn');
     } else {
-      toast(pick(L.arrive));
+      toast(fresh(L.arrive));
     }
     at(gs.pumpAt, pumpArrives);
     if (day.pumpDelay >= 25 && gs.t < 7 * 60 - 5) {
-      at(6 * 60 + 50, () => toast(pick(L.pumpLate).replace('{eta}', clock(gs.pumpAt)), 'warn'));
+      at(6 * 60 + 50, () => toast(fresh(L.pumpLate).replace('{eta}', clock(gs.pumpAt)), 'warn'));
     }
     buildPrepMarkers();
   }
@@ -3424,7 +3628,7 @@
         t.bar.visible = false;
         t.twist.visible = true;
         const left = site.ties.filter((x) => !x.done).length;
-        toast(pick(L.tie) + (left ? ` ${left} to go.` : ' That\'s the mesh tied.'));
+        toast(fresh(L.tie) + (left ? ` ${left} to go.` : ' That\'s the mesh tied.'));
       }, { tool: 'pliers', w: 2.2 });
     });
     site.cuts.forEach((t, k) => {
@@ -3433,7 +3637,7 @@
         t.bar.scale.y = 0.08;
         t.bar.position.y = rebarY() + 0.03;
         sfx('snip', t.x, t.z);
-        toast(pick(L.cut));
+        toast(fresh(L.cut));
       }, { tool: 'cutter', w: 2.2 });
     });
   }
@@ -3470,7 +3674,7 @@
     if (gs.phase === 'prep') gs.phase = 'pipes';
     if (boom) {
       gs.boomSetAt = gs.t + 2;
-      modal({ who: 'Pump driver', title: 'The boom pump is here.', voice: 'pump', text: pick(L.pumpArrive) + '\n\nNo pipes to carry today. He puts the legs down and swings the boom over the slab; the hose hangs off the end and he follows you with it on his remote. Mostly.', choices: [{ label: 'Lovely', primary: true }] });
+      modal({ who: 'Pump driver', title: 'The boom pump is here.', voice: 'pump', text: fresh(L.pumpArrive) + '\n\nNo pipes to carry today. He puts the legs down and swings the boom over the slab; the hose hangs off the end and he follows you with it on his remote. Mostly.', choices: [{ label: 'Lovely', primary: true }] });
       at(gs.t + 12, () => {
         gs.pipes = 6;
         gs.tools.hose = { in: 'ground', x: SLAB.x1 - 1.5, z: gz(ENTRY.j) + 0.5, yaw: Math.PI / 2 };
@@ -3479,12 +3683,12 @@
       });
     } else {
       pile.visible = true;
-      modal({ who: 'Pump driver', title: 'The pump is here.', voice: 'pump', text: pick(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
+      modal({ who: 'Pump driver', title: 'The pump is here.', voice: 'pump', text: fresh(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
       buildPipeMarkers();
     }
     const first = Math.max(7 * 60 + 30 + day.truckDelays[0], gs.t + 25);
     scheduleTruck(first);
-    if (first - (7 * 60 + 30) >= 20) at(Math.max(gs.t + 5, 7 * 60 + 25), () => toast(pick(L.truckLate).replace('{eta}', clock(first)), 'warn'));
+    if (first - (7 * 60 + 30) >= 20) at(Math.max(gs.t + 5, 7 * 60 + 25), () => toast(fresh(L.truckLate).replace('{eta}', clock(first)), 'warn'));
   }
 
   function buildPipeMarkers() {
@@ -3499,7 +3703,7 @@
         gs.pipes++;
         sfx('clank', p.x, p.z);
         pipeMeshes.push(pipeBetween(k === 0 ? POS.pumpOut : PIPE_ROUTE[k - 1], p));
-        toast(pick(L.pipe));
+        toast(fresh(L.pipe));
         gs.energy = clamp(gs.energy - 2, 0, 100);
         if (gs.pipes === 6) {
           // the rubber end hose goes on the last pipe and lies at the edge of the slab
@@ -3516,7 +3720,7 @@
     const no = gs.truckNo + 1;
     gs.nextTruckAt = when;
     at(when, () => truckArrives(no));
-    if (when - gs.t >= 30 && no > 1) toast(pick(L.truckLate).replace('{eta}', clock(when)), 'warn');
+    if (when - gs.t >= 30 && no > 1) toast(fresh(L.truckLate).replace('{eta}', clock(when)), 'warn');
   }
 
   function truckArrives(no) {
@@ -3549,7 +3753,7 @@
     if (day.trouble === 'empty') {
       remember('The mixer came empty.');
       modal({
-        who: 'Mixer driver', title: 'The drum is empty.', text: pick(L.emptyTruck) + '\n\nThe plant can send another one.', voice: 'truck',
+        who: 'Mixer driver', title: 'The drum is empty.', text: fresh(L.emptyTruck) + '\n\nThe plant can send another one.', voice: 'truck',
         choices: [{ label: 'Get on the phone to the plant', primary: true, fn: () => { toast('The plant: "Another one\'s on its way." Somebody at the plant is laughing.', 'warn'); another(45, 80); } }],
       });
       return;
@@ -3606,7 +3810,7 @@
     }
     modal({
       who: `Mixer driver · ${volumeNeeded().toFixed(1)} m³ needed`, title: 'The concrete is here.', voice: 'truck',
-      text: pick(L.truckDriver) + '\n\n' + mixText + `\n\n${day.boom ? 'Pick up the hose hanging off the boom, over the east edge — the boom follows you' : 'Pick up the hose at the end of the line, on the east edge'} — and look at where it goes. Float it to the laser with the float from the tarp. Aim for ${day.thick} mm everywhere. Don't pour more than you need: ${orderedM3().toFixed(1)} m³ ordered, in ${trucksOrdered()} ${trucksOrdered() > 1 ? 'trucks' : 'truck'}.`,
+      text: fresh(L.truckDriver) + '\n\n' + mixText + `\n\n${day.boom ? 'Pick up the hose hanging off the boom, over the east edge — the boom follows you' : 'Pick up the hose at the end of the line, on the east edge'} — and look at where it goes. Float it to the laser with the float from the tarp. Aim for ${day.thick} mm everywhere. Don't pour more than you need: ${orderedM3().toFixed(1)} m³ ordered, in ${trucksOrdered()} ${trucksOrdered() > 1 ? 'trucks' : 'truck'}.`,
       choices,
     });
   }
@@ -3660,19 +3864,19 @@
         `\n\nWash your tools at the water tank before they set. The pump driver does his own pipes.`,
       choices: [{ label: 'To the tank', primary: true }],
     });
-    at(gs.t + 6, () => { toast(pick(L.wash)); });
+    at(gs.t + 6, () => { toast(fresh(L.wash)); });
     const rep = slabReport(), v = { d: Math.abs(rep.off).toFixed(0), t: day.thick, r: rep.sd.toFixed(1), h: dur(gs.pourMins) };
     const moan = [];
-    if (rep.off < -4) moan.push(fillIn(pick(L.badPour.thin), v));
-    if (rep.off > 5) moan.push(fillIn(pick(L.badPour.thick), v));
-    if (rep.sd > 5) moan.push(fillIn(pick(L.badPour.bumpy), v));
-    if (rep.slowBy > 10) moan.push(fillIn(pick(L.badPour.slow), v));
+    if (rep.off < -4) moan.push(fillIn(fresh(L.badPour.thin), v));
+    if (rep.off > 5) moan.push(fillIn(fresh(L.badPour.thick), v));
+    if (rep.sd > 5) moan.push(fillIn(fresh(L.badPour.bumpy), v));
+    if (rep.slowBy > 10) moan.push(fillIn(fresh(L.badPour.slow), v));
     if (moan.length) {
       at(gs.t + 4, () => {
         remember('The foreman called about the pour. Words like "pay" and "cut" were used.');
         modal({
           who: 'Phone · the foreman', title: moan.length > 1 ? 'He has a list.' : 'He has a point.', sound: 'ring', voice: 'foreman',
-          text: moan.join('\n\n') + '\n\n' + L.badPour.close,
+          text: moan.join('\n\n') + '\n\n' + fresh(L.badPour.close),
           choices: [
             { label: 'Yes, boss.', primary: true, fn: () => toast('"Yes boss" is free. It\'s the only thing today that was.') },
             { label: 'Blame the laser', fn: () => toast('The laser has a lawyer. You do not.', 'warn') },
@@ -3784,7 +3988,7 @@
       text: L.tooLate.text.replace('{what}', what.join(', ')),
       choices: [
         { label: 'Throw everything in the van', primary: true, fn: () => packUp() },
-        { label: 'Stare at it a bit longer', fn: () => toast(pick(L.tooLate.stare), 'warn') },
+        { label: 'Stare at it a bit longer', fn: () => toast(fresh(L.tooLate.stare), 'warn') },
       ],
     });
   }
@@ -3826,7 +4030,7 @@
     const t0 = 0.9;
     items.forEach((it, k) => { it.at = t0 + k * 0.65; it.dur = it.machine ? 1.25 : 0.85; });
     gs.packing = { t: 0, items, doneAt: (items.length ? items[items.length - 1].at + items[items.length - 1].dur : t0) + 1.2, stage: 0, hand: 0, machine: 0 };
-    toast(pick(L.packUp.start), 'warn');
+    toast(fresh(L.packUp.start), 'warn');
     if (gs.tools.rideOn && gs.tools.rideOn.in === 'ground') setTimeout(() => toast(L.packUp.rideOn), 1800);
   }
   function updatePack(dt) {
@@ -3845,9 +4049,9 @@
         it.obj.visible = true;
         if (it.id !== 'laser') gs.tools[it.id].in = 'flying';
         sfx(it.machine ? 'thunk' : 'pickup');
-        if (it.machine && !pk.saidMachine) { pk.saidMachine = true; toast(pick(L.packUp.machine), 'warn'); }
+        if (it.machine && !pk.saidMachine) { pk.saidMachine = true; toast(fresh(L.packUp.machine), 'warn'); }
         else if (it.id === 'laser') toast(L.packUp.laser);
-        else if (!it.machine && !pk.saidHand) { pk.saidHand = true; setTimeout(() => toast(pick(L.packUp.hand)), 500); }
+        else if (!it.machine && !pk.saidHand) { pk.saidHand = true; setTimeout(() => toast(fresh(L.packUp.hand)), 500); }
       }
       const u = clamp((pk.t - it.at) / it.dur, 0, 1), h = it.machine ? 1.2 : 1.9;
       it.obj.position.set(lerp(it.from.x, VAN_IN.x, u), lerp(it.from.y, VAN_IN.y, u) + h * 4 * u * (1 - u), lerp(it.from.z, VAN_IN.z, u));
@@ -4179,7 +4383,7 @@
     if (gs.mixState === 'stiff' && chance(0.025 * dt)) {
       gs.blocked = irnd(1, 5);
       gs.stats.blockages++;
-      toast(pick(L.blocked), 'warn');
+      toast(fresh(L.blocked), 'warn');
       blockMarker();
     }
     const weakAt = site.forms.findIndex((f) => f.run === site.weak);
@@ -4199,7 +4403,7 @@
     const m = addMarker('block', at2, day.boom ? 'Hit the boom pipe!' : 'Hit the pipe!', 2.4, () => gs.blocked >= 0, () => {
       gs.blocked = -1;
       sfx('splash');
-      toast(pick(L.unblocked), 'good');
+      toast(fresh(L.unblocked), 'good');
       removeMarker(m);
     }, { w: 2.2, tool: 'hammer' });
   }
@@ -4465,7 +4669,7 @@
     simulate(2, awayNow());
     cupT = 1.6;
     sfx('slurp');
-    toast(`${pick(L.coffee)} (${gs.cups} left)`);
+    toast(`${fresh(L.coffee)} (${gs.cups} left)`);
   }
   function showWait() {
     const b = $('#waitBadge');
@@ -4477,7 +4681,7 @@
   }
   function waitMenu() {
     if (gs.waitMode || gs.fastForward) {
-      if (gs.waitMode === 'van') { player.x = POS.vanDoor.x; player.z = POS.vanDoor.z; toast(pick(L.vanNap)); }
+      if (gs.waitMode === 'van') { player.x = POS.vanDoor.x; player.z = POS.vanDoor.z; toast(fresh(L.vanNap)); }
       gs.waitMode = null; gs.fastForward = null; showWait();
       return;
     }
@@ -4559,7 +4763,7 @@
       player.stepAcc += moved;
       if (gs.phase === 'pour' && gs.pourStarted && now.fill > 30) {
         if (!gs.fellInPour && filledShare() > 0.2 && chance(0.0015)) { gs.fellInPour = true; fall(); }
-        else if (chance(0.0025) && performance.now() > stuckMsg) { gs.stuckUntil = performance.now() + 2600; stuckMsg = performance.now() + 60000; toast(pick(L.stuck)); }
+        else if (chance(0.0025) && performance.now() > stuckMsg) { gs.stuckUntil = performance.now() + 2600; stuckMsg = performance.now() + 60000; toast(fresh(L.stuck)); }
       }
       // your own boots print too, for as long as the concrete takes a print — troweled or not.
       // Walking behind a machine the step is flatter and lighter; on the ride-on you're sitting.
@@ -4755,8 +4959,53 @@
     } else mixGuy.visible = false;
   }
 
+  // ------------------------------------------------------------------ chatter
+  // Every minute or two, when nobody else is talking: a thought of your own, a text from somebody,
+  // the pump's radio, a neighbour at a window, or the drivers. On screen and out loud.
+  let chatterAt = 0;
+  function updateChatter() {
+    const now = performance.now();
+    const quiet = gs.phase === 'prep' || gs.phase === 'pipes' || gs.phase === 'pour' || gs.phase === 'wash' || gs.phase === 'cure';
+    if (!chatterAt) chatterAt = now + rnd(35, 60) * 1000;
+    if (now < chatterAt || !quiet || gs.packing || gs.waitMode === 'van') return;
+    // somebody is already talking: wait for them to finish
+    if (now < duckUntil + 2500) { chatterAt = now + 4000; return; }
+    chatterAt = now + rnd(50, 95) * 1000;
+    const kinds = [[3, 'thought'], [2.5, 'text']];
+    const radioFrom = pump.visible && gs.pumpHere ? 'The pump\'s radio' : mixer.visible && gs.truck ? 'The mixer\'s radio' : null;
+    if (radioFrom) kinds.push([2, 'radio']);
+    if ((gs.phase === 'pour' || gs.phase === 'pipes') && gs.pumpHere) kinds.push([2.5, 'crew']);
+    const h = (gs.t % 1440) / 60;
+    kinds.push([h < 8 || h > 19 ? 1.6 : 0.6, 'neighbour']);
+    const kind = weighted(kinds);
+    if (kind === 'thought') {
+      const l = fresh(L.thoughts);
+      toast(l);
+      say(l, 'me');
+    } else if (kind === 'text') {
+      const [from, voice, text] = fresh(L.texts);
+      sfx('buzz');
+      toast(`Text from ${from}: ${text}`);
+      say(text, voice);
+    } else if (kind === 'radio') {
+      const l = fresh(L.radio);
+      toast(`${radioFrom}: ${l}`);
+      say(l, 'radio');
+    } else if (kind === 'crew') {
+      const l = fresh(L.pourJokes.concat(L.driverTalk, L.mixTalk));
+      toast(l);
+      if (/^Pump driver/.test(l)) say(l, 'pump');
+      else if (/^Mixer driver/.test(l)) say(l, 'truck');
+    } else {
+      const l = fresh(L.neighbour);
+      toast(`A window across the road opens. ${l}`, 'warn');
+      say(l, 'neighbour');
+    }
+  }
+
   function updateWorld(dt) {
     updateBoom(dt);
+    updateChatter();
     for (let k = drives.length - 1; k >= 0; k--) {
       const d = drives[k];
       d.t += dt / d.seconds;
@@ -5399,6 +5648,7 @@
   // ------------------------------------------------------------------ title
   function showTitle() {
     newCast();
+    chatterAt = 0;
     day = newDay();
     gs = freshState();
     buildSite();
@@ -5545,7 +5795,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), L, get cast() { return cast; },
+      sayTest: (t, w) => say(t, w), chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
       odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
