@@ -965,6 +965,21 @@
 
   // task markers
   const markers = [];
+  const PROG_SEGS = 48;
+  /** Fills a marker's ring to `frac` of the way round, starting from the side away from you. */
+  function ringProgress(m, frac) {
+    const on = frac > 0;
+    m.progPivot.visible = on;
+    m.ringMat.color.setHex(on ? 0x8a3a10 : 0xff6b1a);
+    if (!on) { m.quarter = 0; return; }
+    const dx = m.x - player.x, dz = m.z - player.z;
+    m.progPivot.rotation.y = Math.atan2(-dz, dx);
+    m.prog.geometry.setDrawRange(0, 6 * Math.max(1, Math.round(PROG_SEGS * frac)));
+    // a tick at every quarter, so it can be heard filling as well as seen
+    const q = Math.floor(frac * 4);
+    if (q > m.quarter && q < 4) sfx('click');
+    m.quarter = q;
+  }
   function addMarker(id, p, label, hold, active, done, opts) {
     const g = new THREE.Group();
     const ringMat = new THREE.MeshBasicMaterial({ color: 0xff6b1a });
@@ -972,6 +987,18 @@
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.06;
     g.add(ring);
+    // the hold countdown, drawn round the ring itself: a flat band laid over it that grows
+    // clockwise from the far side as the button is held. A ring with one row of segments keeps
+    // its triangles in angle order, so showing the first part of the list shows part of the arc.
+    const progGeo = new THREE.RingGeometry(0.46, 0.65, PROG_SEGS, 1);
+    progGeo.setDrawRange(0, 0);
+    const prog = new THREE.Mesh(progGeo, new THREE.MeshBasicMaterial({ color: 0xfff1c2, side: THREE.DoubleSide }));
+    prog.rotation.x = Math.PI / 2;    // flat, and the angle runs clockwise seen from above
+    const progPivot = new THREE.Group();
+    progPivot.position.y = 0.12;
+    progPivot.add(prog);
+    progPivot.visible = false;
+    g.add(progPivot);
     const beamM = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.4, 8), new THREE.MeshBasicMaterial({ color: 0xff6b1a, transparent: true, opacity: 0.35 }));
     beamM.position.y = 1.2;
     g.add(beamM);
@@ -981,7 +1008,7 @@
     g.position.set(p.x, (opts && opts.y) || 0, p.z);
     g.visible = false;
     scene.add(g);
-    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, sprite };
+    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, ringMat, prog, progPivot, quarter: 0, sprite };
     markers.push(m);
     return m;
   }
@@ -3086,7 +3113,11 @@
       markers.forEach((m) => {
         const on = m.active();
         m.group.visible = on;
-        if (on) m.ring.scale.setScalar(1 + Math.sin(now / 250) * 0.08);
+        if (!on) return;
+        const frac = m === nearMarker && input.action && lastCtxKind === 'marker' ? clamp(holdT / m.hold, 0, 1) : 0;
+        // steady while it fills, so the countdown sits exactly on the ring
+        m.ring.scale.setScalar(frac > 0 ? 1 : 1 + Math.sin(now / 250) * 0.08);
+        ringProgress(m, frac);
       });
     }
     if (cellsDirty) paintCells();
