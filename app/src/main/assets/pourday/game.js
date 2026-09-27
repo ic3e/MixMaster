@@ -1133,6 +1133,9 @@
       [[-3.5, -2], [-1.2, -3.5], [1.2, -3.5], [3.5, -2]].forEach(([x, y]) => ell(x, y, 1.1, 1.1));
     } else if (m.kind === 'butt') {
       ell(-9, 0, 9, 13, 0.15); ell(9, 0, 9, 13, -0.15);
+    } else if (m.kind === 'knee') {
+      ell(-7, -4, 5, 7); ell(7, -4, 5, 7);
+      ell(-7, 14, 3.5, 3); ell(7, 14, 3.5, 3);
     } else if (m.kind === 'line') {
       g.fillRect(-2, -40, 4, 80);
     } else if (m.kind === 'rain') {
@@ -2122,12 +2125,12 @@
   // surface is redrawn — so a machine wearing it down shows it fading, pass by pass, not all at once.
   /** How deep a print goes: to the laces in fresh concrete, a dent at 60%. */
   function markDepth() { return clamp((65 - gs.H) / 45, 0.3, 1); }
-  function stamp(kind, x, z, rot, silent) {
+  function stamp(kind, x, z, rot, silent, scale) {
     const c = cellAt(x, z);
     if (!c || !gs.poured || gs.H >= 60 || c.fill < 20) return false;
     // enough to read as trampled; more would only make every redraw slower
     if (c.marks.length >= 16) return false;
-    c.marks.push({ kind, x, z, rot: rot || 0, depth: markDepth() });
+    c.marks.push({ kind, x, z, rot: rot || 0, depth: markDepth() * (scale || 1) });
     surfDirty = true;
     if (!silent) gs.stats.prints++;
     return true;
@@ -2147,6 +2150,15 @@
     surfDirty = true;
     if (c.marks.length < before && !c.marks.length) { gs.stats.repaired++; return true; }
     return false;
+  }
+  /** Hand troweling a corner or collar: you trowel your way back out, knees and boots included. */
+  function troweledOut(x1, z1, x2, z2) {
+    gs.cells.forEach((c) => {
+      if (!c.marks.length || c.defect) return;
+      const n = c.marks.length;
+      c.marks = c.marks.filter((m) => hyp(m.x, m.z, x1, z1) > 0.9 && hyp(m.x, m.z, x2, z2) > 0.9);
+      if (c.marks.length !== n) surfDirty = true;
+    });
   }
   /** The turn about the vertical that points a mark's toe (drawn towards -z) along dx, dz. */
   function headingOf(dx, dz) { return Math.atan2(-dx, -dz); }
@@ -2696,7 +2708,7 @@
       unloadTools();
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
       sfx('clank', POS.vanDoor.x, POS.vanDoor.z);
-      toast('Tools out on the blue tarp: float, hand trowel, hammer, pliers and wire, rebar cutter. The trowels stand next to it.' + (day.area > 50 ? ' The ride-on came too.' : ''));
+      toast('Tools out on the blue tarp: float, hand trowel, hammer, pliers and wire, rebar cutter. The trowels stand next to it.' + (day.area > 50 ? ' The ride-on came too.' : '') + ' Look at one and press Pick up.');
     });
     site.forms.forEach((f, k) => {
       addMarker('form' + k, f, 'Check formwork', 1.8, () => !gs.prep.form[k] && !gs.pourStarted, () => {
@@ -2945,6 +2957,7 @@
         if (gs.H < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
+        troweledOut(e.x, e.z, player.x, player.z);
         const left = site.edges.length - gs.edgesDone;
         if (gs.H > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
         else toastOnce('edge', `${e.label} done. ${left ? `${left} to go.` : 'That\'s all the edges.'}`, 'good', 8000);
@@ -3149,25 +3162,18 @@
     if (player.fall > 0) return null;
     if (gs.fitting) return { kind: 'none', label: gs.fitting.label };
     // a tool at your feet wins over a job a step further off, so the tarp is not a lottery
-    const toolFirst = nearTool && (!nearMarker || nearToolD + 0.4 < nearMarkerD);
     // a job the tool in hand won't do doesn't stop that tool doing its own work; it only says
     // what it needs when there is nothing else to do here
     let needs = null;
-    if (nearMarker && !toolFirst) {
+    if (nearMarker) {
       if (fitsJob(nearMarker.tool)) return { kind: 'marker', label: nearMarker.label, hold: holdOf(nearMarker) };
       wantTool = [].concat(nearMarker.tool)[0];
       needs = { kind: 'none', label: `Needs ${TOOLS[wantTool].the}` };
     }
-    const own = toolContext(toolFirst);
+    const own = toolContext();
     return own.kind === 'none' && needs ? needs : own;
   }
-  function toolContext(toolFirst) {
-    if (toolFirst) {
-      const T = TOOLS[nearTool];
-      if (T.ride) return { kind: 'pickup', label: `Get on the ride-on (${gs.fit[nearTool]})` };
-      if (T.machine) return { kind: 'pickup', label: `Take the ${T.name.toLowerCase()} (${gs.fit[nearTool]})` };
-      return { kind: 'pickup', label: `${held() ? 'Swap for' : 'Pick up'}: ${T.name.toLowerCase()}` };
-    }
+  function toolContext() {
     const w = walkerInSight();
     if (w) return { kind: 'shout', label: w.kind === 'driver' ? 'Talk' : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
     const t = gs.tool;
@@ -3212,7 +3218,6 @@
       }
       return;
     }
-    if (ctx.kind === 'pickup') { if (input.actionTapped) pickUp(nearTool); return; }
     if (ctx.kind === 'shout') { if (input.actionTapped) shoutAt(ctx.w); return; }
     if (ctx.kind === 'pour') pourTick(dt);
     else if (ctx.kind === 'level') levelTick(target, dt);
@@ -3450,7 +3455,7 @@
     input.keys[e.code] = true;
     if (modalOpen || gs.phase === 'title' || gs.phase === 'end') return;
     if (e.code === 'KeyE' || e.code === 'Space') { if (!input.action) input.actionTapped = true; input.action = true; e.preventDefault(); }
-    if (e.code === 'KeyQ') putDown();
+    if (e.code === 'KeyQ') toolButton();
     if (e.code === 'KeyL') altButton();
     if (e.code === 'KeyT') waitMenu();
     if (e.code === 'KeyC') coffee();
@@ -3484,7 +3489,17 @@
     actId = null;
     input.action = false; btnAction.classList.remove('held');
   }));
-  $('#btnTool').addEventListener('click', () => { if (held()) putDown(); else toastOnce('hands', 'Your hands are empty. Tools are on the tarp by the van, or wherever you left them.', '', 20000); });
+  /**
+   * The tool button picks up and puts down. Picking up is only ever this button, never the work
+   * button: holding the work button to look round the tarp used to pick up whatever it passed over.
+   */
+  function toolButton() {
+    if (gs.carrying) { toastOnce('carry', 'Both hands are on what you\'re carrying.', '', 20000); return; }
+    if (nearTool) pickUp(nearTool);
+    else if (held()) putDown();
+    else toastOnce('hands', 'Your hands are empty. Look at a tool — on the tarp by the van, or wherever you left it — and press Pick up.', '', 20000);
+  }
+  $('#btnTool').addEventListener('click', () => toolButton());
   $('#btnLaser').addEventListener('click', () => altButton());
   $('#btnWait').addEventListener('click', () => waitMenu());
   $('#btnCoffee').addEventListener('click', () => coffee());
@@ -3612,11 +3627,15 @@
         if (!gs.fellInPour && filledShare() > 0.2 && chance(0.0015)) { gs.fellInPour = true; fall(); }
         else if (chance(0.0025) && performance.now() > stuckMsg) { gs.stuckUntil = performance.now() + 2600; stuckMsg = performance.now() + 60000; toast(pick(L.stuck)); }
       }
-      if (gs.poured && gs.H < 30 && !isMachine(gs.tool) && player.stepAcc > 0.75) {
+      // your own boots print too, for as long as the concrete takes a print — troweled or not.
+      // Walking behind a machine the step is flatter and lighter; on the ride-on you're sitting.
+      if (gs.poured && gs.tool !== 'rideOn' && player.stepAcc > 0.72) {
         player.stepAcc = 0;
-        if (stamp('boot', player.x, player.z, player.yaw)) {
+        const side = (Math.floor(player.bob / Math.PI) % 2 ? 0.12 : -0.12);
+        const px = player.x + Math.cos(player.yaw) * side, pz = player.z - Math.sin(player.yaw) * side;
+        if (stamp('boot', px, pz, player.yaw, true, isMachine(gs.tool) ? 0.6 : 1)) {
           gs.stats.own++;
-          if (gs.stats.own === 1) toast('You are leaving footprints in your own slab. The dog is laughing at you.', 'warn');
+          toastOnce('own', gs.panPasses.length ? 'Your boots are printing in your fresh trowel work. The next pass can take them — while it\'s still soft enough.' : 'You are leaving footprints in your own slab. The dog is laughing at you.', 'warn', 120000);
         }
       }
       if (machineTool() && input.action && chance(0.006 * digFactor())) fall('The machine digs in, twists, and throws you on your butt. Told you it was early.');
@@ -3646,18 +3665,21 @@
     nearMarkerD = best;
     nearTool = null; nearToolD = 9;
     if (!gs.carrying && player.fall <= 0 && gs.waitMode !== 'van' && !gs.fitting) {
-      const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
-      let bestS = -9;
+      // the tool you are looking at: at a hand tool where it lies, at a machine's handle
+      camera.getWorldDirection(tmpV);
+      const o = camera.position;
+      let bestA = 9;
       for (const id of TOOL_IDS) {
         const tl = gs.tools[id];
         if (!tl || tl.in !== 'ground') continue;
         const g = gripOf(id);
         const d = hyp(g.x, g.z, player.x, player.z);
-        if (d > 1.8) continue;
-        const dot = d > 0.01 ? ((g.x - player.x) * fx + (g.z - player.z) * fz) / d : 1;
-        if (dot < 0.1 && d > 0.9) continue;
-        const score = dot * 1.2 - d;
-        if (score > bestS) { bestS = score; nearTool = id; nearToolD = d; }
+        if (d > 2.2) continue;
+        const gy = isMachine(id) ? (TOOLS[id].ride ? 0.8 : 0.9) : 0.05;
+        const dx = g.x - o.x, dy = gy - o.y, dz = g.z - o.z, d3 = Math.hypot(dx, dy, dz);
+        const a = Math.acos(clamp((dx * tmpV.x + dy * tmpV.y + dz * tmpV.z) / d3, -1, 1));
+        // roughly in view counts: a tool on the ground is well below where you usually look
+        if (a < Math.atan((isMachine(id) ? 0.5 : 0.4) / d3) + 0.24 && a < bestA) { bestA = a; nearTool = id; nearToolD = d; }
       }
     }
   }
@@ -3941,7 +3963,10 @@
     // standing on it once it carries you; in it, up to the ankles, while it is wet
     if (c) y += groundY(player.x, player.z) * (gs.phase === 'pour' ? 0.3 : 0.9);
     if (gs.tool === 'rideOn') y = 1.62 + groundY(player.x, player.z);
-    kneel = lerp(kneel, kneeling() ? 1 : 0, 1 - Math.exp(-dt * 6));
+    const knelt = kneeling();
+    if (knelt && !wasKneeling && gs.poured && onSlab(player.x, player.z)) stamp('knee', player.x, player.z, player.yaw, true);
+    wasKneeling = knelt;
+    kneel = lerp(kneel, knelt ? 1 : 0, 1 - Math.exp(-dt * 6));
     y -= kneel * 0.85;
     let roll = 0;
     if (player.fall > 0) {
@@ -3959,7 +3984,7 @@
   }
 
   // ------------------------------------------------------------------ tools, moving
-  let toolT = 0, cupT = 0, lastSwing = 0, kneel = 0;
+  let toolT = 0, cupT = 0, lastSwing = 0, kneel = 0, wasKneeling = false;
   const handPos = new THREE.Vector3();
   /** What the hands are doing at a job marker, when they are doing one. */
   function markerAnim() {
@@ -4190,8 +4215,16 @@
     $('#btnFinish').hidden = !(gs.phase === 'pour' && filledShare() >= 0.97);
     // what is in your hands, and the one thing you can do to it
     const h = held();
-    const toolLabel = gs.carrying ? `Carrying<small>${gs.carrying === 'pipe' ? 'a pipe' : 'the laser'}</small>` : !h ? 'Hands<small>empty</small>' : `${TOOLS[h].ride ? 'Get off' : 'Put down'}<small>${TOOLS[h].name}</small>`;
-    if (toolLabel !== btnState.tool) { btnTool.innerHTML = toolLabel; btnTool.classList.toggle('dim', !h || !!gs.carrying); btnState.tool = toolLabel; }
+    const nt = !gs.carrying && nearTool ? TOOLS[nearTool] : null;
+    const toolLabel = gs.carrying ? `Carrying<small>${gs.carrying === 'pipe' ? 'a pipe' : 'the laser'}</small>`
+      : nt ? `${nt.ride ? 'Get on' : h ? 'Swap' : 'Pick up'}<small>${nt.name}${nt.machine ? ` · ${gs.fit[nearTool]}` : ''}</small>`
+      : !h ? 'Hands<small>empty</small>' : `${TOOLS[h].ride ? 'Get off' : 'Put down'}<small>${TOOLS[h].name}</small>`;
+    if (toolLabel !== btnState.tool) {
+      btnTool.innerHTML = toolLabel;
+      btnTool.classList.toggle('dim', !nt && (!h || !!gs.carrying));
+      btnTool.classList.toggle('ready', !!nt);
+      btnState.tool = toolLabel;
+    }
     const alt = isMachine(h) ? `${gs.fit[h] === 'pans' ? 'Fit blades' : 'Fit pans'}<small>${gs.fit[h]} on</small>` : laserUsable() ? 'Laser' : '';
     if (alt !== btnState.alt) { btnAlt.innerHTML = alt; btnAlt.hidden = !alt; btnState.alt = alt; }
     btnAlt.classList.toggle('on', alt === 'Laser' && gs.laserOn);
@@ -4400,7 +4433,7 @@
   function howToPlay() {
     modal({
       who: 'How to play', title: 'The short version.',
-      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nNothing is in your pocket. The tools wait on the blue tarp by the van, the trowels next to it; walk up, look at one and tap to pick it up. Put down leaves it where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. Home at 95%.',
+      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nNothing is in your pocket. The tools wait on the blue tarp by the van, the trowels next to it; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. Home at 95%.',
       choices: [{ label: 'Back to work', primary: true }],
     });
   }
