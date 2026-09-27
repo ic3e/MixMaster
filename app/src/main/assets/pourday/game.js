@@ -63,8 +63,9 @@
     pump: P(21.5, -3), pumpOut: P(17.9, -2.6),
     mixer: P(23, 4.5),
     pile: P(16.2, 1.6),
-    loo: P(-31, -15),
+    loo: P(-31, -15), looFront: P(-31, -13.7),
     office: P(-34, 13),
+    vanSide: P(-22, 8),
   };
   const PIPE_ROUTE = [P(16.3, -2.3), P(14.1, -2.0), P(11.9, -1.6), P(9.7, -1.1), P(7.7, -0.6), P(6.4, -0.2)];
   const TRUCK_M3 = 8;                 // a full mixer; a small pour comes as a part load
@@ -352,6 +353,154 @@
       '"Can you pick up some screws on the way home? And a new van? Joking. Screws."',
     ],
     lunch: 'KEBAB & COFFEE. The owner nods at you like he knows exactly how your day is going.',
+    machineDies: [
+      'The {m} coughs, shudders and dies with a noise like a goat. Smoke. "No. No no no."',
+      'Bang, then silence, then smoke. The {m} has retired. "Not now. Please, not now."',
+      'The {m}\'s gearbox makes a sound you\'ll hear in your dreams, then nothing. "Brilliant. Just brilliant."',
+    ],
+    floatSnaps: [
+      'The float pole folds in half, like it has had enough of you too.',
+      'Crack. The float pole snaps. You\'re holding a stick; the float lies in the concrete like a flag of surrender.',
+    ],
+    hammerBreaks: [
+      'The hammer head flies off and lands in the next postcode.',
+      'You swing. The head stays on the stake. The handle comes back to you, alone.',
+    ],
+    cutterBreaks: [
+      'The cutter handle snaps. The bar wins. The bar always wins in the end.',
+      'Crack: the cutter gives up before the rebar does.',
+    ],
+    washed: [
+      'Clean enough to eat off. Don\'t.',
+      'Water everywhere, mostly on you.',
+      'Shiny. For about ten minutes.',
+      'The water tank is now five per cent concrete.',
+    ],
+    leftTools: [
+      '"You left {t} on site. Do you know what happens to tools left on site? They go to live with the scrap man. He\'s very happy. You\'re not."',
+      '"Did you pack the van with your eyes shut? {t}. Still out there. Waving at the neighbours."',
+      '"I\'m looking at a photo of {t}, lying on site in the dark. The neighbour sent it. He wants to know if he can keep them."',
+    ],
+    dirtyTools: [
+      '"And {d}: covered in concrete. That\'s not a tool any more, that\'s a sculpture. You\'re paying for the sculpture."',
+      '"{d} came back grey. The apprentice will chisel it off. The apprentice is billing you."',
+      '"{d}. Filthy. Did you wash them in the slab?"',
+    ],
+    looOne: [
+      'Number one. The portaloo smells like a festival that went wrong.',
+      'Sweet relief. The door doesn\'t lock. Somebody tries it. You hold it shut with one foot.',
+      'You go. The loo has no paper, one spider, and a phone number on the wall you do not call.',
+    ],
+    looTwo: [
+      'Number two. You sit in a plastic box and think about your choices. Twelve minutes, all of them yours.',
+      'The kebab comes back to visit, and it brings friends. You come out a changed person.',
+      'You do your business. There\'s no paper. There\'s a delivery note. You use the delivery note.',
+    ],
+    looLocked: [
+      '"Occupied!" It\'s the pump driver. It is never five minutes with the pump driver.',
+      'Locked. A voice from inside: "I\'m reading!" Reading what. It\'s a portaloo.',
+      '"Someone\'s in here!" It\'s the kebab man. He doesn\'t even work here.',
+    ],
+    weeSoon: [
+      '"I need a wee."',
+      '"Should not have had that third coffee."',
+      '"Right. Loo. Soon."',
+    ],
+    pooSoon: [
+      '"Oh no. The kebab."',
+      '"That is not a noise a stomach should make."',
+      '"The loo. Now. Walk, don\'t run. Running is dangerous."',
+    ],
+    rebarUp: [
+      'A corner of the mesh comes up out of the concrete like a hand from a grave. Push it down before it sets!',
+      'The mesh pops up through the pour. It wants to see the sky. It can\'t. Push it down!',
+      'A bar end rises out of the grey, slowly, like a periscope. Down with it, now!',
+    ],
+    pumpHelpStart: [
+      '"Give me that. I\'ll show you how it\'s done."',
+      '"You\'re too slow. Move. Watch a professional."',
+      '"The truck\'s been waiting so long it\'s growing moss. Hand it over."',
+    ],
+    pumpHelpEnd: [
+      '"There. You\'re welcome. Level that."',
+      '"Done. Well. More done. Your turn."',
+      '"Faster, see? Some of it\'s a bit high. That\'s a you problem."',
+    ],
+    shovelLines: [
+      'You shovel the hill into the hole. Somewhere, a physiotherapist gets a new car.',
+      'Shovel, shovel, shovel. Your back writes a strongly worded letter.',
+    ],
+    flip: {
+      person: [
+        'They flip you back. Stalemate.',
+        '"Charming!" They clutch their pearls. They don\'t have pearls. They clutch something.',
+        '"I\'m telling your boss!" Your boss would be proud.',
+        'They gasp, then speed up. It works better than shouting.',
+        '"Same to you, pal!" Fair.',
+        'They film you doing it. You\'ll be on the local Facebook group by lunch.',
+      ],
+      nothing: [
+        'You flip off the slab. It doesn\'t care. It\'s concrete.',
+        'You flip off the sky. It starts to drizzle. Coincidence, probably.',
+        'You flip off the day in general. It helps a bit.',
+        'You flip off the van. The van has seen worse.',
+        'You flip off nobody in particular. A crow takes it personally.',
+      ],
+      dog: [
+        'The dog doesn\'t understand. It wags harder.',
+        'The dog tilts its head. You feel bad now.',
+      ],
+    },
+    helper: {
+      names: [
+        'Mart',
+        'Priit',
+        'Kalle',
+        'Siim',
+        'Rein',
+        'Janek',
+        'Aivar',
+        'Toomas',
+      ],
+      sent: [
+        '"It\'s a big one, so I\'m sending you {n}. Try not to break him. He\'s on loan from his mother."',
+        '"I\'m sending {n} over. He\'s new. So is his hard hat. Keep it that way."',
+        '"{n}\'s coming to help. Don\'t let him near the ride-on. Don\'t let him near anything, really."',
+      ],
+      hello: [
+        '"Morning. The manager said you need help. Looking at you, he\'s right."',
+        '"Hi. I\'m {n}. What do I do? Don\'t say \'anything\', I\'m bad at anything."',
+      ],
+      talk: [
+        '"Working with you is the same as working alone, but harder."',
+        '"I\'ve been here two hours and I already need a holiday."',
+        '"Is it always this grey?"',
+        '"My last job was in an office. I miss the chair. I miss every chair."',
+        '"The manager says you\'re the best he\'s got. I\'ve seen what he\'s got."',
+        '"Don\'t worry, I\'m faster than I look. I\'m also slower than I look. It\'s complicated."',
+        '"Can I have a go on the ride-on? No? What if I cry?"',
+        '"I think I\'ve got concrete in my soul now."',
+      ],
+      flipped: [
+        '{n} flips you back. It\'s the most work he\'s done all day.',
+        '"Nice. I\'m telling my mum."',
+      ],
+      oops: [
+        '{n} walks straight across the slab to ask you something. "Oops." Twelve footprints of oops.',
+        '{n} goes to get his phone from the other side. Across the slab. "It was quicker."',
+      ],
+      bye: [
+        '"My shift\'s over. Good luck. You\'ll need it."',
+        '"I\'m off. Same time tomorrow? Please say no."',
+      ],
+    },
+    vanSpill: [
+      'You open the doors. Out comes {t}, the way it always does.',
+      'Doors open. Out slides {t}. The van has been holding a grudge since Tuesday.',
+      'You open the back and out jumps {t}. Somewhere, the man who packed the van laughs.',
+      'The doors swing open and the van spits out {t}. It does this every morning.',
+      'Out of the van before you touch anything: {t}. Good morning to you too.',
+    ],
     vanNap: [
       'You wake up with the seatbelt printed on your face.',
       'You dreamt about troweling. Very relaxing. Then you woke up and had to do it.',
@@ -470,6 +619,8 @@
       noBlade: ['No blade pass. You\'ll call it "matte finish". They won\'t', 'Shine not included'],
       roughEdges: ['{n} edges left rough, like your manners'],
       thrown: ['{n} tools thrown in the van: dents at cost, plus feelings', 'Tool abuse ({n} airborne)'],
+      leftTools: ['Tools left on site ({n}): the yard sends a van for them, and you pay for the van', 'Abandoned equipment ({n}). The scrap man says thank you'],
+      dirtyTools: ['Concrete on the tools ({n}), chiselled off by an apprentice who hates you', 'Tool cleaning ({n}), billed at therapy rates'],
       verdictGood: ['"Not bad. Don\'t let it go to your head, your head is already big enough."', '"Good slab. I\'ll pretend I did it when I tell the client."', '"Good work. Don\'t tell anyone I said that. Especially you."', '"If you keep this up I\'ll have to pay you properly. So don\'t keep it up."', '"The client cried. Good tears. I checked."'],
       verdictBad: ['"That\'s your whole day\'s pay gone. You know what that is? Character building."', '"You owe us money. We\'ll take it in coffee. Six months of coffee."', '"Next time I\'m hiring the dog. It leaves fewer marks and it works for sausages."', '"I\'ve seen better floors in a skip. The skip was cheaper, too."', '"Take tomorrow off. Take the month off. Take a hint."', '"Somewhere there\'s a job you\'d be good at. We haven\'t found it, but it\'s out there."', '"You owe us money. We\'ll take it out of your next life."'],
       verdictMeh: ['"It\'ll do. Things that \'will do\' are why I drink."', '"Could be worse. Could also be a lot better. It\'s mostly the second one."', '"It\'s fine. Fine is the worst word I know, and I just used it on you."', '"Not good, not bad. You\'re the beige of concrete."', '"The client says it\'s a floor. That\'s the nicest thing anyone\'s said about your work."'],
@@ -560,9 +711,11 @@
   // ------------------------------------------------------------------ one day
   let day;
   function newDay() {
+    ENTRY.j = irnd(3, NZ - 4);
     const shape = makeShape();
     const season = pick(['winter', 'spring', 'summer', 'summer', 'autumn', 'autumn']);
     const baseTemp = { winter: rnd(-3, 4), spring: rnd(6, 14), summer: rnd(16, 27), autumn: rnd(3, 11) }[season];
+    const indoor = chance(0.25);
     return {
       season,
       baseTemp: Math.round(baseTemp * 10) / 10,
@@ -576,12 +729,21 @@
       batteryDies: chance(0.35),
       dogChance: rnd(0.18, 0.32),
       ...shape,
-      boom: chance(shape.area > 80 ? 0.65 : 0.35),
+      indoor,
+      boom: !indoor && chance(shape.area > 80 ? 0.65 : 0.35),
+      surpriseBlowout: chance(0.2),
+      helper: shape.area >= 90 && chance(0.85),
+      rebarLift: chance(0.5) ? rnd(0.2, 0.7) : 0,
+      pumpHelps: chance(0.5),
+      breakTool: chance(0.45) ? pick(shape.area > 50 ? ['trowelBig', 'trowelSmall', 'rideOn'] : ['trowelBig', 'trowelSmall']) : null,
+      breakAfter: rnd(15, 60),
       trouble: weighted([[0.55, null], [0.3, 'wrong'], [0.15, 'empty']]),
       troubleTruck: chance(0.6) ? 1 : 2,
       wrongKind: pick(['grade', 'screed', 'fibre', 'other']),
     };
   }
+  /** Where people and dogs come from today: anywhere, or on an inside day only through the open ends. */
+  function sidesToday() { return day && day.indoor ? ['w', 'e'] : SIDES; }
   function tempAt(t) { return day.baseTemp + 4 * Math.sin(2 * Math.PI * (t - 540) / 1440); }
   function volumeNeeded() { return (day.area * day.thick) / 1000; }
   /** What was ordered: the volume and a few per cent, to the half cubic metre, in loads of up to 8 m³. */
@@ -628,7 +790,9 @@
       energy: 76, cups: 3, sausage: false,
       tool: 'hands', carrying: null, toolsUnloaded: false,
       tools: {}, fit: { trowelSmall: 'pans', trowelBig: 'pans', rideOn: 'pans' }, fitting: null,
-      prep: { unload: false, form: [false, false], laser: false },
+      prep: { unload: false, form: [false, false], laser: false }, laserInVan: true,
+      dirt: {}, broken: {}, runSecs: {}, charges: [], leftBehind: [], dirtyAtEnd: [], yelledTools: false,
+      needs: { wee: rnd(10, 30), poo: rnd(0, 20), warned: {} },
       laserOn: false, laserBattery: true, laserPacked: false,
       pumpAt: 0, pumpHere: false, pipes: 0, pipesGone: 0,
       trucks: [], truck: null, truckNo: 0, truckWaitPaid: 0, pourMins: 0, gaveUp: false, packing: null, thrown: null,
@@ -642,7 +806,7 @@
       waitMode: null, fastForward: null,
       schedule: [], nextNuisance: Infinity, rained: false, lastSleep: 0,
       milestones: {},
-      stats: { hell: 0, crossed: 0, dogs: 0, falls: 0, prints: 0, repaired: 0, blockages: 0, coffee: 0, own: 0, dug: 0 },
+      stats: { hell: 0, crossed: 0, dogs: 0, falls: 0, prints: 0, repaired: 0, blockages: 0, coffee: 0, own: 0, dug: 0, flips: 0 },
       story: [],
       grid, cells,
     };
@@ -778,6 +942,8 @@
   const loo = new THREE.Group();
   box(1.1, 2.2, 1.1, 0x2c6ad6, 0, 1.1, 0, loo);
   box(1.2, 0.08, 1.2, 0x1d4a99, 0, 2.24, 0, loo);
+  box(0.8, 1.9, 0.04, 0x1d4a99, 0, 1.0, 0.56, loo);
+  box(0.16, 0.06, 0.03, 0xd83a2e, 0.25, 1.1, 0.59, loo);
   loo.position.set(POS.loo.x, 0, POS.loo.z);
   scene.add(loo);
 
@@ -798,7 +964,7 @@
   })();
 
   // a work light on a pole by the van, for the dark end of the day
-  cyl(0.07, 0.09, 8, 0x5a5f64, -21, 4, 3);
+  const lampPole = cyl(0.07, 0.09, 8, 0x5a5f64, -21, 4, 3);
   const lamp = box(0.8, 0.35, 0.5, 0xfff3d6, -21, 8, 3);
   lamp.material = new THREE.MeshBasicMaterial({ color: 0x777777 });
 
@@ -863,6 +1029,38 @@
   [-0.45, 0.45].forEach((z) => box(3.4, 0.05, 0.06, 0xc0c4c8, -0.4, 2.63, z, van));
   for (let x = -1.9; x <= 1.1; x += 0.4) box(0.04, 0.04, 0.9, 0xc0c4c8, x, 2.64, 0, van);
   [[-1.7, 1.0], [-1.7, -1.0], [2.3, 1.0], [2.3, -1.0]].forEach(([x, z]) => wheel(van, x, z, 0.38, 0.26));
+  // the back: two doors that swing right round, a ramp that slides out and down, and just inside
+  // the door the laser in its orange case and a bucket of this and that
+  const vanBack = { doors: [], open: 0, want: 0 };
+  [-1, 1].forEach((s) => {
+    const hinge = new THREE.Group();
+    hinge.position.set(-2.7, 0, s * 0.98);
+    box(0.05, 1.8, 0.96, 0xe9e7e2, 0, 1.4, -s * 0.48, hinge);
+    box(0.07, 0.12, 0.08, 0x2a2d31, -0.02, 1.35, -s * 0.86, hinge);
+    box(0.06, 0.16, 0.97, 0xff6b1a, -0.005, 1.12, -s * 0.48, hinge);
+    van.add(hinge);
+    vanBack.doors.push({ hinge, s });
+  });
+  const vanInside = box(0.02, 1.75, 1.85, 0x15171a, -2.665, 1.38, 0, van);
+  vanInside.visible = false;
+  const RAMP_TOP = P(-2.76, 0.78), RAMP_RUN = 2.64;
+  const RAMP_DOWN = Math.atan2(RAMP_TOP.z, RAMP_RUN);
+  const RAMP_LEN = Math.hypot(RAMP_RUN, RAMP_TOP.z);
+  const rampPivot = new THREE.Group();
+  rampPivot.position.set(RAMP_TOP.x, RAMP_TOP.z, 0);
+  box(RAMP_LEN, 0.05, 1.6, 0x8d9297, -RAMP_LEN / 2, 0, 0, rampPivot);
+  for (let k = 1; k < 9; k++) box(0.04, 0.025, 1.55, 0x5a5f64, -k * RAMP_LEN / 9, 0.035, 0, rampPivot);
+  rampPivot.visible = false;
+  van.add(rampPivot);
+  const laserCase = new THREE.Group();
+  box(0.62, 0.34, 0.42, 0xd84a2a, 0, 0.17, 0, laserCase);
+  box(0.2, 0.05, 0.05, 0x2a2d31, 0, 0.37, 0, laserCase);
+  laserCase.position.set(-3.05, 0.72, 0.36);
+  laserCase.rotation.z = RAMP_DOWN;
+  van.add(laserCase);
+  const vanBucket = cyl(0.17, 0.14, 0.34, 0x2a2d31, -3.0, 0.9, -0.42, van, 12);
+  vanBucket.rotation.z = RAMP_DOWN;
+  laserCase.visible = vanBucket.visible = false;
   const vanLabel = textSprite('THE VAN', { w: 2.2 });
   vanLabel.position.set(0, 3.2, 0);
   van.add(vanLabel);
@@ -1213,6 +1411,41 @@
     const b = box(w, h, d, townMats[k % townMats.length], Math.cos(a) * r, h / 2, Math.sin(a) * r);
     b.rotation.y = -a;
   }
+  // nearer in: houses with pitched roofs, all in two instanced meshes, and a church spire
+  (function houses() {
+    const spots = [];
+    for (let k = 0; k < 600 && spots.length < 30; k++) {
+      const a = rnd(-Math.PI, Math.PI), r = rnd(56, 120);
+      const x = Math.cos(a) * r * 1.15, z = Math.sin(a) * r;
+      if (Math.abs(z - 44) < 11 || (Math.abs(x - 50) < 11 && z > -22 && z < 44)) continue;   // the roads
+      if (spots.some((q) => hyp(q[0], q[1], x, z) < 15)) continue;
+      spots.push([x, z, rnd(7, 12), rnd(6, 9), rnd(3.2, 6.5), rnd(0, Math.PI), rnd(2.2, 4)]);
+    }
+    const wallGeo = new THREE.BoxGeometry(1, 1, 1); wallGeo.translate(0, 0.5, 0);
+    const roofGeo = new THREE.CylinderGeometry(0.5, 0.5, 1, 3); roofGeo.rotateX(-Math.PI / 2); roofGeo.translate(0, 0.25, 0);
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0 });
+    townMats.push(wallMat);
+    const walls = new THREE.InstancedMesh(wallGeo, wallMat, spots.length);
+    const roofs = new THREE.InstancedMesh(roofGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), spots.length);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
+    const WALLS = [0xe9e2d0, 0xc9b79c, 0xd9d4c7, 0xa9b8c4, 0xe0c9a6, 0xb65a3c, 0xf0ece2];
+    const ROOFS = [0x7a2e22, 0x3b3f45, 0x5a4a3a, 0x8a3a2a, 0x2f4a5a];
+    spots.forEach(([x, z, w, d, h, yaw, rh], k) => {
+      q.setFromAxisAngle(up, yaw);
+      m4.compose(ps.set(x, 0, z), q, sc.set(w, h, d)); walls.setMatrixAt(k, m4); walls.setColorAt(k, col.setHex(pick(WALLS)));
+      m4.compose(ps.set(x, h, z), q, sc.set(w * 1.2, rh / 0.75, d * 1.08)); roofs.setMatrixAt(k, m4); roofs.setColorAt(k, col.setHex(pick(ROOFS)));
+    });
+    [walls, roofs].forEach((m) => { m.castShadow = true; scene.add(m); });
+    // the church, on the far side of the town
+    const ch = new THREE.Group();
+    box(9, 9, 18, 0xe6e0d2, 0, 4.5, 0, ch);
+    mesh(new THREE.CylinderGeometry(0.5, 0.5, 1, 3).rotateX(-Math.PI / 2).translate(0, 0.25, 0), 0x7a2e22, 0, 9, 0, ch).scale.set(10.8, 6, 19);
+    box(4.5, 16, 4.5, 0xe6e0d2, 0, 8, 10, ch);
+    mesh(new THREE.ConeGeometry(3.2, 11, 4), 0x2f4a5a, 0, 21.5, 10, ch).rotation.y = Math.PI / 4;
+    ch.position.set(-60, 0, 96);
+    ch.rotation.y = 0.4;
+    scene.add(ch);
+  })();
   // a tower crane on the next lot, turning now and then
   const crane = new THREE.Group();
   const latTex = (function () {
@@ -1816,7 +2049,7 @@
    */
   function surfY(f) { return f < 3 ? -0.03 : Math.max(0.008, f / 1000 + (clamp(f - day.thick, -20, 20) * 1.5) / 1000) + 0.004; }
   function groundY(x, z) {
-    if (!gs || !onSlab(x, z)) return 0;
+    if (!gs || !onSlab(x, z)) return rampY(x, z);
     const f = fillAt(x, z);
     return f < 3 ? 0.012 : surfY(f);
   }
@@ -1887,6 +2120,7 @@
     hammer: { name: 'Hammer', the: 'the hammer' },
     pliers: { name: 'Pliers & wire', the: 'the pliers and wire' },
     cutter: { name: 'Rebar cutter', the: 'the rebar cutter' },
+    shovel: { name: 'Shovel', the: 'the shovel' },
     trowelSmall: { name: 'Edge trowel', the: 'the edge trowel (the small one)', machine: true, R: 0.3 },
     trowelBig: { name: 'Power trowel', the: 'the power trowel', machine: true, R: 0.46 },
     rideOn: { name: 'Ride-on trowel', the: 'the ride-on trowel', machine: true, R: 0.46, ride: true },
@@ -1913,6 +2147,17 @@
     box(0.006, 0.05, 0.012, 0x6d7278, 0.05, 0.025, 0, g);
     const h = cyl(0.016, 0.018, 0.15, WOOD, 0.005, 0.058, 0, g, 10);
     h.rotation.z = Math.PI / 2;
+    parent.add(g);
+    return g;
+  }
+  function mkShovel(parent) {
+    const g = new THREE.Group();
+    cyl(0.018, 0.018, 0.95, WOOD, 0, 0.62, 0, g, 8);
+    box(0.13, 0.03, 0.03, 0x2a2d31, 0, 1.1, 0, g);
+    [-1, 1].forEach((sd) => box(0.02, 0.1, 0.03, 0x2a2d31, sd * 0.055, 1.06, 0, g));
+    cyl(0.025, 0.02, 0.12, 0x5a5f64, 0, 0.1, 0, g, 8);
+    const blade = box(0.24, 0.3, 0.02, MATS_STEEL, 0, -0.1, 0.02, g);
+    blade.rotation.x = -0.15;
     parent.add(g);
     return g;
   }
@@ -2021,6 +2266,13 @@
     mkHammer(hammer);
     hammer.position.set(-0.1, -0.12, -0.12);
     viewTools.hammer = hammer;
+    const shovel = new THREE.Group();
+    const shb = mkShovel(shovel);
+    // the grip in your hands, the shaft out in front, the blade down where you can see it
+    shb.scale.setScalar(0.55);
+    shb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.27, 0.75, 0.6).normalize());
+    shb.position.set(-0.185, -0.37, -0.3);
+    viewTools.shovel = shovel;
     // a finishing trowel: a steel blade with the handle along the top of it
     const ht = new THREE.Group();
     const htb = mkHandTrowel(ht);
@@ -2059,6 +2311,7 @@
     add('hammer', (g) => { const h = mkHammer(g); h.rotation.z = Math.PI / 2; h.position.set(0.18, 0.035, 0); });
     add('pliers', (g) => { const p = mkPliers(g, true); p.position.y = 0.012; p.scale.setScalar(1.4); });
     add('cutter', (g) => { mkCutter(g).position.y = 0.02; });
+    add('shovel', (g) => { const sh = mkShovel(g); sh.rotation.z = -Math.PI / 2; sh.position.set(-0.55, 0.03, 0); });
     add('float', (g) => {
       box(0.9, 0.02, 0.2, 0xaeb4b9, 0, 0.012, 0, g);
       const pole = cyl(0.016, 0.016, 2.4, 0xc79a52, 0, 0.03, 1.25, g, 8);
@@ -2703,28 +2956,26 @@
     return c && c.on ? c : null;
   }
   function onSlab(x, z) { return !!cellAt(x, z); }
+  /** Everything solid: the yard's furniture (turned any way), the trucks, and on an inside day the walls. */
   function obstacles() {
-    const list = [
-      { x0: -28.9, x1: -23.3, z0: 7.3, z1: 10.9 },
-      { x0: -21.7, x1: -20.3, z0: -9.7, z1: -8.3 },
-      { x0: -40, x1: -36, z0: -26, z1: -22 },
-      { x0: -37.2, x1: -30.8, z0: 11.6, z1: 14.4 },
-      { x0: -31.6, x1: -30.4, z0: -15.6, z1: -14.4 },
-    ];
-    if (pump.visible) { const w = day.boom ? 2.9 : 1.3; list.push({ x0: pump.position.x - 4.6, x1: pump.position.x + 4.4, z0: pump.position.z - w, z1: pump.position.z + w }); }
-    if (mixer.visible) list.push({ x0: mixer.position.x - 4.8, x1: mixer.position.x + 4.6, z0: mixer.position.z - 1.3, z1: mixer.position.z + 1.3 });
+    const list = layoutObs.slice();
+    if (pump.visible) { const w = day.boom ? 2.9 : 1.3; list.push({ cx: pump.position.x - 0.1, cz: pump.position.z, hx: 4.5, hz: w, ang: 0 }); }
+    if (mixer.visible) list.push({ cx: mixer.position.x - 0.1, cz: mixer.position.z, hx: 4.7, hz: 1.3, ang: 0 });
+    if (hall.visible) hallWalls.forEach((w) => list.push(w));
     return list;
   }
   function collide(x, z) {
     x = clamp(x, -43.5, 43.5);
     z = clamp(z, -33.5, 33.5);
+    const pad = 0.35;
     for (const o of obstacles()) {
-      const pad = 0.35;
-      if (x > o.x0 - pad && x < o.x1 + pad && z > o.z0 - pad && z < o.z1 + pad) {
-        const dl = x - (o.x0 - pad), dr = o.x1 + pad - x, du = z - (o.z0 - pad), dd = o.z1 + pad - z;
-        const m = Math.min(dl, dr, du, dd);
-        if (m === dl) x = o.x0 - pad; else if (m === dr) x = o.x1 + pad; else if (m === du) z = o.z0 - pad; else z = o.z1 + pad;
-      }
+      // into the thing's own frame, out along the shortest way, and back
+      let [lx, lz] = turnXZ(x - o.cx, z - o.cz, -o.ang);
+      const ex = o.hx + pad, ez = o.hz + pad;
+      if (Math.abs(lx) >= ex || Math.abs(lz) >= ez) continue;
+      if (ex - Math.abs(lx) < ez - Math.abs(lz)) lx = Math.sign(lx || 1) * ex; else lz = Math.sign(lz || 1) * ez;
+      const [wx, wz] = turnXZ(lx, lz, o.ang);
+      x = o.cx + wx; z = o.cz + wz;
     }
     return [x, z];
   }
@@ -2965,6 +3216,8 @@
       if (gs.waitMode === 'van') gs.energy = clamp(gs.energy + 0.12 * step, 0, 100);
       else gs.energy = clamp(gs.energy - 0.04 * step, 0, 100);
       if (gs.truck && gs.truck.waiting) gs.truckWaitPaid += 1.5 * step;
+      if (gs.phase !== 'morning') needsTick(step);
+      if (gs.phase === 'wash' && gs.H >= 20) enterCure(true);
       if (gs.phase === 'pour' && gs.truck && !gs.truck.waiting) gs.pourMins += step;
       if (gs.H >= 99.9 && (gs.phase === 'cure' || gs.phase === 'wash') && !gs.gaveUp && !gs.packing && !slabFinished()) tooLate();
       while (gs.schedule.length && gs.schedule[0].at <= gs.t) {
@@ -3016,6 +3269,7 @@
             { label: 'Hold the phone away from your ear', primary: true, fn: () => toast(fresh(L.managerAfter), 'warn') },
             { label: 'Blame the dog', fn: () => toast('"THE DOG IS NOT ON THE PAYROLL." He has a point. The dog would be cheaper.', 'warn') },
             { label: 'Call it a "textured finish"', fn: () => toast('A long silence. Then: "Send me the invoice for the textured finish. Addressed to yourself."', 'warn') },
+            { label: 'Flip off the phone', fn: () => { gs.stats.flips++; toast('You flip off the phone. He can\'t see it. "I CAN HEAR YOU DOING THAT." He can\'t. Can he?', 'warn'); } },
           ],
         });
       } }],
@@ -3089,7 +3343,7 @@
   function lapsFrom(p) {
     const pts = [p];
     for (let k = 0; k < irnd(4, 7); k++) pts.push(slabPoint());
-    pts.push(farPoint(pick(SIDES)));
+    pts.push(farPoint(pick(sidesToday())));
     return pts;
   }
   const walkers = [];
@@ -3123,11 +3377,13 @@
       if (a < Math.atan((w.kind === 'dog' ? 0.8 : 0.55) / d) + 0.03 && a < bestA) { bestA = a; best = w; }
     };
     walkers.forEach((w) => { if (performance.now() > w.shouted) check(w, w.m.position.x, w.m.position.y + (w.kind === 'dog' ? 0.45 : 1.2), w.m.position.z); });
+    if (helper.m) check({ kind: 'driver', who: 'helper', isHelper: true, voice: helper.voice }, helper.m.position.x, 1.2, helper.m.position.z);
     if (pumpGuy.visible) check({ kind: 'driver', who: 'pump' }, pumpGuy.position.x, 1.2, pumpGuy.position.z);
     if (mixGuy.visible) check({ kind: 'driver', who: 'mixer' }, mixGuy.position.x, 1.2, mixGuy.position.z);
     return best;
   }
   function shoutAt(w) {
+    if (w.kind === 'driver' && w.isHelper) { const l = fresh(L.helper.talk); toast(`${helper.name}: ${l}`); say(l, helper.voice); return; }
     if (w.kind === 'driver') { const line = pick(w.who === 'pump' ? L.driverTalk : L.mixTalk); toast(line); say(line, w.who === 'pump' ? 'pump' : 'truck'); return; }
     w.shouted = performance.now() + 5000;
     const p = P(w.m.position.x, w.m.position.z);
@@ -3136,7 +3392,7 @@
         gs.sausage = false;
         toast(L.dogSausage, 'good');
         sfx('bark', p.x, p.z);
-        reroute(w, [p, farPoint(pick(SIDES))], 6);
+        reroute(w, [p, farPoint(pick(sidesToday()))], 6);
         w.state = 'leaving';
         remember('A dog tried for the slab. It left with your sausage instead.');
         return;
@@ -3146,11 +3402,11 @@
         if (chance(0.5)) { toast(L.cat.stays, 'warn'); w.pause = Math.max(w.pause, 8); return; }
         toast(L.cat.goes);
         w.pause = 0; w.state = 'leaving'; w.afterPause = null;
-        reroute(w, [p, farPoint(pick(SIDES))], 2.2);
+        reroute(w, [p, farPoint(pick(sidesToday()))], 2.2);
         return;
       }
       const leaves = chance(w.state === 'laps' ? 0.5 : 0.7);
-      if (leaves) { toast(fresh(L.dogShoo), 'good'); reroute(w, [p, farPoint(pick(SIDES))], 5.5); w.state = 'leaving'; }
+      if (leaves) { toast(fresh(L.dogShoo), 'good'); reroute(w, [p, farPoint(pick(sidesToday()))], 5.5); w.state = 'leaving'; }
       else { toast(fresh(L.dogGame), 'warn'); if (w.state !== 'laps') { gs.stats.dogs++; remember('A dog did laps of the slab. You shouted. It loved it.'); } reroute(w, lapsFrom(p), 4.6); w.state = 'laps'; setTimeout(() => sfx('bark', w.m.position.x, w.m.position.z), 400); }
       w.pause = 0;
       return;
@@ -3159,7 +3415,7 @@
     gs.stats.hell++;
     sfx('shout');
     setTimeout(() => sfx('voice', w.m.position.x, w.m.position.z), 500);
-    const side = w.from || pick(SIDES);
+    const side = w.from || pick(sidesToday());
     const r = weighted([[0.5, 'back'], [0.3, 'hurry'], [0.2, 'freeze']]);
     if (r === 'back') { const l = fresh(L.shoutBack); toast(l, 'good'); say(l, w.voice); reroute(w, aroundFrom(onSlab(p.x, p.z) ? edgePoint(side) : p, side)); if (onSlab(p.x, p.z)) w.path.unshift(p); }
     else if (r === 'hurry') { const l = fresh(L.shoutHurry); toast(l, 'warn'); say(l, w.voice); w.speed *= 1.8; }
@@ -3286,7 +3542,7 @@
     toastOnce('ufoLights', 'Lights over the site. Something is coming down.', 'warn', 60000);
   }
   function ballVisit(away) {
-    const side = pick(SIDES), pts = [farPoint(side), slabPoint(), farPoint(OPP[side])];
+    const side = pick(sidesToday()), pts = [farPoint(side), slabPoint(), farPoint(OPP[side])];
     if (away) { for (let k = 1; k < pts.length; k++) stampLine('ball', pts[k - 1], pts[k], 1.3); toast(L.ball.away, 'warn'); remember(L.ball.away); return; }
     const ball = mesh(new THREE.SphereGeometry(0.11, 12, 10), new THREE.MeshLambertMaterial({ color: 0xf5f5f0, map: ballTex }), pts[0].x, 0.11, pts[0].z);
     ball.castShadow = true;
@@ -3307,13 +3563,13 @@
   function catVisit(away) {
     if (away) {
       const p = slabPoint();
-      stampLine('paw', farPoint(pick(SIDES)), p, 0.3);
+      stampLine('paw', farPoint(pick(sidesToday())), p, 0.3);
       stamp('curl', p.x, p.z, rnd(0, 6), true);
       toast(L.cat.away, 'warn');
       remember(L.cat.away);
       return;
     }
-    const side = pick(SIDES), nap = slabPoint();
+    const side = pick(sidesToday()), nap = slabPoint();
     spawnWalker('dog', wander([farPoint(side), edgePoint(side), nap], 0.8), 1.6, {
       cat: true, from: side, state: 'approach',
       onArrive: (w) => {
@@ -3322,7 +3578,7 @@
         w.pose = 'sit';
         stamp('curl', w.m.position.x, w.m.position.z, rnd(0, 6), true);
         toast(L.cat.seen, 'warn');
-        w.afterPause = (c) => { c.state = 'leaving'; reroute(c, [P(c.m.position.x, c.m.position.z), farPoint(pick(SIDES))], 1.8); };
+        w.afterPause = (c) => { c.state = 'leaving'; reroute(c, [P(c.m.position.x, c.m.position.z), farPoint(pick(sidesToday()))], 1.8); };
       },
     });
   }
@@ -3335,13 +3591,13 @@
       box(0.28, 0.02, 0.03, 0x3a3d41, a * 0.12, 0, b * 0.12, g).rotation.y = a * b * Math.PI / 4;
       return cyl(0.13, 0.13, 0.008, 0x9aa1a7, a * 0.22, 0.05, b * 0.22, g, 12);
     });
-    const from = farPoint(pick(SIDES));
+    const from = farPoint(pick(sidesToday()));
     g.position.set(from.x, 7, from.z);
     scene.add(g);
     odd.push({ kind: 'drone', m: g, rotors, from, to: p, t: 0 });
   }
   function bagVisit(away) {
-    const side = pick(SIDES), pts = [edgePoint(side), slabPoint(), edgePoint(OPP[side])];
+    const side = pick(sidesToday()), pts = [edgePoint(side), slabPoint(), edgePoint(OPP[side])];
     if (away) { for (let k = 1; k < pts.length; k++) stampLine('smear', pts[k - 1], pts[k], 0.35); toast(L.bag.away, 'warn'); remember(L.bag.away); return; }
     const bag = box(0.3, 0.22, 0.2, new THREE.MeshLambertMaterial({ color: 0xf2f2ee, transparent: true, opacity: 0.85 }), pts[0].x, 0.2, pts[0].z);
     odd.push({ kind: 'bag', m: bag, path: pts, seg: 0, acc: 0, dist: 0 });
@@ -3435,15 +3691,16 @@
   function nuisance(away) {
     const mins = ((gs.t % 1440) + 1440) % 1440, dark = mins < 360 || mins > 1170;
     const kinds = [[0.4, 'cross'], [day.dogChance, 'dog'], [0.08, 'bird'], [0.1, 'foreman'], [0.07, 'kid'], [0.08, 'ball'], [0.07, 'cat'], [0.05, 'drone']];
-    if (!gs.ufoDone) kinds.push([dark ? 0.14 : 0.05, 'ufo']);
-    if (day.wind >= 5) kinds.push([0.08, 'bag']);
-    if (day.rh > 76 && !gs.rained) kinds.push([0.12, 'rain']);
+    if (!gs.ufoDone && !day.indoor) kinds.push([dark ? 0.14 : 0.05, 'ufo']);
+    if (day.wind >= 5 && !day.indoor) kinds.push([0.08, 'bag']);
+    if (day.indoor) kinds.forEach((k) => { if (k[1] === 'drone') k[0] = 0; });
+    if (day.rh > 76 && !gs.rained && !day.indoor) kinds.push([0.12, 'rain']);
     const kind = weighted(kinds);
     if (kind === 'cross') {
       const who = fresh(L.cross);
       if (away) {
         if (chance(0.65)) {
-          const side = pick(SIDES);
+          const side = pick(sidesToday());
           const p = acrossFrom(farPoint(side), side);
           let n = 0;
           for (let k = 1; k < p.length; k++) n += stampLine('boot', p[k - 1], p[k], 0.72);
@@ -3452,13 +3709,13 @@
         return;
       }
       // they come over from somewhere and stop at the edge to ask
-      const side = pick(SIDES);
+      const side = pick(sidesToday());
       spawnWalker('person', wander([farPoint(side), edgePoint(side)], 0.8), rnd(1.1, 1.5), { who, from: side, onArrive: askToCross });
     } else if (kind === 'dog') {
       if (away) {
         if (chance(0.85)) {
           gs.stats.dogs++;
-          const pts = lapsFrom(farPoint(pick(SIDES)));
+          const pts = lapsFrom(farPoint(pick(sidesToday())));
           for (let k = 1; k < pts.length; k++) stampLine('paw', pts[k - 1], pts[k], 0.42);
           const line = fresh(L.dog.away);
           toast(line, 'warn');
@@ -3468,7 +3725,7 @@
       }
       // a dog heads for the slab, stops at the edge to size it up, then goes for it — unless
       // somebody looks it in the eye and shoos it, or has a sausage
-      const side = pick(SIDES);
+      const side = pick(sidesToday());
       spawnWalker('dog', wander([farPoint(side), edgePoint(side)], 1.2), 3.2, {
         from: side, state: 'approach',
         onArrive: (w) => {
@@ -3508,7 +3765,7 @@
       });
     } else if (kind === 'kid') {
       if (away || chance(0.4)) {
-        const side = pick(SIDES);
+        const side = pick(sidesToday());
         const p = [edgePoint(side), edgePoint(OPP[side])];
         if (stampLine('line', p[0], p[1], 0.9)) { toast('A kid on a scooter drew a perfect line across the slab. Straight, at least.', 'warn'); remember('A scooter kid left a line across the slab.'); }
         return;
@@ -3555,8 +3812,8 @@
     $('#hud').hidden = false;
     // in case a day was left halfway through throwing the tools in the van
     $('#buttons').style.visibility = '';
+    $('#btnFlip').style.visibility = '';
     $('#targetInfo').style.visibility = '';
-    vanHole.visible = vanDoorPanel.visible = false;
     gs.phase = 'morning';
     const alarm = fresh(L.alarm);
     const driveTo = (snooze) => {
@@ -3594,6 +3851,7 @@
       toast(fresh(L.arrive));
     }
     at(gs.pumpAt, pumpArrives);
+    if (day.helper) at(gs.t + irnd(15, 40), sendHelper);
     if (day.pumpDelay >= 25 && gs.t < 7 * 60 - 5) {
       at(6 * 60 + 50, () => toast(fresh(L.pumpLate).replace('{eta}', clock(gs.pumpAt)), 'warn'));
     }
@@ -3601,21 +3859,38 @@
   }
 
   function buildPrepMarkers() {
-    addMarker('unload', POS.vanDoor, 'Unload tools', 2.2, () => !gs.prep.unload, () => {
+    addMarker('unload', POS.vanDoor, 'Open the van', 2.2, () => !gs.prep.unload, () => {
       gs.prep.unload = true; gs.toolsUnloaded = true;
-      unloadTools();
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
-      sfx('clank', POS.vanDoor.x, POS.vanDoor.z);
-      toast('Tools out on the blue tarp: float, hand trowel, hammer, pliers and wire, rebar cutter. The trowels stand next to it.' + (day.area > 50 ? ' The ride-on came too.' : '') + ' Look at one and press Pick up.');
+      vanBack.want = 1;
+      vanBack.onOpen = () => {
+        unloadTools();
+        sfx('clank', POS.vanDoor.x, POS.vanDoor.z);
+        // some of it was only waiting for the door
+        const out = ['hammer', 'pliers', 'cutter', 'handTrowel', 'float', 'shovel'].filter((id) => lying[id]).sort(() => Math.random() - 0.5).slice(0, irnd(1, 3));
+        out.forEach((id, k) => {
+          const a = vanPoint(-2.5, rnd(-0.5, 0.5)), b = vanPoint(-rnd(6.8, 9), rnd(-2.6, 2.6));
+          setTimeout(() => launchTool(id, new THREE.Vector3(a.x, 1.2, a.z), b, rnd(0.6, 0.9)), 250 + k * 380);
+        });
+        const names = out.map((id) => TOOLS[id].the);
+        toast(fresh(L.vanSpill).replace('{t}', names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]) + ' The rest is on the ramp; the machines are at the bottom of it.' + (day.area > 50 ? ' The ride-on came too.' : ''), 'warn');
+      };
     });
+    addMarker('laserFetch', POS.vanSide, 'Take the laser', 1.2, () => gs.prep.unload && gs.laserInVan && !gs.prep.laser && !gs.carrying && vanBack.open >= 1, () => {
+      gs.laserInVan = false;
+      gs.carrying = 'laser';
+      sfx('clank', POS.vanSide.x, POS.vanSide.z);
+      toast('Laser case out of the van. Carry it to the spot by the slab and set it up.');
+    }, { tool: 'hands' });
     site.forms.forEach((f, k) => {
       addMarker('form' + k, f, 'Check formwork', 1.8, () => !gs.prep.form[k] && !gs.pourStarted, () => {
         gs.prep.form[k] = true;
         toast(pick(f.run === site.weak ? L.formWeak : L.formOk), f.run === site.weak ? 'good' : '');
+        if (chance(0.18)) setTimeout(() => breakHandTool('hammer', fresh(L.hammerBreaks), 18), 1200);
       }, { tool: 'hammer' });
     });
-    addMarker('laser', POS.tripod, 'Set up laser', 2.6, () => !gs.prep.laser, () => {
-      if (!gs.prep.unload) { toast('The laser is still in the van. Unload the tools first.', 'warn'); return false; }
+    addMarker('laser', POS.tripod, 'Set up laser', 2.6, () => !gs.prep.laser && gs.carrying === 'laser', () => {
+      gs.carrying = null;
       gs.prep.laser = true;
       tripod.visible = true;
       sfx('beep', POS.tripod.x, POS.tripod.z);
@@ -3638,6 +3913,7 @@
         t.bar.position.y = rebarY() + 0.03;
         sfx('snip', t.x, t.z);
         toast(fresh(L.cut));
+        if (chance(0.12)) setTimeout(() => breakHandTool('cutter', fresh(L.cutterBreaks), 35), 1200);
       }, { tool: 'cutter', w: 2.2 });
     });
   }
@@ -3896,18 +4172,43 @@
   }
 
   function buildLateMarkers() {
-    addMarker('wash', POS.ibcFront, 'Wash tools', 4, () => gs.phase === 'wash', () => {
-      gs.washed = true;
-      gs.phase = 'cure';
-      toast('Tools washed. You washed your boots too, then stepped in the slurry. Classic.');
+    addMarker('wash', POS.ibcFront, 'Wash tools', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05), () => {
+      const id = held();
+      if (id && dirtOf(id) > 0.05) {
+        const set = dirtSet(id);
+        gs.dirt[id] = { d: 0, at: gs.t };
+        toast(set ? `You chip and scrub at the ${TOOLS[id].name.toLowerCase()}. Most of it comes off. The rest is part of it now.` : `${TOOLS[id].name} washed. ${fresh(L.washed)}`, set ? 'warn' : 'good');
+        if (set) charge(`Set concrete chipped off the ${TOOLS[id].name.toLowerCase()}`, isMachine(id) ? 60 : 20);
+      } else if (gs.phase !== 'wash') { toast('Nothing in your hands to wash. Bring the dirty one here.'); return false; }
+      if (gs.phase === 'wash') {
+        const still = dirtyTools().filter((t) => !isMachine(t));
+        if (still.length) { toast(`Still covered: ${theList(still)}. Bring ${still.length > 1 ? 'them' : 'it'} here too.`); return false; }
+        enterCure();
+      }
+      return true;
+    });
+    addMarker('loo', POS.looFront, 'The loo', 1.6, () => gs.phase !== 'end' && gs.phase !== 'morning', () => useLoo(), { tool: 'hands', w: 1.8 });
+    buildLateMarkers2();
+  }
+  /** After the washing up, or when the slab won't wait for it: the long wait begins. */
+  function enterCure(rushed) {
+    if (gs.phase !== 'wash') return;
+    gs.washed = true;
+    gs.phase = 'cure';
+    const dirty = dirtyTools().filter((t) => !isMachine(t));
+    if (rushed && dirty.length) toast(`No time to wash everything: the slab is going off. ${theList(dirty)} ${dirty.length > 1 ? 'are' : 'is'} still covered, and it's setting.`, 'warn');
+    else toast('Tools washed. You washed your boots too, then stepped in the slurry. Classic.');
+    {
       modal({
         who: 'Now it hardens', title: 'The waiting part.',
         text: `It's ${Math.round(tempAt(gs.t))} °C with ${day.rh}% humidity and a ${day.thick} mm slab of ${day.area} m². Keep an eye on the hardness meter.\n\n` +
-          `• Pans from about 25%: take a power trowel from beside the tarp — they come with pans on. One to three passes.${day.area > 50 ? ' The ride-on does a big slab in half the time.' : ''}\n• Blades from about 55%: fit them on the machine (button next to Put down), then pass again.\n• Corners and pipe collars with the hand trowel; straight edges with the hand trowel or the small edge trowel.\n• Pack up the laser and put it in the van.\n• Nobody leaves before 95%.\n\n` +
-          'Meanwhile: guard the slab, nap in the van, or walk to the kebab stand.\n\nFootprints: the float takes them out under 50%, the hand trowel under 70%, the machines up to about 80%. After that they\'re in it for good.',
+          `• Pans from about 25%: take a power trowel from the bottom of the van\'s ramp — they come with pans on. One to three passes.${day.area > 50 ? ' The ride-on does a big slab in half the time.' : ''}\n• Blades from about 55%: fit them on the machine (button next to Put down), then pass again.\n• Corners and pipe collars with the hand trowel; straight edges with the hand trowel or the small edge trowel.\n• Pack up the laser and put it in the van.\n• Nobody leaves before 95%.\n\n` +
+          'Meanwhile: guard the slab, nap in the van, or walk to the kebab stand.\n\nFootprints: the float takes them out under 50%, the hand trowel under 70%, the machines up to about 80%. After that they\'re in it for good.\n\nWhen you go home, every tool goes back in the van, washed.',
         choices: [{ label: 'Right', primary: true }],
       });
-    });
+    }
+  }
+  function buildLateMarkers2() {
     addMarker('batteries', POS.vanDoor, 'Get batteries', 1.4, () => !gs.laserBattery && !gs.pourDone, () => {
       gs.laserBattery = true;
       toast('Fresh batteries. The laser beeps like nothing happened. You know what happened.', 'good');
@@ -3920,9 +4221,10 @@
       sfx('clank', POS.tripod.x, POS.tripod.z);
       toast('Laser off, tripod folded. To the van with it, receiver and all.');
     }, { tool: 'hands' });
-    addMarker('laserVan', P(POS.vanDoor.x + 0.8, POS.vanDoor.z - 1.2), 'Laser in the van', 1.2, () => gs.carrying === 'laser', () => {
+    addMarker('laserVan', POS.vanSide, 'Laser in the van', 1.2, () => gs.carrying === 'laser' && gs.prep.laser, () => {
       gs.carrying = null;
       gs.laserPacked = true;
+      gs.laserInVan = true;
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
       toast('Laser in its case, the receiver in the glovebox. No more beeping today.', 'good');
     });
@@ -3935,6 +4237,7 @@
         if (gs.H < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
+        addDirt(gs.tool, 0.12);
         troweledOut(e.x, e.z, player.x, player.z);
         const left = site.edges.length - gs.edgesDone;
         if (gs.H > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
@@ -3948,12 +4251,59 @@
     modal({
       who: 'Kebab & Coffee', title: 'What\'ll it be?', text: L.lunch,
       choices: [
-        { label: 'Kebab, extra garlic (40 min)', primary: true, fn: () => { gs.energy = clamp(gs.energy + 45, 0, 100); simulate(40, true); toast('Kebab. The garlic will guard the slab for you for the rest of the day.', 'good'); remember('Kebab with extra garlic.'); } },
-        { label: 'Sausage in a bun, one to go (30 min)', fn: () => { gs.energy = clamp(gs.energy + 32, 0, 100); gs.sausage = true; simulate(30, true); toast('You keep one sausage "for later". Later has plans for it.', 'good'); } },
-        { label: 'Coffee and a thermos refill (10 min)', fn: () => { gs.energy = clamp(gs.energy + 12, 0, 100); gs.cups = 3; simulate(10, true); toast('Thermos full. You are, again, a person.', 'good'); } },
+        { label: 'Kebab, extra garlic (40 min)', primary: true, fn: () => { gs.energy = clamp(gs.energy + 45, 0, 100); gs.needs.poo += 45; gs.needs.wee += 10; simulate(40, true); toast('Kebab. The garlic will guard the slab for you for the rest of the day.', 'good'); remember('Kebab with extra garlic.'); } },
+        { label: 'Sausage in a bun, one to go (30 min)', fn: () => { gs.energy = clamp(gs.energy + 32, 0, 100); gs.needs.poo += 25; gs.sausage = true; simulate(30, true); toast('You keep one sausage "for later". Later has plans for it.', 'good'); } },
+        { label: 'Coffee and a thermos refill (10 min)', fn: () => { gs.energy = clamp(gs.energy + 12, 0, 100); gs.needs.wee += 20; gs.cups = 3; simulate(10, true); toast('Thermos full. You are, again, a person.', 'good'); } },
         { label: 'Nothing. Back to the slab.' },
       ],
     });
+  }
+
+  // ------------------------------------------------------------------ the loo
+  // A wee comes round every few hours, faster with coffee; the other one after lunch, with the
+  // kebab's compliments. Ignore either long enough and it stops asking.
+  function needsTick(step) {
+    const n = gs.needs;
+    n.wee += 0.2 * step;
+    n.poo += 0.07 * step;
+    const warn = (key, text, kind) => { if (n.warned[key]) return; n.warned[key] = true; if (gs.waitMode) { gs.waitMode = null; showWait(); } toast(text, kind); say(text, 'me'); };
+    if (n.wee > 70) warn('wee70', fresh(L.weeSoon), 'warn');
+    if (n.wee > 90) warn('wee90', 'You really need a wee. The loo is the blue box. ' + fresh(L.weeSoon), 'warn');
+    if (n.poo > 70) warn('poo70', fresh(L.pooSoon), 'warn');
+    if (n.poo > 90) warn('poo90', 'Code brown. The loo, now. ' + fresh(L.pooSoon), 'warn');
+    if (n.wee >= 100) {
+      n.wee = 5; n.warned.wee70 = n.warned.wee90 = false;
+      toast('You couldn\'t wait. Behind the van. A neighbour sees. The pump driver sees. The pump driver films it.', 'warn');
+      remember('You couldn\'t make it to the loo. Behind the van it was.');
+      charge('Weeing behind the van (the neighbour called someone)', 30);
+    }
+    if (n.poo >= 100) {
+      n.poo = 5; n.warned.poo70 = n.warned.poo90 = false;
+      gs.energy = clamp(gs.energy - 15, 0, 100);
+      toast('You couldn\'t wait, and you didn\'t make it. The drive home will be long, and with all the windows open.', 'warn');
+      remember('You didn\'t make it to the loo. The less said the better.');
+      charge('New trousers. Don\'t ask', 40);
+    }
+  }
+  function useLoo() {
+    if (!gs.needs.lockedOnce && chance(0.2)) { gs.needs.lockedOnce = true; toast(fresh(L.looLocked), 'warn'); sfx('door', POS.loo.x, POS.loo.z); return false; }
+    const n = gs.needs;
+    sfx('door', POS.loo.x, POS.loo.z);
+    if (n.poo > 45) {
+      simulate(12, awayNow());
+      toast(fresh(L.looTwo));
+      n.poo = rnd(0, 8); n.wee = rnd(0, 6);
+    } else if (n.wee > 25) {
+      simulate(3, awayNow());
+      toast(fresh(L.looOne));
+      n.wee = rnd(0, 6);
+    } else {
+      simulate(4, awayNow());
+      toast('You don\'t need to. You go in anyway, for four minutes of peace and quiet. It\'s the best four minutes of the day.');
+    }
+    n.warned = {};
+    setTimeout(() => sfx('door', POS.loo.x, POS.loo.z), 700);
+    return true;
   }
 
   function tryGoHome() {
@@ -3967,6 +4317,19 @@
     if (gs.prep.laser && !gs.laserPacked) missing.push('The laser is still out. Pack it up and put it in the van.');
     if (missing.length) {
       modal({ who: 'Foreman, in your head', title: 'Not yet.', text: missing.join('\n'), choices: [{ label: 'Fine', primary: true }] });
+      return false;
+    }
+    const out = toolsOut(), dirty = dirtyTools();
+    if (out.length || dirty.length) {
+      modal({
+        who: 'Before you go', title: 'The van isn\'t packed.', sound: 'buzz',
+        text: [out.length ? `Still out on site: ${theList(out)}.` : '', dirty.length ? `Still covered in concrete: ${theList(dirty)}.` : ''].filter(Boolean).join('\n') +
+          '\n\nEvery tool goes back in the van, washed. The manager checks. The manager always checks.',
+        choices: [
+          { label: 'Go back for them', primary: true },
+          { label: 'Leave it. Go home.', danger: true, fn: () => leaveTheMess(out, dirty) },
+        ],
+      });
       return false;
     }
     endDay();
@@ -3998,13 +4361,9 @@
   // from your hand in an arc and lands in the van with a noise; the van rocks. Then the door, the
   // engine, and the day is over.
   // the van's side door faces north-ish; the tools go through it, and you throw from out in front of it
-  const VAN_SIDE = new THREE.Vector3(Math.sin(0.25), 0, -Math.cos(0.25));
-  const VAN_IN = new THREE.Vector3(POS.van.x + VAN_SIDE.x * 0.7 + 0.3, 1.35, POS.van.z + VAN_SIDE.z * 0.7);
-  const VAN_THROW = P(POS.van.x + VAN_SIDE.x * 6.2 + 1.2, POS.van.z + VAN_SIDE.z * 6.2);
+  const VAN_IN = new THREE.Vector3(-24, 1.3, 9);       // the open back of the van (set with the layout)
+  const VAN_THROW = P(-18, 8);                          // where you stand to throw
   // the side door, slid open: a dark hole in the side of the van, and the door panel slid back
-  const vanHole = box(1.35, 1.5, 0.02, 0x131518, 0.3, 1.25, -1.045, van);
-  const vanDoorPanel = box(1.35, 1.5, 0.03, 0xdcdad4, -1.15, 1.25, -1.07, van);
-  vanHole.visible = vanDoorPanel.visible = false;
   let vanRock = 0;
   function packUp() {
     if (gs.packing) return;
@@ -4012,20 +4371,21 @@
     gs.waitMode = null; gs.fastForward = null; showWait();
     // stand back from the van, facing the door, which is open
     player.x = VAN_THROW.x; player.z = VAN_THROW.z;
-    vanHole.visible = vanDoorPanel.visible = true;
+    vanBack.want = 1;
     $('#buttons').style.visibility = 'hidden';
+    $('#btnFlip').style.visibility = 'hidden';
     $('#targetInfo').style.visibility = 'hidden';
     player.yaw = Math.atan2(-(VAN_IN.x - player.x), -(VAN_IN.z - player.z));
     player.pitch = 0.08;
     const items = [];
-    ['hammer', 'pliers', 'cutter', 'handTrowel', 'float'].forEach((id) => {
+    ['hammer', 'pliers', 'cutter', 'handTrowel', 'float', 'shovel'].forEach((id) => {
       const t = gs.tools[id];
-      if (t && t.in === 'ground') items.push({ id, obj: lying[id], machine: false });
+      if (t && t.in === 'ground' && lying[id] && !atVan(t.x, t.z)) items.push({ id, obj: lying[id], machine: false });
     });
     if (tripod.visible || gs.carrying === 'laser') { gs.carrying = null; items.push({ id: 'laser', obj: tripod, machine: false }); }
     ['trowelSmall', 'trowelBig'].forEach((id) => {
       const t = gs.tools[id];
-      if (t && t.in === 'ground') items.push({ id, obj: machines[id].group, machine: true });
+      if (t && t.in === 'ground' && !atVan(t.x, t.z)) items.push({ id, obj: machines[id].group, machine: true });
     });
     const t0 = 0.9;
     items.forEach((it, k) => { it.at = t0 + k * 0.65; it.dur = it.machine ? 1.25 : 0.85; });
@@ -4067,13 +4427,14 @@
         if (it.machine) sfx('clank', VAN_IN.x, VAN_IN.z);
       }
     }
-    if (pk.stage === 0 && pk.t >= pk.doneAt) { pk.stage = 1; sfx('door', VAN_IN.x, VAN_IN.z); vanRock = 0.6; vanHole.visible = vanDoorPanel.visible = false; toast(L.packUp.end); }
+    if (pk.stage === 0 && pk.t >= pk.doneAt) { pk.stage = 1; sfx('door', VAN_IN.x, VAN_IN.z); vanRock = 0.6; vanBack.want = 0; toast(L.packUp.end); }
     if (pk.stage === 1 && pk.t >= pk.doneAt + 0.9) { pk.stage = 2; sfx('engine', VAN_IN.x, VAN_IN.z); }
     if (pk.stage === 2 && pk.t >= pk.doneAt + 2.4) {
       gs.thrown = { hand: pk.hand, machine: pk.machine };
       remember(pk.hand + pk.machine ? `You threw ${pk.hand + pk.machine} tools in the van and drove off without looking back.` : 'You drove off without looking back.');
       gs.packing = null;
       $('#buttons').style.visibility = '';
+      $('#btnFlip').style.visibility = '';
       $('#targetInfo').style.visibility = '';
       endDay();
     }
@@ -4099,6 +4460,22 @@
     surfDirty = true;
     sfx(good ? 'chime' : 'buzz');
     toast(`${kind === 'pan' ? 'Pan' : 'Blade'} pass ${kind === 'pan' ? gs.panPasses.length : gs.bladePasses.length} done at ${Math.floor(H)}%. ${verdict}`, good ? 'good' : 'warn');
+  }
+
+  /** Home with tools still out or filthy: the manager has seen the photos by the time you're in the car. */
+  function leaveTheMess(out, dirty) {
+    gs.leftBehind = out.slice();
+    gs.dirtyAtEnd = dirty.slice();
+    gs.yelledTools = true;
+    const parts = [];
+    if (out.length) parts.push(fresh(L.leftTools).replace('{t}', theList(out)));
+    if (dirty.length) parts.push(fresh(L.dirtyTools).replace('{d}', theList(dirty)));
+    remember(`You went home with ${out.length ? theList(out) + ' still on site' : ''}${out.length && dirty.length ? ', and ' : ''}${dirty.length ? theList(dirty) + ' covered in concrete' : ''}. The manager called before you reached the car.`);
+    modal({
+      who: 'The manager, on the phone', title: 'He saw the photos.', sound: 'ring', voice: 'manager',
+      text: parts.join('\n\n'),
+      choices: [{ label: 'Hang up and drive', primary: true, fn: () => endDay() }],
+    });
   }
 
   // ------------------------------------------------------------------ the end
@@ -4134,6 +4511,8 @@
       ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
       ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
+      ['Fingers given', String(gs.stats.flips)],
+      ['Tools', gs.leftBehind.length || gs.dirtyAtEnd.length ? `${gs.leftBehind.length} left on site, ${gs.dirtyAtEnd.length} dirty` : 'all in the van, clean'],
     ];
     $('#eStats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('');
     paySlip(late, goodBlades);
@@ -4170,8 +4549,12 @@
     if (!gs.panPasses.length) cut('noPan', 60);
     if (!gs.bladePasses.length) cut('noBlade', 50);
     if (gs.edgesDone < site.edges.length) cut('roughEdges', (site.edges.length - gs.edgesDone) * 10, { n: site.edges.length - gs.edgesDone });
+    gs.charges.forEach(([label, eur]) => lines.push([label, -Math.round(eur)]));
+    if (gs.leftBehind.length) cut('leftTools', gs.leftBehind.reduce((a, id) => a + (isMachine(id) ? 150 : 25), 0), { n: gs.leftBehind.length });
+    if (gs.dirtyAtEnd.length) cut('dirtyTools', gs.dirtyAtEnd.reduce((a, id) => a + (isMachine(id) ? 45 : 15) * (dirtSet(id) ? 2 : 1), 0), { n: gs.dirtyAtEnd.length });
     if (gs.thrown && gs.thrown.hand + gs.thrown.machine) cut('thrown', gs.thrown.hand * 5 + gs.thrown.machine * 35, { n: gs.thrown.hand + gs.thrown.machine });
     if (gs.stats.hell) lines.push([fillIn(pick(P2.hell), { n: gs.stats.hell }), 0]);
+    if (gs.stats.flips) lines.push([`Fingers given: ${gs.stats.flips}. No charge, but HR has been told`, 0]);
     if (goodBlades >= 2 && rep.sd < 3) lines.push([pick(P2.shine), 40]);
     const base = 220, net = base + lines.reduce((s, l) => s + l[1], 0);
     const owe = P2.verdictBad.filter((v) => /owe us/.test(v)), bad = P2.verdictBad.filter((v) => !/owe us/.test(v));
@@ -4199,7 +4582,6 @@
       const [x, z, yaw] = TOOL_HOME[id];
       gs.tools[id] = { in: 'ground', x, z, yaw };
     });
-    tarp.visible = true;
   }
   /** Where you take hold of a tool: a hand tool where it lies, a machine by its handle, the ride-on by its seat. */
   function gripOf(id) {
@@ -4306,7 +4688,7 @@
   }
   function toolContext() {
     const w = walkerInSight();
-    if (w) return { kind: 'shout', label: w.kind === 'driver' ? 'Talk' : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
+    if (w) return { kind: 'shout', label: w.kind === 'driver' ? (w.isHelper ? `Talk to ${helper.name}` : 'Talk') : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
     const t = gs.tool;
     if (gs.phase === 'pour') {
       if (t === 'hose') {
@@ -4320,6 +4702,11 @@
         return { kind: 'none', label: 'Aim at concrete' };
       }
       if (t === 'hands' && gs.tools.hose && gs.tools.hose.in === 'ground') return { kind: 'none', label: 'Get the hose' };
+    }
+    if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || (gs.phase === 'cure' && gs.H < 30))) {
+      if (target && target.fill > day.thick + 4) return { kind: 'shovel', label: 'Hold: shovel off the extra' };
+      if (target) return { kind: 'none', label: 'Nothing to shovel here' };
+      return { kind: 'none', label: 'Aim at a high spot' };
     }
     if (gs.phase === 'cure') {
       if (t === 'float' && target) return { kind: 'repair', label: target.marks.length ? 'Hold: float out marks' : 'Hold: float' };
@@ -4354,6 +4741,7 @@
     else if (ctx.kind === 'level') levelTick(target, dt);
     else if (ctx.kind === 'repair') repairTick(target, dt);
     else if (ctx.kind === 'trowel') trowelTick(dt);
+    else if (ctx.kind === 'shovel') shovelTick(target, dt);
     else if (ctx.kind === 'thumb' && input.actionTapped) thumb(target);
   }
 
@@ -4388,6 +4776,9 @@
     }
     const weakAt = site.forms.findIndex((f) => f.run === site.weak);
     if (site.weak && !gs.blowoutDone && !gs.blowout && progress > 0.35 && weakAt >= 0 && !gs.prep.form[weakAt]) startBlowout();
+    // checked or not, now and then a board just gives up
+    if (day.surpriseBlowout && !gs.blowoutDone && !gs.blowout && progress > 0.55 && site.forms.length) startBlowout(pick(site.forms).run, true);
+    if (day.rebarLift && !gs.rebarLifted && progress > day.rebarLift) rebarUp();
     if (day.batteryDies && gs.prep.laser && !gs.batteryDone && progress > 0.45) {
       gs.batteryDone = true;
       gs.laserBattery = false;
@@ -4407,13 +4798,15 @@
       removeMarker(m);
     }, { w: 2.2, tool: 'hammer' });
   }
-  function startBlowout() {
-    const r = site.weak;
+  function startBlowout(run, surprise) {
+    const r = run || site.weak;
     const side = r.dir === 'x' ? (r.oz < 0 ? 'north' : 'south') : (r.ox < 0 ? 'west' : 'east');
     const s = { name: `${side} side`, p: P(r.mid.x + r.ox * 0.9, r.mid.z + r.oz * 0.9), cells: new Set(r.cells.map((c) => c.j * NX + c.i)) };
     gs.blowout = s;
-    toast(L.blowout.replace('{side}', s.name), 'warn');
-    sfx('splash', s.p.x, s.p.z);
+    toast((surprise ? 'CRACK. You checked it. It doesn\'t care. ' : '') + L.blowout.replace('{side}', s.name), 'warn');
+    say('"The formwork! It\'s going!"', 'me');
+    sfx('splash', s.p.x, s.p.z); sfx('thud', s.p.x, s.p.z);
+    shake = 0.6;
     remember(`The formwork burst on the ${s.name}.`);
     const m = addMarker('blowout', s.p, 'Fix the formwork!', 2.8, () => !!gs.blowout, () => {
       gs.blowout = null;
@@ -4422,7 +4815,279 @@
       removeMarker(m);
     }, { w: 2.6, tool: 'hammer' });
   }
+  /** A bit of mesh rising through the wet concrete: push it back down before it sets there. */
+  const liftBars = new THREE.Group();
+  scene.add(liftBars);
+  function rebarUp() {
+    gs.rebarLifted = true;
+    const cands = gs.cells.filter((c) => c.fill > day.thick * 0.6 && hyp(gx(c.i) + 0.5, gz(c.j) + 0.5, player.x, player.z) > 2.5);
+    if (!cands.length) return;
+    const c = pick(cands), x = gx(c.i) + 0.5, z = gz(c.j) + 0.5;
+    liftBars.clear();
+    liftBars.visible = true;
+    for (let k = 0; k < 3; k++) {
+      const b = cyl(0.008, 0.008, 0.9, 0x8a4b2a, (k - 1) * 0.15, 0, 0, liftBars, 5);
+      b.rotation.z = Math.PI / 2 - 0.5;
+      b.position.y = 0.12;
+    }
+    cyl(0.008, 0.008, 0.5, 0x8a4b2a, 0.15, 0.2, 0, liftBars, 5).rotation.x = Math.PI / 2;
+    liftBars.position.set(x, surfY(c.fill), z);
+    liftBars.rotation.y = rnd(0, 6);
+    const line = fresh(L.rebarUp);
+    toast(line, 'warn');
+    say('"The mesh is coming up!"', 'me');
+    sfx('clank', x, z);
+    remember('The mesh came up through the pour.');
+    const due = gs.t + 9;
+    const m = addMarker('rebarUp', P(x, z), 'Push the mesh down!', 1.6, () => !gs.rebarFixed && gs.t < due, () => {
+      gs.rebarFixed = true;
+      liftBars.visible = false;
+      sfx('wet', x, z);
+      toast('Pushed down, stood on, sworn at. It stays. For now.', 'good');
+      removeMarker(m);
+    }, { w: 2.4 });
+    at(due, () => {
+      if (gs.rebarFixed) return;
+      removeMarker(m);
+      c.defect = true;
+      cellsDirty = true;
+      toast('Too late: the mesh has set with its elbow sticking out of your slab. The client will find it with a lawnmower.', 'warn');
+      remember('The mesh set sticking out of the slab.');
+      charge('Grinding off rebar that set sticking out', 60);
+    });
+  }
+
+  // ------------------------------------------------------------------ the finger
+  // For when shouting is too much effort: a hand comes up in front of you with the one finger that
+  // says it all, at whoever you're looking at, or at the day in general.
+  const flipHand = new THREE.Group();
+  (function buildFlipHand() {
+    const skin = 0xd9a47e;
+    const sleeve = cyl(0.05, 0.055, 0.34, 0xff7a1a, 0, -0.2, 0, flipHand, 10);
+    void sleeve;
+    box(0.085, 0.09, 0.07, skin, 0, 0.0, 0, flipHand);
+    [-1, 1].forEach((sd) => box(0.02, 0.03, 0.05, skin, sd * 0.03, 0.05, 0.02, flipHand));
+    capsule(0.013, 0.085, skin, 0.0, 0.1, 0, flipHand);
+    capsule(0.012, 0.04, skin, -0.05, 0.02, 0.02, flipHand).rotation.z = 0.9;
+    flipHand.visible = false;
+    camera.add(flipHand);
+  })();
+  let flipT = 0, flipReady = 0;
+  function flip() {
+    const now = performance.now();
+    if (now < flipReady || gs.phase === 'title' || gs.phase === 'end' || modalOpen) return;
+    flipReady = now + 1500;
+    flipT = 1.5;
+    gs.stats.flips++;
+    const w = walkerInSight();
+    const ufoNear = odd.some((o) => o.kind === 'ufo');
+    setTimeout(() => {
+      if (w && w.isHelper) { const l = fresh(L.helper.flipped).replace('{n}', helper.name); toast(l); say(l, helper.voice); } else if (w && w.kind === 'driver') {
+        if (w.who === 'pump') { const l = 'The pump driver flips you back with both hands, which is impressive while holding a remote.'; toast(l); }
+        else { toast('The mixer driver honks twice. It means the same thing.'); sfx('honk', mixer.position.x, mixer.position.z); }
+      } else if (w && w.kind === 'dog') toast(fresh(L.flip.dog));
+      else if (w) {
+        const l = fresh(L.flip.person);
+        toast(l, 'warn'); say(l, w.voice);
+        if (onSlab(w.m.position.x, w.m.position.z)) w.speed *= 1.5;
+      } else if (ufoNear) toast('The saucer flashes every light it has at you. You have started an interstellar incident.', 'warn');
+      else toast(fresh(L.flip.nothing));
+    }, 450);
+  }
+  function updateFlip(dt) {
+    if (flipT <= 0) { flipHand.visible = false; return; }
+    flipT -= dt;
+    const u = 1.5 - flipT, up = Math.min(1, u / 0.25) * Math.min(1, flipT / 0.3);
+    flipHand.visible = true;
+    flipHand.position.set(-0.12, -0.62 + up * 0.44, -0.48);
+    flipHand.rotation.set(0.15, 0.25, Math.sin(u * 22) * 0.06 * up);
+  }
+
+  // ------------------------------------------------------------------ the helper
+  // On a big slab the manager sends somebody. He ties a bit of mesh, floats a bit of concrete,
+  // does an edge now and then, mostly stands about, and says what he thinks.
+  const helper = { m: null, name: '', voice: null, state: 'off', goal: null, t: 0, job: null, said: 0 };
+  function sendHelper() {
+    helper.name = fresh(L.helper.names);
+    helper.voice = { p: rnd(0.95, 1.15), r: rnd(1.0, 1.12), key: 'helper', g: 'm' };
+    const l = fresh(L.helper.sent).replace('{n}', helper.name);
+    modal({
+      who: 'The manager, on the phone', title: 'Reinforcements.', voice: 'manager', sound: 'ring', text: l,
+      choices: [{ label: 'Great.', primary: true }, { label: 'I work better alone.', fn: () => toast('"Nobody works better alone. You work WORSE alone. He\'s coming."', 'warn') }],
+    });
+    const m = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm' });
+    m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    m.position.set(44, 0, 0);
+    scene.add(m);
+    helper.m = m;
+    helper.state = 'arrive';
+    helper.goal = P(site.box.x0 - 2, site.mid.z + rnd(-2, 2));
+    helper.t = 0;
+    remember(`The manager sent ${helper.name} to help. He helped, in his way.`);
+    charge(`Half of ${helper.name}'s kebab`, 8);
+  }
+  function helperWalk(dt, speed) {
+    const p = helper.m.position, u = helper.m.userData, g = helper.goal;
+    const dx = g.x - p.x, dz = g.z - p.z, d = Math.hypot(dx, dz);
+    if (d < 0.15) { u.legL.rotation.x *= 0.8; u.legR.rotation.x *= 0.8; return true; }
+    const v = Math.min(d, speed * dt);
+    p.x += (dx / d) * v; p.z += (dz / d) * v;
+    helper.m.rotation.y = Math.atan2(dx, dz);
+    u.phase += v * 4.5;
+    u.legL.rotation.x = Math.sin(u.phase) * 0.5; u.legR.rotation.x = -Math.sin(u.phase) * 0.5;
+    p.y = gs.phase === 'pour' && onSlab(p.x, p.z) ? groundY(p.x, p.z) * 0.4 : groundY(p.x, p.z);
+    if (gs.poured && onSlab(p.x, p.z) && gs.H < 60 && chance(dt * 1.6)) stamp('boot', p.x, p.z, helper.m.rotation.y + Math.PI);
+    return false;
+  }
+  function updateHelper(dt) {
+    if (!helper.m || helper.state === 'off') return;
+    helper.t += dt;
+    const here = helperWalk(dt, helper.state === 'leave' ? 2.2 : 1.5);
+    if (helper.state === 'arrive' && here) {
+      helper.state = 'idle';
+      const l = fresh(L.helper.hello).replace('{n}', helper.name);
+      toast(`${helper.name}: ${l}`); say(l, helper.voice);
+    }
+    if (helper.state === 'leave') { if (here) { scene.remove(helper.m); helper.m = null; helper.state = 'off'; } return; }
+    if (helper.state === 'arrive') return;
+    // home time: 16:00, or once the slab is hard enough for everybody to go
+    if ((gs.t % 1440) > 16 * 60 || gs.H >= 95) {
+      helper.state = 'leave';
+      helper.goal = P(44, 0);
+      const l = fresh(L.helper.bye);
+      toast(`${helper.name}: ${l}`); say(l, helper.voice);
+      return;
+    }
+    if (!here) return;
+    helper.job = (helper.job || 0) - dt;
+    if (helper.job > 0) {
+      // at work where he stands
+      if (gs.phase === 'pour') {
+        const c = cellAt(helper.m.position.x + Math.sin(helper.m.rotation.y), helper.m.position.z + Math.cos(helper.m.rotation.y));
+        if (c && c.fill > 10) { const d = day.thick - c.fill; const nb = neighbours(c); const o = d > 0 ? nb.reduce((a, b) => (b.fill > a.fill ? b : a)) : nb.reduce((a, b) => (b.fill < a.fill ? b : a)); const amt = clamp(d, -20 * dt, 20 * dt); c.fill += amt; o.fill -= amt; cellsDirty = true; }
+        helper.m.userData.armR.rotation.x = Math.sin(helper.t * 3) * 0.5 - 0.8;
+      }
+      return;
+    }
+    // a new job
+    helper.job = rnd(6, 12);
+    helper.m.userData.armR.rotation.x = 0;
+    if (gs.phase === 'prep' || gs.phase === 'pipes') {
+      const tie = site.ties.find((t) => !t.done && !gs.pourStarted);
+      if (tie && chance(0.6)) {
+        helper.goal = P(tie.x - 0.8, tie.z);
+        setTimeout(() => { if (!tie.done && !gs.pourStarted) { tie.done = true; tie.bar.visible = false; tie.twist.visible = true; toast(`${helper.name} tied a bit of mesh. Badly. But it's tied.`); } }, 7000);
+        return;
+      }
+    }
+    if (gs.phase === 'pour') {
+      const cs = gs.cells.filter((c) => c.fill > 20 && hyp(gx(c.i) + 0.5, gz(c.j) + 0.5, player.x, player.z) > 2.5);
+      if (cs.length) { const c = pick(cs); helper.goal = P(gx(c.i) + 0.5, gz(c.j) - 0.6); return; }
+    }
+    if (gs.phase === 'cure' && gs.H >= 30 && gs.H < 85 && chance(0.3)) {
+      const e = site.edges.find((x) => !x.done);
+      if (e) {
+        helper.goal = P(e.x, e.z);
+        setTimeout(() => { if (!e.done && gs.phase === 'cure') { e.done = true; gs.edgesDone++; if (chance(0.35)) { gs.edgeNotes.push('helper'); toast(`${helper.name} did the ${e.label.toLowerCase()}. It's… done. That's the most anyone can say.`, 'warn'); } else toast(`${helper.name} did the ${e.label.toLowerCase()}. Not bad, actually. Don't tell him.`); } }, 9000);
+        return;
+      }
+    }
+    if (gs.poured && gs.H < 55 && chance(0.12)) {
+      // straight across the slab, to ask you something
+      helper.goal = P(player.x + rnd(-1, 1), player.z + rnd(-1, 1));
+      toast(fresh(L.helper.oops).replace(/\{n\}/g, helper.name), 'warn');
+      return;
+    }
+    // stand about near the van, on his phone
+    const v = vanPoint(rnd(-8, -6), rnd(-3, 3));
+    helper.goal = v;
+    helper.job = rnd(15, 30);
+  }
+
+  // ------------------------------------------------------------------ the pump driver lends a hand
+  // On a line-pump day, when the truck has been waiting on you long enough, the pump driver comes
+  // over, takes the hose and pours it himself. Fast. Everywhere. You level up after him.
+  const helpPour = { on: false, t: 0, spot: null, home: null, next: 0 };
+  function maybePumpHelp() {
+    if (!day.pumpHelps || day.boom || helpPour.on || gs.pumpHelped || gs.phase !== 'pour') return;
+    if (!gs.truck || gs.truck.waiting || gs.truck.left < 1 || gs.blocked >= 0) return;
+    const share = filledShare();
+    if (gs.pourMins < 18 || share > 0.7 || share < 0.12) return;
+    gs.pumpHelped = true;
+    const line = fresh(L.pumpHelpStart);
+    modal({
+      who: 'Pump driver', title: 'He\'s coming over.', voice: 'pump', sound: 'voice',
+      text: `${line}\n\nHe walks off the pump, takes the hose out of your hands and wades into your slab with it.`,
+      choices: [
+        { label: 'Fine. Go on.', primary: true, fn: startPumpHelp },
+        { label: 'Absolutely not.', fn: () => { toast('"Too late." He already has it.', 'warn'); startPumpHelp(); } },
+      ],
+    });
+  }
+  function startPumpHelp() {
+    if (gs.tool === 'hose') gs.tool = 'hands';
+    gs.tools.hose.in = 'pumpman';
+    helpPour.on = true;
+    helpPour.t = 0;
+    helpPour.home = P(pumpGuy.position.x, pumpGuy.position.z);
+    helpPour.spot = P(SLAB.x1 - 1, gz(ENTRY.j) + 0.5);
+    helpPour.next = 0;
+    remember('The pump driver took the hose off you and poured it himself. Everywhere.');
+  }
+  function updatePumpHelp(dt) {
+    if (!helpPour.on) return;
+    helpPour.t += dt;
+    const u = pumpGuy.userData, p = pumpGuy.position;
+    const done = helpPour.t > 38 || !gs.truck || gs.truck.left <= 0 || gs.phase !== 'pour';
+    const goal = done ? helpPour.home : helpPour.spot;
+    const dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz);
+    if (d > 0.15) {
+      const v = Math.min(d, 1.7 * dt);
+      p.x += (dx / d) * v; p.z += (dz / d) * v;
+      pumpGuy.rotation.y = Math.atan2(dx, dz);
+      u.phase += v * 4.5;
+      u.legL.rotation.x = Math.sin(u.phase) * 0.5; u.legR.rotation.x = -Math.sin(u.phase) * 0.5;
+    } else if (done) {
+      helpPour.on = false;
+      gs.tools.hose = { in: 'ground', x: SLAB.x1 - 0.8, z: gz(ENTRY.j) + 0.5, yaw: Math.PI / 2 };
+      pumpGuy.rotation.y = -Math.PI / 2 - 0.4;
+      const l = fresh(L.pumpHelpEnd);
+      toast(`Pump driver: ${l} The hose is back at the edge. So are the hills he left.`, 'warn');
+      say(l, 'pump');
+      return;
+    }
+    p.y = groundY(p.x, p.z) * 0.5;
+    if (done) return;
+    // he pours where he stands, a bit too much, and moves on when he feels like it
+    u.armR.rotation.x = -1.2; u.armL.rotation.x = -1.0;
+    helpPour.next -= dt;
+    if (helpPour.next <= 0) {
+      helpPour.next = rnd(2.5, 4.5);
+      const near = gs.cells.filter((c) => hyp(gx(c.i) + 0.5, gz(c.j) + 0.5, SLAB.x1, gz(ENTRY.j)) < 9 && c.fill < day.thick + 20);
+      if (near.length) { const c = pick(near); helpPour.spot = P(gx(c.i) + rnd(0.2, 0.8), gz(c.j) + rnd(0.2, 0.8)); }
+    }
+    if (d < 1.2) {
+      const aim = P(p.x + Math.sin(pumpGuy.rotation.y) * 1.1, p.z + Math.cos(pumpGuy.rotation.y) * 1.1);
+      const c = cellAt(aim.x, aim.z) || cellAt(p.x, p.z);
+      // a hill of his own making, then off to start another one
+      if (c && c.fill > day.thick + (helpPour.hill || (helpPour.hill = rnd(12, 30)))) { helpPour.next = 0; helpPour.hill = 0; }
+      else if (c) {
+        const add = 150 * dt;
+        c.fill += add * 0.85;
+        neighbours(c).forEach((n) => { n.fill += (add * 0.15) / 4; });
+        gs.truck.left -= add / 1000;
+        gs.pouredM3 += add / 1000;
+        cellsDirty = true;
+        if (chance(dt * 8)) emit(aim.x, 0.9, aim.z, rnd(-0.4, 0.4), rnd(0, 0.5), rnd(-0.4, 0.4), 0.8, 0x7d7f80, 0.08, 1.2);
+        if (chance(dt * 3)) paintPour(aim.x + rnd(-0.4, 0.4), aim.z + rnd(-0.4, 0.4));
+        if (chance(dt * 0.6)) sfx('splash', aim.x, aim.z);
+      }
+    }
+  }
+
   function levelTick(c, dt) {
+    addDirt('float', dt * 0.06);
+    if (chance(dt * 0.004) && breakHandTool('float', fresh(L.floatSnaps), 45)) return;
     const rate = 55 * dt * (gs.mixState === 'soup' ? 1.5 : gs.mixState === 'stiff' ? 0.65 : 1);
     const diff = c.fill - day.thick;
     const nb = neighbours(c);
@@ -4444,6 +5109,7 @@
    */
   function repairTick(c, dt) {
     const hand = gs.tool === 'handTrowel';
+    addDirt(gs.tool, dt * (gs.H < 70 ? 0.04 : 0.008));
     const limit = hand ? 70 : 50;
     paintT -= dt;
     if (gs.H < limit && paintT <= 0) {
@@ -4458,6 +5124,33 @@
     if (wearMarks(c, (hand ? 0.7 : 1.1) * dt)) toastOnce('floatout', 'Floated out. Nobody will ever know. Except you. Forever.', 'good', 40000);
   }
 
+  /** Too much in one place: dig it out and throw it where it's low, or over the formwork if nothing is. */
+  function shovelTick(c, dt) {
+    addDirt('shovel', dt * 0.05);
+    gs.energy = clamp(gs.energy - dt * 0.4, 0, 100);
+    const amt = Math.min(70 * dt, c.fill - day.thick);
+    if (amt <= 0) return;
+    let low = null;
+    for (const o of gs.cells) {
+      if (hyp(gx(o.i) + 0.5, gz(o.j) + 0.5, gx(c.i) + 0.5, gz(c.j) + 0.5) > 3.2) continue;
+      if (o.fill < day.thick - 1 && (!low || o.fill < low.fill)) low = o;
+    }
+    c.fill -= amt;
+    if (low) low.fill += amt;
+    else { gs.waste += amt / 1000; toastOnce('overboard', 'Nowhere low nearby, so over the formwork it goes. Waste, but level waste.', 'warn', 30000); }
+    cellsDirty = true;
+    paintT -= dt;
+    if (paintT <= 0) {
+      paintT = 0.25;
+      const tx = low ? gx(low.i) + 0.5 : c._hx + rnd(-2, 2), tz = low ? gz(low.j) + 0.5 : c._hz + rnd(-2, 2);
+      for (let k = 0; k < 6; k++) emit(c._hx, surfY(c.fill) + 0.1, c._hz, (tx - c._hx) * 1.1 + rnd(-0.3, 0.3), rnd(2.2, 3), (tz - c._hz) * 1.1 + rnd(-0.3, 0.3), 0.8, 0x7d7f80, 0.07, 1);
+      sfx('wet', c._hx, c._hz);
+      if (low) paintPour(tx, tz);
+    }
+    toastOnce('shovel', fresh(L.shovelLines), '', 45000);
+    if (chance(dt * 0.003)) breakHandTool('shovel', 'The shovel handle snaps with a crack like a starting pistol. You are now holding a stick and a grudge.', 25);
+  }
+
   // the power trowels
   const mpos = { x: 0, z: 0, on: false };   // the middle of the machine in hand, set every frame
   /** 0 when the concrete carries the machine, up to 1 when it is still soft enough to dig into. */
@@ -4468,6 +5161,10 @@
   let dugWarn = 0;
   function trowelTick(dt) {
     const id = gs.tool, pans = fitted() === 'pans', H = gs.H;
+    if (gs.broken[id]) { toastOnce('dead' + id, `The ${TOOLS[id].name.toLowerCase()} is dead. A spare is on its way from the yard.`, 'warn', 30000); return; }
+    gs.runSecs[id] = (gs.runSecs[id] || 0) + dt;
+    if (day.breakTool === id && gs.runSecs[id] > day.breakAfter && !gs.broken[id + 'Died']) { gs.broken[id + 'Died'] = true; breakMachine(id); return; }
+    if (H >= 8) addDirt(id, dt * (H < 85 ? 0.012 : 0.003));
     if (H < 8) { if (input.actionTapped) toast(pans ? L.tooSoftMachine : L.tooSoftBlades, 'warn'); return; }
     if (input.actionTapped && pans && gs.panPasses.length >= 3) toastOnce('pans3', 'Three pan passes is plenty. Now you\'re just polishing the pans.', '', 60000);
     if (input.actionTapped && !pans && gs.bladePasses.length >= 3) toastOnce('blades3', 'Three blade passes. It shines like a bowling alley. You can stop.', '', 60000);
@@ -4633,12 +5330,13 @@
     if (gs.carrying) { toastOnce('carry', 'Both hands are on what you\'re carrying.', '', 20000); return; }
     if (nearTool) pickUp(nearTool);
     else if (held()) putDown();
-    else toastOnce('hands', 'Your hands are empty. Look at a tool — on the tarp by the van, or wherever you left it — and press Pick up.', '', 20000);
+    else toastOnce('hands', 'Your hands are empty. Look at a tool — on the van\'s ramp, or wherever you left it — and press Pick up.', '', 20000);
   }
   $('#btnTool').addEventListener('click', () => toolButton());
   $('#btnLaser').addEventListener('click', () => altButton());
   $('#btnWait').addEventListener('click', () => waitMenu());
   $('#btnCoffee').addEventListener('click', () => coffee());
+  $('#btnFlip').addEventListener('click', () => flip());
   $('#btnFinish').addEventListener('click', () => {
     modal({
       who: 'Finish the pour?', title: `${Math.round(filledShare() * 100)}% filled, ±${rms().toFixed(1)} mm.`,
@@ -4664,6 +5362,7 @@
   function coffee() {
     if (gs.cups <= 0) { toast(L.noCoffee, 'warn'); return; }
     gs.cups--;
+    gs.needs.wee += 22;
     gs.stats.coffee++;
     gs.energy = clamp(gs.energy + 15, 0, 100);
     simulate(2, awayNow());
@@ -4721,6 +5420,15 @@
     if (wet) speed = 1.7;
     if (isMachine(tool)) speed = TOOLS[tool].ride ? (running ? 1.8 : 2.6) : (running ? 1.4 : 2.2);
     if (gs.carrying) speed *= 0.7;
+    if (gs.needs.poo > 85) speed *= 0.75;
+    // thumb all the way over: a run, while there's energy for one and nothing heavy in your hands
+    const canRun = len > 0.92 && !wet && !isMachine(tool) && !gs.carrying && gs.energy > 12 && gs.needs.poo <= 85;
+    player.run = canRun ? Math.min(1, (player.run || 0) + dt * 2.5) : Math.max(0, (player.run || 0) - dt * 4);
+    if (player.run > 0) {
+      speed *= 1 + 0.6 * player.run;
+      gs.energy = clamp(gs.energy - player.run * dt * 0.3, 0, 100);
+      if (player.run >= 1) toastOnce('run', 'Running. On a building site. Your mother would be so proud.', '', 600000);
+    }
     if (gs.energy < 20) speed *= 0.8;
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
@@ -4848,9 +5556,10 @@
     input.actionTapped = false;
     // the end hose, from the last pipe to your hand, or to wherever you left it
     const hose = gs.tools.hose;
-    if (hose && (hose.in === 'hand' || hose.in === 'ground')) {
+    if (hose && (hose.in === 'hand' || hose.in === 'ground' || hose.in === 'pumpman')) {
       const end = new THREE.Vector3();
       if (hose.in === 'hand') { end.set(0.36, -0.75, -0.35); camera.localToWorld(end); }
+      else if (hose.in === 'pumpman') end.set(pumpGuy.position.x + Math.sin(pumpGuy.rotation.y) * 0.5, pumpGuy.position.y + 1.0, pumpGuy.position.z + Math.cos(pumpGuy.rotation.y) * 0.5);
       else end.set(hose.x, groundY(hose.x, hose.z) + 0.05, hose.z);
       const last = PIPE_ROUTE[5];
       endHose.visible = true;
@@ -4977,7 +5686,15 @@
     if ((gs.phase === 'pour' || gs.phase === 'pipes') && gs.pumpHere) kinds.push([2.5, 'crew']);
     const h = (gs.t % 1440) / 60;
     kinds.push([h < 8 || h > 19 ? 1.6 : 0.6, 'neighbour']);
+    if (helper.m && helper.state !== 'leave') kinds.push([3, 'helper']);
     const kind = weighted(kinds);
+    if (kind === 'helper') {
+      // he gets his favourite line in early
+      const l = helper.said++ === 0 ? L.helper.talk[0] : fresh(L.helper.talk);
+      toast(`${helper.name}: ${l}`);
+      say(l, helper.voice);
+      return;
+    }
     if (kind === 'thought') {
       const l = fresh(L.thoughts);
       toast(l);
@@ -5003,8 +5720,52 @@
     }
   }
 
+  /** The van's back: doors round to the sides, then the ramp out and down. */
+  function updateVanBack(dt) {
+    const was = vanBack.open;
+    vanBack.open = vanBack.want > vanBack.open ? Math.min(vanBack.want, vanBack.open + dt * 0.9) : Math.max(vanBack.want, vanBack.open - dt * 1.4);
+    if (was === vanBack.open && was !== 0 && was !== 1) return;
+    const d = clamp(vanBack.open * 2, 0, 1), r = clamp(vanBack.open * 2 - 1, 0, 1);
+    vanBack.doors.forEach(({ hinge, s }) => { hinge.rotation.y = s * 1.9 * d * d * (3 - 2 * d); });
+    vanInside.visible = d > 0.05;
+    rampPivot.visible = r > 0.02;
+    rampPivot.position.x = lerp(-0.6, RAMP_TOP.x, r);
+    rampPivot.rotation.z = RAMP_DOWN * r;
+    laserCase.visible = r > 0.9 && gs.laserInVan;
+    vanBucket.visible = r > 0.9;
+    if (was < 1 && vanBack.open >= 1 && vanBack.onOpen) { const f = vanBack.onOpen; vanBack.onOpen = null; f(); }
+  }
+  // tools in the air: out of the van, or anywhere else they get thrown
+  const flights = [];
+  function launchTool(id, from, to, secs) {
+    gs.tools[id] = { in: 'flying', x: to.x, z: to.z, yaw: rnd(0, 6) };
+    flights.push({ id, from: from.clone(), to: new THREE.Vector3(to.x, groundY(to.x, to.z) + 0.02, to.z), t: 0, secs: secs || 0.8, spin: rnd(6, 12) });
+  }
+  function updateFlights(dt) {
+    for (let k = flights.length - 1; k >= 0; k--) {
+      const f = flights[k], g = lying[f.id];
+      f.t += dt / f.secs;
+      const u = Math.min(1, f.t);
+      g.visible = true;
+      g.position.set(lerp(f.from.x, f.to.x, u), lerp(f.from.y, f.to.y, u) + 1.1 * 4 * u * (1 - u), lerp(f.from.z, f.to.z, u));
+      g.rotation.set(u * f.spin, u * 3, u * f.spin * 0.5);
+      if (u >= 1) {
+        flights.splice(k, 1);
+        g.rotation.set(0, 0, 0);
+        gs.tools[f.id].in = 'ground';
+        sfx('clank', f.to.x, f.to.z);
+        emit(f.to.x, 0.05, f.to.z, 0, 0.6, 0, 0.5, 0x9a8f7c, 0.06, 0.4);
+      }
+    }
+  }
+
   function updateWorld(dt) {
     updateBoom(dt);
+    updateVanBack(dt);
+    updateHelper(dt);
+    updateFlip(dt);
+    maybePumpHelp();
+    updatePumpHelp(dt);
     updateChatter();
     for (let k = drives.length - 1; k >= 0; k--) {
       const d = drives[k];
@@ -5143,11 +5904,13 @@
     townMats.forEach((mt) => { mt.emissiveIntensity = lit * 0.9; });
   }
 
+  let shake = 0;
   function placeCamera(dt) {
     let y = EYE;
     const c = cellAt(player.x, player.z);
     // standing on it once it carries you; in it, up to the ankles, while it is wet
     if (c) y += groundY(player.x, player.z) * (gs.phase === 'pour' ? 0.3 : 0.9);
+    else y += rampY(player.x, player.z);
     if (gs.tool === 'rideOn') y = 1.62 + groundY(player.x, player.z);
     const knelt = kneeling();
     if (knelt && !wasKneeling && gs.poured && onSlab(player.x, player.z)) stamp('knee', player.x, player.z, player.yaw, true);
@@ -5163,10 +5926,14 @@
     }
     if (gs.waitMode === 'van') y = 1.55;
     const bob = CALM ? 0 : Math.sin(player.bob) * 0.035;
-    camera.position.set(player.x, y + (player.moving ? bob : 0), player.z);
-    camera.rotation.set(player.pitch, player.yaw, roll);
+    // something just went bang: the view shakes, then settles
+    const sh = CALM ? 0 : shake;
+    shake = Math.max(0, shake - dt * 1.2);
+    camera.position.set(player.x + rnd(-1, 1) * sh * 0.05, y + (player.moving ? bob : 0) + rnd(-1, 1) * sh * 0.04, player.z + rnd(-1, 1) * sh * 0.05);
+    camera.rotation.set(player.pitch + rnd(-1, 1) * sh * 0.02, player.yaw, roll + rnd(-1, 1) * sh * 0.03);
     camera.updateMatrixWorld();
     placeTools(dt);
+    updateFlights(dt);
     updatePack(dt);
   }
 
@@ -5242,7 +6009,8 @@
     if (id === 'wash') return 'wash';
     return null;
   }
-  function onTarp(x, z) { return tarp.visible && Math.abs(x - POS.tarp.x) < 1.45 && Math.abs(z - POS.tarp.z) < 0.7; }
+  function onTarp() { return false; }
+  const tmpAxis = new THREE.Vector3(), tmpUp = new THREE.Vector3(0, 1, 0), tmpQ = new THREE.Quaternion();
   /** Down on one knee: hand troweling, and tying the mesh. */
   function kneeling() { const a = markerAnim(); return a === 'edger' || a === 'tie'; }
   function moveMachine(t, R, tx, tz, running) {
@@ -5267,6 +6035,9 @@
     viewTools.laser.rotation.z = sway * 2;
     viewTools.hose.visible = (t === 'hose' && !gs.carrying) || anim === 'wash';
     viewTools.hammer.visible = t === 'hammer';
+    viewTools.shovel.visible = t === 'shovel';
+    if (t === 'shovel' && input.action && lastCtxKind === 'shovel') viewTools.shovel.rotation.x = Math.sin(toolT * 7) * 0.35 - 0.1;
+    else viewTools.shovel.rotation.x = 0;
     viewTools.pliers.visible = t === 'pliers';
     viewTools.cutter.visible = t === 'cutter';
     // the hose kicks with every stroke of the pump
@@ -5331,11 +6102,17 @@
       viewTools.cup.rotation.x = up * 0.9;
     }
 
+    showDirt();
     // hand tools lying about
-    ['float', 'handTrowel', 'hammer', 'pliers', 'cutter', 'hose'].forEach((id) => {
+    ['float', 'handTrowel', 'hammer', 'pliers', 'cutter', 'hose', 'shovel'].forEach((id) => {
       const tl = gs.tools[id], g = lying[id];
       g.visible = !!tl && tl.in === 'ground';
-      if (g.visible) { g.position.set(tl.x, groundY(tl.x, tl.z) + (onTarp(tl.x, tl.z) ? 0.013 : 0), tl.z); g.rotation.y = tl.yaw; }
+      if (g.visible) {
+        const ry = rampY(tl.x, tl.z);
+        g.position.set(tl.x, groundY(tl.x, tl.z) + (ry ? 0.02 : 0), tl.z);
+        if (ry) g.quaternion.setFromAxisAngle(tmpAxis.set(Math.sin(van.rotation.y), 0, Math.cos(van.rotation.y)), RAMP_DOWN).multiply(tmpQ.setFromAxisAngle(tmpUp, tl.yaw));
+        else g.rotation.set(0, tl.yaw, 0);
+      }
     });
 
     // the machines: parked where they were left, or running where you steer them
@@ -5357,7 +6134,8 @@
         tl.yaw = Math.atan2(player.x - tl.x, player.z - tl.z);
       }
       const on = inHand && running;
-      m.spin = lerp(m.spin, on ? 17 : inHand && !gs.fitting ? 5 : 0, 1 - Math.exp(-dt * 3));
+      m.spin = lerp(m.spin, gs.broken[id] ? 0 : on ? 17 : inHand && !gs.fitting ? 5 : 0, 1 - Math.exp(-dt * 3));
+      if (gs.broken[id] && chance(dt * 3)) emit(tl.x, 0.6, tl.z, rnd(-0.2, 0.2), rnd(0.6, 1.2), rnd(-0.2, 0.2), 1.8, 0x3a3c3f, 0.12, -0.1);
       const fit = gs.fit[id];
       m.rotors.forEach((r, k) => {
         r.rotor.rotation.y += (k ? 1 : -1) * m.spin * dt;
@@ -5413,9 +6191,9 @@
   function objective() {
     const nextPrep = () => {
       const p = gs.prep, left = [];
-      if (!p.unload) left.push('unload the tools');
+      if (!p.unload) left.push('open the van');
       if (p.form.includes(false)) left.push('check the formwork (hammer)');
-      if (!p.laser) left.push('set up the laser');
+      if (!p.laser) left.push(gs.laserInVan ? 'take the laser out of the van and set it up' : 'set up the laser');
       if (site.ties.some((t) => !t.done)) left.push('tie the loose mesh (pliers & wire)');
       if (site.cuts.some((t) => !t.done)) left.push('cut the bar sticking up (rebar cutter)');
       return left;
@@ -5435,10 +6213,11 @@
         if (gs.blowout) return `The formwork burst on the ${gs.blowout.name}. Fix it before you lose more!`;
         if (!laserWorks() && gs.prep.laser) return 'Laser batteries are dead. Spares are in the van.';
         const f = Math.round(filledShare() * 100);
-        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (tarp): level · Laser shows the height` : `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.`;
+        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height` : `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.`;
         return `Pour to ${day.thick} mm: ${f}% filled, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
-      case 'wash': if (gs.gaveUp) return gs.packing ? 'Throwing the tools in the van.' : 'It\'s gone off, tools unwashed. Walk to the van and go home.<small>They\'ll be concrete tools now. Very sturdy.</small>'; return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
+      case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The pump driver does his own pipes.</small>`; }
+        if (gs.gaveUp) return gs.packing ? 'Throwing the tools in the van.' : 'It\'s gone off, tools unwashed. Walk to the van and go home.<small>They\'ll be concrete tools now. Very sturdy.</small>'; return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
       case 'cure': {
         if (gs.packing) return 'Throwing the tools in the van.<small>Therapy, but cheaper.</small>';
         if (gs.gaveUp) return 'It\'s gone off. Nothing more goes on this slab today.<small>Walk to the van: the tools go in, you go home.</small>';
@@ -5447,11 +6226,11 @@
         if (gs.H < 25) return `Let it harden. Guard it, eat, or nap.${warn || '<small>Pans from 25%.</small>'}`;
         const mt = machineTool();
         if (!gs.panPasses.length) {
-          if (!mt) return `Pan pass: take a power trowel from beside the tarp.${warn || '<small>They come with pans on.</small>'}`;
+          if (!mt) return `Pan pass: take a power trowel from behind the van.${warn || '<small>They come with pans on.</small>'}`;
           if (gs.fit[mt] !== 'pans') return `Fit the pans (the button next to Put down).${warn}`;
           return `Run it over every orange square.${warn || '<small>Hold the big button; slide your thumb on it to steer.</small>'}`;
         }
-        if (gs.edgesDone < site.edges.length) return `Edges, corners and collars (${gs.edgesDone}/${site.edges.length}).${warn || '<small>Hand trowel from the tarp; the edge trowel does straight edges.</small>'}`;
+        if (gs.edgesDone < site.edges.length) return `Edges, corners and collars (${gs.edgesDone}/${site.edges.length}).${warn || '<small>Hand trowel from the van; the edge trowel does straight edges.</small>'}`;
         if (!gs.bladePasses.length) {
           if (gs.H < 55) return `Wait for blades (55%).${warn || '<small>Another pan pass flattens it more.</small>'}`;
           if (!mt) return `Blade pass: take a power trowel and fit the blades.${warn}`;
@@ -5460,7 +6239,9 @@
         }
         if (gs.prep.laser && !gs.laserPacked) return `Pack up the laser and put it in the van.<small>${gs.H < 95 ? `${dur(etaTo(95))} to 95%.` : 'Then home.'}</small>`;
         if (gs.H < 95) return `Wait for 95%, then go home.<small>${dur(etaTo(95))} to go. Another blade pass shines it up.</small>`;
-        return 'It\'s 95%. Walk to the van and go home.';
+        const out = toolsOut(), dirty = dirtyTools();
+        if (out.length || dirty.length) return `Pack up: ${out.length ? `bring ${theList(out)} back to the van` : ''}${out.length && dirty.length ? '; ' : ''}${dirty.length ? `wash ${theList(dirty)}` : ''}.<small>Then home. The manager checks the van. The manager always checks the van.</small>`;
+        return 'It\'s 95%, the van is packed. Go home.';
       }
       default: return '';
     }
@@ -5476,7 +6257,8 @@
     const topH = $('#top').offsetHeight;
     if (topH !== hudTopH) { hudTopH = topH; $('#hud').style.setProperty('--hud-top', `${10 + topH + 8}px`); }
     const T = tempAt(gs.t);
-    $('#weather').innerHTML = `${T.toFixed(1)} °C <span>·</span> ${day.rh}% RH <span>·</span> wind ${day.wind}<br><span>Slab</span> ${day.thick} mm <span>· energy</span>` +
+    const need = gs.needs.poo > 60 ? '<br><b style="color:#ffb86b">Needs the loo, badly</b>' : gs.needs.wee > 60 ? '<br><b style="color:#9fd3ff">Needs a wee</b>' : '';
+    $('#weather').innerHTML = `${T.toFixed(1)} °C <span>·</span> ${day.rh}% RH <span>·</span> wind ${day.wind}${day.indoor ? ' (outside)' : ''}${need}<br><span>Slab</span> ${day.thick} mm <span>· energy</span>` +
       `<div id="energyRow"><div id="energyBar"><div id="energyFill" style="width:${gs.energy}%;background:${gs.energy < 25 ? '#ff3b30' : gs.energy < 50 ? '#ffd23f' : '#6bd68a'}"></div></div><span>${gs.cups} cups</span></div>`;
     const hard = $('#hard');
     hard.hidden = !gs.poured;
@@ -5563,10 +6345,14 @@
     const v = gs.poured ? Math.round(90 + gs.H * 1.2) : 150;
     const slabCol = gs.pourStarted ? `rgb(${v},${v},${v + 4})` : '#8c8577';
     gs.cells.forEach((c) => poly(gx(c.i) - 0.02, gz(c.j) - 0.02, gx(c.i + 1) + 0.02, gz(c.j + 1) + 0.02, slabCol));
-    poly(-28.6, 7.8, -23.4, 10.2, '#e9e7e2');
-    poly(-21.6, -9.6, -20.4, -8.4, '#cfe3ea');
-    poly(-39.6, -25.4, -36.4, -22.6, '#2f6f6a');
-    poly(-37, 11.8, -31, 14.2, '#3c6e9e');
+    const rpoly = (o, col) => {
+      const pts = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => { const [wx, wz] = turnXZ(a * o.hx, b * o.hz, o.ang); return toMap(o.cx + wx, o.cz + wz); });
+      g.fillStyle = col; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+      for (let k = 1; k < 4; k++) g.lineTo(pts[k][0], pts[k][1]);
+      g.closePath(); g.fill();
+    };
+    layoutObs.forEach((o) => rpoly(o, o.col));
+    if (hall.visible) hallWalls.forEach((o) => rpoly(o, '#b9b3a8'));
     if (pump.visible) poly(pump.position.x - 4.3, pump.position.z - 1.2, pump.position.x + 4.3, pump.position.z + 1.2, '#f2b705');
     if (mixer.visible) poly(mixer.position.x - 4.5, mixer.position.z - 1.2, mixer.position.x + 4.5, mixer.position.z + 1.2, '#ff6b1a');
     g.restore();
@@ -5645,13 +6431,242 @@
     requestAnimationFrame(frame);
   }
 
+  // ------------------------------------------------------------------ dirt
+  // Concrete sticks. A tool that works in it collects grey splats, more the longer it works; they
+  // come off at the water tank, and left long enough they're part of the tool.
+  const DIRTY_TOOLS = ['float', 'handTrowel', 'shovel', 'trowelSmall', 'trowelBig', 'rideOn'];
+  const dirtSpots = {};
+  const dirtShown = {};
+  const dirtMat = new THREE.MeshLambertMaterial({ color: 0xb9b5aa });
+  const blobGeo = new THREE.SphereGeometry(1, 6, 4);
+  function splatter(group, n, size) {
+    group.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(group.matrixWorld).invert();
+    const meshes = [];
+    group.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position && o.material !== dirtMat) meshes.push(o); });
+    const out = [], v = new THREE.Vector3(), m4 = new THREE.Matrix4();
+    for (let k = 0; k < n && meshes.length; k++) {
+      const me = pick(meshes), pos = me.geometry.attributes.position;
+      v.fromBufferAttribute(pos, irnd(0, pos.count - 1)).applyMatrix4(m4.multiplyMatrices(inv, me.matrixWorld));
+      const b = new THREE.Mesh(blobGeo, dirtMat);
+      const r = size * rnd(0.6, 1.4);
+      b.scale.set(r, r * 0.55, r);
+      b.position.copy(v);
+      b.visible = false;
+      group.add(b);
+      out.push(b);
+    }
+    return out;
+  }
+  function buildDirt() {
+    DIRTY_TOOLS.forEach((id) => {
+      const spots = [];
+      if (lying[id]) spots.push(...splatter(lying[id], 8, 0.035));
+      if (viewTools[id]) spots.push(...splatter(viewTools[id], 8, 0.014));
+      if (machines[id]) spots.push(...splatter(machines[id].group, 16, 0.08));
+      if (id === 'float') spots.push(...splatter(floatTool, 8, 0.045));
+      dirtSpots[id] = spots;
+    });
+  }
+  function dirtOf(id) { return (gs.dirt[id] && gs.dirt[id].d) || 0; }
+  function addDirt(id, amt) {
+    if (!DIRTY_TOOLS.includes(id)) return;
+    const r = gs.dirt[id] || (gs.dirt[id] = { d: 0, at: gs.t });
+    if (r.d < 0.05) r.at = gs.t;
+    r.d = Math.min(1, r.d + amt);
+  }
+  /** Concrete that has sat on a tool for two and a half hours is staying there. */
+  function dirtSet(id) { return dirtOf(id) > 0.15 && gs.t - gs.dirt[id].at > 150; }
+  function showDirt() {
+    DIRTY_TOOLS.forEach((id) => {
+      const spots = dirtSpots[id];
+      if (!spots) return;
+      const n = Math.ceil(dirtOf(id) * spots.length);
+      if (dirtShown[id] === n) return;
+      dirtShown[id] = n;
+      // the lying and the in-hand copies each show the same share of theirs
+      spots.forEach((b, k) => { b.visible = (k % 8) < Math.ceil(dirtOf(id) * 8); });
+    });
+  }
+  function dirtyTools() { return DIRTY_TOOLS.filter((id) => gs.tools[id] && dirtOf(id) > 0.15); }
+  /** Where the tools are that aren't back at the van. */
+  function toolsOut() {
+    return TOOL_IDS.filter((id) => {
+      const t = gs.tools[id];
+      if (!t || id === 'hose' || t.in === 'van' || t.in === 'gone') return false;
+      if (t.in === 'hand') return !atVan(player.x, player.z);
+      return !atVan(t.x, t.z);
+    });
+  }
+  const theList = (ids) => { const n = ids.map((id) => TOOLS[id].the); return n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] : n[0] || ''; };
+
+  // ------------------------------------------------------------------ breakages
+  // Things break: a machine's gearbox gives up, a hammer loses its head, a float pole folds. There's
+  // a spare hand tool in the van; a spare machine comes out from the yard later. All of it is paid for.
+  function charge(label, eur) { gs.charges.push([label, eur]); }
+  function breakHandTool(id, line, eur) {
+    if (gs.broken[id + 'Once']) return false;
+    gs.broken[id + 'Once'] = true;
+    if (gs.tool === id) gs.tool = 'hands';
+    const [x, z, yaw] = TOOL_HOME[id];
+    gs.tools[id] = { in: 'ground', x, z, yaw };
+    gs.dirt[id] = { d: 0, at: gs.t };
+    sfx('snip'); sfx('clank');
+    for (let k = 0; k < 10; k++) emit(player.x + rnd(-0.3, 0.3), 1.0, player.z + rnd(-0.3, 0.3), rnd(-1.5, 1.5), rnd(0.5, 2), rnd(-1.5, 1.5), 0.6, 0x8a6a3a, 0.04);
+    toast(`${line} There's a spare in the van. It goes on the bill.`, 'warn');
+    charge(`Broken: ${TOOLS[id].name.toLowerCase()}`, eur);
+    remember(line);
+    return true;
+  }
+  function breakMachine(id) {
+    gs.broken[id] = true;
+    const t = gs.tools[id];
+    sfx('thud', t.x, t.z); sfx('buzz', t.x, t.z);
+    for (let k = 0; k < 30; k++) emit(t.x + rnd(-0.3, 0.3), 0.7, t.z + rnd(-0.3, 0.3), rnd(-0.3, 0.3), rnd(0.8, 1.8), rnd(-0.3, 0.3), 2.2, 0x3a3c3f, 0.18, -0.1);
+    const line = fresh(L.machineDies).replace('{m}', TOOLS[id].name.toLowerCase());
+    toast(line, 'warn');
+    say(line, 'me');
+    charge(`${TOOLS[id].name}: gearbox, replaced`, id === 'rideOn' ? 420 : 180);
+    remember(`The ${TOOLS[id].name.toLowerCase()} died under you.`);
+    at(gs.t + irnd(35, 55), () => {
+      gs.broken[id] = false;
+      gs.fit[id] = 'pans';
+      toast(`The yard drops off a spare ${TOOLS[id].name.toLowerCase()}. It's older than you and louder than the pump. Pans on it.`, 'good');
+    });
+  }
+
+  // ------------------------------------------------------------------ an inside day: the new hall
+  // Some slabs go down inside a hall that is already up: two long walls, columns, steel trusses and
+  // clear roof sheets. Both ends stay open, the van's and the pump's.
+  const hall = new THREE.Group();
+  hall.visible = false;
+  scene.add(hall);
+  const hallWalls = [];
+  function buildHall() {
+    hall.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+    hall.clear();
+    hallWalls.length = 0;
+    hall.visible = !!day.indoor;
+    if (!day.indoor) return;
+    const b = site.box, m = 1.4, H = 4.2;
+    const x0 = b.x0 - m, x1 = b.x1 + m, z0 = b.z0 - m, z1 = b.z1 + m;
+    const len = x1 - x0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    [z0, z1].forEach((z) => {
+      const w = box(len, H, 0.25, 0xc9c4ba, cx, H / 2, z, hall);
+      w.receiveShadow = true; w.castShadow = true;
+      hallWalls.push({ cx, cz: z, hx: len / 2, hz: 0.13, ang: 0 });
+    });
+    const n = Math.max(2, Math.round(len / 3.2));
+    for (let k = 0; k <= n; k++) {
+      const x = x0 + (len * k) / n;
+      [z0, z1].forEach((z) => box(0.3, H + 0.3, 0.34, 0x5a5f64, x, (H + 0.3) / 2, z, hall));
+      box(0.16, 0.5, z1 - z0, 0x6c7176, x, H + 0.4, cz, hall).castShadow = true;
+      if (k < n) box(0.9, 0.07, 0.22, new THREE.MeshBasicMaterial({ color: 0xfff6dc }), x + len / n / 2, H + 0.1, cz, hall);
+    }
+    box(len + 0.6, 0.04, z1 - z0 + 0.6, new THREE.MeshLambertMaterial({ color: 0xdfe8ee, transparent: true, opacity: 0.25, depthWrite: false }), cx, H + 0.68, cz, hall);
+  }
+
+  // ------------------------------------------------------------------ the yard, a new layout every day
+  // The van, the water tank, the kebab stand, the loo and the site office go somewhere new each day,
+  // and so do the pump and the line of pipes it lays to the slab.
+  const layoutObs = [];              // what you walk round: centre, half sizes, turn, and its colour on the map
+  const turnXZ = (x, z, a) => [x * Math.cos(a) + z * Math.sin(a), -x * Math.sin(a) + z * Math.cos(a)];
+  /** A spot given in the van's own frame: x forward (the back is -x), z across. */
+  function vanPoint(lx, lz) { const [x, z] = turnXZ(lx, lz, van.rotation.y); return P(van.position.x + x, van.position.z + z); }
+  function vanLocal(x, z) { return turnXZ(x - van.position.x, z - van.position.z, -van.rotation.y); }
+  /** The height of the ramp at the back of the van, where it's down; 0 anywhere else. */
+  function rampY(x, z) {
+    if (vanBack.open < 0.99) return 0;
+    const [lx, lz] = vanLocal(x, z);
+    if (lx > RAMP_TOP.x || lx < RAMP_TOP.x - RAMP_RUN || Math.abs(lz) > 0.8) return 0;
+    return RAMP_TOP.z * (lx - (RAMP_TOP.x - RAMP_RUN)) / RAMP_RUN + 0.03;
+  }
+  /** At the back of the van: on the ramp or on the ground round its foot. */
+  function atVan(x, z) {
+    const [lx, lz] = vanLocal(x, z);
+    return lx < -2.4 && lx > -8 && Math.abs(lz) < 2.8;
+  }
+  function boxDist(x, z) {
+    const dx = Math.max(SLAB.x0 - x, 0, x - SLAB.x1), dz = Math.max(SLAB.z0 - z, 0, z - SLAB.z1);
+    return Math.hypot(dx, dz);
+  }
+  function placeLayout() {
+    layoutObs.length = 0;
+    const free = (x, z, r) => boxDist(x, z) > r + 2.5 && !(x > 5 && Math.abs(z) < 15) && Math.abs(x) < 41 - r && Math.abs(z) < 31 - r
+      && layoutObs.every((o) => hyp(o.cx, o.cz, x, z) > o.r + r + 1.5);
+    const find = (gen, r) => { for (let k = 0; k < 500; k++) { const q = gen(); if (free(q.x, q.z, r)) return q; } return gen(); };
+    const put = (obj, q, yaw, hx, hz, col, r, ox) => {
+      obj.position.set(q.x, 0, q.z);
+      obj.rotation.y = yaw;
+      const [cx, cz] = turnXZ(ox || 0, 0, yaw);
+      layoutObs.push({ cx: q.x + cx, cz: q.z + cz, hx, hz, ang: yaw, col, r });
+    };
+    const facing = (q) => Math.atan2(site0.x - q.x, site0.z - q.z);
+    const site0 = P((SLAB.x0 + SLAB.x1) / 2, 0);
+    // the van, with its back to the slab: west of it, or north, or south
+    const side = day.indoor ? 'w' : weighted([[0.5, 'w'], [0.25, 'n'], [0.25, 's']]);
+    const vq = side === 'w' ? P(rnd(-31, -26), rnd(-9, 9)) : P(rnd(-17, -1), side === 'n' ? rnd(-23, -18) : rnd(18, 23));
+    const vy = (side === 'w' ? Math.PI : side === 'n' ? Math.PI / 2 : -Math.PI / 2) + rnd(-0.3, 0.3);
+    put(van, vq, vy, 3.05, 1.15, '#e9e7e2', 7.5, 0.35);
+    // what the back of the van puts where
+    const vp = (lx, lz) => vanPoint(lx, lz);
+    Object.assign(POS.vanDoor, vp(-6.4, 0));
+    Object.assign(POS.vanSide, vp(-4.3, 1.75));
+    const home = {
+      handTrowel: [-3.35, -0.35, 0.2], hammer: [-3.85, 0.3, -0.3], pliers: [-4.35, -0.3, 0.5], cutter: [-4.85, 0.3, 0.1],
+      float: [-4.6, 1.45, 0], shovel: [-4.7, -1.45, 0.1],
+      trowelSmall: [-6.2, 1.9, 0.4], trowelBig: [-6.3, -2.0, -0.3], rideOn: [-3.5, 3.6, 0],
+    };
+    Object.entries(home).forEach(([id, [lx, lz, yaw]]) => { const q = vp(lx, lz); TOOL_HOME[id] = [q.x, q.z, van.rotation.y + yaw]; });
+    const lq = vp(1.0, side === 'w' ? -3.2 : 3.2);
+    lampPole.position.set(lq.x, 4, lq.z); lamp.position.set(lq.x, 8, lq.z); flood.position.set(lq.x, 8, lq.z);
+    Object.assign(VAN_IN, vp(-2.3, 0)); VAN_IN.y = 1.3;
+    Object.assign(VAN_THROW, vp(-10.5, 1.4));
+    // the water tank, handy but not in the way
+    const iq = find(() => P(rnd(-28, 4), rnd(-19, 19)), 1.5);
+    put(ibc, iq, facing(iq), 0.65, 0.65, '#cfe3ea', 1.5);
+    const iy = facing(iq);
+    Object.assign(POS.ibc, iq); Object.assign(POS.ibcFront, P(iq.x + Math.sin(iy) * 1.45, iq.z + Math.cos(iy) * 1.45));
+    // the loo, a little way off, its door to the site
+    const lo = find(() => P(rnd(-38, 2), rnd(-28, 28)), 1.2);
+    put(loo, lo, facing(lo), 0.6, 0.6, '#2c6ad6', 1.2);
+    const ly = facing(lo);
+    Object.assign(POS.loo, lo); Object.assign(POS.looFront, P(lo.x + Math.sin(ly) * 1.3, lo.z + Math.cos(ly) * 1.3));
+    // the site office and the kebab stand, further out
+    const oq = find(() => P(rnd(-39, 0), rnd(-29, 29)), 4);
+    put(office, oq, facing(oq) + Math.PI / 2 + rnd(-0.2, 0.2), 3.1, 1.3, '#3c6e9e', 4);
+    Object.assign(POS.office, oq);
+    const kq = find(() => (chance(0.5) ? P(rnd(-40, -30), rnd(-29, 29)) : P(rnd(-36, 30), pick([-1, 1]) * rnd(24, 29))), 3);
+    const ky = facing(kq);
+    put(kiosk, kq, ky, 1.7, 1.4, '#2f6f6a', 3);
+    Object.assign(POS.kiosk, kq); Object.assign(POS.kioskFront, P(kq.x + Math.sin(ky) * 2.6, kq.z + Math.cos(ky) * 2.6));
+    // the pump parks east of the slab, either side of the gate; its pipes find their own way in
+    const ez = gz(ENTRY.j) + 0.5;
+    const pz = pick([-1, 1]) * rnd(2, 5);
+    Object.assign(POS.pump, P(21.5 + rnd(-1, 2), pz));
+    Object.assign(POS.pumpOut, P(POS.pump.x - 3.6, pz + 0.4));
+    Object.assign(POS.mixer, P(23 + rnd(-0.5, 1.5), pz < 0 ? pz + 7.5 : pz - 7.5));
+    Object.assign(POS.pile, P(POS.pump.x - 5.5, pz < 0 ? pz - 3.2 : pz + 3.2));
+    pile.position.set(POS.pile.x, 0, POS.pile.z);
+    const a = POS.pumpOut, e = P(SLAB.x1 + 0.4, ez + 0.3);
+    const len = hyp(a.x, a.z, e.x, e.z), bend = rnd(-3, 3);
+    const c = P((a.x + e.x) / 2 - ((e.z - a.z) / len) * bend, (a.z + e.z) / 2 + ((e.x - a.x) / len) * bend);
+    for (let k = 1; k <= 6; k++) {
+      const t = k / 6, u = 1 - t;
+      PIPE_ROUTE[k - 1] = P(u * u * a.x + 2 * u * t * c.x + t * t * e.x, u * u * a.z + 2 * u * t * c.z + t * t * e.z);
+    }
+    BOOM_AT.z = clamp(ez - 4, -8, 2);
+  }
+
   // ------------------------------------------------------------------ title
   function showTitle() {
     newCast();
     chatterAt = 0;
     day = newDay();
+    placeLayout();
     gs = freshState();
     buildSite();
+    buildHall();
     freshSurface();
     cellsDirty = true;
     const season = { winter: 'Winter', spring: 'Spring', summer: 'Summer', autumn: 'Autumn' }[day.season];
@@ -5662,6 +6677,7 @@
       ['Slab', `${day.area} m² · ${day.thick} mm`],
       ['Concrete', `${volumeNeeded().toFixed(1)} m³${day.area > 50 ? ' · ride-on' : ''}`],
       ['Pump', day.boom ? 'Boom pump' : 'Line pump'],
+      ['Where', day.indoor ? 'Inside the new hall' : 'Out in the open'],
     ].map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
     const best = Number(store('pourday.best') || 0);
     $('#bestLine').textContent = best ? `Best shift so far: ${best} points` : 'Pump at seven. Mixer at half past. Probably.';
@@ -5679,6 +6695,8 @@
     pump.visible = false; mixer.visible = false; pumpGuy.visible = false; pile.visible = false; tripod.visible = false;
     freshSurface();
     tarp.visible = false;
+    vanBack.open = 0.001; vanBack.want = 0; vanBack.onOpen = null;
+    flights.length = 0;
     kneel = 0;
     // yesterday's tools back in the van
     Object.values(lying).forEach((g) => { g.visible = false; });
@@ -5691,6 +6709,11 @@
     pSize.fill(0);
     rainUntil = 0;
     cupT = 0;
+    helpPour.on = false;
+    liftBars.visible = false;
+    if (helper.m) scene.remove(helper.m);
+    helper.m = null; helper.state = 'off';
+    flipT = 0; flipHand.visible = false;
     player.fall = 0;
   }
   window.addEventListener('pointerdown', audioStart, true);
@@ -5727,7 +6750,7 @@
   function howToPlay() {
     modal({
       who: 'How to play', title: 'The short version.',
-      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nNothing is in your pocket. The tools wait on the blue tarp by the van, the trowels next to it; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. Home at 95%.',
+      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.',
       choices: [{ label: 'Back to work', primary: true }],
     });
   }
@@ -5764,6 +6787,7 @@
   if (document.fonts && document.fonts.load) {
     Promise.all([document.fonts.load('800 20px Manrope'), document.fonts.load('700 20px Manrope')]).catch(() => {}).then(() => {});
   }
+  buildDirt();
   showTitle();
   requestAnimationFrame(frame);
 
@@ -5773,7 +6797,14 @@
       get near() { return nearMarker && nearMarker.id; }, get target() { return target && target.idx; }, get input() { return input; },
       get fps() { return fpsNow; }, context: () => context(),
       markers, player, simulate, finishPour, tryGoHome, completePass, nuisance, fall,
-      doMarker(id) { const m = markers.find((x) => x.id === id && x.active()); if (m) { m.done(); return true; } return false; },
+      doMarker(id) {
+        const m = markers.find((x) => x.id === id && x.active());
+        if (!m) return false;
+        m.done();
+        // the van opens at once in a test, rather than over a second of frames
+        if (id === 'unload') { vanBack.open = 1; if (vanBack.onOpen) { const f = vanBack.onOpen; vanBack.onOpen = null; f(); } updateVanBack(0); }
+        return true;
+      },
       fillLevel() { gs.cells.forEach((c) => { c.fill = day.thick + rnd(-3, 3); }); cellsDirty = true; },
       setTool(t) { if (held()) putDown(true); if (t !== 'hands') { if (!gs.tools[t]) gs.tools[t] = { in: 'ground', x: player.x, z: player.z, yaw: 0 }; gs.tools[t].in = 'hand'; } gs.tool = t; },
       closeModal() { const b = document.querySelector('#mChoices button'); if (b) b.click(); },
@@ -5795,7 +6826,9 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
+      sayTest: (t, w) => say(t, w), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
+      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
       odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),

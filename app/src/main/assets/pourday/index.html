@@ -95,6 +95,8 @@
   #btnFinish { grid-row: 1; } #btnTool, #btnLaser { grid-row: 2; height: 50px; } #btnWait, #btnCoffee { grid-row: 3; height: 44px; } #btnAction { grid-row: 4; }
   #btnTool { grid-column: 1; } #btnLaser { grid-column: 2; }
   #buttons button { pointer-events: auto; }
+  /* the finger: a small round button over the right-hand stack, in reach of the right thumb */
+  #btnFlip { position: absolute; right: 14px; bottom: 300px; width: 52px; height: 46px; border-radius: 14px; font-size: 24px; line-height: 1; padding: 0; pointer-events: auto; }
   .sbtn { border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-weight: 800; font-size: 11px; letter-spacing: 0.4px; line-height: 1.1; padding: 2px 4px; text-transform: uppercase; }
   .sbtn.on { border-color: var(--laser); color: #ffd7d3; }
   .sbtn small { display: block; margin-top: 2px; font-size: 9.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -169,6 +171,7 @@
     #map { position: fixed; left: 12px; top: var(--hud-top, 66px); width: 124px; height: 124px; }
     #weather { position: fixed; left: 12px; top: calc(var(--hud-top, 66px) + 132px); width: 124px; box-sizing: border-box; }
     #toasts { top: var(--hud-top, 66px); left: 148px; right: 162px; }
+    #btnFlip { right: 14px; bottom: 172px; width: 58px; height: 40px; font-size: 22px; }
     .brand { font-size: 34px; }
   }
   @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
@@ -199,6 +202,7 @@
   <div id="waitBadge" class="panel" hidden></div>
   <div id="toasts"></div>
   <div id="joy" hidden><div id="joyKnob"></div></div>
+  <button id="btnFlip" class="sbtn" aria-label="Flip them off">🖕</button>
   <div id="buttons">
     <button id="btnFinish" hidden>Finish the pour</button>
     <button id="btnTool" class="sbtn">Tool</button>
