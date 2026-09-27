@@ -2150,14 +2150,20 @@
     parent.add(g);
     return g;
   }
+  /** A site shovel: yellow fibreglass shaft, black D-grip, a red-painted blade with a worn steel edge. */
   function mkShovel(parent) {
     const g = new THREE.Group();
-    cyl(0.018, 0.018, 0.95, WOOD, 0, 0.62, 0, g, 8);
-    box(0.13, 0.03, 0.03, 0x2a2d31, 0, 1.1, 0, g);
-    [-1, 1].forEach((sd) => box(0.02, 0.1, 0.03, 0x2a2d31, sd * 0.055, 1.06, 0, g));
-    cyl(0.025, 0.02, 0.12, 0x5a5f64, 0, 0.1, 0, g, 8);
-    const blade = box(0.24, 0.3, 0.02, MATS_STEEL, 0, -0.1, 0.02, g);
+    cyl(0.02, 0.02, 0.95, 0xf2b705, 0, 0.62, 0, g, 8);
+    box(0.14, 0.035, 0.035, 0x1d1f22, 0, 1.12, 0, g);
+    [-1, 1].forEach((sd) => box(0.025, 0.11, 0.035, 0x1d1f22, sd * 0.06, 1.07, 0, g));
+    cyl(0.03, 0.022, 0.14, 0x5a5f64, 0, 0.12, 0, g, 8);
+    const blade = new THREE.Group();
+    blade.position.set(0, -0.1, 0.02);
     blade.rotation.x = -0.15;
+    box(0.27, 0.3, 0.022, 0xd8392f, 0, 0.02, 0, blade);
+    box(0.27, 0.05, 0.024, MATS_STEEL, 0, -0.15, 0, blade);
+    [-1, 1].forEach((sd) => box(0.022, 0.3, 0.05, 0xd8392f, sd * 0.135, 0.02, 0.012, blade));
+    g.add(blade);
     parent.add(g);
     return g;
   }
@@ -2269,9 +2275,19 @@
     const shovel = new THREE.Group();
     const shb = mkShovel(shovel);
     // the grip in your hands, the shaft out in front, the blade down where you can see it
-    shb.scale.setScalar(0.55);
-    shb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0.27, 0.75, 0.6).normalize());
-    shb.position.set(-0.185, -0.37, -0.3);
+    // held low and across you: the shaft from your right hand out to the left, the blade out in front
+    // where you can see into it
+    {
+      const d = new THREE.Vector3(0.65, 0.35, 0.55).normalize();          // blade -> grip
+      const bladeAt = new THREE.Vector3(-0.12, -0.42, -0.85);             // from the eye
+      const toEye = bladeAt.clone().negate().normalize();
+      const n = toEye.clone().addScaledVector(d, -toEye.dot(d)).normalize();
+      const x = new THREE.Vector3().crossVectors(d, n);
+      shb.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, d, n));
+      shb.scale.setScalar(0.75);
+      // the tool group sits at the hands (0.32, -0.34, -0.62 in landscape); the blade's middle is 0.1 below the origin
+      shb.position.copy(bladeAt).sub(new THREE.Vector3(0.32, -0.34, -0.62)).addScaledVector(d, 0.1 * 0.75);
+    }
     viewTools.shovel = shovel;
     // a finishing trowel: a steel blade with the handle along the top of it
     const ht = new THREE.Group();
@@ -6036,6 +6052,8 @@
     viewTools.hose.visible = (t === 'hose' && !gs.carrying) || anim === 'wash';
     viewTools.hammer.visible = t === 'hammer';
     viewTools.shovel.visible = t === 'shovel';
+    // the hands move in on a tall screen; the shovel stays where it's easy to see
+    viewTools.shovel.position.x = 0.32 - hands.position.x;
     if (t === 'shovel' && input.action && lastCtxKind === 'shovel') viewTools.shovel.rotation.x = Math.sin(toolT * 7) * 0.35 - 0.1;
     else viewTools.shovel.rotation.x = 0;
     viewTools.pliers.visible = t === 'pliers';
