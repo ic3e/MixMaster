@@ -268,6 +268,18 @@
     tooSoftMachine: 'It\'s soup. The machine would sink to the gearbox. Give it time.',
     tooSoftBlades: 'Blades on this? It would tear the paste off. Pans first, and patience.',
     sleepy: 'You fell asleep leaning on the rake. {m} minutes gone. The rake is fine.',
+    managerCall: [
+      '"{n} MARKS? Did you pour a slab or host a line-dancing competition? The client wanted polished concrete, not a map of your day!"',
+      '"You know what {n} footprints is? It\'s a trail. And it leads straight to the job centre."',
+      '"The client asked me if the footprints are a design feature. I said yes. So now you\'re going to design me a new slab. For free."',
+      '"{n}. I counted them from the photo you didn\'t send me. The client sent it. With a lot of question marks."',
+      '"Every one of those {n} marks is coming out of your Christmas party. You are not going to the Christmas party."',
+    ],
+    managerAfter: [
+      'He hangs up. Your ear is still ringing at 95%.',
+      'He hangs up mid-word. You suspect the word was not "well done".',
+      'The call ends. A pigeon on the formwork looks at you with something like pity.',
+    ],
     homeEarly: 'The foreman: "95% or you sleep here." There\'s a sleeping bag in the van for a reason.',
   };
 
@@ -1888,6 +1900,13 @@
       case 'twist': for (let k = 0; k < 3; k++) tone(t + k * 0.07, 'square', 2600 + k * 400, 3800 + k * 400, 0.03, 0.003, 0.05, dest); break;
       case 'snip': burst(t, 'highpass', 4000, 0.7, 0.4, 0.001, 0.03, dest); tone(t + 0.01, 'triangle', 2500, 2380, 0.12, 0.001, 0.35, dest); tone(t + 0.01, 'sine', 3700, 3650, 0.05, 0.001, 0.25, dest); break;
       case 'door': burst(t, 'lowpass', 900, 0.6, 0.25, 0.05, 0.25, dest); tone(t + 0.3, 'sine', 110, 55, 0.4, 0.003, 0.2, dest); burst(t + 0.3, 'lowpass', 600, 0.7, 0.3, 0.003, 0.15, dest); break;
+      case 'phoneYell': {
+        const g2 = ac.createGain(); g2.gain.value = 2.4;
+        const bp = filt('bandpass', 1400, 0.8);
+        bp.connect(g2); g2.connect(dest);
+        voice(t, rnd(150, 185), 18, bp);
+        break;
+      }
       case 'rx': tone(t, 'square', 2900, 2900, 0.035, 0.002, 0.045, dest); break;
       case 'bird': {
         const f = rnd(2800, 4200);
@@ -1997,8 +2016,8 @@
   let birdAt = 0, rainUntil = 0, rxNext = 0;
 
   // light background music, made up as it goes: a pad over four chords, a soft bass, the odd
-  // plucked note with an echo, a whisper of hi-hat. Off unless asked for.
-  let musicOn = store('pourday.music') === 'on';
+  // plucked note with an echo, a whisper of hi-hat. On unless switched off.
+  let musicOn = store('pourday.music') !== 'off';
   let musicGain = null, musicEcho = null, musicNext = 0, musicStep = 0;
   const CHORDS = [[57, 60, 64, 67, 71], [53, 57, 60, 64, 67], [48, 52, 55, 59, 62], [55, 59, 62, 64, 67]];
   const MELODY = [57, 60, 62, 64, 67, 69, 72, 74, 76];
@@ -2373,6 +2392,32 @@
     if (hit(55)) note('b', 'Hardness 55%: blades time. Keep the pans if it still needs flattening.');
     if (hit(92)) note('late', 'Hardness 92%: too hard to close the surface any more.');
     if (hit(95)) note('95', 'Hardness 95%. You may, legally, go home.');
+    // at 95% whatever marks are left are in it for good; enough of them and somebody has to tell
+    // the manager. That somebody is you.
+    if (hit(95) && !gs.managerCalled && marksLeft() > 15) { gs.managerCalled = true; at(now < 100 ? gs.t + 3 : gs.t, managerCall); }
+  }
+  function marksLeft() { return gs.cells.reduce((n, c) => n + c.marks.length, 0); }
+  function managerCall() {
+    const n = marksLeft();
+    gs.yelled = n;
+    remember(`${n} marks set in the slab for good. You called the manager. He had opinions.`);
+    modal({
+      who: 'The slab, at 95%', title: `${n} marks. For ever.`,
+      text: `Footprints, paws, the lot — set in at 95%, and nothing in the van can take them out now. Somebody has to tell the manager before the client does.\n\nThat somebody is you.`,
+      choices: [{ label: 'Call the manager', primary: true, fn: () => {
+        sfx('ring');
+        setTimeout(() => sfx('phoneYell'), 1900);
+        modal({
+          who: 'The manager, on speaker', title: 'He picks up on the first ring.', sound: 'none',
+          text: pick(L.managerCall).replace(/\{n\}/g, n),
+          choices: [
+            { label: 'Hold the phone away from your ear', primary: true, fn: () => toast(pick(L.managerAfter), 'warn') },
+            { label: 'Blame the dog', fn: () => toast('"THE DOG IS NOT ON THE PAYROLL." He has a point. The dog would be cheaper.', 'warn') },
+            { label: 'Call it a "textured finish"', fn: () => toast('A long silence. Then: "Send me the invoice for the textured finish. Addressed to yourself."', 'warn') },
+          ],
+        });
+      } }],
+    });
   }
   function hardenMarks() {
     gs.cells.forEach((c) => {
@@ -3024,7 +3069,7 @@
     const late = Math.max(0, gs.arrived - 6 * 60);
     const goodPans = gs.panPasses.filter((p) => p.good).length;
     const goodBlades = gs.bladePasses.filter((p) => p.good).length;
-    let score = 1000 - dev * 22 - defects * 18 - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
+    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
       + Math.min(goodPans, 3) * 40 + Math.min(goodBlades, 3) * 40 + gs.stats.hell * 5;
     score = Math.round(clamp(score, 0, 1200));
     const rank = score >= 950 ? 'Slab wizard' : score >= 800 ? 'Proper concrete person' : score >= 620 ? 'Adequate slab operator' : score >= 420 ? 'Footprint curator' : 'The dog\'s favourite';
@@ -3045,6 +3090,7 @@
       ['Concrete wasted', `${gs.waste.toFixed(1)} m³`],
       ['Truck waiting time', `${Math.round(gs.truckWaitPaid)} €`],
       ['People told to go to hell', String(gs.stats.hell)],
+      ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
     ];
     $('#eStats').innerHTML = rows.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('');
