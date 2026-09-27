@@ -91,14 +91,17 @@
   #joy { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid rgba(242,239,232,0.25); background: rgba(16,20,26,0.25); }
   #joyKnob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(242,239,232,0.35); }
 
-  #buttons { position: absolute; right: 14px; bottom: 16px; display: grid; grid-template-columns: 70px 70px; grid-auto-rows: auto; gap: 8px; justify-items: stretch; pointer-events: none; }
-  #btnFinish { grid-row: 1; } #btnTool, #btnLaser { grid-row: 2; height: 48px; } #btnWait, #btnCoffee { grid-row: 3; height: 48px; } #btnAction { grid-row: 4; }
+  #buttons { position: absolute; right: 14px; bottom: 16px; display: grid; grid-template-columns: 74px 74px; grid-auto-rows: auto; gap: 8px; justify-items: stretch; pointer-events: none; }
+  #btnFinish { grid-row: 1; } #btnTool, #btnLaser { grid-row: 2; height: 50px; } #btnWait, #btnCoffee { grid-row: 3; height: 44px; } #btnAction { grid-row: 4; }
+  #btnTool { grid-column: 1; } #btnLaser { grid-column: 2; }
   #buttons button { pointer-events: auto; }
   .sbtn { border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-weight: 800; font-size: 11px; letter-spacing: 0.4px; line-height: 1.1; padding: 2px 4px; text-transform: uppercase; }
   .sbtn.on { border-color: var(--laser); color: #ffd7d3; }
+  .sbtn small { display: block; margin-top: 2px; font-size: 9.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sbtn.dim { color: var(--muted); }
   .sbtn:active { background: rgba(255,255,255,0.15); }
   #btnFinish { grid-column: 1 / 3; height: 44px; border-radius: 12px; border: none; background: var(--hivis); color: #1a1208; font-weight: 800; font-size: 14px; letter-spacing: 0.6px; text-transform: uppercase; }
-  #btnAction { grid-column: 1 / 3; position: relative; height: 96px; border-radius: 22px; border: 2px solid var(--hivis); background: var(--hivis-dim); font-weight: 800; font-size: 13px; letter-spacing: 0.3px; line-height: 1.2; padding: 6px 8px; overflow: hidden; }
+  #btnAction { grid-column: 1 / 3; position: relative; height: 136px; touch-action: none; border-radius: 22px; border: 2px solid var(--hivis); background: var(--hivis-dim); font-weight: 800; font-size: 13px; letter-spacing: 0.3px; line-height: 1.2; padding: 6px 8px; overflow: hidden; }
   #btnAction.idle { border-color: var(--line); background: var(--panel); color: var(--muted); }
   #btnAction.held { background: rgba(255,107,26,0.4); }
   #actFill { position: absolute; left: 0; bottom: 0; height: 5px; width: 0; background: var(--hivis); }
@@ -137,7 +140,14 @@
 
   @media (max-height: 460px) {
     #side { width: 150px; }
-    #buttons { bottom: 10px; } #btnTool, #btnLaser, #btnWait, #btnCoffee { height: 40px; } #btnAction { height: 78px; }
+    /* Landscape: the small buttons sit left of the work button, which gets the full height of
+       the stack — it is also the look pad while it is held. */
+    #buttons { bottom: 10px; grid-template-columns: 70px 70px 170px; }
+    #btnTool, #btnLaser, #btnWait, #btnCoffee { height: 44px; }
+    #btnFinish { grid-row: 1; grid-column: 1 / 3; height: 40px; }
+    #btnTool { grid-row: 2; grid-column: 1; } #btnLaser { grid-row: 2; grid-column: 2; }
+    #btnWait { grid-row: 3; grid-column: 1; } #btnCoffee { grid-row: 3; grid-column: 2; }
+    #btnAction { grid-row: 1 / 4; grid-column: 3; height: auto; min-height: 150px; align-self: end; }
     /* The map goes under the clock on the left: on the right the gauges and the buttons already
        fill the height, and it ended up pushed off the bottom. */
     #map { position: fixed; left: 12px; top: var(--hud-top, 66px); width: 124px; height: 124px; }
@@ -193,14 +203,15 @@
     <div class="tag">One slab, one day. Get there before everyone, lay the pipes, pour it, float it, wait for it — and keep the dog off it.</div>
     <div class="daycard" id="dayCard"></div>
     <div class="howto">
-      <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool you carry.
-      <b>Tool</b> swaps what's in your hands, <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
+      <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool in your hands.
+      Tools wait on the <b>blue tarp</b> by the van: look at one and tap to pick it up, <b>Put down</b> to leave it. <b>Wait</b> lets the concrete do its thing. You can't go home before it's 95% hard.
       <b>Slide your thumb on the big button</b> to look round while you work — that is how you steer the trowel.
       <b>II</b> or the back gesture pauses.
     </div>
     <button class="big" id="btnStart">Clock in</button>
     <button class="ghost" id="btnReroll">Different day</button>
     <button class="ghost" id="btnSound">Sound: on</button>
+    <button class="ghost" id="btnMusic">Music: off</button>
     <button class="ghost" id="btnQuitTitle" hidden>Back to MixMaster</button>
     <div class="best" id="bestLine"></div>
   </div>
