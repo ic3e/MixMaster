@@ -1,8 +1,8 @@
 {
-  "versionCode": 208,
-  "versionName": "1.0.208",
-  "apk": "MixMaster_1.0.208.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.208.apk",
-  "sizeBytes": 20848443,
-  "notes": "Pour Day: pick up with the tool button, and your own boots print"
+  "versionCode": 209,
+  "versionName": "1.0.209",
+  "apk": "MixMaster_1.0.209.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.209.apk",
+  "sizeBytes": 20849623,
+  "notes": "Pour Day: music on by default, and the manager hears about the marks"
 }
