@@ -113,6 +113,11 @@
   .brand { font-weight: 800; font-size: 44px; letter-spacing: 3px; line-height: 0.95; text-transform: uppercase; }
   .brand em { font-style: normal; color: var(--hivis); }
   .tag { margin-top: 8px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+  /* A memo taped to the title card: paper, slightly crooked, as memos on site are. */
+  .memo { position: relative; margin: 16px 4px 0; padding: 12px 14px 10px; background: #f1e6b2; color: #2b2519; border-radius: 3px; transform: rotate(-0.8deg); box-shadow: 0 6px 14px rgba(0,0,0,0.4); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+  .memo::before { content: ""; position: absolute; left: 50%; top: -8px; width: 64px; height: 16px; margin-left: -32px; background: rgba(242,239,232,0.55); transform: rotate(2deg); }
+  .memo b { display: block; margin-bottom: 4px; font-size: 10.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #9a3d0c; }
+  .memo i { display: block; margin-top: 4px; text-align: right; font-style: normal; font-weight: 800; font-size: 11.5px; }
   .daycard { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .daycard div { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 8px 10px; font-size: 12px; color: var(--muted); font-weight: 600; }
   .daycard b { display: block; font-size: 17px; color: var(--chalk); font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -201,6 +206,7 @@
   <div class="sheet">
     <div class="brand">Pour<br><em>Day</em></div>
     <div class="tag">One slab, one day. Get there before everyone, lay the pipes, pour it, float it, wait for it — and keep the dog off it.</div>
+    <div class="memo"><b>Memo from the office</b>This game drains your phone's battery faster than a pump drinks diesel. Play it at work and the phone will die right when the truck driver calls to ask where your site is. Charge it in the van. You, sadly, can't be recharged.<i>— The management (who also play it)</i></div>
     <div class="daycard" id="dayCard"></div>
     <div class="howto">
       <b>Left thumb</b> walks. <b>Right thumb</b> looks. <b>Hold the big button</b> to work on whatever glows orange, or on the slab with the tool in your hands.
