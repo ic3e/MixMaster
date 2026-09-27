@@ -47,22 +47,22 @@
   }
 
   // ------------------------------------------------------------------ the site
-  const NX = 12, NZ = 8;            // the slab: 12 x 8 m, in 1 m cells
-  const SLAB = { x0: -6, x1: 6, z0: -4, z1: 4 };
+  const NX = 22, NZ = 16;           // the ground a slab can take: 22 x 16 m, in 1 m cells
+  const SLAB = { x0: -16, x1: 6, z0: -8, z1: 8 };
   const EYE = 1.7;
   const REACH = 5.5;
   const P = (x, z) => ({ x, z });
   const POS = {
-    van: P(-17, 9), vanDoor: P(-14.4, 8.0),
-    ibc: P(-12, -8), ibcFront: P(-12, -6.6),
-    kiosk: P(-31, -23), kioskFront: P(-28.4, -21.2),
+    van: P(-26, 9), vanDoor: P(-23.4, 8.0),
+    ibc: P(-21, -9), ibcFront: P(-21, -7.6),
+    kiosk: P(-38, -24), kioskFront: P(-35.4, -22.2),
     tripod: P(-8.6, 0.6),
-    tarp: P(-9.9, 5.4),
+    tarp: P(-19.5, 5.4),
     pump: P(21.5, -3), pumpOut: P(17.9, -2.6),
     mixer: P(23, 4.5),
     pile: P(16.2, 1.6),
-    loo: P(-23, -14),
-    office: P(-26, 12),
+    loo: P(-31, -15),
+    office: P(-34, 13),
   };
   const PIPE_ROUTE = [P(16.3, -2.3), P(14.1, -2.0), P(11.9, -1.6), P(9.7, -1.1), P(7.7, -0.6), P(6.4, -0.2)];
   const TRUCK_M3 = 8;                 // a full mixer; a small pour comes as a part load
@@ -280,12 +280,24 @@
       'He hangs up mid-word. You suspect the word was not "well done".',
       'The call ends. A pigeon on the formwork looks at you with something like pity.',
     ],
+    emptyTruck: [
+      'The driver swings the chute round, pulls the lever, and... nothing. "It was full when I left." It was not full when he left.',
+      'The drum turns. Nothing comes out. The driver climbs up, looks in, climbs down. "Funny story."',
+      'Empty. The load went to a site with a similar name. That site is having a very good day.',
+    ],
+    wrong: {
+      grade: { title: 'Wrong concrete.', text: 'The delivery note says C20/25. You ordered C30/37. The driver: "It\'s all grey, mate."', used: 'You poured C20 into a C30 slab. The engineer will find out. Engineers always find out.', row: 'C20 instead of C30', cost: 80 },
+      screed: { title: 'That\'s not concrete.', text: 'It\'s floor screed. Sand, cement and optimism. It pours like soup and it will cure like it has all week.', used: 'You poured screed and called it a slab. It set eventually. Your reputation did not.', row: 'screed, not concrete', cost: 60 },
+      fibre: { title: 'Fibre concrete.', text: 'Nobody ordered fibre concrete. It comes out hairy. The slab will look like a wet dog.', used: 'Fibre concrete nobody ordered. The finished floor has a beard.', row: 'fibre concrete nobody ordered', cost: 40 },
+      other: { title: '"Is this Riverside Road?"', text: 'It is not. This load belongs to a site across town, and the right mix for yours is on its way there instead.', used: 'You poured another site\'s concrete. Somewhere across town a very angry man is waiting for yours.', row: 'another site\'s load', cost: 50 },
+    },
     homeEarly: 'The foreman: "95% or you sleep here." There\'s a sleeping bag in the van for a reason.',
   };
 
   // ------------------------------------------------------------------ one day
   let day;
   function newDay() {
+    const shape = makeShape();
     const season = pick(['winter', 'spring', 'summer', 'summer', 'autumn', 'autumn']);
     const baseTemp = { winter: rnd(-3, 4), spring: rnd(6, 14), summer: rnd(16, 27), autumn: rnd(3, 11) }[season];
     return {
@@ -300,7 +312,11 @@
       formworkWeak: chance(0.55),
       batteryDies: chance(0.35),
       dogChance: rnd(0.18, 0.32),
-      ...makeShape(),
+      ...shape,
+      boom: chance(shape.area > 80 ? 0.65 : 0.35),
+      trouble: weighted([[0.55, null], [0.3, 'wrong'], [0.15, 'empty']]),
+      troubleTruck: chance(0.6) ? 1 : 2,
+      wrongKind: pick(['grade', 'screed', 'fibre', 'other']),
     };
   }
   function tempAt(t) { return day.baseTemp + 4 * Math.sin(2 * Math.PI * (t - 540) / 1440); }
@@ -392,7 +408,7 @@
   const sun = new THREE.DirectionalLight(0xfff0d8, 0.9);
   scene.add(sun);
   const flood = new THREE.PointLight(0xffe2b8, 0, 60, 1.2);
-  flood.position.set(-11, 8, 4);
+  flood.position.set(-21, 8, 3);
   scene.add(flood);
 
   function resize() {
@@ -519,8 +535,8 @@
   })();
 
   // a work light on a pole by the van, for the dark end of the day
-  cyl(0.07, 0.09, 8, 0x5a5f64, -11, 4, 4);
-  const lamp = box(0.8, 0.35, 0.5, 0xfff3d6, -11, 8, 4);
+  cyl(0.07, 0.09, 8, 0x5a5f64, -21, 4, 3);
+  const lamp = box(0.8, 0.35, 0.5, 0xfff3d6, -21, 8, 3);
   lamp.material = new THREE.MeshBasicMaterial({ color: 0x777777 });
 
   // the laser on its tripod — shown once it is set up
@@ -629,6 +645,26 @@
   pump.position.set(70, 0, POS.pump.z);
   pump.visible = false;
   scene.add(pump);
+  const boomLabel = textSprite('BOOM PUMP', { w: 2.4, color: '#ffd23f' });
+  boomLabel.position.set(0.6, 4.6, 0);
+  boomLabel.visible = false;
+  pump.add(boomLabel);
+  // on a boom day the pump brings its own pipe: a turret at the back of the truck, three 9.5 m
+  // sections folded over the cab, and legs that swing out to hold it all up
+  const BOOM_L = 9.5, TURRET = new THREE.Vector3(3.0, 3.2, 0);
+  const boomParts = new THREE.Group();
+  pump.add(boomParts);
+  cyl(0.55, 0.65, 0.6, 0x2a2d31, TURRET.x, 2.9, 0, boomParts, 14);
+  const outriggers = [[-3.2, 1], [-3.2, -1], [2.6, 1], [2.6, -1]].map(([x, sd]) => {
+    const g = new THREE.Group();
+    g.position.set(x, 0.75, sd * 1.2);
+    const beam = box(0.22, 0.22, 1, 0xf2b705, 0, 0, sd * 0.5, g);
+    const leg = box(0.16, 0.8, 0.16, 0x2a2d31, 0, -0.35, sd * 1, g);
+    boomParts.add(g);
+    return { g, beam, leg, sd };
+  });
+  const boomSecs = [0, 1, 2].map((k) => { const m = box(0.42 - k * 0.07, 1, 0.42 - k * 0.07, 0xf2b705, 0, 0, 0, scene); m.visible = false; m.castShadow = true; return m; });
+  const boomTip = new THREE.Vector3();
 
   // the mixer: a pear-shaped drum on a tilt, with spiral bands so you can see it turn — one way to
   // keep the load mixed on the road, the other way to bring it up and out down the chute
@@ -1000,12 +1036,14 @@
   // its face a canvas that gets painted as the day goes — fresh concrete, float strokes, the
   // rough circles of the pans, the closed shine of the blades, and everybody's footprints.
   const SEG = 4;
-  const slabGeo = new THREE.PlaneGeometry(12, 8, NX * SEG, NZ * SEG);
+  const slabGeo = new THREE.PlaneGeometry(NX, NZ, NX * SEG, NZ * SEG);
   slabGeo.rotateX(-Math.PI / 2);
+  slabGeo.translate((SLAB.x0 + SLAB.x1) / 2, 0, (SLAB.z0 + SLAB.z1) / 2);
   const slabPos = slabGeo.attributes.position;
   const slabCol = new Float32Array(slabPos.count * 3).fill(1);
   slabGeo.setAttribute('color', new THREE.BufferAttribute(slabCol, 3));
-  const PPM = 80;
+  const PPM = 48;
+  const K = PPM / 80;                       // marks and strokes were drawn for 80 px a metre
   const surfCanvas = document.createElement('canvas');
   surfCanvas.width = NX * PPM;
   surfCanvas.height = NZ * PPM;
@@ -1062,6 +1100,7 @@
     surf.save();
     surf.translate(cx(x), cz(z));
     surf.rotate(-rot);
+    surf.scale(K, K);
     surf.globalAlpha = 0.45;
     surf.fillStyle = speckle;
     surf.fillRect(-36, -10, 72, 20);
@@ -1080,13 +1119,13 @@
     r = r || 0.46;
     const X = cx(x), Z = cz(z), R = r * PPM;
     disc(x, z, r, speckle, 0.16);
-    surf.lineWidth = 2.2;
+    surf.lineWidth = 2.2 * K;
     for (let k = 0; k < 6; k++) {
       const a = rnd(0, Math.PI * 2);
       surf.globalAlpha = rnd(0.1, 0.24);
       surf.strokeStyle = chance(0.5) ? '#8f8f8b' : '#f4f4f0';
       surf.beginPath();
-      surf.arc(X + rnd(-5, 5), Z + rnd(-5, 5), rnd(0.2, 1) * R, a, a + rnd(0.8, 2.4));
+      surf.arc(X + rnd(-5, 5) * K, Z + rnd(-5, 5) * K, rnd(0.2, 1) * R, a, a + rnd(0.8, 2.4));
       surf.stroke();
     }
     surf.globalAlpha = 1;
@@ -1097,7 +1136,7 @@
     r = r || 0.46;
     const X = cx(x), Z = cz(z), R = r * PPM;
     disc(x, z, r, '#eeeff0', 0.1);
-    surf.lineWidth = 6;
+    surf.lineWidth = 6 * K;
     for (let k = 0; k < 3; k++) {
       const a = rnd(0, Math.PI * 2);
       surf.globalAlpha = 0.09;
@@ -1109,11 +1148,24 @@
     surf.globalAlpha = 1;
     surfDirty = true;
   }
+  /** Fibre concrete: little hairs all through the surface. */
+  function paintFibres(x, z) {
+    surf.strokeStyle = '#6e6a60';
+    surf.lineWidth = 1;
+    surf.globalAlpha = 0.5;
+    for (let k = 0; k < 10; k++) {
+      const X = cx(x + rnd(-0.6, 0.6)), Z = cz(z + rnd(-0.6, 0.6)), a = rnd(0, Math.PI), l = rnd(2, 5);
+      surf.beginPath(); surf.moveTo(X, Z); surf.lineTo(X + Math.cos(a) * l, Z + Math.sin(a) * l); surf.stroke();
+    }
+    surf.globalAlpha = 1;
+    surfDirty = true;
+  }
   /** Too early: the machine digs in and throws up ridges. */
   function paintGouge(x, z, rot) {
     surf.save();
     surf.translate(cx(x), cz(z));
     surf.rotate(rot);
+    surf.scale(K, K);
     surf.lineWidth = 5;
     surf.globalAlpha = 0.5;
     surf.strokeStyle = '#55575a';
@@ -1132,6 +1184,7 @@
     g.save();
     g.translate(cx(m.x), cz(m.z));
     g.rotate(-m.rot);
+    g.scale(K, K);
     const a = 0.72 * Math.min(1, d / 0.7);
     g.globalAlpha = a;
     g.fillStyle = '#45474a';
@@ -1164,28 +1217,67 @@
   // ------------------------------------------------------------------ the slab's shape, day by day
   // A pour one person can finish: a rectangle against the east side, where the pipe line comes in,
   // often with a corner or two cut out of it — an L, a step, a T. From 9 to 70 m².
-  const ENTRY = { i: NX - 1, j: 3 };       // the square the pipe line ends at
+  const ENTRY = { i: NX - 1, j: 7 };       // the square the pipe line ends at
+  /**
+   * A slab of any size one crew might get: a small garage floor, a medium extension, a big
+   * warehouse bay. The size is picked first — spread from 9 m² to over 200 — then how long and
+   * narrow it is, then its outline: a plain rectangle, an L, a T, a U, a step, a cross, with the
+   * odd extra notch. It always has its east side on the square where the pipe line comes in.
+   */
   function makeShape() {
-    for (let tries = 0; tries < 500; tries++) {
-      const W = irnd(3, NX), D = irnd(3, NZ);
-      if (W * D < 9) continue;
+    const band = weighted([[0.25, [9, 30]], [0.4, [30, 90]], [0.35, [90, 220]]]);
+    const target = Math.round(Math.exp(rnd(Math.log(band[0]), Math.log(band[1]))));
+    const kind = weighted([[0.2, 'rect'], [0.22, 'L'], [0.14, 'T'], [0.14, 'U'], [0.14, 'Z'], [0.08, 'cross'], [0.08, 'notch']]);
+    for (let tries = 0; tries < 600; tries++) {
+      // the outer box, before any cuts: a bit bigger than the target, as the cuts take some away
+      const grow = kind === 'rect' ? 1 : kind === 'cross' ? 1.35 : 1.25;
+      const aspect = rnd(1, 3.2);
+      let W = Math.round(Math.sqrt(target * grow * aspect)), D = Math.round((target * grow) / Math.max(1, W));
+      if (chance(0.5)) [W, D] = [D, W];
+      W = clamp(W, 3, NX); D = clamp(D, 3, NZ);
       const on = new Array(NX * NZ).fill(false);
       const j0 = irnd(Math.max(0, ENTRY.j - D + 1), Math.min(ENTRY.j, NZ - D)), i0 = NX - W;
       for (let j = j0; j < j0 + D; j++) for (let i = i0; i < NX; i++) on[j * NX + i] = true;
-      const cuts = W >= 4 && D >= 4 ? pick([0, 1, 1, 1, 2]) : 0;
-      const corners = ['nw', 'sw', 'ne', 'se'].sort(() => Math.random() - 0.5).slice(0, cuts);
-      for (const c of corners) {
-        const w = irnd(1, W - 2), d = irnd(1, D - 2);
-        const ci = c[1] === 'w' ? i0 : NX - w, cj = c[0] === 'n' ? j0 : j0 + D - d;
-        if (ci + w >= NX && ENTRY.j >= cj && ENTRY.j < cj + d) continue;   // never where the pipe comes in
-        for (let j = cj; j < cj + d; j++) for (let i = ci; i < ci + w; i++) on[j * NX + i] = false;
+      const cut = (ci, cj, w, d) => {
+        // never where the pipe comes in
+        if (ci + w >= NX && ENTRY.j >= cj && ENTRY.j < cj + d) return;
+        for (let j = cj; j < cj + d; j++) for (let i = ci; i < ci + w; i++) if (i >= 0 && j >= 0 && i < NX && j < NZ) on[j * NX + i] = false;
+      };
+      const cw = () => irnd(1, Math.max(1, Math.floor(W * 0.55))), cd = () => irnd(1, Math.max(1, Math.floor(D * 0.55)));
+      if (W >= 4 && D >= 4) {
+        if (kind === 'L') { const c = pick(['nw', 'sw']); cut(i0, c === 'nw' ? j0 : j0 + D - cd(), cw(), D); const d = cd(); cut(i0, c === 'nw' ? j0 : j0 + D - d, cw(), d); }
+        if (kind === 'T') { const w = cw(), d = cd(); cut(i0, j0, w, d); cut(i0, j0 + D - d, w, d); }
+        if (kind === 'U') {
+          // a bite out of the middle of the west, north or south side
+          const side = pick(['w', 'n', 's']), w = irnd(1, Math.max(1, W - 2)), d = irnd(1, Math.max(1, D - 2));
+          if (side === 'w') cut(i0, j0 + Math.floor((D - d) / 2), Math.min(w, W - 1), d);
+          else cut(i0 + Math.floor((W - w) / 2), side === 'n' ? j0 : j0 + D - Math.min(d, D - 1), w, Math.min(d, D - 1));
+        }
+        if (kind === 'Z') { cut(i0, j0, cw(), cd()); const w = cw(), d = cd(); cut(NX - w, j0 + D - d, w, d); }
+        if (kind === 'cross') { const w = Math.max(1, Math.floor(W / 3)), d = Math.max(1, Math.floor(D / 3)); cut(i0, j0, w, d); cut(i0, j0 + D - d, w, d); cut(NX - w, j0, w, d); cut(NX - w, j0 + D - d, w, d); }
+        if (kind === 'notch' || chance(0.25)) { const w = irnd(1, 2), d = irnd(1, 2); cut(irnd(i0, NX - w), chance(0.5) ? j0 : j0 + D - d, w, d); }
       }
       const area = on.filter(Boolean).length;
-      if (area >= 9 && area <= 70) return { on, area };
+      if (area < 9 || area < target * 0.65 || area > target * 1.4 || !connected(on)) continue;
+      return { on, area, kind };
     }
     const on = new Array(NX * NZ).fill(false);
-    for (let j = 1; j < 6; j++) for (let i = NX - 6; i < NX; i++) on[j * NX + i] = true;
-    return { on, area: 30 };
+    for (let j = 4; j < 11; j++) for (let i = NX - 7; i < NX; i++) on[j * NX + i] = true;
+    return { on, area: 49, kind: 'rect' };
+  }
+  /** Whether a set of squares is all one piece. */
+  function connected(on) {
+    const start = on.indexOf(true);
+    if (start < 0) return false;
+    const seen = new Set([start]), todo = [start];
+    while (todo.length) {
+      const k = todo.pop(), i = k % NX, j = Math.floor(k / NX);
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([di, dj]) => {
+        const ni = i + di, nj = j + dj, nk = nj * NX + ni;
+        if (ni >= 0 && nj >= 0 && ni < NX && nj < NZ && on[nk] && !seen.has(nk)) { seen.add(nk); todo.push(nk); }
+      });
+    }
+    return seen.size === on.filter(Boolean).length;
   }
 
   // everything that follows the shape: boards, base, mesh, pipes through it, the jobs round it
@@ -1196,7 +1288,7 @@
   const rebarMat = new THREE.LineBasicMaterial({ color: 0x8e4b2c });
   const skirtMat = new THREE.MeshLambertMaterial({ color: 0x8f9193 });
   const PLY = 0xc9a26b, STAKE = 0x9b7a4a, RUST = 0x7d4127;
-  let skirtGeo = null, skirtTop = [];
+  let skirtGeo = null, skirtTop = [], slabVerts = [];
   function isOn(i, j) { return i >= 0 && j >= 0 && i < NX && j < NZ && site.on[j * NX + i]; }
   const gx = (i) => SLAB.x0 + i, gz = (j) => SLAB.z0 + j;
   /** The drawn height of the mesh: about a third of the way up the slab, on its chairs. */
@@ -1296,7 +1388,7 @@
     }).sort(() => Math.random() - 0.5);
     site.pens = [];
     for (const c of inner) {
-      if (site.pens.length >= (site.area > 30 ? 2 : 1)) break;
+      if (site.pens.length >= clamp(Math.round(site.area / 45), 1, 4)) break;
       if (site.pens.some((p) => Math.abs(p.i - c.i) + Math.abs(p.j - c.j) < 3)) continue;
       const p = { i: c.i, j: c.j, x: gx(c.i) + 0.5 + rnd(-0.2, 0.2), z: gz(c.j) + 0.5 + rnd(-0.2, 0.2) };
       p.mesh = cyl(0.08, 0.08, 0.8, 0xc4502a, p.x, 0.4, p.z, siteGroup);
@@ -1312,10 +1404,15 @@
       if (n !== 1 && n !== 3) continue;
       // out: away from the one square of concrete, or towards the one square without
       const one = n === 1 ? (tl ? [-1, -1] : tr ? [1, -1] : bl ? [-1, 1] : [1, 1]) : (!tl ? [-1, -1] : !tr ? [1, -1] : !bl ? [-1, 1] : [1, 1]);
-      const sgn = n === 1 ? -1 : 1;
-      edges.push({ kind: 'corner', label: n === 1 ? 'Corner' : 'Inside corner', x: gx(vi) + sgn * one[0] * 0.5, z: gz(vj) + sgn * one[1] * 0.5 });
+      // in: towards the concrete, where the trowel works, a hand's reach in from the corner
+      const inX = n === 1 ? one[0] : -one[0], inZ = n === 1 ? one[1] : -one[1];
+      edges.push({ kind: 'corner', label: n === 1 ? 'Corner' : 'Inside corner', x: gx(vi) + inX * 0.3, z: gz(vj) + inZ * 0.3, inX, inZ });
     }
-    runs.filter((r) => r.len >= 3).forEach((r) => edges.push({ kind: 'edge', label: 'Edge', x: r.mid.x + r.ox * 0.6, z: r.mid.z + r.oz * 0.6 }));
+    // straight edges: one spot on a run of four metres or more, two on a very long one
+    runs.filter((r) => r.len >= (site.area > 90 ? 6 : 4)).forEach((r) => {
+      const at = r.len >= 16 ? [1 / 3, 2 / 3] : [0.5];
+      at.forEach((f) => edges.push({ kind: 'edge', label: 'Edge', x: lerp(r.x0, r.x1, f) - r.ox * 0.3, z: lerp(r.z0, r.z1, f) - r.oz * 0.3, inX: -r.ox, inZ: -r.oz, alongX: r.dir === 'x' ? 1 : 0, alongZ: r.dir === 'z' ? 1 : 0 }));
+    });
     site.pens.forEach((p, k) => edges.push({ kind: 'collar', label: 'Pipe collar', x: p.x, z: p.z, pipe: k }));
     edges.forEach((e) => { e.done = false; });
     site.edges = edges;
@@ -1329,7 +1426,7 @@
 
     // the mesh: a few loose bars to tie down, a bar or two sticking up to cut off
     const spots = cellsOn.filter((c) => !site.pens.some((p) => p.i === c.i && p.j === c.j)).sort(() => Math.random() - 0.5);
-    site.ties = spots.slice(0, clamp(Math.round(site.area / 14), 2, 4)).map((c) => {
+    site.ties = spots.slice(0, clamp(Math.round(site.area / 20), 2, 6)).map((c) => {
       const t = { x: gx(c.i) + 0.5, z: gz(c.j) + 0.5, done: false, i: c.i, j: c.j };
       t.bar = cyl(0.007, 0.007, 1.0, RUST, t.x, ry + 0.09, t.z, siteGroup, 5);
       t.bar.rotation.set(0.18, rnd(0, 3), Math.PI / 2);
@@ -1339,13 +1436,14 @@
       return t;
     });
     const edgeCells = spots.filter((c) => !isOn(c.i - 1, c.j) || !isOn(c.i + 1, c.j) || !isOn(c.i, c.j - 1) || !isOn(c.i, c.j + 1));
-    site.cuts = edgeCells.filter((c) => !site.ties.some((t) => t.i === c.i && t.j === c.j)).slice(0, site.area > 25 ? 2 : 1).map((c) => {
+    site.cuts = edgeCells.filter((c) => !site.ties.some((t) => t.i === c.i && t.j === c.j)).slice(0, site.area > 100 ? 3 : site.area > 25 ? 2 : 1).map((c) => {
       const t = { x: gx(c.i) + 0.5 + rnd(-0.25, 0.25), z: gz(c.j) + 0.5 + rnd(-0.25, 0.25), done: false, i: c.i, j: c.j };
       t.bar = cyl(0.009, 0.009, 0.8, RUST, t.x, ry + 0.4, t.z, siteGroup, 5);
       t.bar.castShadow = true;
       return t;
     });
 
+    site.hoseReach = Math.max(16, ...cellsOn.map((c) => hyp(gx(c.i) + 0.5, gz(c.j) + 0.5, PIPE_ROUTE[5].x, PIPE_ROUTE[5].z))) + 2;
     // the laser stands off the west side, where it can see the whole slab
     tripod.position.set(site.box.x0 - 2.4, 0, clamp(site.mid.z, -3, 3));
     POS.tripod = P(tripod.position.x, tripod.position.z);
@@ -1361,6 +1459,7 @@
       }
     });
     slabGeo.setIndex(idx);
+    slabVerts = [...new Set(idx)];
     const sp = [], sn = [], si = [];
     skirtTop = [];
     runs.forEach((r) => {
@@ -1457,7 +1556,7 @@
     g.position.set(p.x, (opts && opts.y) || 0, p.z);
     g.visible = false;
     scene.add(g);
-    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, ringMat, prog, progPivot, quarter: 0, sprite, tool: opts && opts.tool, byMachine: !!(opts && opts.byMachine) };
+    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, beam: beamM, ringMat, prog, progPivot, quarter: 0, sprite, tool: opts && opts.tool, byMachine: !!(opts && opts.byMachine) };
     markers.push(m);
     return m;
   }
@@ -1485,10 +1584,10 @@
   const TOOL_IDS = Object.keys(TOOLS);
   // where each waits once the van is unloaded: hand tools on the tarp, the machines beside it
   const TOOL_HOME = {
-    float: [-11.0, 5.0, 0], handTrowel: [-10.4, 5.6, 0.3], hammer: [-9.8, 5.1, -0.4], pliers: [-9.3, 5.7, 0.8], cutter: [-8.8, 5.1, 0.2],
-    trowelSmall: [-8.5, 7.4, 0.3], trowelBig: [-10.6, 7.6, -0.2], rideOn: [-13.6, 3.2, 1.6],
+    float: [-20.6, 5.0, 0], handTrowel: [-20.0, 5.6, 0.3], hammer: [-19.4, 5.1, -0.4], pliers: [-18.9, 5.7, 0.8], cutter: [-18.4, 5.1, 0.2],
+    trowelSmall: [-18.1, 7.4, 0.3], trowelBig: [-20.2, 7.6, -0.2], rideOn: [-23.2, 3.2, 1.6],
   };
-  const MATS_STEEL = new THREE.MeshLambertMaterial({ color: 0xb6bcc2, side: THREE.DoubleSide });
+  const MATS_STEEL = new THREE.MeshPhongMaterial({ color: 0xdfe4e9, specular: 0xffffff, shininess: 80, side: THREE.DoubleSide });
   const WOOD = 0xb88a4a, GRIP = 0xd8392f, DARK = 0x2a2d31;
 
   // the hand tools, each built once for the hand and once to lie on the ground
@@ -1532,15 +1631,32 @@
   }
   function mkCutter(parent) {
     const g = new THREE.Group();
-    [-1, 1].forEach((s) => {
-      const arm = cyl(0.012, 0.012, 0.62, 0x44484d, s * 0.05, 0, 0.3, g, 6);
-      arm.rotation.x = Math.PI / 2;
-      arm.rotation.z = s * 0.08;
-      const grip = cyl(0.018, 0.018, 0.18, GRIP, s * 0.075, 0, 0.53, g, 6);
-      grip.rotation.x = Math.PI / 2;
+    // the head: two cheek plates and the pivot bolts, and a pair of short jaws
+    box(0.075, 0.03, 0.14, 0x2a2d31, 0, 0, -0.02, g);
+    [-0.05, 0.02].forEach((z) => { const b = cyl(0.012, 0.012, 0.045, 0x9ea3a8, 0, 0, z, g, 8); b.rotation.z = Math.PI / 2; });
+    const jaws = [];
+    [-1, 1].forEach((sd) => {
+      const jaw = new THREE.Group();
+      jaw.position.set(sd * 0.012, 0, -0.08);
+      box(0.022, 0.024, 0.07, 0x8e9398, 0, 0, -0.035, jaw);
+      jaw.rotation.y = -sd * 0.14;
+      g.add(jaw);
+      jaws.push(jaw);
     });
-    box(0.07, 0.035, 0.1, 0x2a2d31, 0, 0, -0.03, g);
-    box(0.03, 0.03, 0.06, 0x8e9398, 0, 0, -0.1, g);
+    // the handles, hinged at the head, spreading out to the grips
+    const arms = [];
+    [-1, 1].forEach((sd) => {
+      const arm = new THREE.Group();
+      arm.position.set(sd * 0.02, 0, 0.04);
+      arm.rotation.y = sd * 0.1;
+      const bar = cyl(0.011, 0.011, 0.6, 0x44484d, 0, 0, 0.3, arm, 6);
+      bar.rotation.x = Math.PI / 2;
+      const grip = cyl(0.019, 0.019, 0.2, GRIP, 0, 0, 0.5, arm, 8);
+      grip.rotation.x = Math.PI / 2;
+      g.add(arm);
+      arms.push(arm);
+    });
+    g.userData = { arms, jaws };
     parent.add(g);
     return g;
   }
@@ -1589,8 +1705,10 @@
     viewTools.pliers = pl;
     const cu = new THREE.Group();
     const cub = mkCutter(cu);
-    cub.rotation.set(0.25, Math.PI, 0);
-    cu.position.set(-0.25, -0.1, 0.25);
+    cub.rotation.set(-0.15, 0, 0);
+    cub.scale.setScalar(0.85);
+    cu.position.set(-0.3, 0.0, -0.5);
+    cu.userData.parts = cub.userData;
     viewTools.cutter = cu;
     Object.values(viewTools).forEach((o) => { o.visible = false; hands.add(o); });
   })();
@@ -1614,6 +1732,13 @@
       cyl(0.05, 0.05, 0.1, 0x44484d, 0.3, 0.05, 0, g).rotation.z = Math.PI / 2;
     });
   })();
+  // the hand trowel at work, drawn on the concrete where the corner or edge is, with an arm to it
+  const workTrowel = new THREE.Group();
+  mkHandTrowel(workTrowel);
+  workTrowel.visible = false;
+  scene.add(workTrowel);
+  const workArm = cyl(0.045, 0.04, 1, 0x3b5b8c, 0, 0, 0, scene, 8);
+  workArm.visible = false;
   // a blue tarp for the tools to wait on
   const tarp = box(2.8, 0.01, 1.3, 0x2c6ad6, POS.tarp.x, 0.006, POS.tarp.z);
   tarp.visible = false;
@@ -2000,6 +2125,12 @@
       lfo(0.05, 120, lp.frequency);
       chain(n, lp, g); n.start();
     });
+    make('hydraulic', (g) => {
+      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 150;
+      lfo(3, 12, o.frequency);
+      chain(o, filt('lowpass', 650, 2), g); o.start();
+      const n = noiseSrc(true); chain(n, filt('bandpass', 1900, 1.5), g); n.start();
+    });
     make('rxTone', (g) => { const o = ac.createOscillator(); o.type = 'square'; o.frequency.value = 2900; chain(o, filt('lowpass', 4000, 0.7), g); o.start(); });
     make('engine', (g) => {
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 38;
@@ -2088,6 +2219,8 @@
     loopTo('wind', live ? (0.03 + day.wind * 0.012) * (inVan ? 0.4 : 1) : 0);
     loopTo('rain', live && performance.now() < rainUntil ? 0.3 * muffle : 0);
     loopTo('crickets', live && dark && tempAt(gs.t) > 8 ? 0.015 : 0);
+    const u = live && day.boom ? boomUnfold() : 0;
+    loopTo('hydraulic', live && day.boom && pump.visible ? clamp(boomSpeed * 0.04 + (u > 0 && u < 1 ? 0.12 : 0), 0, 0.18) : 0, pump.position.x, pump.position.z);
     loopTo('traffic', live ? (dark ? 0.012 : 0.035) * (inVan ? 0.5 : 1) : 0, player.x, 44);
     // the laser receiver on the float or the hose: a steady tone on height, fast beeps high, slow low
     const rx = live && gs.laserOn && laserWorks() && !gs.pourDone && (gs.tool === 'float' || gs.tool === 'hose') && target;
@@ -2115,13 +2248,13 @@
   function onSlab(x, z) { return !!cellAt(x, z); }
   function obstacles() {
     const list = [
-      { x0: -19.9, x1: -14.3, z0: 7.3, z1: 10.9 },
-      { x0: -12.7, x1: -11.3, z0: -8.7, z1: -7.3 },
-      { x0: -33, x1: -29, z0: -25, z1: -21 },
-      { x0: -29.2, x1: -22.8, z0: 10.6, z1: 13.4 },
-      { x0: -23.6, x1: -22.4, z0: -14.6, z1: -13.4 },
+      { x0: -28.9, x1: -23.3, z0: 7.3, z1: 10.9 },
+      { x0: -21.7, x1: -20.3, z0: -9.7, z1: -8.3 },
+      { x0: -40, x1: -36, z0: -26, z1: -22 },
+      { x0: -37.2, x1: -30.8, z0: 11.6, z1: 14.4 },
+      { x0: -31.6, x1: -30.4, z0: -15.6, z1: -14.4 },
     ];
-    if (pump.visible) list.push({ x0: pump.position.x - 4.6, x1: pump.position.x + 4.4, z0: pump.position.z - 1.3, z1: pump.position.z + 1.3 });
+    if (pump.visible) { const w = day.boom ? 2.9 : 1.3; list.push({ x0: pump.position.x - 4.6, x1: pump.position.x + 4.4, z0: pump.position.z - w, z1: pump.position.z + w }); }
     if (mixer.visible) list.push({ x0: mixer.position.x - 4.8, x1: mixer.position.x + 4.6, z0: mixer.position.z - 1.3, z1: mixer.position.z + 1.3 });
     return list;
   }
@@ -2225,7 +2358,7 @@
     const laser = gs.laserOn && laserWorks() && !gs.pourDone;
     const base = tmpC.copy(WET).lerp(DRY, clamp(gs.H / 70, 0, 1));
     const devC = new THREE.Color();
-    for (let k = 0; k < slabPos.count; k++) {
+    for (const k of slabVerts) {
       const x = slabPos.getX(k), z = slabPos.getZ(k);
       const f = fillAt(x, z);
       slabPos.setY(k, surfY(f));
@@ -2802,16 +2935,37 @@
   function pumpArrives() {
     gs.pumpHere = true;
     gs.fastForward = null;
-    pump.position.x = 60;
-    driveIn(pump, POS.pump.x, 5, () => {
+    const boom = !!day.boom;
+    pump.position.set(60, 0, boom ? BOOM_AT.z : POS.pump.z);
+    boomLabel.visible = boom;
+    pumpLabel.visible = !boom;
+    driveIn(pump, boom ? BOOM_AT.x : POS.pump.x, 5, () => {
       pumpGuy.visible = true;
-      pumpGuy.position.set(POS.pump.x - 5.2, 0, POS.pump.z + 1.8);
-      pumpGuy.rotation.y = -Math.PI / 2 - 0.4;
+      if (boom) {
+        // beside the truck with the remote round his neck
+        pumpGuy.position.set(BOOM_AT.x + 1.2, 0, BOOM_AT.z + 3.6);
+        pumpGuy.rotation.y = -Math.PI / 2 - 0.2;
+        sfx('brake', BOOM_AT.x, BOOM_AT.z);
+      } else {
+        pumpGuy.position.set(POS.pump.x - 5.2, 0, POS.pump.z + 1.8);
+        pumpGuy.rotation.y = -Math.PI / 2 - 0.4;
+      }
     });
-    pile.visible = true;
     if (gs.phase === 'prep') gs.phase = 'pipes';
-    modal({ who: 'Pump driver', title: 'The pump is here.', text: pick(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
-    buildPipeMarkers();
+    if (boom) {
+      gs.boomSetAt = gs.t + 2;
+      modal({ who: 'Pump driver', title: 'The boom pump is here.', text: pick(L.pumpArrive) + '\n\nNo pipes to carry today. He puts the legs down and swings the boom over the slab; the hose hangs off the end and he follows you with it on his remote. Mostly.', choices: [{ label: 'Lovely', primary: true }] });
+      at(gs.t + 12, () => {
+        gs.pipes = 6;
+        gs.tools.hose = { in: 'ground', x: SLAB.x1 - 1.5, z: gz(ENTRY.j) + 0.5, yaw: Math.PI / 2 };
+        toast('Boom up, hose hanging over the slab. Now we wait for the mixer.', 'good');
+        maybeStartPour();
+      });
+    } else {
+      pile.visible = true;
+      modal({ who: 'Pump driver', title: 'The pump is here.', text: pick(L.pumpArrive) + '\n\nLay the pipe line from the pump to the slab: grab a pipe from the pile, carry it to the next marker, clamp it.', choices: [{ label: 'On it', primary: true }] });
+      buildPipeMarkers();
+    }
     const first = Math.max(7 * 60 + 30 + day.truckDelays[0], gs.t + 25);
     scheduleTruck(first);
     if (first - (7 * 60 + 30) >= 20) at(Math.max(gs.t + 5, 7 * 60 + 25), () => toast(pick(L.truckLate).replace('{eta}', clock(first)), 'warn'));
@@ -2853,14 +3007,52 @@
     gs.truckNo = no;
     gs.truck = { no, left: loadOf(no), waiting: true };
     gs.fastForward = null;
-    mixer.position.x = 70;
-    driveIn(mixer, POS.mixer.x, 5);
+    mixer.position.set(70, 0, day.boom ? BOOM_AT.z : POS.mixer.z);
+    mixer.rotation.y = day.boom ? Math.PI : 0;
+    driveIn(mixer, day.boom ? BOOM_AT.x + 8.3 : POS.mixer.x, 5);
     if (no === 1) {
+      // a load that is already a problem doesn't also get to be stiff or soupy
+      if (day.trouble) day.mix = 'ok';
       gs.mixState = day.mix;
       gs.mixFactor = day.mix === 'soup' ? 0.75 : day.mix === 'stiff' ? 1.08 : 1;
     }
     toast(`Truck ${no} is here with ${gs.truck.left.toFixed(1)} m³.` + (gs.pipes < 6 ? ' The line isn\'t laid. The driver starts a waiting-time clock at 90 €/h.' : ''), gs.pipes < 6 ? 'warn' : '');
+    if (day.trouble && no === day.troubleTruck && !gs.troubleDone) { gs.troubleDone = true; truckTrouble(); return; }
     maybeStartPour();
+  }
+  /** The truck that is empty, or full of the wrong thing. */
+  function truckTrouble() {
+    const load = gs.truck.left;
+    const another = (min, max) => {
+      gs.extraTrucks++;
+      gs.extraLoad = load;
+      gs.truck = null;
+      drives.push({ group: mixer, from: mixer.position.x, to: 90, t: 0, seconds: 7, done: () => { mixer.visible = false; } });
+      scheduleTruck(gs.t + irnd(min, max));
+    };
+    if (day.trouble === 'empty') {
+      remember('The mixer came empty.');
+      modal({
+        who: 'Mixer driver', title: 'The drum is empty.', text: pick(L.emptyTruck) + '\n\nThe plant can send another one.',
+        choices: [{ label: 'Get on the phone to the plant', primary: true, fn: () => { toast('The plant: "Another one\'s on its way." Somebody at the plant is laughing.', 'warn'); another(45, 80); } }],
+      });
+      return;
+    }
+    const w = L.wrong[day.wrongKind];
+    modal({
+      who: `Truck ${gs.truck.no}`, title: w.title, text: w.text,
+      choices: [
+        { label: 'Send it back', primary: true, fn: () => { toast('Back it goes. The right load is 50 to 90 minutes away. The waiting starts now.', 'warn'); remember(`Truck ${gs.truck.no} brought the wrong concrete. You sent it back.`); another(50, 90); } },
+        { label: 'Pour it anyway', danger: true, fn: () => {
+          gs.wrongLoad = day.wrongKind;
+          remember(w.used);
+          if (day.wrongKind === 'screed') { gs.mixState = 'soup'; gs.mixFactor = 0.72; }
+          if (day.wrongKind === 'grade') gs.mixFactor *= 0.92;
+          toast('Your call. Your name is on the delivery note now.', 'warn');
+          maybeStartPour();
+        } },
+      ],
+    });
   }
 
   function maybeStartPour() {
@@ -2898,7 +3090,7 @@
     }
     modal({
       who: `Mixer driver · ${volumeNeeded().toFixed(1)} m³ needed`, title: 'The concrete is here.',
-      text: pick(L.truckDriver) + '\n\n' + mixText + `\n\nPick up the hose at the end of the line, on the east edge, and look at where it goes. Float it to the laser with the float from the tarp. Aim for ${day.thick} mm everywhere. Don't pour more than you need: ${orderedM3().toFixed(1)} m³ ordered, in ${trucksOrdered()} ${trucksOrdered() > 1 ? 'trucks' : 'truck'}.`,
+      text: pick(L.truckDriver) + '\n\n' + mixText + `\n\n${day.boom ? 'Pick up the hose hanging off the boom, over the east edge — the boom follows you' : 'Pick up the hose at the end of the line, on the east edge'} — and look at where it goes. Float it to the laser with the float from the tarp. Aim for ${day.thick} mm everywhere. Don't pour more than you need: ${orderedM3().toFixed(1)} m³ ordered, in ${trucksOrdered()} ${trucksOrdered() > 1 ? 'trucks' : 'truck'}.`,
       choices,
     });
   }
@@ -2953,6 +3145,7 @@
       choices: [{ label: 'To the tank', primary: true }],
     });
     at(gs.t + 6, () => { toast(pick(L.wash)); });
+    at(gs.t + 8, () => { if (day.boom) gs.boomFoldAt = gs.t; });
     at(gs.t + 10, () => { pipeGroup.clear(); gs.pipesGone = 1; });
     at(gs.t + 16, () => {
       pumpGuy.visible = false;
@@ -3069,7 +3262,7 @@
     const late = Math.max(0, gs.arrived - 6 * 60);
     const goodPans = gs.panPasses.filter((p) => p.good).length;
     const goodBlades = gs.bladePasses.filter((p) => p.good).length;
-    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
+    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
       + Math.min(goodPans, 3) * 40 + Math.min(goodBlades, 3) * 40 + gs.stats.hell * 5;
     score = Math.round(clamp(score, 0, 1200));
     const rank = score >= 950 ? 'Slab wizard' : score >= 800 ? 'Proper concrete person' : score >= 620 ? 'Adequate slab operator' : score >= 420 ? 'Footprint curator' : 'The dog\'s favourite';
@@ -3090,6 +3283,7 @@
       ['Concrete wasted', `${gs.waste.toFixed(1)} m³`],
       ['Truck waiting time', `${Math.round(gs.truckWaitPaid)} €`],
       ['People told to go to hell', String(gs.stats.hell)],
+      ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
       ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
     ];
@@ -3288,7 +3482,11 @@
     cellsDirty = true;
     pourSeconds += dt;
     paintT -= dt;
-    if (paintT <= 0) { paintT = 0.07; paintPour(target._hx + rnd(-0.2, 0.2), target._hz + rnd(-0.2, 0.2)); }
+    if (paintT <= 0) {
+      paintT = 0.07;
+      paintPour(target._hx + rnd(-0.2, 0.2), target._hz + rnd(-0.2, 0.2));
+      if (gs.wrongLoad === 'fibre') paintFibres(target._hx, target._hz);
+    }
     const progress = filledShare();
     // what goes wrong while pouring
     if (gs.mixState === 'stiff' && chance(0.025 * dt)) {
@@ -3310,7 +3508,8 @@
   function blockMarker() {
     const k = gs.blocked;
     const a = k === 0 ? POS.pumpOut : PIPE_ROUTE[k - 1], b = PIPE_ROUTE[k];
-    const m = addMarker('block', { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 }, 'Hit the pipe!', 2.4, () => gs.blocked >= 0, () => {
+    const at2 = day.boom ? P(pump.position.x + 1.5, pump.position.z + 3.2) : P((a.x + b.x) / 2, (a.z + b.z) / 2);
+    const m = addMarker('block', at2, day.boom ? 'Hit the boom pipe!' : 'Hit the pipe!', 2.4, () => gs.blocked >= 0, () => {
       gs.blocked = -1;
       sfx('splash');
       toast(pick(L.unblocked), 'good');
@@ -3637,10 +3836,11 @@
     let [nx, nz] = collide(player.x + vx * dt, player.z + vz * dt);
     // what you are holding decides where you can go: the hose is only so long, a walk-behind
     // machine is in front of you and does not go through pipes, the ride-on is the size it is
-    const hose = PIPE_ROUTE[5];
-    if (tool === 'hose' && hyp(nx, nz, hose.x, hose.z) > 16 && hyp(nx, nz, hose.x, hose.z) > hyp(player.x, player.z, hose.x, hose.z)) {
+    const from = day.boom ? P(pump.position.x + TURRET.x, pump.position.z) : PIPE_ROUTE[5];
+    const reach = day.boom ? BOOM_REACH + 3.5 : site.hoseReach;
+    if (tool === 'hose' && hyp(nx, nz, from.x, from.z) > reach && hyp(nx, nz, from.x, from.z) > hyp(player.x, player.z, from.x, from.z)) {
       nx = player.x; nz = player.z;
-      toastOnce('hoselen', 'That\'s all the hose there is. Sixteen metres, not seventeen.', '', 30000);
+      toastOnce('hoselen', day.boom ? 'The boom is all the way out. The pump driver shrugs at you from the truck.' : 'That\'s all the hose there is.', '', 30000);
     }
     if (isMachine(tool) && !TOOLS[tool].ride) {
       const tl = gs.tools[tool];
@@ -3761,7 +3961,7 @@
       else end.set(hose.x, groundY(hose.x, hose.z) + 0.05, hose.z);
       const last = PIPE_ROUTE[5];
       endHose.visible = true;
-      stretch(endHose, new THREE.Vector3(last.x, 0.15, last.z), end);
+      stretch(endHose, day.boom ? boomTip : new THREE.Vector3(last.x, 0.15, last.z), end);
     } else endHose.visible = false;
     // HUD button
     const idle = !ctx || ctx.kind === 'none';
@@ -3860,12 +4060,13 @@
     pumpGuy.userData.body.position.y = Math.sin(toolT * 1.3) * 0.004;
     if (mixer.visible && !drives.some((d) => d.group === mixer) && gs.truck) {
       mixGuy.visible = true;
-      mixGuy.position.set(mixer.position.x + 4.4, 0, mixer.position.z + 1.9);
+      mixGuy.position.set(mixer.position.x + (day.boom ? -3.2 : 4.4), 0, mixer.position.z + 1.9);
       mixGuy.rotation.y = -1.9;
     } else mixGuy.visible = false;
   }
 
   function updateWorld(dt) {
+    updateBoom(dt);
     for (let k = drives.length - 1; k >= 0; k--) {
       const d = drives[k];
       d.t += dt / d.seconds;
@@ -4029,6 +4230,64 @@
     placeTools(dt);
   }
 
+  // ------------------------------------------------------------------ the boom
+  const BOOM_AT = P(11, -4.5);           // where a boom pump sets up: cab to the slab, legs out
+  const BOOM_REACH = BOOM_L * 3 * 0.97;
+  const boomAim = new THREE.Vector3(NaN, 0, 0);
+  const boomJ = [0, 1, 2, 3].map(() => new THREE.Vector3());
+  const bF = [0, 1, 2].map(() => new THREE.Vector3()), bR = [0, 1, 2].map(() => new THREE.Vector3());
+  let boomSpeed = 0;
+  /** 0 folded on the truck, 1 out over the slab: up after it arrives, back down before it leaves. */
+  function boomUnfold() {
+    if (!day.boom || !pump.visible) return 0;
+    if (gs.boomFoldAt) return 1 - clamp((gs.t - gs.boomFoldAt) / 6, 0, 1);
+    if (gs.boomSetAt) return clamp((gs.t - gs.boomSetAt) / 10, 0, 1);
+    return 0;
+  }
+  function updateBoom(dt) {
+    const on = !!day.boom && pump.visible;
+    boomParts.visible = on;
+    boomSecs.forEach((m) => { m.visible = on; });
+    if (!on) { boomSpeed = 0; return; }
+    const u = boomUnfold();
+    // the legs go out first, then the boom lifts off its rest
+    const legs = clamp(u * 3, 0, 1), up = clamp((u - 0.3) / 0.7, 0, 1);
+    outriggers.forEach((o) => {
+      const reach = 1 + legs * 1.6;
+      o.beam.scale.z = reach; o.beam.position.z = o.sd * 0.5 * reach;
+      o.leg.position.z = o.sd * reach; o.leg.scale.y = 0.5 + legs * 0.5; o.leg.position.y = -0.2 - legs * 0.15;
+    });
+    // the tip goes over the hose end: in your hands, where you left it, or the edge of the slab.
+    // The pump driver steers it with the remote, a beat behind you.
+    const hose = gs.tools.hose;
+    let tx = SLAB.x1 - 1.5, tz = gz(ENTRY.j) + 0.5;
+    if (hose && hose.in === 'hand') { tx = player.x; tz = player.z; } else if (hose && hose.in === 'ground') { tx = hose.x; tz = hose.z; }
+    if (isNaN(boomAim.x)) boomAim.set(tx, 0, tz);
+    const k = 1 - Math.exp(-dt * 1.2);
+    const before = boomTip.clone();
+    boomAim.x = lerp(boomAim.x, tx, k); boomAim.z = lerp(boomAim.z, tz, k);
+    const b = pump.position;
+    const J0 = boomJ[0].set(b.x + TURRET.x, TURRET.y, b.z + TURRET.z);
+    // folded: zig-zag over the cab
+    bF[0].set(J0.x - 9.3, J0.y + 0.35, J0.z); bF[1].set(J0.x, J0.y + 0.7, J0.z); bF[2].set(J0.x - 9.3, J0.y + 1.05, J0.z);
+    // out: the first section up steep for a near pour, flatter for a far one; the other two
+    // bend to put the tip above the hose end
+    const dx = boomAim.x - J0.x, dz = boomAim.z - J0.z, d0 = Math.hypot(dx, dz) || 0.01, ux = dx / d0, uz = dz / d0;
+    const d = Math.min(d0, BOOM_REACH), H = 5.4 - J0.y;
+    const a1 = lerp(1.2, 0.22, clamp(d / 26, 0, 1));
+    const p1x = BOOM_L * Math.cos(a1), p1y = BOOM_L * Math.sin(a1);
+    const vx = d - p1x, vy = H - p1y, D = clamp(Math.hypot(vx, vy), 0.5, BOOM_L * 2 - 0.01);
+    const a2 = Math.atan2(vy, vx) + Math.acos(clamp(D / (2 * BOOM_L), -1, 1));
+    const p2x = p1x + BOOM_L * Math.cos(a2), p2y = p1y + BOOM_L * Math.sin(a2);
+    const a3 = Math.atan2(H - p2y, d - p2x);
+    const p3x = p2x + BOOM_L * Math.cos(a3), p3y = p2y + BOOM_L * Math.sin(a3);
+    const W = (v, r, y) => v.set(J0.x + ux * r, J0.y + y, J0.z + uz * r);
+    W(bR[0], p1x, p1y); W(bR[1], p2x, p2y); W(bR[2], p3x, p3y);
+    for (let n = 0; n < 3; n++) { boomJ[n + 1].lerpVectors(bF[n], bR[n], up); stretch(boomSecs[n], boomJ[n], boomJ[n + 1]); }
+    boomTip.copy(boomJ[3]);
+    boomSpeed = before.lengthSq() ? before.distanceTo(boomTip) / Math.max(dt, 0.001) : 0;
+  }
+
   // ------------------------------------------------------------------ tools, moving
   let toolT = 0, cupT = 0, lastSwing = 0, kneel = 0, wasKneeling = false;
   const handPos = new THREE.Vector3();
@@ -4043,6 +4302,7 @@
     if (id === 'wash') return 'wash';
     return null;
   }
+  function onTarp(x, z) { return tarp.visible && Math.abs(x - POS.tarp.x) < 1.45 && Math.abs(z - POS.tarp.z) < 0.7; }
   /** Down on one knee: hand troweling, and tying the mesh. */
   function kneeling() { const a = markerAnim(); return a === 'edger' || a === 'tie'; }
   function moveMachine(t, R, tx, tz, running) {
@@ -4064,7 +4324,6 @@
     viewTools.laser.rotation.z = sway * 2;
     viewTools.hose.visible = (t === 'hose' && !gs.carrying) || anim === 'wash';
     viewTools.hammer.visible = t === 'hammer';
-    viewTools.handTrowel.visible = t === 'handTrowel';
     viewTools.pliers.visible = t === 'pliers';
     viewTools.cutter.visible = t === 'cutter';
     // the hose kicks with every stroke of the pump
@@ -4081,8 +4340,30 @@
       if (ph >= 0.72 && lastSwing < 0.72) sfx(nearMarker.id === 'block' ? 'clank' : 'hammer');
       lastSwing = ph;
     } else { lastSwing = 0; viewTools.hammer.rotation.x = -0.6; }
-    // the hand trowel sweeps arcs, the blade's leading edge lifted
-    if (anim === 'edger' || (t === 'handTrowel' && input.action && lastCtxKind === 'repair')) {
+    // at a corner or an edge the trowel is on the concrete itself, sweeping arcs into the corner
+    // and along the edge; the view eases round to it, as you would look at what you are doing
+    workTrowel.visible = workArm.visible = anim === 'edger';
+    if (anim === 'edger') {
+      const e = site.edges[+nearMarker.id.slice(4)] || {};
+      const inX = e.inX || 0, inZ = e.inZ || 0;
+      const sw = Math.sin(toolT * 5), al = e.alongX !== undefined ? P(e.alongX, e.alongZ) : P(-inZ, inX);
+      const wx = nearMarker.x + al.x * sw * 0.18 + inX * (0.06 + Math.cos(toolT * 5) * 0.04);
+      const wz = nearMarker.z + al.z * sw * 0.18 + inZ * (0.06 + Math.cos(toolT * 5) * 0.04);
+      workTrowel.position.set(wx, groundY(wx, wz) + 0.006, wz);
+      workTrowel.rotation.set(0, Math.atan2(-al.z, al.x) + sw * 0.35, 0.04);
+      handPos.set(0.22, -0.42, -0.25);
+      camera.localToWorld(handPos);
+      tmpV2.set(wx, workTrowel.position.y + 0.06, wz);
+      stretch(workArm, handPos, tmpV2);
+      const want = Math.atan2(-(nearMarker.x - player.x), -(nearMarker.z - player.z));
+      const d = Math.max(0.3, hyp(nearMarker.x, nearMarker.z, player.x, player.z));
+      const k = 1 - Math.exp(-dt * 3);
+      player.yaw = turnTo(player.yaw, want, k);
+      player.pitch = lerp(player.pitch, -Math.atan2(camera.position.y - groundY(nearMarker.x, nearMarker.z), d), k);
+    }
+    viewTools.handTrowel.visible = t === 'handTrowel' && anim !== 'edger';
+    // working a spot with it: sweeps arcs, the blade's leading edge lifted
+    if (t === 'handTrowel' && input.action && lastCtxKind === 'repair') {
       viewTools.handTrowel.position.set(-0.05 + Math.sin(toolT * 5) * 0.12, -0.2, -0.25 + Math.cos(toolT * 5) * 0.04);
       viewTools.handTrowel.rotation.set(0.05, Math.sin(toolT * 5) * 0.5, Math.sin(toolT * 5) * 0.08);
     } else { viewTools.handTrowel.position.set(-0.05, -0.16, -0.2); viewTools.handTrowel.rotation.set(0.35, 0, 0); }
@@ -4092,9 +4373,11 @@
       viewTools.pliers.position.set(-0.08, -0.2, -0.2);
       if (Math.sin(toolT * 14) > 0.95 && chance(0.5)) sfx('twist');
     } else { viewTools.pliers.rotation.set(0, 0, 0); viewTools.pliers.position.set(-0.02, -0.02, -0.12); }
-    // the cutter's handles squeeze
-    if (anim === 'cut') viewTools.cutter.rotation.set(Math.sin(toolT * 3) * 0.12, 0, 0);
-    else viewTools.cutter.rotation.set(0, 0, 0);
+    // the cutter's handles squeeze together, the jaws close
+    const squeeze = anim === 'cut' ? (0.5 + 0.5 * Math.sin(toolT * 3)) : 0;
+    const cp = viewTools.cutter.userData.parts;
+    cp.arms.forEach((arm, k) => { arm.rotation.y = (k ? 1 : -1) * 0.1 * (1 - squeeze); });
+    cp.jaws.forEach((jaw, k) => { jaw.rotation.y = (k ? -1 : 1) * 0.14 * (1 - squeeze); });
     // coffee: up, tip, down
     viewTools.cup.visible = cupT > 0;
     if (cupT > 0) {
@@ -4108,7 +4391,7 @@
     ['float', 'handTrowel', 'hammer', 'pliers', 'cutter', 'hose'].forEach((id) => {
       const tl = gs.tools[id], g = lying[id];
       g.visible = !!tl && tl.in === 'ground';
-      if (g.visible) { g.position.set(tl.x, groundY(tl.x, tl.z), tl.z); g.rotation.y = tl.yaw; }
+      if (g.visible) { g.position.set(tl.x, groundY(tl.x, tl.z) + (onTarp(tl.x, tl.z) ? 0.013 : 0), tl.z); g.rotation.y = tl.yaw; }
     });
 
     // the machines: parked where they were left, or running where you steer them
@@ -4162,6 +4445,13 @@
       const working = input.action && (lastCtxKind === 'level' || lastCtxKind === 'repair');
       const sweep = working && !CALM ? Math.sin(toolT * 4.4) * 0.38 : 0;
       px += fx * sweep; pz += fz * sweep;
+      // a pipe through the slab stops the plate: it slides back along the stroke to clear it
+      const ax = Math.cos(player.yaw), az = -Math.sin(player.yaw), bx = Math.sin(player.yaw), bz = Math.cos(player.yaw);
+      for (const pen of site.pens) {
+        const dx = pen.x - px, dz = pen.z - pz;
+        const lx = dx * ax + dz * az, lz = dx * bx + dz * bz;
+        if (Math.abs(lx) < 0.55 && Math.abs(lz) < 0.2) { const push = lz - Math.sign(lz || 1) * 0.2; px += bx * push; pz += bz * push; }
+      }
       floatTool.position.set(px, groundY(px, pz) + 0.004, pz);
       // the leading edge up, whichever way it is going
       floatTool.rotation.set(working ? Math.cos(toolT * 4.4) * 0.05 : 0, player.yaw, 0, 'YXZ');
@@ -4193,6 +4483,7 @@
         return left.length ? `Before the pump: ${left.join(', ')}.<small>${due}</small>` : `Prep done. Coffee, or wait for the pump.<small>${due}</small>`;
       }
       case 'pipes':
+        if (gs.pipes < 6 && day.boom) return `The pump driver is setting up the boom.<small>${nextPrep().length ? `Still open: ${nextPrep().join(', ')}` : 'Nothing to carry today. Coffee?'}</small>`;
         if (gs.pipes < 6) return (gs.carrying ? `Carry the pipe to marker ${gs.pipes + 1}.` : `Grab a pipe from the pile (${gs.pipes}/6 laid).`) + (nextPrep().length ? `<small>Still open: ${nextPrep().join(', ')}</small>` : '');
         return `Line laid. Waiting for the mixer.<small>Truck due ${clock(gs.nextTruckAt)}</small>`;
       case 'pour': {
@@ -4326,10 +4617,10 @@
     const v = gs.poured ? Math.round(90 + gs.H * 1.2) : 150;
     const slabCol = gs.pourStarted ? `rgb(${v},${v},${v + 4})` : '#8c8577';
     gs.cells.forEach((c) => poly(gx(c.i) - 0.02, gz(c.j) - 0.02, gx(c.i + 1) + 0.02, gz(c.j + 1) + 0.02, slabCol));
-    poly(-19.6, 7.8, -14.4, 10.2, '#e9e7e2');
-    poly(-12.6, -8.6, -11.4, -7.4, '#cfe3ea');
-    poly(-32.6, -24.4, -29.4, -21.6, '#2f6f6a');
-    poly(-29, 10.8, -23, 13.2, '#3c6e9e');
+    poly(-28.6, 7.8, -23.4, 10.2, '#e9e7e2');
+    poly(-21.6, -9.6, -20.4, -8.4, '#cfe3ea');
+    poly(-39.6, -25.4, -36.4, -22.6, '#2f6f6a');
+    poly(-37, 11.8, -31, 14.2, '#3c6e9e');
     if (pump.visible) poly(pump.position.x - 4.3, pump.position.z - 1.2, pump.position.x + 4.3, pump.position.z + 1.2, '#f2b705');
     if (mixer.visible) poly(mixer.position.x - 4.5, mixer.position.z - 1.2, mixer.position.x + 4.5, mixer.position.z + 1.2, '#ff6b1a');
     g.restore();
@@ -4378,9 +4669,11 @@
         const on = m.active();
         m.group.visible = on;
         if (!on) return;
+        m.group.position.y = groundY(m.x, m.z);
         const frac = m === nearMarker && input.action && lastCtxKind === 'marker' ? clamp(holdT / holdOf(m), 0, 1) : 0;
         // steady while it fills, so the countdown sits exactly on the ring
         m.ring.scale.setScalar(frac > 0 ? 1 : 1 + Math.sin(now / 250) * 0.08);
+        m.beam.visible = frac === 0;
         ringProgress(m, frac);
       });
     }
@@ -4395,8 +4688,9 @@
     light(gs.t);
     if (gs.phase === 'title') {
       titleSpin += dt * 0.12;
-      camera.position.set(Math.cos(titleSpin) * 18, 7, Math.sin(titleSpin) * 14);
-      camera.lookAt(0, 0, 0);
+      const R = Math.max(16, Math.hypot(site.box.x1 - site.box.x0, site.box.z1 - site.box.z0) * 0.95);
+      camera.position.set(site.mid.x + Math.cos(titleSpin) * R, 6 + R * 0.25, site.mid.z + Math.sin(titleSpin) * R * 0.8);
+      camera.lookAt(site.mid.x, 0, site.mid.z);
     } else if (gs.phase !== 'end') {
       placeCamera(dt);
       updateHUD(dt);
@@ -4419,6 +4713,7 @@
       ['Wind', `${day.wind} m/s`],
       ['Slab', `${day.area} m² · ${day.thick} mm`],
       ['Concrete', `${volumeNeeded().toFixed(1)} m³${day.area > 50 ? ' · ride-on' : ''}`],
+      ['Pump', day.boom ? 'Boom pump' : 'Line pump'],
     ].map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
     const best = Number(store('pourday.best') || 0);
     $('#bestLine').textContent = best ? `Best shift so far: ${best} points` : 'Pump at seven. Mixer at half past. Probably.';
@@ -4441,6 +4736,8 @@
     Object.values(lying).forEach((g) => { g.visible = false; });
     Object.values(machines).forEach((m) => { m.group.visible = false; m.spin = 0; });
     floatTool.visible = floatPole.visible = endHose.visible = stream.visible = false;
+    workTrowel.visible = workArm.visible = false;
+    boomAim.x = NaN;
     mixGuy.visible = false;
     pv.forEach((p) => { p.life = 0; });
     pSize.fill(0);
@@ -4543,6 +4840,7 @@
       spawnCross() { const side = 'w'; return spawnWalker('person', wander([farPoint(side), edgePoint(side)], 0.8), 1.4, { who: L.cross[0], from: side, onArrive: askToCross }); },
       spawnDog() { const side = 'w'; return spawnWalker('dog', [farPoint(side), edgePoint(side)], 3.2, { from: side, state: 'approach', onArrive: (w) => { w.state = 'eyeing'; w.pause = 30; } }); },
       reroll() { showTitle(); return day.area; },
+      setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
       get audio() { return ac && ac.state; }, get sound() { return soundOn; }, get scene() { return scene; }, get camera() { return camera; },
     };
