@@ -9,6 +9,19 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.graphicsLayer
+import com.conwic.mixmaster.ui.components.rememberMotionOff
+import kotlin.math.PI
+import kotlin.math.sin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -201,7 +214,10 @@ fun SettingsScreen(navController: NavHostController) {
         // Somewhere to be while the slab hardens.
         item {
             Column {
-                SectionLabel(text = stringResource(R.string.settings_break_time))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PlayingPad()
+                    SectionLabel(text = stringResource(R.string.settings_break_time))
+                }
                 CardFlat(
                     modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.BREAK_TIME) },
                 ) {
@@ -363,6 +379,45 @@ fun SettingsScreen(navController: NavHostController) {
  * somebody has already used to set their alarm clock. Silence is on it too — the buzz still
  * goes, and a crew working somewhere that has to stay quiet is a real thing.
  */
+/**
+ * A gamepad in front of "Break time", somebody's thumbs on it: every few seconds it jiggles and
+ * hops, then lies still. Still for good when the phone has been told to keep still.
+ *
+ * The movement is worked out inside the layer rather than while composing, so the settings list
+ * isn't recomposed sixty times a second for a two-degree wiggle.
+ */
+@Composable
+private fun PlayingPad() {
+    val calm = rememberMotionOff()
+    val play = if (calm) null else rememberInfiniteTransition(label = "pad").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(3400, easing = LinearEasing)),
+        label = "play",
+    )
+    Icon(
+        imageVector = Icons.Rounded.SportsEsports,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.primary,
+        // the label under it keeps 8 dp below itself; the same here keeps the two centred together
+        modifier = Modifier
+            .padding(bottom = 8.dp, end = 6.dp)
+            .size(18.dp)
+            .graphicsLayer {
+                val t = (play?.value ?: 1f) * 3.4f
+                if (t < 0.7f) {
+                    // a shake that dies away, and one little hop at the start of it
+                    val fade = 1f - t / 0.7f
+                    rotationZ = 16f * sin(t * 2f * PI.toFloat() * 3.2f) * fade * fade
+                    translationY = if (t < 0.35f) -3.dp.toPx() * sin(PI.toFloat() * t / 0.35f) else 0f
+                } else {
+                    rotationZ = 0f
+                    translationY = 0f
+                }
+            },
+    )
+}
+
 @Composable
 private fun AlertSoundRow() {
     val context = LocalContext.current
