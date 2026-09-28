@@ -720,8 +720,16 @@
       ['Unknown number', 'spam', '"You have won a free cruise! Reply STOP to keep working."'],
       ['The client', 'client', '"Quick question: can the floor be heated? It\'s being poured right now? Great, so yes?"'],
       ['The client', 'client', '"My brother-in-law says you should use more concrete. He sells concrete."'],
-      ['Your kid', 'kid', '"Teacher asked what you do. I said you make grey floors and swear at them. I got a sticker."'],
-      ['Your kid', 'kid', '"Can I have the car when you die? It\'s for a school project."'],
+      ['Your son', 'son', '"Teacher asked what you do. I said you make grey floors and swear at them. I got a sticker."'],
+      ['Your daughter', 'daughter', '"Can I have the car when you die? It\'s for a school project."'],
+      ['Your son', 'son', '"Dad, is concrete alive? It moves when you\'re not looking. I think it\'s alive."'],
+      ['Your son', 'son', '"I told everyone at school you make roads. Now I have to make a road. Help."'],
+      ['Your son', 'son', '"Grandma says your back is older than her. Can I have it when you\'re done with it?"'],
+      ['Your son', 'son', '"I put your good boots in the bath to see if they float. They don\'t. Sorry. Well, not sorry, science."'],
+      ['Your daughter', 'daughter', '"Daddy, I drew you at work. You\'re the grey one. Everything is grey. I ran out of the other colours."'],
+      ['Your daughter', 'daughter', '"Mum says you\'ll be home by six. Then she laughed. Why did she laugh?"'],
+      ['Your daughter', 'daughter', '"Can you make my dolls a floor? A flat one. Not like the kitchen."'],
+      ['Your daughter', 'daughter', '"Teacher asked what I want to be when I grow up. I said not tired. She wrote it down."'],
       ['The dentist', 'dentist', '"You missed your appointment again. Your teeth have started seeing other people."'],
       ['The gym', 'gym', '"We miss you! It\'s been 814 days." You lift concrete for a living. The gym can shut up.'],
     ],
@@ -3769,7 +3777,7 @@
   let voicesOn = store('pourday.voices') !== 'off';
   const VOICES = {
     manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
-    me: [0.84, 0.96], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
+    me: [0.84, 0.96], son: [1.5, 1.14], daughter: [1.62, 1.08], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
     dentist: [1.05, 1.0], physio: [0.95, 1.0], gym: [1.2, 1.25], spam: [0.75, 1.2],
   };
   let duckUntil = 0;
@@ -3786,11 +3794,11 @@
   // anybody else while there are voices to go round — so the accents get mixed too.
   // The player is a man who pours concrete for a living, and sounds like one: a man's voice, pitched
   // low and a touch slow, and the same one every day (or the one picked in the settings).
-  const GENDER = { me: 'm', partner: 'f', manager: 'm', foreman: 'm', pump: 'm', truck: 'm', helper: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
+  const GENDER = { me: 'm', partner: 'f', son: 'm', daughter: 'f', manager: 'm', foreman: 'm', pump: 'm', truck: 'm', helper: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
   // who gets first pick of the voices: the ones heard all day long. When there aren't enough to go
   // round, a newcomer shares with somebody who isn't one of them if a voice of the right kind
   // allows, and with one of them only after that — always at a different pitch, never the player's.
-  const LEADS = ['me', 'manager', 'pump', 'truck', 'foreman', 'helper', 'plant', 'mum', 'partner', 'radio'];
+  const LEADS = ['me', 'manager', 'pump', 'truck', 'foreman', 'helper', 'plant', 'mum', 'partner', 'son', 'daughter', 'radio'];
   const SHIFTS = [0, -0.14, 0.14, -0.25, 0.25, -0.34, 0.34, -0.1, 0.1];
   let voiceBook = null, voiceBookAt = 0; // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
   let cast = {};                   // who speaks with which today
@@ -3863,7 +3871,7 @@
     cast[key] = name;
     return name;
   }
-  function newCast() { cast = {}; castShift = {}; castPitch = {}; dayGender = {}; voiceBook = null; }
+  function newCast() { cast = {}; castShift = {}; castPitch = {}; dayGender = {}; kidVoices = {}; voiceBook = null; }
   /** A line from a list, not one used lately: the list is gone through before anything comes round again. */
   const usedLines = new Set();
   function fresh(list) {
@@ -3951,9 +3959,21 @@
   function setVoices(on) { voicesOn = on; store('pourday.voices', on ? 'on' : 'off'); if (!on) hush(); }
   /** A person's voice, kept for the whole of their visit: their own from the phone's, a little higher or lower. */
   let personN = 0;
-  function personVoice(g) {
-    if (g === 'kid') return { p: 1.55, r: 1.1, key: 'kid', g: '' };
+  function personVoice(g, kidG) {
+    if (g === 'kid') return kidVoice('kid' + (++personN), kidG);
     return { p: rnd(0.85, 1.2), r: rnd(0.95, 1.12), key: 'person' + (++personN), g: g || '' };
+  }
+  /**
+   * A child's voice: a boy's or a girl's, pitched up and quick, and nobody else's — the kid with the
+   * ball, the one with the drone and the neighbour's all sound like themselves. Kept for the day.
+   */
+  let kidVoices = {};
+  function kidVoice(key, g) {
+    if (!kidVoices[key]) {
+      const girl = g ? g === 'f' : chance(0.5);
+      kidVoices[key] = { p: girl ? rnd(1.5, 1.8) : rnd(1.38, 1.65), r: rnd(1.06, 1.2), key, g: girl ? 'f' : 'm' };
+    }
+    return kidVoices[key];
   }
 
   // ------------------------------------------------------------------ the player
@@ -4432,13 +4452,14 @@
   let walkerUid = 0;
   function spawnWalker(kind, path, speed, opts) {
     const g = kind === 'dog' ? '' : (opts && opts.who && opts.who.g) || (chance(0.5) ? 'f' : 'm');
-    const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(Object.assign({ g }, chance(0.35) ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {}));
+    const kidG = g === 'kid' ? (chance(0.5) ? 'f' : 'm') : '';
+    const m = kind === 'dog' ? makeDog(opts && opts.cat) : makePerson(Object.assign({ g: kidG || g }, chance(0.35) && !kidG ? { vest: pick([0xd4f53c, 0xff7a1a]) } : {}));
     if (g === 'kid') m.scale.setScalar(0.72);
     m.position.set(path[0].x, 0, path[0].z);
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     scene.add(m);
     sfx(opts && opts.cat ? 'meow' : kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
-    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g), uid: ++walkerUid }, opts || {});
+    const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g, kidG), uid: ++walkerUid }, opts || {});
     walkers.push(w);
     return w;
   }
@@ -4730,7 +4751,7 @@
         const a = o.path[o.seg], b = o.path[o.seg + 1];
         if (!b) {
           scene.remove(o.m); odd.splice(k, 1);
-          if (o.kind === 'ball') { toast(L.ball.seen, 'warn'); remember('A football bounced across the slab.'); say(L.ball.kid, 'kid'); } else { toast(L.bag.seen, 'warn'); remember('A plastic bag dragged a line across the slab.'); }
+          if (o.kind === 'ball') { toast(L.ball.seen, 'warn'); remember('A football bounced across the slab.'); say(L.ball.kid, kidVoice('ballKid')); } else { toast(L.bag.seen, 'warn'); remember('A plastic bag dragged a line across the slab.'); }
           continue;
         }
         const len = hyp(a.x, a.z, b.x, b.z) || 0.001, speed = o.kind === 'ball' ? 5 : 2.4;
@@ -4770,7 +4791,7 @@
             for (let n = 0; n < 14; n++) emit(o.m.position.x, gy, o.m.position.z, rnd(-1.5, 1.5), rnd(1, 2.5), rnd(-1.5, 1.5), 0.6, 0x85888a, 0.05);
             toast(L.drone.seen, 'warn');
             remember('A drone crashed into the slab.');
-            say(L.drone.voice, 'kid');
+            say(L.drone.voice, kidVoice('droneKid'));
           }
         } else if (o.t > 30) { scene.remove(o.m); odd.splice(k, 1); }
       }
@@ -9225,7 +9246,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      sayTest: (t, w) => say(t, w), get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
       toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
