@@ -105,8 +105,9 @@ internal class GameNet(context: Context) {
 
     private val lifecycle = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
-            // a day takes four: the host and three co-workers
-            if (hosting && peers.size >= 3) {
+            // a day takes four: the host and three co-workers — counting those still being let in,
+            // or four tapping Join at once would all get a place
+            if (hosting && peers.size + pending.size >= 3) {
                 client.rejectConnection(endpointId)
                 return
             }

@@ -75,7 +75,12 @@ jobs:
           # same MIXMASTER_BUILD_NUMBER in app/build.gradle.kts, so the two can't drift apart.
           VERSION="1.0.${{ github.run_number }}"
           mkdir -p dist
-          rm -f dist/*.apk
+          # The build before this one stays for one more round. GitHub serves raw files from a
+          # cache for a few minutes, so a phone checking just after this lands can still be handed
+          # the old latest.json, and the APK it names has to still be there to download.
+          for app in MixMaster PourDay; do
+            ls -1 dist/${app}_1.0.*.apk 2>/dev/null | sort -t. -k3 -n | head -n -1 | xargs -r rm -f
+          done
           cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
           # Pour Day on its own, for people outside the company: built from the same run, so it
           # carries the same game as the MixMaster beside it.

@@ -707,10 +707,10 @@
       ['Mum', 'mum', '"Wear a hat. And call your mother. I am your mother."'],
       ['Mum', 'mum', '"Saw a documentary about backs. Yours was in it. The last ten minutes."'],
       ['Mum', 'mum', '"Your father wants to know if you\'re rich yet. I told him to sit down."'],
-      ['Home', 'partner', '"Dinner at 7. By which I mean I ate at 7."'],
-      ['Home', 'partner', '"The kids asked what you look like. I showed them a bag of cement."'],
-      ['Home', 'partner', '"If you\'re late again your side of the bed goes to the dog. The dog has already accepted."'],
-      ['Home', 'partner', '"Bring milk. And a reason to stay married. Milk first."'],
+      ['Wife', 'partner', '"Dinner at 7. By which I mean I ate at 7."'],
+      ['Wife', 'partner', '"The kids asked what you look like. I showed them a bag of cement."'],
+      ['Wife', 'partner', '"If you\'re late again your side of the bed goes to the dog. The dog has already accepted."'],
+      ['Wife', 'partner', '"Bring milk. And a reason to stay married. Milk first."'],
       ['The bank', 'bank', '"Your balance is low. Recommended action: pour faster."'],
       ['The bank', 'bank', '"Congratulations! Your overdraft has been promoted to a lifestyle."'],
       ['HR', 'hr', '"Reminder: mandatory wellbeing webinar at 14:00. Attendance is compulsory. Wellbeing is optional."'],
@@ -978,9 +978,9 @@
   L.texts.push(
     ['Mum', 'mum', '"Your aunt says concrete workers die young. I said not you, you\'re too stubborn."'],
     ['Mum', 'mum', '"Did you eat? A sandwich is not a meal. Concrete dust is not a seasoning."'],
-    ['Partner', 'partner', '"The washing machine made a noise after your trousers. It\'s dead. Your trousers killed it."'],
-    ['Partner', 'partner', '"Remember we have dinner with my parents. Try not to smell like a skip."'],
-    ['Partner', 'partner', '"The kids asked what you do. I said you make the ground. They think you\'re God. Don\'t."'],
+    ['Wife', 'partner', '"The washing machine made a noise after your trousers. It\'s dead. Your trousers killed it."'],
+    ['Wife', 'partner', '"Remember we have dinner with my parents. Try not to smell like a skip."'],
+    ['Wife', 'partner', '"The kids asked what you do. I said you make the ground. They think you\'re God. Don\'t."'],
     ['The bank', 'bank', '"Your overdraft misses you. Please visit soon. It will be bigger."'],
     ['The bank', 'bank', '"Congratulations! You have been pre-approved for more debt."'],
     ['HR', 'hr', '"Reminder: mandatory wellbeing session on Friday. Attendance is compulsory. Wellbeing is optional."'],
@@ -3786,9 +3786,10 @@
   // anybody else while there are voices to go round — so the accents get mixed too.
   // The player is a man who pours concrete for a living, and sounds like one: a man's voice, pitched
   // low and a touch slow, and the same one every day (or the one picked in the settings).
-  const GENDER = { me: 'm', manager: 'm', foreman: 'm', pump: 'm', truck: 'm', helper: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
-  // who gets first pick of the voices: the ones heard all day long. Anybody else shares only with
-  // somebody else who isn't one of them, and then at a different pitch.
+  const GENDER = { me: 'm', partner: 'f', manager: 'm', foreman: 'm', pump: 'm', truck: 'm', helper: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
+  // who gets first pick of the voices: the ones heard all day long. When there aren't enough to go
+  // round, a newcomer shares with somebody who isn't one of them if a voice of the right kind
+  // allows, and with one of them only after that — always at a different pitch, never the player's.
   const LEADS = ['me', 'manager', 'pump', 'truck', 'foreman', 'helper', 'plant', 'mum', 'partner', 'radio'];
   const SHIFTS = [0, -0.14, 0.14, -0.25, 0.25, -0.34, 0.34, -0.1, 0.1];
   let voiceBook = null, voiceBookAt = 0; // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
@@ -3827,14 +3828,17 @@
     if (key !== 'me' && mine) taken.add(mine);      // nobody else gets to sound like you
     const leads = new Set(LEADS.map((k) => cast[k]).filter(Boolean));
     if (mine) leads.add(mine);
-    const fits = (v) => !g || v.g === g;
+    const fits = (v) => !g || v.g === g, notMine = (v) => key === 'me' || v.n !== mine;
+    // A man's voice for a man and a woman's for a woman, always: sharing one (at another pitch)
+    // comes before borrowing the other kind, which only happens on a phone that has none.
     const pools = [
       book.filter((v) => fits(v) && !taken.has(v.n)),
-      book.filter((v) => !v.g && !taken.has(v.n)),
       book.filter((v) => fits(v) && !leads.has(v.n)),
+      book.filter((v) => fits(v) && notMine(v)),
+      book.filter((v) => !v.g && !taken.has(v.n)),
+      book.filter((v) => !v.g && notMine(v)),
       book.filter((v) => !leads.has(v.n)),
-      book.filter((v) => fits(v) && (key === 'me' || v.n !== mine)),
-      book.filter((v) => key === 'me' || v.n !== mine),
+      book.filter(notMine),
       book,
     ];
     // the least shared of what's left, so a crowd spreads over all the voices there are
@@ -3876,6 +3880,8 @@
   /** Whether anything can be heard: the app's engine up with a voice in it, or the browser's. */
   function canVoice() {
     try {
+      // the app says when its engine is up; an older one only by having named voices to offer
+      if (appBridge && typeof appBridge.canSpeak === 'function') return !!appBridge.canSpeak();
       if (appBridge && typeof appBridge.speakAs === 'function') return voicesOnOffer().length > 0;
       if (appBridge && typeof appBridge.speak === 'function') return true;
       return !!(window.speechSynthesis && window.speechSynthesis.getVoices().length);
@@ -3997,12 +4003,6 @@
     c.marks.push({ kind, x, z, rot: rot || 0, depth: markDepth(c) * (scale || 1) });
     surfDirty = true;
     if (!silent) gs.stats.prints++;
-    return true;
-  }
-  function clearMarks(c) {
-    if (!c.marks.length) return false;
-    c.marks = [];
-    surfDirty = true;
     return true;
   }
   /** Wears the marks in a square down by `amount` of their depth; true when one went for good. */
@@ -5844,7 +5844,7 @@
   }
 
   // ------------------------------------------------------------------ picking tools up, putting them down
-  let nearTool = null, nearToolD = 9, wantTool = null;
+  let nearTool = null, wantTool = null;
   function held() { return gs.tool === 'hands' ? null : gs.tool; }
   function isMachine(id) { return !!(id && TOOLS[id] && TOOLS[id].machine); }
   function unloadTools() {
@@ -5909,7 +5909,6 @@
     sfx('clank');
   }
   function laserUsable() { return gs.prep.laser && !gs.pourDone; }
-  function meshDone() { return site.ties.every((t) => t.done) && site.cuts.every((t) => t.done); }
   /** The discs of the machine in hand, as circles on the ground. */
   function discs() {
     const id = held();
@@ -5941,7 +5940,7 @@
   // ------------------------------------------------------------------ what the big button does
   let target = null;          // the cell under the crosshair, in reach
   let pourOut = null;         // the hose aimed just past the formwork: { x, z, c: the edge square, inside: share that still lands in }
-  let nearMarker = null, nearMarkerD = 9;
+  let nearMarker = null;
   let holdT = 0;
   function holdOf(m) { return typeof m.hold === 'function' ? m.hold() : m.hold; }
   /** Whether what is in your hands will do for a job. */
@@ -6028,7 +6027,6 @@
     else if (ctx.kind === 'thumb' && input.actionTapped) thumb(target);
   }
 
-  let pourSeconds = 0;
   let paintT = 0;
   function pourTick(dt) {
     if ((!target && !pourOut) || !gs.truck || gs.truck.left <= 0) return;
@@ -6046,7 +6044,6 @@
     spillOver(target);
     nb.forEach(spillOver);
     cellsDirty = true;
-    pourSeconds += dt;
     paintT -= dt;
     if (paintT <= 0) {
       paintT = 0.07;
@@ -6065,7 +6062,6 @@
     const inn = add * o.inside;
     if (inn) { o.c.fill += inn; addLoad(o.c, inn); spillOver(o.c); cellsDirty = true; }
     spillAt(o.x, o.z, (add - inn) / 1000, o.c, o.di, o.dj);
-    pourSeconds += dt;
     if (chance(dt * 6)) emit(o.x, 0.05, o.z, rnd(-0.6, 0.6), rnd(0.3, 0.9), rnd(-0.6, 0.6), 0.6, 0x7d7f80, rnd(0.04, 0.07));
     if (isGuest()) return;
     pourTrouble(dt);
@@ -7014,7 +7010,8 @@
       const x = o.x + tmpV.x * t, z = o.z + tmpV.z * t;
       if (onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH) { target = cellAt(x, z); target._hx = x; target._hz = z; }
       // with the hose, past the boards is somewhere too: into the gravel, and onto the waste line
-      else if (gs.tool === 'hose' && gs.phase === 'pour' && hyp(x, z, player.x, player.z) < REACH + 0.6) pourOut = pastTheBoards(x, z);
+      // (only off the slab: a spot on it just out of reach is out of reach, not over the boards)
+      else if (gs.tool === 'hose' && gs.phase === 'pour' && !onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH + 0.6) pourOut = pastTheBoards(x, z);
     }
     nearMarker = null;
     let best = 2.0;
@@ -7025,8 +7022,7 @@
       if (m.byMachine && gs.tool === 'trowelSmall' && mpos.on) d = Math.min(d, hyp(m.x, m.z, mpos.x, mpos.z) + 0.6);
       if (d < best) { best = d; nearMarker = m; }
     }
-    nearMarkerD = best;
-    nearTool = null; nearToolD = 9;
+    nearTool = null;
     if (!gs.carrying && player.fall <= 0 && gs.waitMode !== 'van' && !gs.fitting) {
       // the tool you are looking at: at a hand tool where it lies, at a machine's handle
       camera.getWorldDirection(tmpV);
@@ -7042,7 +7038,7 @@
         const dx = g.x - o.x, dy = gy - o.y, dz = g.z - o.z, d3 = Math.hypot(dx, dy, dz);
         const a = Math.acos(clamp((dx * tmpV.x + dy * tmpV.y + dz * tmpV.z) / d3, -1, 1));
         // roughly in view counts: a tool on the ground is well below where you usually look
-        if (a < Math.atan((isMachine(id) ? 0.5 : 0.4) / d3) + 0.24 && a < bestA) { bestA = a; nearTool = id; nearToolD = d; }
+        if (a < Math.atan((isMachine(id) ? 0.5 : 0.4) / d3) + 0.24 && a < bestA) { bestA = a; nearTool = id; }
       }
     }
   }
@@ -7640,7 +7636,6 @@
     if (id === 'laserBench' || id.startsWith('laserCheck')) return 'staff';
     return null;
   }
-  function onTarp() { return false; }
   const tmpAxis = new THREE.Vector3(), tmpUp = new THREE.Vector3(0, 1, 0), tmpQ = new THREE.Quaternion();
   /** Down on one knee: hand troweling, and tying the mesh. */
   function kneeling() { const a = markerAnim(); return a === 'edger' || a === 'tie'; }
@@ -9232,7 +9227,7 @@
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
       sayTest: (t, w) => say(t, w), get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
-      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, walkers, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
+      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       setupLaser: () => { gs.carrying = null; gs.laserInVan = false; gs.laserSetup = 4; gs.prep.laser = true; tripod.visible = true; site.levelChecks.forEach((c) => { c.done = true; c.fixed = true; }); },
       get lvl() { return lvl; }, get levelChecks() { return site.levelChecks; },
@@ -9240,7 +9235,7 @@
       mishapNow: () => { mishapAt = 1; duckUntil = 0; updateMishaps(); }, rantNow: () => { rantAt = 1; duckUntil = 0; updateManager(); },
       get spilled() { return gs.spilled || 0; }, openSettings: () => openSettings(),
       visit: (k, away) => ({ ufo: ufoVisit, ball: ballVisit, cat: catVisit, drone: droneVisit, bag: bagVisit })[k](!!away),
-      odd, walkers, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
+      odd, slabReport: () => slabReport(), glyphs: () => gs.cells.reduce((n, c) => n + c.marks.filter((m) => m.kind === 'glyph').length, 0),
       get said() { return saidLog; },
       get audio() { return ac && ac.state; }, get sound() { return soundOn; }, get scene() { return scene; }, get camera() { return camera; },
     };

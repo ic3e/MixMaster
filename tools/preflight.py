@@ -200,7 +200,8 @@ def main():
     for path in sorted(glob.glob('game/src/main/assets/**/*.js', recursive=True)):
         if path.endswith('.min.js'):
             continue
-        names = re.findall(r'^\s*function\s+(\w+)\s*\(', open(path, encoding='utf-8').read(), re.M)
+        with open(path, encoding='utf-8') as f:
+            names = re.findall(r'^\s*(?:async\s+)?function\s*\*?\s*(\w+)\s*\(', f.read(), re.M)
         for name in sorted({n for n in names if names.count(n) > 1}):
             problems.append(f'{path}: function {name} is declared {names.count(name)} times — the last one wins')
 

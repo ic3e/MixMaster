@@ -20,8 +20,11 @@ private const val GOOGLE_TTS = "com.google.android.tts"
 internal class GameVoice(context: Context) {
     private val app = context.applicationContext
 
-    /** An engine that came up, with the English voices it has and the voice it starts with. */
-    private class Engine(val tts: TextToSpeech, val voices: Map<String, Voice>, val base: Voice?)
+    /**
+     * An engine that came up, with the English voices it has, the voice it starts with, and whether
+     * it took English at all — one that lists no English voice by name can still read in its own.
+     */
+    private class Engine(val tts: TextToSpeech, val voices: Map<String, Voice>, val base: Voice?, val english: Boolean)
 
     @Volatile private var engines: List<Engine> = emptyList()
     @Volatile private var closed = false
@@ -37,7 +40,8 @@ internal class GameVoice(context: Context) {
         override fun onInit(status: Int) {
             // a failure can be reported before the constructor has returned: nothing to keep then
             val t = made ?: return
-            if (status == TextToSpeech.SUCCESS) adopt(t, engine) else if (engine != null) t.shutdown()
+            // one that failed to start is let go of, the phone's own too: kept, it holds the service bound for nothing
+            if (status == TextToSpeech.SUCCESS) adopt(t, engine) else t.shutdown()
         }
     }
 
@@ -67,8 +71,9 @@ internal class GameVoice(context: Context) {
 
     private fun ready(t: TextToSpeech, found: Map<String, Voice>): Engine {
         val uk = t.setLanguage(Locale.UK)
-        if (uk == TextToSpeech.LANG_MISSING_DATA || uk == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale.US)
-        return Engine(t, found, runCatching { t.voice }.getOrNull())
+        val took = if (uk == TextToSpeech.LANG_MISSING_DATA || uk == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale.US) else uk
+        val english = took != TextToSpeech.LANG_MISSING_DATA && took != TextToSpeech.LANG_NOT_SUPPORTED
+        return Engine(t, found, runCatching { t.voice }.getOrNull(), english)
     }
 
     /** English voices that are on the phone and work without a network. */
@@ -95,7 +100,7 @@ internal class GameVoice(context: Context) {
 
     fun say(text: String, pitch: Float, rate: Float, name: String) {
         val all = engines
-        val e = all.firstOrNull { name in it.voices } ?: all.firstOrNull() ?: return
+        val e = all.firstOrNull { name in it.voices } ?: all.firstOrNull { it.english } ?: all.firstOrNull() ?: return
         // one voice at a time, whichever engine it lives in
         all.forEach { if (it !== e) it.tts.stop() }
         val v = e.voices[name] ?: e.base
@@ -104,6 +109,9 @@ internal class GameVoice(context: Context) {
         e.tts.setSpeechRate(rate.coerceIn(0.5f, 2f))
         e.tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "pourday")
     }
+
+    /** Whether a line in English would be heard: an engine is up that has an English voice, named or its own. */
+    fun speaks(): Boolean = engines.any { it.voices.isNotEmpty() || it.english }
 
     fun hush() {
         engines.forEach { it.tts.stop() }

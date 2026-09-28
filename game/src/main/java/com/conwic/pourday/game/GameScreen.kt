@@ -193,6 +193,10 @@ private class GameBridge(
     @JavascriptInterface
     fun voices(): String = voice.list()
 
+    /** Whether anything said would be heard yet: false until an engine with English in it is up. */
+    @JavascriptInterface
+    fun canSpeak(): Boolean = voice.speaks()
+
     @JavascriptInterface
     fun hush() = voice.hush()
 

@@ -25,10 +25,17 @@ object PourDayShare {
     suspend fun prepare(context: Context): Uri? = withContext(Dispatchers.IO) {
         runCatching {
             val dir = File(context.cacheDir, "share").apply { mkdirs() }
-            // only the one being sent: an old copy is 3 MB of nothing
-            dir.listFiles()?.forEach { it.delete() }
             val out = File(dir, "PourDay_${BuildConfig.VERSION_NAME}.apk")
-            context.assets.open("share/pourday.apk").use { input -> out.outputStream().use { input.copyTo(it) } }
+            // only the one being sent: an old copy is 3 MB of nothing. This build's own is kept, and
+            // not written over — a second "Send" while Bluetooth is still reading the first would
+            // otherwise cut that transfer off half way.
+            dir.listFiles()?.forEach { if (it != out) it.delete() }
+            if (!out.isFile) {
+                // copied beside it and then renamed, so a copy cut short (a full phone) is never sent
+                val part = File(dir, "${out.name}.part")
+                context.assets.open("share/pourday.apk").use { input -> part.outputStream().use { input.copyTo(it) } }
+                check(part.renameTo(out))
+            }
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", out)
         }.getOrNull()
     }

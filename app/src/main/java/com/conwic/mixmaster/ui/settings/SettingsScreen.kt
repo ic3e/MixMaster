@@ -358,14 +358,6 @@ fun SettingsScreen(navController: NavHostController) {
 }
 
 /**
- * Which sound says the batch is up.
- *
- * The phone's own picker rather than a list of our own: it already knows every alarm and
- * notification tone on the phone, it plays each one as you move down it, and it is the list
- * somebody has already used to set their alarm clock. Silence is on it too — the buzz still
- * goes, and a crew working somewhere that has to stay quiet is a real thing.
- */
-/**
  * Pour Day: play it, or send it to a friend. What goes to the friend is the Pour Day app on its own
  * (see [PourDayShare]) — the game and nothing of MixMaster.
  */
@@ -446,6 +438,14 @@ private fun PlayingPad() {
     )
 }
 
+/**
+ * Which sound says the batch is up.
+ *
+ * The phone's own picker rather than a list of our own: it already knows every alarm and
+ * notification tone on the phone, it plays each one as you move down it, and it is the list
+ * somebody has already used to set their alarm clock. Silence is on it too — the buzz still
+ * goes, and a crew working somewhere that has to stay quiet is a real thing.
+ */
 @Composable
 private fun AlertSoundRow() {
     val context = LocalContext.current

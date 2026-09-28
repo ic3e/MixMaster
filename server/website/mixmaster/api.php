@@ -42,6 +42,8 @@ function mm_group($table)
         'notes' => 'site',
         'material_uses' => 'site',
         'usage_logs' => 'site',
+        // the crew list is the owner's to keep: a worker can't add or drop people
+        'team_members' => 'owner',
     );
     return isset($groups[$table]) ? $groups[$table] : 'owner';
 }

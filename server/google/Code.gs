@@ -42,6 +42,8 @@ const MM_GROUPS = {
   notes: 'site',
   material_uses: 'site',
   usage_logs: 'site',
+  // the crew list is the owner's to keep: a worker can't add or drop people
+  team_members: 'owner',
 };
 const MM_PERMS = ['catalogue', 'projects', 'warehouse', 'site'];
 
