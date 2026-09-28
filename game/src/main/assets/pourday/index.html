@@ -78,7 +78,7 @@
   .i-hammer { --m: var(--i-hammer); } .i-pliers { --m: var(--i-pliers); } .i-cutter { --m: var(--i-cutter); } .i-shovel { --m: var(--i-shovel); }
   .i-machine { --m: var(--i-machine); } .i-laser { --m: var(--i-laser); } .i-pipe { --m: var(--i-pipe); } .i-wait { --m: var(--i-wait); }
   .i-coffee { --m: var(--i-coffee); } .i-thermo { --m: var(--i-thermo); } .i-drop { --m: var(--i-drop); } .i-wind { --m: var(--i-wind); }
-  .i-bolt { --m: var(--i-bolt); } .i-slab { --m: var(--i-slab); } .i-speak { --m: var(--i-speak); } .i-flag { --m: var(--i-flag); }
+  .i-bolt { --m: var(--i-bolt); } .i-house { --m: var(--i-house); } .i-slab { --m: var(--i-slab); } .i-speak { --m: var(--i-speak); } .i-flag { --m: var(--i-flag); }
   /* the HUD arrives piece by piece when the day starts */
   #hud.intro #top > *, #hud.intro #side > *, #hud.intro #buttons > *, #hud.intro #btnFlip { animation: hudIn 0.6s cubic-bezier(.2,.8,.2,1.15) both; }
   #hud.intro #top > :nth-child(2) { animation-delay: 0.08s; } #hud.intro #top > :nth-child(3) { animation-delay: 0.16s; }
@@ -126,6 +126,7 @@
   @keyframes sway { 50% { transform: translateX(2.5px); } }
   .wline { display: flex; align-items: center; gap: 4px; margin-top: 5px; color: var(--muted); font-weight: 600; } .wline b { color: var(--chalk); }
   .wline .ico { color: #b9b3a8; }
+  .wline #wIndoor { margin-left: auto; color: #9fd3ff; }
   #wNeed { margin-top: 5px; padding: 2px 7px; border-radius: 7px; font-weight: 800; font-size: 11px; animation: led 1.1s infinite; }
   #wNeed.wee { background: rgba(90,169,255,0.2); color: #9fd3ff; } #wNeed.poo { background: rgba(255,184,107,0.2); color: #ffb86b; }
   #energyRow { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
@@ -442,7 +443,7 @@
   <div id="side">
     <div id="weather" class="panel">
       <div class="wx"><span><i class="ico i-thermo"></i><b id="wTemp"></b></span><span><i class="ico i-drop"></i><b id="wRh"></b></span><span><i class="ico i-wind" id="wWindIco"></i><b id="wWind"></b></span></div>
-      <div class="wline"><i class="ico i-slab"></i><span>Slab</span> <b id="wSlab"></b><span id="wIndoor"></span></div>
+      <div class="wline"><i class="ico i-slab"></i><span>Slab</span> <b id="wSlab"></b><i class="ico i-house" id="wIndoor" hidden></i></div>
       <div id="wNeed" hidden></div>
       <div id="energyRow"><i class="ico i-bolt"></i><div id="energyBar"><div id="energyFill"></div></div><span id="cupsTxt"></span></div>
     </div>

@@ -78,13 +78,13 @@ internal class GameVoice(context: Context) {
 
     /** English voices that are on the phone and work without a network. */
     private fun english(t: TextToSpeech): Map<String, Voice> = runCatching {
-        t.voices.orEmpty()
-            .filter { v ->
-                v.locale.language == "en" && !v.isNetworkConnectionRequired &&
-                    !v.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)
-            }
-            .sortedBy { it.name }
-            .associateBy { it.name }
+        val all = t.voices.orEmpty().filter { v ->
+            v.locale.language == "en" && !v.isNetworkConnectionRequired &&
+                !v.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)
+        }
+        // the very-low and low quality ones are the robot voices: left out while anything better is there
+        val good = all.filter { it.quality >= Voice.QUALITY_NORMAL }
+        good.ifEmpty { all }.sortedBy { it.name }.associateBy { it.name }
     }.getOrDefault(emptyMap())
 
     fun list(): String {

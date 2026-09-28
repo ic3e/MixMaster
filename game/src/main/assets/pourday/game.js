@@ -492,6 +492,13 @@
       '"Don\'t tell anyone, but I actually like this bit."',
       '"You\'re doing it wrong. I don\'t know how it\'s done, but you\'re doing it wrong."',
     ],
+    meUnspill: [
+      '"Back where you belong. Mostly."',
+      '"That\'s most of it. The gravel can keep the rest as a souvenir."',
+      '"Nobody saw that. The heap never happened."',
+      '"Recycling. The manager loves recycling. He\'ll never know."',
+      '"Shovelled back. My back will send the invoice later."',
+    ],
     myVoiceTry: [
       'Right. Concrete. Let\'s get it over with.',
       'Morning. Where\'s the coffee. Where\'s the pump.',
@@ -2956,6 +2963,17 @@
     box(0.27, 0.05, 0.024, MATS_STEEL, 0, -0.15, 0, blade);
     [-1, 1].forEach((sd) => box(0.022, 0.3, 0.05, 0xd8392f, sd * 0.135, 0.02, 0.012, blade));
     [-0.04, 0.04].forEach((x) => cyl(0.008, 0.008, 0.01, 0x9ea3a8, x, 0.13, 0.014, blade, 6).rotation.x = Math.PI / 2);
+    // concrete dried on the blade, both faces, more of it the dirtier the shovel is
+    const crust = new THREE.Group();
+    [-1, 1].forEach((sd) => {
+      const f = box(0.22, 0.2, 0.006, 0x9a9c99, 0, -0.03, sd * 0.014, blade);
+      crust.add(f);
+      mesh(new THREE.SphereGeometry(0.035, 7, 5), 0x8f918e, 0.07, -0.08, sd * 0.016, crust).scale.set(1.2, 0.8, 0.35);
+      mesh(new THREE.SphereGeometry(0.03, 7, 5), 0x8f918e, -0.08, -0.1, sd * 0.016, crust).scale.set(1, 0.7, 0.35);
+    });
+    blade.add(crust);
+    crust.visible = false;
+    g.userData.crust = crust;
     // a load of concrete on it, shown while it carries one
     const load = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshLambertMaterial({ color: 0x7d7f80 }));
     load.scale.set(1.05, 0.9, 0.42);
@@ -3831,9 +3849,9 @@
   // spoken — the narration stays on the screen. Each character has a pitch and a pace.
   let voicesOn = store('pourday.voices') !== 'off';
   const VOICES = {
-    manager: [0.8, 1.22], foreman: [0.95, 0.9], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
-    me: [0.84, 0.96], son: [1.5, 1.14], daughter: [1.62, 1.08], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
-    dentist: [1.05, 1.0], physio: [0.95, 1.0], gym: [1.2, 1.25], spam: [0.75, 1.2],
+    manager: [0.86, 1.12], foreman: [0.95, 0.92], pump: [0.84, 0.96], truck: [0.9, 1.0], alien: [1.9, 0.75], kid: [1.3, 1.06], plant: [1.08, 1.04],
+    me: [0.86, 0.97], son: [1.28, 1.06], daughter: [1.34, 1.04], mum: [1.12, 0.96], partner: [1.05, 1.03], bank: [0.9, 0.95], hr: [1.08, 1.08], client: [1.0, 1.06], radio: [1.0, 1.1], neighbour: [0.92, 1.0],
+    dentist: [1.04, 1.0], physio: [0.96, 1.0], gym: [1.12, 1.12], spam: [0.94, 1.12],
   };
   let duckUntil = 0;
   function spoken(text) {
@@ -3856,7 +3874,10 @@
   // They are cast in this order as soon as the phone's voices are known, not in the order they
   // happen to speak: whoever talks first in the morning can't walk off with the manager's voice.
   const LEADS = ['me', 'manager', 'foreman', 'partner', 'helper', 'pump', 'truck', 'mum', 'plant', 'radio', 'son', 'daughter'];
-  const SHIFTS = [0, -0.17, 0.17, -0.3, 0.3, -0.4, 0.4, -0.12, 0.12];
+  const SHIFTS = [0, -0.13, 0.13, -0.22, 0.22, -0.28, 0.28];
+  // A text-to-speech voice pushed far up or down, or hurried, stops sounding like a person and
+  // starts sounding like a robot. Everybody stays inside this — the alien is the one exception.
+  const PITCH_LO = 0.8, PITCH_HI = 1.38, RATE_LO = 0.88, RATE_HI = 1.14;
   let leadsCast = false;
   // and these few are nobody else's at all while any other voice of the right kind is left to share
   const OWN = ['me', 'manager', 'foreman', 'partner', 'helper'];
@@ -3911,10 +3932,14 @@
     const fits = (v) => !g || v.g === g, notMine = (v) => key === 'me' || v.n !== mine;
     // A man's voice for a man and a woman's for a woman, always: sharing one (at another pitch)
     // comes before borrowing the other kind, which only happens on a phone that has none.
+    // no more than three to a voice while there's another of the right kind to share: past that,
+    // even at different pitches they start to sound like one man doing all the voices
+    const usesOf = (n) => Object.values(cast).filter((x) => x === n).length, roomy = (v) => usesOf(v.n) < 3;
     const pools = [
       book.filter((v) => fits(v) && !taken.has(v.n)),
-      book.filter((v) => fits(v) && !leads.has(v.n)),
-      book.filter((v) => fits(v) && !own.has(v.n)),
+      book.filter((v) => fits(v) && !leads.has(v.n) && roomy(v)),
+      book.filter((v) => fits(v) && !own.has(v.n) && roomy(v)),
+      book.filter((v) => fits(v) && notMine(v) && roomy(v)),
       book.filter((v) => fits(v) && notMine(v)),
       book.filter((v) => !v.g && !taken.has(v.n)),
       book.filter((v) => !v.g && notMine(v)),
@@ -3937,10 +3962,18 @@
   let castPitch = {};
   function settle(key, name, p) {
     const others = Object.keys(cast).filter((k) => k !== key && cast[k] === name).map((k) => castPitch[k]);
-    const apart = (x) => others.every((o) => Math.abs(clamp(p + x, 0.55, 1.9) - o) >= 0.15);
-    const free = SHIFTS.find(apart);
-    castShift[key] = free === undefined ? rnd(-0.35, 0.35) : free;
-    castPitch[key] = clamp(p + castShift[key], 0.55, 1.9);
+    // a child is only ever moved up or a little down: pushed low, a kid is just a short man
+    const lo = /^(kid|son$|daughter$|ballKid|droneKid)/.test(key) ? 1.16 : PITCH_LO;
+    const at = (x) => clamp(p + x, lo, PITCH_HI);
+    const gap = (x) => others.reduce((g, o) => Math.min(g, Math.abs(at(x) - o)), 9);
+    let shift = SHIFTS.find((x) => gap(x) >= 0.12);
+    if (shift === undefined) {
+      // crowded: the pitch furthest from all of them
+      shift = 0;
+      for (let x = -0.3; x <= 0.3; x += 0.02) if (gap(x) > gap(shift)) shift = x;
+    }
+    castShift[key] = shift;
+    castPitch[key] = at(shift);
     cast[key] = name;
     return name;
   }
@@ -3980,7 +4013,9 @@
     else if (VOICES[who]) { [p, r] = VOICES[who]; key = who; g = genderOf(who); }
     const name = key ? castFor(key, g, p) : '';
     const sh = (key && castShift[key]) || 0;
-    if (sh) { p = castPitch[key] || clamp(p + sh, 0.55, 1.9); r = clamp(r + (sh > 0 ? 0.06 : -0.05), 0.7, 1.4); }
+    if (key && castPitch[key]) p = castPitch[key];
+    if (sh) r += sh > 0 ? 0.04 : -0.04;
+    if (key !== 'alien') { p = clamp(p, PITCH_LO, PITCH_HI); r = clamp(r, RATE_LO, RATE_HI); }
     const line = spoken(text);
     if (!line) return false;
     saidLog.push(line);
@@ -4035,7 +4070,7 @@
   let personN = 0;
   function personVoice(g, kidG) {
     if (g === 'kid') return kidVoice('kid' + (++personN), kidG);
-    return { p: rnd(0.85, 1.2), r: rnd(0.95, 1.12), key: 'person' + (++personN), g: g || '' };
+    return { p: rnd(0.88, 1.16), r: rnd(0.95, 1.08), key: 'person' + (++personN), g: g || '' };
   }
   /**
    * A child's voice: a boy's or a girl's, pitched up and quick, and nobody else's — the kid with the
@@ -4045,7 +4080,7 @@
   function kidVoice(key, g) {
     if (!kidVoices[key]) {
       const girl = g ? g === 'f' : chance(0.5);
-      kidVoices[key] = { p: girl ? rnd(1.5, 1.8) : rnd(1.38, 1.65), r: rnd(1.06, 1.2), key, g: girl ? 'f' : 'm' };
+      kidVoices[key] = { p: girl ? rnd(1.26, 1.38) : rnd(1.18, 1.32), r: rnd(1.02, 1.1), key, g: girl ? 'f' : 'm' };
     }
     return kidVoices[key];
   }
@@ -5966,6 +6001,7 @@
     $('#eRank').textContent = rank;
     $('#eScore').textContent = `${score} points` + (score > best ? ' · new best' : best ? ` · best ${best}` : '');
     const rows = [
+      ['Played for', playedFor()],
       ['Arrived', clock(gs.arrived) + (late > 15 ? ` (${dur(late)} late)` : '')],
       ['Poured', clock(gs.pourEnd)],
       ['Home', clockDay(gs.t)],
@@ -5975,7 +6011,7 @@
       ['Flatness', `±${dev.toFixed(1)} mm`],
       ['Pan / blade passes', `${gs.panPasses.length} / ${gs.bladePasses.length} (${goodPans + goodBlades} in the window)`],
       ['Marks left in it', String(defects)],
-      ['Concrete wasted', `${gs.waste.toFixed(1)} m³`],
+      ['Concrete wasted', `${gs.waste.toFixed(1)} m³` + (gs.stats.unspilled ? ' (after shovelling some back)' : '')],
       ['Truck waiting time', `${Math.round(gs.truckWaitPaid)} €`],
       ['People told to go to hell', String(gs.stats.hell)],
       ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
@@ -6195,6 +6231,9 @@
       if (t === 'hands' && gs.tools.hose && gs.tools.hose.in === 'ground') return { kind: 'none', label: 'Get the hose' };
     }
     if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || (gs.phase === 'cure' && (target ? cellH(target) : gs.H) < 30))) {
+      // concrete over the boards and into the gravel: dig it back out while it's wet
+      const sp = !target && gs.H < 30 ? spillInReach() : null;
+      if (sp) return { kind: 'unspill', label: 'Hold: shovel the spill back in', blob: sp };
       if (target && target.fill > day.thick + 4) return { kind: 'shovel', label: 'Hold: shovel off the extra' };
       // it digs wherever there's wet concrete to dig — including where it shouldn't
       if (target && target.fill > 25) return { kind: 'shovel', label: target.fill < day.thick - 15 ? 'Hold: dig the hole deeper' : 'Hold: shovel (it\'s level already)' };
@@ -6218,6 +6257,17 @@
     return { kind: 'none', label: '—' };
   }
 
+  /** A job done in the wet: the pour's burst formwork, mesh in the concrete, a tie or a cut after the pour. */
+  function jobInConcrete(m) {
+    const t = m.tool && m.tool !== 'hands' ? m.tool : held();
+    if (!t || isMachine(t)) return;
+    const c = cellAt(m.x, m.z);
+    const wet = m.id === 'blowout' || m.id === 'rebarUp' || (c && c.fill > 10 && cellH(c) < 90);
+    if (!wet) return;
+    addDirt(t, m.id === 'blowout' ? 0.6 : 0.4);
+    const the = TOOLS[t].the, are = t === 'pliers';
+    toastOnce('jobdirt' + t, `${the[0].toUpperCase()}${the.slice(1)} came out of that grey. Wash ${are ? 'them' : 'it'} before it sets.`, '', 40000);
+  }
   function doAction(ctx, dt) {
     if (!ctx) return;
     if (ctx.kind === 'marker') {
@@ -6229,6 +6279,7 @@
         holdT = 0;
         const ok = m.done();
         if (ok !== false) netMarker(m.id);
+        if (ok !== false) jobInConcrete(m);
         if (ok !== false && !m.active()) m.group.visible = false;
       }
       return;
@@ -6239,6 +6290,7 @@
     else if (ctx.kind === 'repair') repairTick(target, dt);
     else if (ctx.kind === 'trowel') trowelTick(dt);
     else if (ctx.kind === 'shovel') shovelTick(target, dt);
+    else if (ctx.kind === 'unspill') unspillTick(ctx.blob, dt);
     else if (ctx.kind === 'thumb' && input.actionTapped) thumb(target);
   }
 
@@ -6341,18 +6393,66 @@
       spillBlobs.add(blob);
     }
     blob.userData.v += m3;
-    const r = clamp(0.3 + Math.sqrt(blob.userData.v) * 2.8, 0.3, 1.6), h = clamp(0.02 + blob.userData.v * 0.6, 0.02, 0.14);
-    const u = blob.userData;
+    blobShape(blob);
+    const now = performance.now();
+    if (now > spillSaid) { spillSaid = now + 20000; me(fresh(L.meSpill), 'warn'); sfx('splash', x, z); }
+    if (gs.spilled > 0.12 && !gs.spillCall1) { gs.spillCall1 = true; at(gs.t + 1, () => managerSpill(true)); }
+    else if (gs.spilled > 0.45 && !gs.spillCall2) { gs.spillCall2 = true; at(gs.t + 1, () => managerSpill(false)); }
+  }
+  /** A heap's size from what's in it now: what went over, less what was shovelled back. */
+  function blobShape(blob) {
+    const u = blob.userData, v = Math.max(0, u.v - (u.back || 0));
+    const r = clamp(0.3 + Math.sqrt(v) * 2.8, 0.3, 1.6), h = clamp(0.02 + v * 0.6, 0.015, 0.14);
     blob.scale.set((r / 0.3) * u.sx, h / 0.3, (r / 0.3) * u.sz);
     if (u.c) {
       const bx = gx(u.c.i) + 0.5 + u.di * 0.58, bz = gz(u.c.j) + 0.5 + u.dj * 0.58;
       if (u.di) blob.position.x = u.di > 0 ? Math.max(u.x0, bx + r * u.sx) : Math.min(u.x0, bx - r * u.sx);
       if (u.dj) blob.position.z = u.dj > 0 ? Math.max(u.z0, bz + r * u.sz) : Math.min(u.z0, bz - r * u.sz);
     }
-    const now = performance.now();
-    if (now > spillSaid) { spillSaid = now + 20000; me(fresh(L.meSpill), 'warn'); sfx('splash', x, z); }
-    if (gs.spilled > 0.12 && !gs.spillCall1) { gs.spillCall1 = true; at(gs.t + 1, () => managerSpill(true)); }
-    else if (gs.spilled > 0.45 && !gs.spillCall2) { gs.spillCall2 = true; at(gs.t + 1, () => managerSpill(false)); }
+  }
+  /** The spill heap in front of you, near enough to dig. */
+  function spillInReach() {
+    if (!spillBlobs.children.length) return null;
+    camera.getWorldDirection(tmpV);
+    const o = camera.position;
+    if (tmpV.y > -0.05) return null;
+    const t = (0.05 - o.y) / tmpV.y, x = o.x + tmpV.x * t, z = o.z + tmpV.z * t;
+    if (hyp(x, z, player.x, player.z) > REACH + 0.8) return null;
+    let best = null, bd = 9;
+    for (const b of spillBlobs.children) {
+      const u = b.userData;
+      if (u.v - (u.back || 0) < 0.004) continue;
+      const d = hyp(b.position.x, b.position.z, x, z) - b.scale.x * 0.3;
+      if (d < 0.5 && d < bd) { bd = d; best = b; }
+    }
+    return best;
+  }
+  // Fresh, most of it comes back out of the gravel and goes back in the slab — never all of it:
+  // the last of it is mixed with stones and stays where it fell, and on the waste line.
+  const SPILL_BACK = 0.85;
+  function unspillTick(b, dt) {
+    const u = b.userData;
+    addDirt('shovel', Math.max(dt * 0.35, dirtOf('shovel') < 0.2 ? 0.2 : 0));
+    gs.energy = clamp(gs.energy - dt * 0.5, 0, 100);
+    const can = u.v * SPILL_BACK - (u.back || 0);
+    if (can <= 0.002) { toastOnce('spillDone', 'That\'s as much as comes out of the gravel. The rest belongs to the landscape now.', '', 20000); return; }
+    const m3 = Math.min(can, 0.022 * dt);
+    u.back = (u.back || 0) + m3;
+    blobShape(b);
+    // back over the board it came over, into the lowest square there that has room
+    const near = gs.cells.filter((c) => hyp(gx(c.i) + 0.5, gz(c.j) + 0.5, b.position.x, b.position.z) < 3.2 && c.fill < day.thick + FORM_UP - 10);
+    const into = near.length ? near.reduce((a, c) => (c.fill < a.fill ? c : a)) : null;
+    if (into) {
+      into.fill += m3 * 1000;
+      addLoad(into, m3 * 1000);
+      cellsDirty = true;
+      if (isGuest()) net.wasteM3 -= m3; else gs.waste = Math.max(0, gs.waste - m3);
+      gs.spilled = Math.max(0, (gs.spilled || 0) - m3);
+    } else toastOnce('spillNoRoom', 'No room on the slab next to it: it goes in the skip. Still waste, but the gravel\'s clean.', 'warn', 30000);
+    if (u.back >= u.v * SPILL_BACK - 0.002) {
+      gs.stats.unspilled = (gs.stats.unspilled || 0) + 1;
+      me(fresh(L.meUnspill), 'good');
+    }
   }
   function managerSpill(first) {
     const v = (gs.spilled || 0).toFixed(2);
@@ -6835,7 +6935,8 @@
 
   /** Too much in one place: dig it out and throw it where it's low, or over the formwork if nothing is. */
   function shovelTick(c, dt) {
-    addDirt('shovel', dt * 0.05);
+    // one go in wet concrete and it's on the blade
+    addDirt('shovel', Math.max(dt * 0.35, dirtOf('shovel') < 0.2 ? 0.2 : 0));
     gs.energy = clamp(gs.energy - dt * 0.4, 0, 100);
     // a real shovelful: hold it too long and you've dug a hole where the high spot was
     const amt = Math.min(160 * dt, c.fill - 15);
@@ -7311,7 +7412,7 @@
   const btnState = { idle: null, label: null, fill: null, tool: null, alt: null, wait: null };
   const btnTool = $('#btnTool'), btnAlt = $('#btnLaser');
   const actLabel = $('#actLabel'), actFill = $('#actFill'), actIco = $('#actIco');
-  const ACT_ICON = { pour: 'hose', level: 'float', repair: 'trowel', trowel: 'machine', shovel: 'shovel', thumb: 'hand', shout: 'speak', marker: 'flag', none: 'hand' };
+  const ACT_ICON = { pour: 'hose', level: 'float', repair: 'trowel', trowel: 'machine', shovel: 'shovel', unspill: 'shovel', thumb: 'hand', shout: 'speak', marker: 'flag', none: 'hand' };
   function updateAction(dt) {
     if (gs.packing) { input.action = false; return; }
     updateTarget();
@@ -7586,11 +7687,25 @@
     if (to.otherMm > to.loadMm) { to.load = n; [to.loadMm, to.otherMm] = [to.otherMm, to.loadMm]; }
   }
 
+  /** Hand tools left lying on the slab while the concrete is fresh sink into it. Machines stand on their pans; they're meant to. */
+  function soakTools(dt) {
+    if (!gs.pourStarted || gs.H > 60) return;
+    for (const id of DIRTY_TOOLS) {
+      const tl = gs.tools[id];
+      if (!tl || tl.in !== 'ground' || isMachine(id)) continue;
+      const c = cellAt(tl.x, tl.z);
+      if (!c || c.fill < 15 || cellH(c) > 60) continue;
+      addDirt(id, dt * 0.6);
+      const the = TOOLS[id].the, are = id === 'pliers';
+      if (dirtOf(id) > 0.15) toastOnce('soak' + id, `${the[0].toUpperCase()}${the.slice(1)} ${are ? 'are' : 'is'} lying in the concrete. Of course ${are ? 'they are' : 'it is'}.`, 'warn', 60000);
+    }
+  }
   function updateWorld(dt) {
     updateBoom(dt);
     updateVanBack(dt);
     updateFlip(dt);
     updateIdle(dt);
+    if (!isGuest()) soakTools(dt);
     updateChatter();
     if (!isGuest()) {
       updateHelper(dt);
@@ -7916,7 +8031,7 @@
     viewTools.hammer.visible = t === 'hammer';
     viewTools.shovel.visible = t === 'shovel';
     // the hands move in on a tall screen; the shovel stays where it's easy to see
-    const digging = t === 'shovel' && input.action && lastCtxKind === 'shovel';
+    const digging = t === 'shovel' && input.action && (lastCtxKind === 'shovel' || lastCtxKind === 'unspill');
     if (digging || shovelPh > 0) {
       const was = shovelPh;
       shovelPh = (shovelPh + dt / 1.25) % 1;
@@ -7930,7 +8045,7 @@
       if (load) load.visible = shovelPh > 0.36 && shovelPh < 0.76;
       if (was < 0.2 && shovelPh >= 0.2) sfx('stab');
       if (was < 0.72 && shovelPh >= 0.72) sfx('slop');
-      if (was < 0.74 && shovelPh >= 0.74 && target) {
+      if (was < 0.74 && shovelPh >= 0.74 && (target || lastCtxKind === 'unspill')) {
         // the load leaves the blade, off to the side
         const o = camera.localToWorld(new THREE.Vector3(-0.35, -0.2, -0.9));
         for (let k = 0; k < 10; k++) emit(o.x, o.y, o.z, -Math.cos(player.yaw) * rnd(1, 2) + rnd(-0.3, 0.3), rnd(0.5, 1.5), Math.sin(player.yaw) * rnd(1, 2) + rnd(-0.3, 0.3), 0.8, 0x7d7f80, rnd(0.04, 0.08));
@@ -8241,7 +8356,7 @@
     hud.wWind.textContent = `${day.wind}`;
     hud.wWindIco.style.setProperty('--ws', `${(3.2 / Math.max(1, day.wind)).toFixed(2)}s`);
     hud.wSlab.textContent = `${day.thick} mm`;
-    hud.wIndoor.textContent = day.indoor ? ' · indoors' : '';
+    hud.wIndoor.hidden = !day.indoor;
     const need = gs.needs.poo > 60 ? ['poo', 'Needs the loo, badly'] : gs.needs.wee > 60 ? ['wee', 'Needs a wee'] : null;
     hud.wNeed.hidden = !need;
     if (need && hud.wNeed.textContent !== need[1]) { hud.wNeed.className = need[0]; hud.wNeed.textContent = need[1]; }
@@ -8326,6 +8441,11 @@
     } else info.textContent = nearMarker ? nearMarker.label : '';
     drawMap();
   }
+  /** Real time spent on the day, as on a timesheet. */
+  function playedFor() {
+    const sec = Math.round((gs.stats.playMs || 0) / 1000), h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+    return h ? `${h} h ${String(m).padStart(2, '0')} min` : m ? `${m} min ${String(x).padStart(2, '0')} s` : `${x} s`;
+  }
   /** Plays a class's animation again from the start. */
   function restartAnim(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   /*
@@ -8402,6 +8522,8 @@
     // Up to a tenth of a second a frame: an older phone at 12 frames a second still plays in real
     // time, and a long stall (the app in the background) doesn't jump the day forward.
     const dt = Math.min(0.1, (now - last) / 1000);
+    // real time played, for the report: not while paused, not with the app in the background
+    if (gs.phase !== 'title' && gs.phase !== 'end' && !(modalOpen && modalOpen.pause) && document.visibilityState !== 'hidden') gs.stats.playMs = (gs.stats.playMs || 0) + Math.min(1000, now - last);
     fpsN++; fpsT += now - last;
     if (fpsT > 1000) { fpsNow = fpsN; fpsN = 0; fpsT = 0; }
     last = now;
@@ -8452,10 +8574,13 @@
   // ------------------------------------------------------------------ dirt
   // Concrete sticks. A tool that works in it collects grey splats, more the longer it works; they
   // come off at the water tank, and left long enough they're part of the tool.
-  const DIRTY_TOOLS = ['float', 'handTrowel', 'shovel', 'trowelSmall', 'trowelBig', 'rideOn'];
+  // Every tool that can end up in wet concrete: the finishing tools by trade, the shovel by the
+  // shovelful, and the hammer, the pliers and the cutter when a job has them in the pour. (The hose
+  // is the pump's: the pump driver washes his own.)
+  const DIRTY_TOOLS = ['float', 'handTrowel', 'shovel', 'hammer', 'pliers', 'cutter', 'trowelSmall', 'trowelBig', 'rideOn'];
   const dirtSpots = {};
   const dirtShown = {};
-  const dirtMat = new THREE.MeshLambertMaterial({ color: 0xb9b5aa });
+  const dirtMat = new THREE.MeshLambertMaterial({ color: 0x9b9d9a });
   const blobGeo = new THREE.SphereGeometry(1, 6, 4);
   function splatter(group, n, size) {
     group.updateMatrixWorld(true);
@@ -8479,8 +8604,9 @@
   function buildDirt() {
     DIRTY_TOOLS.forEach((id) => {
       const spots = [];
-      if (lying[id]) spots.push(...splatter(lying[id], 8, 0.035));
-      if (viewTools[id]) spots.push(...splatter(viewTools[id], 8, 0.014));
+      // big enough to see from where you stand, and on the tool in your hand
+      if (lying[id]) spots.push(...splatter(lying[id], 10, 0.045));
+      if (viewTools[id]) spots.push(...splatter(viewTools[id], 10, 0.024));
       if (machines[id]) spots.push(...splatter(machines[id].group, 16, 0.08));
       if (id === 'float') spots.push(...splatter(floatTool, 8, 0.045));
       dirtSpots[id] = spots;
@@ -8496,6 +8622,15 @@
   /** Concrete that has sat on a tool for two and a half hours is staying there. */
   function dirtSet(id) { return dirtOf(id) > 0.15 && gs.t - gs.dirt[id].at > 150; }
   function showDirt() {
+    // the shovel wears it as a crust on the blade that grows up it
+    const sd = dirtOf('shovel');
+    [viewTools.shovel, lying.shovel].forEach((t) => {
+      const cr = t && t.traverse && (t.userData.crustRef || (t.userData.crustRef = findCrust(t)));
+      if (!cr) return;
+      cr.visible = sd > 0.05;
+      cr.scale.set(1, clamp(0.35 + sd, 0.35, 1.2), 1);
+      cr.position.y = -0.1 * (1 - clamp(0.35 + sd, 0.35, 1));
+    });
     DIRTY_TOOLS.forEach((id) => {
       const spots = dirtSpots[id];
       if (!spots) return;
@@ -8506,6 +8641,7 @@
       spots.forEach((b, k) => { b.visible = (k % 8) < Math.ceil(dirtOf(id) * 8); });
     });
   }
+  function findCrust(root) { let c = null; root.traverse((o) => { if (!c && o.userData && o.userData.crust) c = o.userData.crust; }); return c; }
   function dirtyTools() { return DIRTY_TOOLS.filter((id) => gs.tools[id] && dirtOf(id) > 0.15); }
   /** Where the tools are that aren't back at the van. */
   function toolsOut() {
@@ -9259,7 +9395,8 @@
     $('#eRank').textContent = m.rank;
     $('#eScore').textContent = m.score;
     $('#ePay').innerHTML = m.pay;
-    $('#eStats').innerHTML = m.stats;
+    // the host's report, with how long you played in it rather than the host
+    $('#eStats').innerHTML = String(m.stats).replace(/(<span>Played for<\/span><b>)[^<]*(<\/b>)/, `$1${playedFor()}$2`);
     $('#eStory').innerHTML = m.story;
     $('#btnAgain').hidden = true;
     $('#end').hidden = false;
@@ -9497,7 +9634,7 @@
     choices.splice(2, 0, { label: 'Settings: sound, voices, controls', fn: () => openSettings() });
     if (bridge) choices.push({ label: QUIT_LABEL, danger: true, fn: quit });
     modal({
-      personal: true,
+      personal: true, pause: true,
       // The host keeps the clock, so the host's break stops it for everyone; a co-worker's doesn't.
       who: 'Paused', title: isGuest() ? 'Take five. (Nobody else does.)' : isHost() && net.started ? 'Take five. Everyone does.' : 'Take five.',
       text: `${clock(gs.t)}, ${PHASE_NAMES[gs.phase] || 'on site'}.` + (gs.poured ? ` Hardness ${Math.floor(gs.H)}%.` : '')
@@ -9560,11 +9697,11 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
+      sayTest: (t, w) => say(t, w), spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
       speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
       toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
-      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
+      toolsOut: () => toolsOut(), soakTools: (dt) => soakTools(dt), jobInConcrete: (id) => jobInConcrete(markers.find((m) => m.id === id)), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       setupLaser: () => { gs.carrying = null; gs.laserInVan = false; gs.laserSetup = 4; gs.prep.laser = true; tripod.visible = true; site.levelChecks.forEach((c) => { c.done = true; c.fixed = true; }); },
       get lvl() { return lvl; }, get levelChecks() { return site.levelChecks; },
