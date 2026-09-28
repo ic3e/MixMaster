@@ -83,7 +83,8 @@
 
   /* Top left, under the task: the bottom is thumbs and buttons, the right is the gauges. */
   #toasts { position: absolute; left: 12px; right: 174px; top: calc(var(--hud-top, 78px) + 18px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-  .toast { max-width: 560px; padding: 8px 12px; font-size: 13px; font-weight: 600; line-height: 1.35; background: var(--panel-solid); border: 1px solid var(--line); border-left: 4px solid var(--hivis); border-radius: 10px; animation: tin 0.25s ease-out; }
+  .toast { max-width: 440px; padding: 5px 10px; font-size: 12px; font-weight: 600; line-height: 1.3; background: rgba(16, 20, 26, 0.72); border: none; border-left: 3px solid var(--hivis); border-radius: 8px; animation: tin 0.25s ease-out; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .toast.me { font-style: italic; color: #ffe9d6; border-left-color: #fff3e6; }
   .toast.warn { border-left-color: var(--laser); }
   .toast.good { border-left-color: var(--ok); }
   @keyframes tin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -128,6 +129,20 @@
   .daycard b { display: block; font-size: 17px; color: var(--chalk); font-weight: 800; font-variant-numeric: tabular-nums; }
   .howto { margin-top: 14px; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
   .howto b { color: var(--chalk); }
+  #settings .sheet { max-width: 480px; }
+  .sethead { margin: 6px 0 4px; font-size: 19px; font-weight: 800; line-height: 1.25; }
+  .set { text-align: left; }
+  .sgroup { margin-top: 14px; font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+  .srow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .srow span { flex: 1; font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .srow span b { color: var(--hivis); font-variant-numeric: tabular-nums; }
+  .srow small { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+  .srow input[type=range] { flex: 0 0 44%; accent-color: var(--hivis); height: 28px; }
+  .tog { flex: none; min-width: 64px; height: 34px; border-radius: 17px; border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: var(--muted); font-weight: 800; font-size: 12.5px; letter-spacing: 0.6px; text-transform: uppercase; }
+  .tog.on { background: var(--hivis); border-color: var(--hivis); color: #1a1208; }
+  .joke { margin-top: 10px; font-size: 13.5px; line-height: 1.4; font-style: italic; font-weight: 700; color: #ffd9bf; }
+  .land { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+  @media (orientation: portrait) { .land { display: block; } }
   .upd { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 10px 10px 12px; border: 1px solid var(--hivis); border-radius: 14px; background: var(--hivis-dim); text-align: left; }
   .upd span { flex: 1; font-size: 13px; line-height: 1.4; color: #ffe0cc; }
   .upd b { color: #fff; }
@@ -234,6 +249,8 @@
   <div class="sheet">
     <div class="brand">Pour<br><em>Day</em></div>
     <div class="tag">One slab, one day. Get there before everyone, lay the pipes, pour it, float it, wait for it — and keep the dog off it.</div>
+    <div class="joke" id="titleJoke"></div>
+    <div class="land">↻ Turn the phone sideways: Pour Day plays in landscape too, with more slab and less thumb.</div>
     <div class="upd" id="updBar" hidden><span id="updText"></span><button id="btnUpd" hidden></button></div>
     <div class="memo"><b>Memo from the office</b>This game drains your phone's battery faster than a pump drinks diesel. Play it at work and the phone will die right when the truck driver calls to ask where your site is. Charge it in the van. You, sadly, can't be recharged.<i>— The management (who also play it)</i></div>
     <div class="daycard" id="dayCard"></div>
@@ -253,11 +270,32 @@
       <div class="llist" id="lobbyList"></div>
       <button class="ghost" id="btnLeave" hidden>Leave</button>
     </div>
-    <button class="ghost" id="btnSound">Sound: on</button>
-    <button class="ghost" id="btnMusic">Music: on</button>
-    <button class="ghost" id="btnVoices">Voices: on</button>
+    <button class="ghost" id="btnSettings">Settings</button>
     <button class="ghost" id="btnQuitTitle" hidden>Quit</button>
     <div class="best" id="bestLine"></div>
+  </div>
+</div>
+
+<div id="settings" class="screen" hidden>
+  <div class="sheet">
+    <div class="who">Settings</div>
+    <h2 class="sethead">How the day sounds, and how it handles.</h2>
+    <div class="set">
+      <div class="sgroup">Sound</div>
+      <div class="srow"><span>Sound</span><button class="tog" id="setSound"></button></div>
+      <div class="srow"><span>Sound volume</span><input type="range" id="volSound" min="0" max="100" step="5"></div>
+      <div class="srow"><span>Music</span><button class="tog" id="setMusic"></button></div>
+      <div class="srow"><span>Music volume</span><input type="range" id="volMusic" min="0" max="100" step="5"></div>
+      <div class="sgroup">Voices</div>
+      <div class="srow"><span>Voices</span><button class="tog" id="setVoices"></button></div>
+      <div class="srow"><span>Your own voice reads the notes<small>What would be a note on the screen, you hear yourself think.</small></span><button class="tog" id="setRead"></button></div>
+      <div class="srow"><span>Text for what's said out loud<small>Off: lines you hear aren't also printed on the screen.</small></span><button class="tog" id="setSubs"></button></div>
+      <div class="sgroup">Controls</div>
+      <div class="srow"><span>Walk sensitivity <b id="walkVal"></b><small>How far the left thumb goes for full speed.</small></span><input type="range" id="sensWalk" min="50" max="200" step="10"></div>
+      <div class="srow"><span>Look sensitivity <b id="lookVal"></b><small>How far the view turns for a slide of the right thumb.</small></span><input type="range" id="sensLook" min="30" max="250" step="10"></div>
+      <div class="srow"><span>Invert up and down</span><button class="tog" id="setInvert"></button></div>
+    </div>
+    <button class="big" id="btnSetDone">Done</button>
   </div>
 </div>
 
