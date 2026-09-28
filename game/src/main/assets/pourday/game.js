@@ -7048,7 +7048,7 @@
   }
 
   const lvl = { bx: 0, by: 0, ok: 0, on: false, beep: 0, started: false };
-  function levelTick(dt) {
+  function bubbleTick(dt) {
     const el = $('#level');
     if (!lvl.started) { const a = rnd(0, Math.PI * 2), r = rnd(0.55, 0.9); lvl.bx = Math.cos(a) * r; lvl.by = Math.sin(a) * r; lvl.started = true; }
     lvl.on = true;
@@ -7083,7 +7083,7 @@
     const ctx = context();
     if (!ctx || ctx.kind !== lastCtxKind) holdT = 0;
     lastCtxKind = ctx ? ctx.kind : '';
-    if (input.action && ctx && ctx.kind === 'marker' && nearMarker && nearMarker.id === 'laserLevel') levelTick(dt);
+    if (input.action && ctx && ctx.kind === 'marker' && nearMarker && nearMarker.id === 'laserLevel') bubbleTick(dt);
     else levelOff();
     if (input.action && ctx && ctx.kind !== 'none') {
       if (gs.waitMode === 'guard') { gs.waitMode = null; showWait(); }

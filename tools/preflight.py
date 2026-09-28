@@ -3,7 +3,8 @@
 What the compiler would have told us, for a project that is built somewhere else.
 
 Everything here is a mistake this app has actually shipped: a string that existed in one
-language only, an import that was never added, a brace that never closed. Run it before
+language only, an import that was never added, a brace that never closed, a game function
+declared twice. Run it before
 every push.
 
     python3 tools/preflight.py
@@ -191,6 +192,17 @@ def main():
                     f'{path}: {opener}{closer} do not balance '
                     f'({counted.count(opener)} to {counted.count(closer)})',
                 )
+
+    # 4 · the game's script: no function declared twice
+    #
+    # Two `function levelTick` in one scope is not an error in JavaScript: the later one silently
+    # replaces the earlier everywhere, and the float called the laser's bubble game for a release.
+    for path in sorted(glob.glob('game/src/main/assets/**/*.js', recursive=True)):
+        if path.endswith('.min.js'):
+            continue
+        names = re.findall(r'^\s*function\s+(\w+)\s*\(', open(path, encoding='utf-8').read(), re.M)
+        for name in sorted({n for n in names if names.count(n) > 1}):
+            problems.append(f'{path}: function {name} is declared {names.count(name)} times — the last one wins')
 
     for problem in problems:
         print(problem)
