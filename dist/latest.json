@@ -1,8 +1,8 @@
 {
-  "versionCode": 224,
-  "versionName": "1.0.224",
-  "apk": "MixMaster_1.0.224.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.224.apk",
-  "sizeBytes": 24939016,
-  "notes": "Pour Day: the tools work straight after the pour, not from 25%"
+  "versionCode": 225,
+  "versionName": "1.0.225",
+  "apk": "MixMaster_1.0.225.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.225.apk",
+  "sizeBytes": 24953100,
+  "notes": "Pour Day: concrete that runs, a hose that pours where it's pointed, fingers you can see, and a voice for everyone"
 }
