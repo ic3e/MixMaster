@@ -479,6 +479,19 @@
         '"You\'re pouring a mountain. The client ordered a floor."',
       ],
     },
+    mateTalk: [
+      '"Who packed the van? I want to shake their hand. Round the neck."',
+      '"My back just made a noise like a dropped pallet."',
+      '"If I fall in, tell my wife the slab was level."',
+      '"I\'m not saying I\'m tired, but I just tried to float the dog."',
+      '"Is it lunch? It feels like lunch. It\'s eight in the morning."',
+      '"I\'ve got concrete in places concrete shouldn\'t know about."',
+      '"The manager says we\'re a family. Families don\'t dock your pay for a footprint."',
+      '"Ten more years of this and I can afford a house. Made of concrete. Poured by me."',
+      '"Did you hear that? That was my knee. It\'s handing in its notice."',
+      '"Don\'t tell anyone, but I actually like this bit."',
+      '"You\'re doing it wrong. I don\'t know how it\'s done, but you\'re doing it wrong."',
+    ],
     myVoiceTry: [
       'Right. Concrete. Let\'s get it over with.',
       'Morning. Where\'s the coffee. Where\'s the pump.',
@@ -3842,11 +3855,11 @@
   // allows, and with one of them only after that — always at a different pitch, never the player's.
   // They are cast in this order as soon as the phone's voices are known, not in the order they
   // happen to speak: whoever talks first in the morning can't walk off with the manager's voice.
-  const LEADS = ['me', 'manager', 'foreman', 'pump', 'truck', 'partner', 'mum', 'plant', 'helper', 'radio', 'son', 'daughter'];
+  const LEADS = ['me', 'manager', 'foreman', 'partner', 'helper', 'pump', 'truck', 'mum', 'plant', 'radio', 'son', 'daughter'];
   const SHIFTS = [0, -0.17, 0.17, -0.3, 0.3, -0.4, 0.4, -0.12, 0.12];
   let leadsCast = false;
   // and these few are nobody else's at all while any other voice of the right kind is left to share
-  const OWN = ['me', 'manager', 'foreman', 'partner'];
+  const OWN = ['me', 'manager', 'foreman', 'partner', 'helper'];
   let voiceBook = null, voiceBookAt = 0; // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
   let cast = {};                   // who speaks with which today
   let castShift = {};              // how far off the voice's own pitch, for somebody sharing it
@@ -3892,6 +3905,8 @@
     const leads = new Set(LEADS.map((k) => cast[k]).filter(Boolean));
     if (mine) leads.add(mine);
     const own = new Set(OWN.filter((k) => k !== key).map((k) => cast[k]).filter(Boolean));
+    // a co-worker, a real one on another phone, is somebody too
+    Object.keys(cast).forEach((k) => { if (k !== key && k.startsWith('crew')) own.add(cast[k]); });
     if (mine && key !== 'me') own.add(mine);
     const fits = (v) => !g || v.g === g, notMine = (v) => key === 'me' || v.n !== mine;
     // A man's voice for a man and a woman's for a woman, always: sharing one (at another pitch)
@@ -3973,6 +3988,7 @@
     duckUntil = now + line.length * 70 + 600;
     talkPrio = prio;
     lastSayAt = now;
+    speakerShow(who, prio);
     try {
       if (appBridge && typeof appBridge.speakAs === 'function') { appBridge.speakAs(line, p, r, name); return true; }
       if (appBridge && typeof appBridge.speak === 'function') { appBridge.speak(line, p, r); return true; }
@@ -4032,6 +4048,119 @@
       kidVoices[key] = { p: girl ? rnd(1.5, 1.8) : rnd(1.38, 1.65), r: rnd(1.06, 1.2), key, g: girl ? 'f' : 'm' };
     }
     return kidVoices[key];
+  }
+
+  // ------------------------------------------------------------------ the phone in your hand
+  // A text or a call and you take the phone out: it comes up from the bottom of the screen in your
+  // hand, buzzes, shows who it is and what they want — typing dots, then the message under the last
+  // two they sent you; a call rings, you pick up, and the words come up as they're said — and it
+  // goes back in your pocket.
+  const phoneEl = $('#phone'), phApp = $('#phApp');
+  const phoneQ = [], phoneThreads = {};
+  let phoneOn = null, phoneTimer = 0;
+  const AV_COL = ['#e5484d', '#3e8ed0', '#2fa65a', '#a95fd0', '#d9a200', '#ff6b1a', '#1fa89c', '#d6457a'];
+  const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  function avatarCol(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) | 0; return AV_COL[Math.abs(h) % AV_COL.length]; }
+  function initials(name) { return name.replace(/^(The|Your|A|An) /i, '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase(); }
+  function phoneText(from, text, voice) { phoneQ.push({ kind: 'text', from, text, voice }); phoneNext(); }
+  function phoneCall(from, text, voice) { phoneQ.push({ kind: 'call', from, text, voice }); phoneNext(); }
+  function phoneReset() { phoneQ.length = 0; phoneOn = null; clearTimeout(phoneTimer); phoneEl.classList.remove('up', 'buzz'); }
+  function phoneBar() {
+    $('#phTime').textContent = clock(gs.t);
+    // it was charged overnight, in theory
+    const bat = clamp(100 - (gs.t - 330) / 7, 3, 100), b = $('#phBat');
+    b.style.width = `${Math.round(bat * 0.82)}%`;
+    b.parentNode.classList.toggle('low', bat < 20);
+  }
+  function phoneNext() {
+    if (phoneOn || !phoneQ.length) return;
+    const m = phoneOn = phoneQ.shift();
+    phoneBar();
+    const col = avatarCol(m.from), ini = escHtml(initials(m.from)), words = String(m.text).replace(/"/g, '');
+    restartAnim(phoneEl, 'buzz');
+    phoneEl.classList.add('up');
+    if (m.kind === 'text') {
+      sfx('buzz');
+      const th = phoneThreads[m.from] || (phoneThreads[m.from] = []);
+      const old = th.slice(-2).map((t) => `<div class="bub old">${escHtml(t.text)}<time>${t.at}</time></div>`).join('');
+      phApp.innerHTML = `<div class="mhead"><span class="av" style="background:${col}">${ini}</span><div><b>${escHtml(m.from)}</b><small>mobile · now</small></div></div>`
+        + `<div class="thread">${old}<div class="bub typing"><i></i><i></i><i></i></div></div><div class="mreply">Reply…</div>`;
+      th.push({ text: words, at: clock(gs.t) });
+      phoneTimer = setTimeout(() => {
+        const t = phApp.querySelector('.typing');
+        if (t) t.outerHTML = `<div class="bub">${escHtml(words)}<time>${clock(gs.t)}</time></div>`;
+        say(m.text, m.voice);
+        phoneTimer = setTimeout(phoneAway, clamp(2600 + words.length * 55, 3800, 9500));
+      }, 1000);
+      return;
+    }
+    sfx('ring');
+    phApp.innerHTML = `<div class="call"><small class="cst">Incoming call…</small><div class="cav"><span class="av" style="background:${col}">${ini}</span><i></i><i></i></div>`
+      + `<b class="cname">${escHtml(m.from)}</b><div class="wave">${'<b></b>'.repeat(14)}</div><div class="caption"></div><div class="cbtns"><i class="dec"></i><i class="acc"></i></div></div>`;
+    const call = phApp.querySelector('.call'), cst = call.querySelector('.cst'), cap = call.querySelector('.caption');
+    phoneTimer = setTimeout(() => {
+      // you pick up; he's already talking
+      call.classList.add('live');
+      sfx('phoneYell');
+      say(m.text, m.voice);
+      const t0 = performance.now(), len = Math.max(2500, words.length * 62);
+      const tick = () => {
+        if (phoneOn !== m) return;
+        const el = performance.now() - t0;
+        cst.textContent = `00:${String(Math.floor(el / 1000)).padStart(2, '0')}`;
+        cap.textContent = words.slice(0, Math.ceil((Math.min(el, len) / len) * words.length));
+        if (el < len) { phoneTimer = setTimeout(tick, 90); return; }
+        call.classList.remove('live');
+        call.classList.add('ended');
+        cst.textContent = 'Call ended';
+        phoneTimer = setTimeout(phoneAway, 1300);
+      };
+      tick();
+    }, 1700);
+  }
+  function phoneAway() {
+    phoneEl.classList.remove('up');
+    phoneTimer = setTimeout(() => { phoneOn = null; phoneNext(); }, 650);
+  }
+
+  // ------------------------------------------------------------------ who is talking
+  // Anybody's voice, heard with the subtitles off, is a voice from nowhere. So while somebody
+  // talks, a tag says who: with an arrow to them if they're on the site, a phone if they rang, a
+  // house for the neighbour at the window.
+  const SPEAKERS = {
+    manager: ['The manager', 'phone'], foreman: ['The foreman', 'phone'], plant: ['The plant', 'phone'], mum: ['Mum', 'phone'], partner: ['Wife', 'phone'],
+    son: ['Your son', 'phone'], daughter: ['Your daughter', 'phone'], bank: ['The bank', 'phone'], hr: ['HR', 'phone'], client: ['The client', 'phone'],
+    dentist: ['The dentist', 'phone'], physio: ['The physio', 'phone'], gym: ['The gym', 'phone'], spam: ['Unknown number', 'phone'], neighbour: ['The neighbour', 'house'],
+    pump: ['Pump driver', () => (pumpGuy.visible ? pumpGuy.position : pump.visible ? pump.position : null)],
+    truck: ['Truck driver', () => (mixGuy.visible ? mixGuy.position : mixer.visible ? mixer.position : null)],
+    radio: ['The radio', () => (pump.visible ? pump.position : mixer.visible ? mixer.position : null)],
+    alien: ['???', () => (ufo.g.visible ? ufo.g.position : null)], kid: ['A kid', null],
+  };
+  let spk = null;
+  function speakerShow(who, prio) {
+    if (who === 'me' || !prio || modalOpen) return;
+    let name = '', at = null;
+    if (who && typeof who === 'object') { name = who.name || ''; at = who.at || null; }
+    else if (SPEAKERS[who]) [name, at] = SPEAKERS[who];
+    // on the phone in your hand already: that says who it is
+    if (!name || (phoneOn && phoneOn.voice === who)) return;
+    spk = { at };
+    $('#spkName').textContent = name;
+    const el = $('#speaker');
+    el.hidden = false;
+    restartAnim(el, 'pop');
+    speakerDir();
+  }
+  function speakerDir() {
+    if (!spk) return;
+    const el = $('#speaker'), dir = $('#spkDir');
+    if (performance.now() > duckUntil + 300) { el.hidden = true; spk = null; return; }
+    const pos = typeof spk.at === 'function' ? spk.at() : null;
+    dir.className = spk.at === 'phone' ? 'phone' : spk.at === 'house' ? 'house' : pos ? '' : 'voice';
+    if (pos) {
+      const dx = pos.x - player.x, dz = pos.z - player.z, c = Math.cos(player.yaw), sn = Math.sin(player.yaw);
+      dir.style.setProperty('--dir', `${Math.atan2(dx * c - dz * sn, -dx * sn - dz * c)}rad`);
+    }
   }
 
   // ------------------------------------------------------------------ the player
@@ -4256,9 +4385,11 @@
     const d = document.createElement('div');
     d.className = 'toast' + (cls ? ' ' + cls : '');
     d.textContent = text;
+    const life = clamp(2600 + text.length * 45, 3500, 8000);
+    d.style.setProperty('--life', `${life}ms`);
     toastBox.prepend(d);
     while (toastBox.children.length > 2) toastBox.lastChild.remove();
-    setTimeout(() => d.remove(), clamp(2600 + text.length * 45, 3500, 8000));
+    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 300); }, life);
     return d;
   }
   function toast(text, kind) {
@@ -4518,6 +4649,8 @@
     scene.add(m);
     sfx(opts && opts.cat ? 'meow' : kind === 'dog' ? 'bark' : 'voice', path[0].x, path[0].z);
     const w = Object.assign({ kind, m, path, seg: 0, speed, acc: 0, pause: 0, pose: null, heading: 0, shouted: 0, voice: personVoice(g, kidG), uid: ++walkerUid }, opts || {});
+    w.voice.name = (opts && opts.who && opts.who.who) || (kidG ? 'A kid' : 'A passer-by');
+    w.voice.at = () => w.m.position;
     walkers.push(w);
     return w;
   }
@@ -5081,6 +5214,9 @@
   function startDay() {
     $('#title').hidden = true;
     $('#hud').hidden = false;
+    restartAnim($('#hud'), 'intro');
+    setTimeout(() => $('#hud').classList.remove('intro'), 1400);
+    phoneReset();
     // in case a day was left halfway through throwing the tools in the van
     $('#buttons').style.visibility = '';
     $('#btnFlip').style.visibility = '';
@@ -6235,8 +6371,7 @@
         ],
       });
     } else {
-      toast(`The manager again: ${rant}`, 'warn');
-      say([fresh(L.mgrOpen), rant, fresh(L.mgrClose)].join(' '), 'manager');
+      phoneCall('The manager', [fresh(L.mgrOpen), rant, fresh(L.mgrClose)].join(' '), 'manager');
     }
   }
   // Now and then he rings anyway, about anything at all: out loud, not in a box on the screen.
@@ -6248,15 +6383,8 @@
     if (now < rantAt || !live || gs.packing || gs.waitMode === 'van' || gs.fastForward) return;
     if (now < duckUntil + 2000) { rantAt = now + 6000; return; }
     rantAt = now + rnd(200, 380) * 1000;
-    sfx('ring');
-    const text = [fresh(L.mgrOpen), fresh(L.mgrRant), fresh(L.mgrClose)].join(' ');
-    setTimeout(() => {
-      if (gs.phase === 'end' || gs.phase === 'title') return;
-      sfx('phoneYell');
-      toast(`The manager, on the phone: ${text}`, 'warn');
-      say(text, 'manager');
-      if (chance(0.25)) remember('The manager rang, for no reason in particular. He found one.');
-    }, 1800);
+    phoneCall('The manager', [fresh(L.mgrOpen), fresh(L.mgrRant), fresh(L.mgrClose)].join(' '), 'manager');
+    if (chance(0.25)) remember('The manager rang, for no reason in particular. He found one.');
   }
 
   /** What goes wrong while pouring, whoever is holding the hose: `dt` seconds of it. */
@@ -6478,7 +6606,7 @@
   const helper = { m: null, name: '', voice: null, state: 'off', goal: null, t: 0, job: null, said: 0 };
   function sendHelper() {
     helper.name = fresh(L.helper.names);
-    helper.voice = { p: rnd(0.95, 1.15), r: rnd(1.0, 1.12), key: 'helper', g: 'm' };
+    helper.voice = { p: rnd(0.95, 1.15), r: rnd(1.0, 1.12), key: 'helper', g: 'm', name: helper.name, at: () => helper.m && helper.m.position };
     const l = fresh(L.helper.sent).replace('{n}', helper.name);
     modal({
       who: 'The manager, on the phone', title: 'Reinforcements.', voice: 'manager', sound: 'ring', text: l,
@@ -7182,7 +7310,8 @@
   let lastCtxKind = '';
   const btnState = { idle: null, label: null, fill: null, tool: null, alt: null, wait: null };
   const btnTool = $('#btnTool'), btnAlt = $('#btnLaser');
-  const actLabel = $('#actLabel'), actFill = $('#actFill');
+  const actLabel = $('#actLabel'), actFill = $('#actFill'), actIco = $('#actIco');
+  const ACT_ICON = { pour: 'hose', level: 'float', repair: 'trowel', trowel: 'machine', shovel: 'shovel', thumb: 'hand', shout: 'speak', marker: 'flag', none: 'hand' };
   function updateAction(dt) {
     if (gs.packing) { input.action = false; return; }
     updateTarget();
@@ -7223,6 +7352,8 @@
     const label = ctx ? (ctx.kind === 'marker' ? `Hold: ${ctx.label}` : ctx.label) : '—';
     const fill = ctx && ctx.kind === 'marker' ? `${Math.min(100, (holdT / ctx.hold) * 100)}%` : '0%';
     if (idle !== btnState.idle) { btnAction.classList.toggle('idle', idle); btnState.idle = idle; }
+    const kind = ctx ? ctx.kind : 'none';
+    if (kind !== btnState.kind) { btnState.kind = kind; actIco.className = `ico i-${ACT_ICON[kind] || 'hand'}`; }
     if (label !== btnState.label) { actLabel.textContent = label; btnState.label = label; }
     if (fill !== btnState.fill) { actFill.style.width = fill; btnState.fill = fill; }
   }
@@ -7340,6 +7471,8 @@
     const h = (gs.t % 1440) / 60;
     kinds.push([h < 8 || h > 19 ? 1.6 : 0.6, 'neighbour']);
     if (helper.m && helper.state !== 'leave') kinds.push([3, 'helper']);
+    const mates = inTeam() ? [...net.crew.values()].filter((c) => c.id !== net.me && c.m) : [];
+    if (mates.length) kinds.push([2.5, 'mate']);
     const kind = weighted(kinds);
     if (kind === 'helper') {
       // he gets his favourite line in early
@@ -7348,15 +7481,19 @@
       say(l, helper.voice);
       return;
     }
+    if (kind === 'mate') {
+      const c = pick(mates), l = fresh(L.mateTalk);
+      toast(`${c.name}: ${l}`);
+      say(l, crewVoice(c.id));
+      return;
+    }
     if (kind === 'thought') {
       const l = fresh(L.thoughts);
       toast(l);
       say(l, 'me');
     } else if (kind === 'text') {
       const [from, voice, text] = fresh(L.texts);
-      sfx('buzz');
-      toast(`Text from ${from}: ${text}`);
-      say(text, voice);
+      phoneText(from, text, voice);
     } else if (kind === 'radio') {
       const l = fresh(L.radio);
       toast(`${radioFrom}: ${l}`);
@@ -8049,20 +8186,68 @@
       default: return '';
     }
   }
+  const TOOL_ICON = { hose: 'hose', float: 'float', handTrowel: 'trowel', hammer: 'hammer', pliers: 'pliers', cutter: 'cutter', shovel: 'shovel', trowelSmall: 'machine', trowelBig: 'machine', rideOn: 'machine' };
+  const hud = {
+    clockbox: $('#clockbox'), hHour: $('#hHour'), hMin: $('#hMin'), phaseTxt: $('#phaseTxt'), objective: $('#objective'), objText: $('#objText'), objFill: $('#objFill'),
+    wTemp: $('#wTemp'), wRh: $('#wRh'), wWind: $('#wWind'), wWindIco: $('#wWindIco'), wSlab: $('#wSlab'), wIndoor: $('#wIndoor'), wNeed: $('#wNeed'),
+    energyFill: $('#energyFill'), cupsTxt: $('#cupsTxt'), truckLine: $('#truckLine'), truckSub: $('#truckSub'), truckBig: $('#truckBig'), truckFill: $('#truckFill'),
+    toolIco: $('#toolIco'), toolTxt: $('#toolTxt'), altIco: $('#altIco'), altTxt: $('#altTxt'), waitTxt: $('#waitTxt'), cupsBadge: $('#cupsBadge'),
+    crosshair: $('#crosshair'), mapN: $('#mapN'),
+  };
+  let objHtml = '', objKey = '', phaseKey = '', truckMax = {};
+  /** How far through the job in hand: the prep list, the pipes, the pour, then the set. */
+  function phaseProgress() {
+    switch (gs.phase) {
+      case 'prep': {
+        const p = gs.prep, total = 2 + p.form.length + site.ties.length + site.cuts.length;
+        const done = (p.unload ? 1 : 0) + p.form.filter(Boolean).length + (p.laser ? 1 : (gs.laserSetup || 0) / 4)
+          + site.ties.filter((t) => t.done).length + site.cuts.filter((t) => t.done).length;
+        return done / total;
+      }
+      case 'pipes': return gs.pipes / PIPE_N;
+      case 'pour': return filledShare();
+      case 'wash': case 'cure': return gs.H / 95;
+      default: return 0;
+    }
+  }
   function updateHUD(dt) {
     hudT -= dt;
     if (hudT > 0) return;
     hudT = 0.12;
     $('#clock').textContent = clock(gs.t);
-    $('#phase').textContent = { morning: 'Morning', prep: 'Prep', pipes: 'Pipes', pour: 'Pour', wash: 'Wash up', cure: gs.H >= 25 ? 'Trowel' : 'Curing', end: 'Home' }[gs.phase] || '';
-    $('#objective').innerHTML = objective();
+    hud.hHour.setAttribute('transform', `rotate(${((gs.t % 720) / 720) * 360} 20 20)`);
+    hud.hMin.setAttribute('transform', `rotate(${((gs.t % 60) / 60) * 360} 20 20)`);
+    const pk = gs.phase === 'cure' && gs.H >= 25 ? 'trowel' : gs.phase;
+    if (pk !== phaseKey) {
+      phaseKey = pk;
+      hud.clockbox.dataset.phase = pk;
+      hud.phaseTxt.textContent = { morning: 'Morning', prep: 'Prep', pipes: 'Pipes', pour: 'Pour', wash: 'Wash up', cure: 'Curing', trowel: 'Trowel', end: 'Home' }[pk] || '';
+      restartAnim(hud.clockbox, 'flip');
+    }
+    // the task card: it flashes when the job changes, not every time a number in it ticks over
+    const oh = objective() || (gs.phase === 'morning' ? 'Up, dressed, out. Be on site before anybody else.<small>The alarm has opinions about that.</small>' : '');
+    if (oh !== objHtml) {
+      objHtml = oh;
+      hud.objText.innerHTML = oh;
+      const key = oh.replace(/<small>[\s\S]*$/, '').replace(/[\d.,±–%:-]+/g, '#');
+      if (key !== objKey) { if (objKey) restartAnim(hud.objective, 'fresh'); objKey = key; }
+    }
+    hud.objFill.style.width = `${Math.round(clamp(phaseProgress(), 0, 1) * 100)}%`;
     // everything under the task box moves down when its text runs to another line
     const topH = $('#top').offsetHeight;
     if (topH !== hudTopH) { hudTopH = topH; $('#hud').style.setProperty('--hud-top', `${10 + topH + 8}px`); }
-    const T = tempAt(gs.t);
-    const need = gs.needs.poo > 60 ? '<br><b style="color:#ffb86b">Needs the loo, badly</b>' : gs.needs.wee > 60 ? '<br><b style="color:#9fd3ff">Needs a wee</b>' : '';
-    $('#weather').innerHTML = `${T.toFixed(1)} °C <span>·</span> ${day.rh}% RH <span>·</span> wind ${day.wind}${day.indoor ? ' (outside)' : ''}${need}<br><span>Slab</span> ${day.thick} mm <span>· energy</span>` +
-      `<div id="energyRow"><div id="energyBar"><div id="energyFill" style="width:${gs.energy}%;background:${gs.energy < 25 ? '#ff3b30' : gs.energy < 50 ? '#ffd23f' : '#6bd68a'}"></div></div><span>${gs.cups} cups</span></div>`;
+    hud.wTemp.textContent = `${tempAt(gs.t).toFixed(1)}°`;
+    hud.wRh.textContent = `${day.rh}%`;
+    hud.wWind.textContent = `${day.wind}`;
+    hud.wWindIco.style.setProperty('--ws', `${(3.2 / Math.max(1, day.wind)).toFixed(2)}s`);
+    hud.wSlab.textContent = `${day.thick} mm`;
+    hud.wIndoor.textContent = day.indoor ? ' · indoors' : '';
+    const need = gs.needs.poo > 60 ? ['poo', 'Needs the loo, badly'] : gs.needs.wee > 60 ? ['wee', 'Needs a wee'] : null;
+    hud.wNeed.hidden = !need;
+    if (need && hud.wNeed.textContent !== need[1]) { hud.wNeed.className = need[0]; hud.wNeed.textContent = need[1]; }
+    hud.energyFill.style.width = `${gs.energy}%`;
+    hud.energyFill.className = gs.energy < 25 ? 'low' : gs.energy < 50 ? 'mid' : '';
+    hud.cupsTxt.textContent = `${gs.cups} cup${gs.cups === 1 ? '' : 's'}`;
     const hard = $('#hard');
     hard.hidden = !gs.poured;
     if (gs.poured) {
@@ -8077,9 +8262,22 @@
     const ti = $('#truckInfo');
     ti.hidden = !(gs.phase === 'pour' || (gs.phase === 'pipes' && gs.pipes === PIPE_N));
     if (!ti.hidden) {
-      const need = gs.cells.reduce((sum, c) => sum + Math.max(0, day.thick - c.fill), 0) / 1000;
-      ti.innerHTML = gs.truck ? `Truck ${gs.truck.no}: <b>${Math.max(0, gs.truck.left).toFixed(1)} m³</b> left<br><span style="color:#aeb2b8">low spots need ≈ ${need.toFixed(1)} m³</span>`
-        : `Next truck <b>${clock(gs.nextTruckAt || gs.t)}</b><br><span style="color:#aeb2b8">low spots need ≈ ${need.toFixed(1)} m³</span>`;
+      const low = gs.cells.reduce((sum, c) => sum + Math.max(0, day.thick - c.fill), 0) / 1000;
+      if (truckMax.gs !== gs) truckMax = { gs };
+      if (gs.truck) {
+        const no = gs.truck.no, left = Math.max(0, gs.truck.left);
+        truckMax[no] = Math.max(truckMax[no] || 0, left);
+        hud.truckLine.textContent = `Truck ${no} · left`;
+        hud.truckBig.textContent = `${left.toFixed(1)} m³`;
+        hud.truckFill.style.width = `${truckMax[no] ? (left / truckMax[no]) * 100 : 0}%`;
+      } else {
+        hud.truckLine.textContent = 'Next truck';
+        hud.truckBig.textContent = clock(gs.nextTruckAt || gs.t);
+        hud.truckFill.style.width = '0%';
+      }
+      hud.truckSub.textContent = `low spots need ≈ ${low.toFixed(1)} m³`;
+      ti.classList.toggle('pouring', !!streamOn);
+      ti.classList.toggle('away', !gs.truck);
     }
     $('#btnFinish').hidden = !(gs.phase === 'pour' && filledShare() >= 0.97);
     // what is in your hands, and the one thing you can do to it
@@ -8089,19 +8287,28 @@
       : nt ? `${nt.ride ? 'Get on' : h ? 'Swap' : 'Pick up'}<small>${nt.name}${nt.machine ? ` · ${gs.fit[nearTool]}` : ''}</small>`
       : !h ? 'Hands<small>empty</small>' : `${TOOLS[h].ride ? 'Get off' : 'Put down'}<small>${TOOLS[h].name}</small>`;
     if (toolLabel !== btnState.tool) {
-      btnTool.innerHTML = toolLabel;
+      hud.toolTxt.innerHTML = toolLabel;
+      hud.toolIco.className = `ico i-${gs.carrying ? (gs.carrying === 'pipe' ? 'pipe' : 'laser') : nt ? TOOL_ICON[nearTool] : h ? TOOL_ICON[h] : 'hand'}`;
       btnTool.classList.toggle('dim', !nt && (!h || !!gs.carrying));
       btnTool.classList.toggle('ready', !!nt);
       btnState.tool = toolLabel;
     }
     const alt = isMachine(h) ? `${gs.fit[h] === 'pans' ? 'Fit blades' : 'Fit pans'}<small>${gs.fit[h]} on</small>` : laserUsable() ? 'Laser' : '';
-    if (alt !== btnState.alt) { btnAlt.innerHTML = alt; btnAlt.hidden = !alt; btnState.alt = alt; }
+    if (alt !== btnState.alt) { hud.altTxt.innerHTML = alt; hud.altIco.className = `ico i-${isMachine(h) ? 'machine' : 'laser'}`; btnAlt.hidden = !alt; btnState.alt = alt; }
     btnAlt.classList.toggle('on', alt === 'Laser' && gs.laserOn);
     // the waiting badge follows the state, whatever ended the wait
     const waitKey = `${gs.waitMode}|${gs.fastForward}`;
     if (waitKey !== btnState.wait) { btnState.wait = waitKey; showWait(); }
-    $('#btnWait').textContent = gs.waitMode || gs.fastForward ? 'Stop' : 'Wait';
-    $('#btnCoffee').textContent = `Coffee ${gs.cups}`;
+    hud.waitTxt.textContent = gs.waitMode || gs.fastForward ? 'Stop' : 'Wait';
+    $('#btnWait').classList.toggle('on', !!(gs.waitMode || gs.fastForward));
+    hud.cupsBadge.textContent = gs.cups;
+    hud.cupsBadge.hidden = !gs.cups;
+    $('#btnCoffee').classList.toggle('dim', !gs.cups);
+    // the crosshair lights up over something to work on, and turns while you work it
+    hud.crosshair.classList.toggle('on', btnState.idle === false);
+    hud.crosshair.classList.toggle('act', btnState.idle === false && !!input.action);
+    hud.mapN.style.setProperty('--yaw', `${player.yaw}rad`);
+    speakerDir();
     // what you're looking at
     const info = $('#targetInfo');
     if (target && gs.pourStarted) {
@@ -8119,6 +8326,8 @@
     } else info.textContent = nearMarker ? nearMarker.label : '';
     drawMap();
   }
+  /** Plays a class's animation again from the start. */
+  function restartAnim(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   /*
    * A map that follows you, 60 m across and turned so up is straight ahead. Anything off the
    * edge — the kebab stand, a marker behind the van — sits on the rim in its direction.
@@ -8775,7 +8984,15 @@
     if (kind === 'flip') { toast(`${name} gives you the finger. ${fresh(L.crewFlip)}`, 'warn'); return; }
     const l = fresh(L.crewShout);
     toast(`${name}: ${l}`, 'warn');
-    say(l, { p: 1, r: 1.05, key: 'crew' + fromId, g: 'm' });
+    say(l, crewVoice(fromId));
+  }
+
+  /** A co-worker's voice: theirs for the day, a man's, and nobody else's while there are voices to go round. */
+  function crewVoice(id) {
+    const c = net.crew.get(id);
+    if (!c) return { p: 1, r: 1.05, key: 'crew' + id, g: 'm' };
+    if (!c.voice) c.voice = { p: rnd(0.86, 1.12), r: rnd(0.96, 1.12), key: 'crew' + id, g: 'm', name: c.name, at: () => c.m && c.m.position };
+    return c.voice;
   }
 
   // ---------------- the slab: every square anybody changed, and what their tools drew on it
@@ -9343,7 +9560,9 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      sayTest: (t, w) => say(t, w), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
+      speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
+      toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
       toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
