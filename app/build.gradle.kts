@@ -5,6 +5,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// where the Pour Day APK is put for packing (see embedPourDay)
+val pourDayShare: File = layout.buildDirectory.dir("generated/pourdayShare").get().asFile
+
 android {
     namespace = "com.conwic.mixmaster"
     compileSdk = 34
@@ -53,9 +56,11 @@ android {
 
     // The company server travels inside the app, so whoever runs the company after the app is
     // handed over can always put one up — from the setup guide — without the source or its author.
+    // And the Pour Day app travels inside it too (see embedPourDay below).
     sourceSets {
         getByName("main") {
             assets.srcDir(rootProject.file("server"))
+            assets.srcDir(pourDayShare)
         }
     }
 
@@ -69,6 +74,24 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+// The Pour Day app, built in the same run, packed into MixMaster's assets (share/pourday.apk) for
+// "Send to a friend" under Break time: the game goes to somebody outside the company as a file, by
+// Quick Share, Bluetooth or a messenger — on a site with no signal too — and nothing of MixMaster
+// goes with it. Built with MixMaster, so it's always the same game as the one the sender has.
+val embedPourDay by tasks.registering(Copy::class) {
+    dependsOn(":pourday:assembleDebug")
+    from(rootProject.file("pourday/build/outputs/apk/debug")) {
+        include("*.apk")
+        rename { "pourday.apk" }
+    }
+    into(pourDayShare.resolve("share"))
+}
+tasks.named("preBuild") { dependsOn(embedPourDay) }
+// and said outright to the tasks that read the assets, rather than trusting it to arrive through preBuild
+tasks.configureEach {
+    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(embedPourDay)
 }
 
 // Writes the schema Room expects for each database version to app/schemas.

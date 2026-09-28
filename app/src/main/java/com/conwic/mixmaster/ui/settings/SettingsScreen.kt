@@ -38,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +58,8 @@ import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.company.CompanyStore
 import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.ui.navigation.Routes
+import com.conwic.mixmaster.ui.breaktime.PourDayShare
+import kotlinx.coroutines.launch
 import com.conwic.mixmaster.data.prefs.AlertSoundStore
 import com.conwic.mixmaster.data.model.Role
 import com.conwic.mixmaster.ui.LocalAppContainer
@@ -218,24 +221,7 @@ fun SettingsScreen(navController: NavHostController) {
                     PlayingPad()
                     SectionLabel(text = stringResource(R.string.settings_break_time))
                 }
-                CardFlat(
-                    modifier = Modifier.clip(CardShape).clickable { navController.navigate(Routes.BREAK_TIME) },
-                ) {
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                            Text(text = stringResource(R.string.break_time_title), style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                text = stringResource(R.string.break_time_note),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        ActionLink(
-                            text = stringResource(R.string.break_time_play),
-                            onClick = { navController.navigate(Routes.BREAK_TIME) },
-                        )
-                    }
-                }
+                BreakTimeCard(onPlay = { navController.navigate(Routes.BREAK_TIME) })
             }
         }
 
@@ -379,6 +365,48 @@ fun SettingsScreen(navController: NavHostController) {
  * somebody has already used to set their alarm clock. Silence is on it too — the buzz still
  * goes, and a crew working somewhere that has to stay quiet is a real thing.
  */
+/**
+ * Pour Day: play it, or send it to a friend. What goes to the friend is the Pour Day app on its own
+ * (see [PourDayShare]) — the game and nothing of MixMaster.
+ */
+@Composable
+private fun BreakTimeCard(onPlay: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // the copy out of the app takes a moment; a second tap in it would send twice
+    var sending by remember { mutableStateOf(false) }
+    val subject = stringResource(R.string.break_time_send_subject)
+    val text = stringResource(R.string.break_time_send_text)
+    val chooser = stringResource(R.string.break_time_send_chooser)
+    CardFlat(modifier = Modifier.clip(CardShape).clickable(onClick = onPlay)) {
+        Text(text = stringResource(R.string.break_time_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.break_time_note),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ActionLink(
+                text = stringResource(R.string.break_time_send),
+                enabled = !sending,
+                onClick = {
+                    sending = true
+                    scope.launch {
+                        val apk = PourDayShare.prepare(context)
+                        if (apk != null) PourDayShare.send(context, apk, subject, text, chooser)
+                        sending = false
+                    }
+                },
+            )
+            ActionLink(text = stringResource(R.string.break_time_play), onClick = onPlay)
+        }
+    }
+}
+
 /**
  * A gamepad in front of "Break time", somebody's thumbs on it: every few seconds it jiggles and
  * hops, then lies still. Still for good when the phone has been told to keep still.

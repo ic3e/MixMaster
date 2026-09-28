@@ -111,6 +111,10 @@
     <string name="break_time_title">Pour Day</string>
     <string name="break_time_note">Betonityöpäivä minä-näkökulmasta, sillä aikaa kun laatta kovettuu: valmistelu, putket, valu, odotus, hierto. Pidä koira pois laatalta. Peli on englanniksi.</string>
     <string name="break_time_play">Pelaa</string>
+    <string name="break_time_send">Lähetä kaverille</string>
+    <string name="break_time_send_chooser">Lähetä Pour Day</string>
+    <string name="break_time_send_subject">Pour Day – betonivalupeli</string>
+    <string name="break_time_send_text">Pour Day: päivä betonityömaalla puhelimessasi. Avaa liitteenä oleva tiedosto Android-puhelimessa asentaaksesi sen, ja salli asennus tästä sovelluksesta, kun puhelin kysyy. Peli on englanniksi.</string>
     <string name="settings_mixing_reminders">Sekoitusmuistutukset</string>
     <string name="settings_mixing_reminders_note">Muistutus jättää astiaan tilaa, jotta massa pääsee kiertämään.</string>
     <string name="settings_alert_sound">Hälytysääni</string>

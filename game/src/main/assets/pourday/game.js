@@ -7484,6 +7484,27 @@
   $('#btnJoin').addEventListener('click', () => { audioStart(); joinDay(); });
   $('#btnLeave').addEventListener('click', () => leaveCrew());
 
+  // A new Pour Day, from the app that can fetch one (the Pour Day app on its own; MixMaster has its
+  // own updater in Settings). The app says where it has got to; the button takes the next step.
+  function showUpdate(u) {
+    const v = u && u.v ? `<b>Pour Day ${u.v}</b>` : 'A new Pour Day';
+    const say = {
+      ready: [`${v} is out. New stuff on site, same concrete.`, 'Update'],
+      downloading: [`Fetching ${v}… ${u && u.p || 0}%`, ''],
+      permission: [`${v} is here. The phone has to let Pour Day install it — once, in the next screen.`, 'Allow'],
+      install: [`${v} is here.`, 'Install'],
+      failed: ['The update didn\'t come through. No signal on site?', 'Try again'],
+    }[u && u.s];
+    $('#updBar').hidden = !say;
+    if (!say) return;
+    $('#updText').innerHTML = say[0];
+    $('#btnUpd').textContent = say[1];
+    $('#btnUpd').hidden = !say[1];
+  }
+  window.pdUpdate = (json) => { try { showUpdate(JSON.parse(json)); } catch (e) { /* nothing to show */ } };
+  $('#btnUpd').addEventListener('click', () => { try { appBridge.updateNext(); } catch (e) { /* no updater */ } });
+  try { if (appBridge && appBridge.updateState) showUpdate(JSON.parse(appBridge.updateState())); } catch (e) { /* no updater */ }
+
   // Inside an app the page has a way out; in a plain browser there isn't one.
   const bridge = appBridge;
   const quit = () => { if (bridge) bridge.quit(); };

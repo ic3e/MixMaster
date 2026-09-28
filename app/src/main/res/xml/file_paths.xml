@@ -7,4 +7,6 @@
     <cache-path name="updates" path="updates/" />
     <!-- The company server's files, sent from the setup guide to whoever sets it up. -->
     <cache-path name="server" path="server/" />
+    <!-- The Pour Day app, sent to a friend from Break time. -->
+    <cache-path name="share" path="share/" />
 </paths>

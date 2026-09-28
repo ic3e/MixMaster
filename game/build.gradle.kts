@@ -9,14 +9,29 @@ plugins {
 // Pour Day app for people outside the company. The page, its 3D engine and fonts, the phone's
 // voices and the Nearby link for co-workers all live here; each app only puts it on screen.
 
-// Phones play one day together only on the same game: the same page, the same rules, the same
-// random site from the same seed. The stamp is taken from the game's own files, so MixMaster and
-// the Pour Day app can play together whenever they carry the same game, whatever their own
-// version numbers are.
+// Which game this is, as a hash of everything that makes up Pour Day: this module (the page, its
+// voices, its Nearby link) and the Pour Day app around it. Phones play one day together only on
+// the same game — the same page, the same rules, the same random site from the same seed — so
+// MixMaster and the Pour Day app can play together whenever they carry the same one, whatever their
+// own version numbers are. And the Pour Day app offers its players an update only when this has
+// changed, not every time MixMaster is rebuilt.
 val gameStamp: String = MessageDigest.getInstance("SHA-256").run {
-    listOf("game.js", "index.html").forEach { update(file("src/main/assets/pourday/$it").readBytes()) }
+    val files = fileTree("src/main").files + rootProject.fileTree("pourday/src/main").files
+    files.map { it.relativeTo(rootDir).invariantSeparatorsPath to it }.sortedBy { it.first }.forEach { (path, f) ->
+        update(path.toByteArray())
+        update(f.readBytes())
+    }
     digest().take(6).joinToString("") { "%02x".format(it) }
 }
+
+// CI reads the stamp from here for dist/pourday.json, which the Pour Day app compares with its own.
+val writeGameStamp by tasks.registering {
+    val out = layout.buildDirectory.file("game-stamp.txt")
+    inputs.property("stamp", gameStamp)
+    outputs.file(out)
+    doLast { out.get().asFile.writeText(gameStamp) }
+}
+tasks.named("preBuild") { dependsOn(writeGameStamp) }
 
 android {
     namespace = "com.conwic.pourday.game"

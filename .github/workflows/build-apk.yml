@@ -91,6 +91,14 @@ jobs:
           python3 -c 'import json,sys; v,r,z,n = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; print(json.dumps({"versionCode": r, "versionName": v, "apk": "MixMaster_" + v + ".apk", "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_" + v + ".apk", "sizeBytes": z, "notes": n}, indent=2))' "$VERSION" "$RUN" "$SIZE" "$NOTES" > dist/latest.json
           cat dist/latest.json
 
+          # The same for the Pour Day app, which reads it from inside the game. "game" is the stamp of
+          # the game this APK carries (written by the :game build): Pour Day offers its players an
+          # update only when that has changed, not every time MixMaster is rebuilt.
+          PD_SIZE=$(stat -c%s "dist/PourDay_$VERSION.apk")
+          PD_GAME=$(cat game/build/game-stamp.txt)
+          python3 -c 'import json,sys; v,r,z,g = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; print(json.dumps({"versionCode": r, "versionName": v, "game": g, "apk": "PourDay_" + v + ".apk", "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/PourDay_" + v + ".apk", "sizeBytes": z}, indent=2))' "$VERSION" "$RUN" "$PD_SIZE" "$PD_GAME" > dist/pourday.json
+          cat dist/pourday.json
+
           # The compiler's warnings (a variable never read, a parameter never used, a call to
           # something deprecated) — the only compiler the code ever meets is this one, so what
           # it says is kept where the next change can read it.

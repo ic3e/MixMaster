@@ -43,6 +43,11 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // the version it is, to compare with what CI has published
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {

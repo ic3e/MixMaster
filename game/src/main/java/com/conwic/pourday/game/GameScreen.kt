@@ -24,6 +24,9 @@ import org.json.JSONObject
  *
  * [askPermissions] asks the person for Android permissions and answers true when every one was
  * allowed: "Nearby devices" is asked for the first time somebody hosts or joins a day.
+ *
+ * [updates] is for an app that fetches new versions of itself from inside the game: the Pour Day
+ * app does, on its title screen. MixMaster has its own updater in Settings and passes none.
  */
 @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 class GameScreen(
@@ -31,6 +34,7 @@ class GameScreen(
     appName: String,
     onQuit: () -> Unit,
     askPermissions: (permissions: Array<String>, then: (Boolean) -> Unit) -> Unit,
+    private val updates: GameUpdates? = null,
 ) {
     private val voice = GameVoice(context)
     private val net = GameNet(context)
@@ -50,6 +54,12 @@ class GameScreen(
     }
 
     init {
+        // where an update has got to goes to the page as it changes; the page asks too when it loads
+        updates?.let { u ->
+            u.onChange = {
+                view.post { view.evaluateJavascript("window.pdUpdate && window.pdUpdate(${JSONObject.quote(u.state)})", null) }
+            }
+        }
         // what Nearby hears goes to the page as an event
         net.emit = { json -> view.evaluateJavascript("window.pdNet && window.pdNet.onEvent(${JSONObject.quote(json)})", null) }
         // Called from the page's own thread, so handed over to the main one.
@@ -61,6 +71,7 @@ class GameScreen(
                 net = net,
                 onMain = { f -> view.post { f() } },
                 withPermissions = { then -> askPermissions(GameNet.permissions(), then) },
+                updates = updates,
             ),
             "PourDayApp",
         )
@@ -95,11 +106,38 @@ class GameScreen(
 
     /** Gone for good: the voices and any co-workers let go of, and the page with them. */
     fun close() {
+        updates?.onChange = null
         voice.shutdown()
         net.stop()
         view.stopLoading()
         view.destroy()
     }
+
+    companion object {
+        /**
+         * Which game this is: a hash of everything that makes up Pour Day. Phones play together only
+         * on the same one, and the Pour Day app offers an update only when it has changed.
+         */
+        val stamp: String get() = BuildConfig.GAME_STAMP
+    }
+}
+
+/**
+ * An app that fetches new versions of itself from inside the game. The page shows [state] on its
+ * title screen and calls [next] when its button is tapped.
+ */
+interface GameUpdates {
+    /**
+     * Where it has got to, as JSON for the page: `s` is "ready", "downloading" (with `p`, the
+     * percent), "permission", "install" or "failed", and `v` the version; `{}` for nothing to say.
+     */
+    val state: String
+
+    /** Take the next step: download, ask for the install permission, install, or try again. */
+    fun next()
+
+    /** Called, from any thread, whenever [state] changes. */
+    var onChange: (() -> Unit)?
 }
 
 /**
@@ -113,6 +151,7 @@ private class GameBridge(
     private val net: GameNet,
     private val onMain: (() -> Unit) -> Unit,
     private val withPermissions: ((Boolean) -> Unit) -> Unit,
+    private val updates: GameUpdates?,
 ) {
     @JavascriptInterface
     fun quit() = onQuit()
@@ -123,7 +162,7 @@ private class GameBridge(
 
     /** The game's own version: phones playing together have to carry the same game. */
     @JavascriptInterface
-    fun version(): String = BuildConfig.GAME_STAMP
+    fun version(): String = GameScreen.stamp
 
     @JavascriptInterface
     fun netHost(name: String) = onMain { withPermissions { ok -> if (ok) net.host(name.take(24)) else net.denied() } }
@@ -156,4 +195,10 @@ private class GameBridge(
 
     @JavascriptInterface
     fun hush() = voice.hush()
+
+    @JavascriptInterface
+    fun updateState(): String = updates?.state ?: "{}"
+
+    @JavascriptInterface
+    fun updateNext() = onMain { updates?.next() }
 }

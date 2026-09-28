@@ -11,10 +11,12 @@ import com.conwic.pourday.game.GameScreen
 
 /**
  * Pour Day on its own: the game, full screen, and nothing else. Its way out on the title and end
- * screens, and in the pause menu, closes the app.
+ * screens, and in the pause menu, closes the app. Its title screen says when there's a new version
+ * (see [PourDayUpdates]).
  */
 class PourDayActivity : ComponentActivity() {
     private var game: GameScreen? = null
+    private val updates = PourDayUpdates(this)
 
     // the answer to a permission question goes to whoever asked it
     private var permissionAnswer: ((Boolean) -> Unit)? = null
@@ -34,8 +36,10 @@ class PourDayActivity : ComponentActivity() {
                 permissionAnswer = then
                 askPermissions.launch(permissions)
             },
+            updates = updates,
         )
         game = screen
+        updates.look()
         setContentView(screen.view)
         fullScreen()
         // Mid-shift the back gesture pauses the game; on its title and end screens it leaves.
@@ -55,6 +59,8 @@ class PourDayActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         game?.resume()
+        // perhaps back from the phone's "install unknown apps" screen, with the update waiting
+        updates.resumed()
         // Android does not always keep the bars hidden across a trip to another app.
         fullScreen()
     }

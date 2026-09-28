@@ -13,8 +13,11 @@ Kotlin · Jetpack Compose (Material 3) · Room · DataStore · single activity �
 `game/src/main/assets/pourday`, plus the phone's voices, Nearby for co-workers and `GameScreen`,
 which puts it in a WebView). Two apps carry it: MixMaster (Settings → Break time) and `:pourday`,
 the game on its own for people outside the company, with nothing of MixMaster in it. Phones play
-together when they carry the same game — the check is a hash of `game.js` and `index.html`, not
-either app's version.
+together when they carry the same game — the check is a hash of the `:game` module and
+`pourday/src` (`GameScreen.stamp`), not either app's version. The same stamp goes into
+`dist/pourday.json`, and the Pour Day app offers its players an update only when it has changed.
+MixMaster carries the Pour Day APK in its assets (packed at build time by `embedPourDay`) for
+"Send to a friend" under Break time.
 
 ## Building
 
