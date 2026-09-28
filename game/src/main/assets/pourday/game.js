@@ -1469,7 +1469,8 @@
     const fTh = 0.6 + day.thick / 375;
     return Math.max(0.075, 0.181 * fT * fRH * fW * fTh * gs.mixFactor);
   }
-  function stageMul(H) { return H < 15 ? 0.6 : H < 85 ? 1.2 : 0.7; }
+  /** The pace through the set: slow to start, quick through the middle, slow at the end. A load that's in and level on a big pour skips the slow start. */
+  function stageMul(H, fast) { return H < 15 ? (fast ? 1.2 : 0.6) : H < 85 ? 1.2 : 0.7; }
 
   // Every truck is a mix of its own, batched at its own time: it starts going off when it lands,
   // at its own pace — a load with retarder in it lags, a hot one runs ahead. So the slab doesn't
@@ -1538,11 +1539,35 @@
     if (!gs.coldJointNoted) { gs.coldJointNoted = true; remember(`Truck ${now.no} went onto truck ${old.no}'s concrete after it had started to set. There's a cold joint in the slab now.`); }
   }
   /** Minutes until [target]%: the slab's figure, or one load's from where it is at its own pace. */
-  function etaTo(target, from, rate) {
+  function etaTo(target, from, rate, fast) {
     let H = from === undefined ? gs.H : from, t = gs.t, m = 0;
     if (H >= target) return 0;
-    while (H < target && m < 4000) { H += cureRate(t) * stageMul(H) * (rate || 1) * 5; t += 5; m += 5; }
+    while (H < target && m < 4000) { H += cureRate(t) * stageMul(H, fast) * (rate || 1) * 5; t += 5; m += 5; }
     return m;
+  }
+  /*
+   * A pour of three trucks or more goes on for hours, and the concrete that's in and levelled
+   * doesn't sit there waiting for the last truck: it's been in the drum an hour, it's been
+   * worked, the bleed water is off it, and it gets on with going off. A load that has finished
+   * coming and lies level (within about 8 mm of the laser height) skips the slow start, so the
+   * end the first trucks filled is ready for the trowels while the last ones are still pouring.
+   */
+  function bigPour() { return trucksOrdered() + gs.extraTrucks > 2; }
+  function loadIsLevel(l) {
+    let n = 0, dev = 0;
+    for (const c of gs.cells) if (c.load === l.no && c.fill > 20) { n++; dev += Math.abs(c.fill - day.thick); }
+    return n >= 3 && dev / n <= 8;
+  }
+  function loadsGoingOff() {
+    if (gs.phase !== 'pour' || !bigPour()) return;
+    for (const l of gs.loads) {
+      if (!l || l.fast || l.at === null) continue;
+      // all of it in: an earlier truck, or this one gone and the next not here yet
+      const allIn = l.no < gs.truckNo || (l.no === gs.truckNo && !gs.truck);
+      if (!allIn || !loadIsLevel(l)) continue;
+      l.fast = true;
+      toast(`Truck ${l.no}'s concrete is in and level, and it's getting on with going off. That end will be ready for the trowels long before the last truck.`, 'good');
+    }
   }
   /** The hardest load in the slab so far: the end the first trucks filled. */
   function firstLoad() {
@@ -3414,7 +3439,9 @@
   function ringProgress(m, frac) {
     const on = frac > 0;
     m.progPivot.visible = on;
-    m.ringMat.color.setHex(on ? 0x8a3a10 : 0xff6b1a);
+    // the ring goes dark in its own colour while the countdown fills over it
+    m.ringMat.color.setHex(m.hex);
+    if (on) m.ringMat.color.multiplyScalar(0.45);
     if (!on) { m.quarter = 0; return; }
     const dx = m.x - player.x, dz = m.z - player.z;
     m.progPivot.rotation.y = Math.atan2(-dz, dx);
@@ -3424,9 +3451,26 @@
     if (q > m.quarter && q < 4) sfx('click');
     m.quarter = q;
   }
+  /**
+   * Every kind of job its own colour, so a glance across the site says which is which: the hammer's
+   * yellow, the mesh blue, the laser pink, the pipe line orange, corners and collars purple, the
+   * water tank cyan, your own business green, the van white — and red for now, or it gets worse.
+   */
+  function markerColour(id) {
+    if (/^(block|blowout|rebarUp)$/.test(id)) return 0xff3b30;
+    if (/^(form|boardFix)/.test(id)) return 0xffc629;
+    if (/^(tie|cut)/.test(id)) return 0x5aa9ff;
+    if (/^(laser|batteries)/.test(id)) return 0xff5ca8;
+    if (/^(pile|pipe)/.test(id)) return 0xff6b1a;
+    if (/^edge/.test(id)) return 0xb48cff;
+    if (id === 'wash') return 0x3fd6e6;
+    if (/^(loo|phone|spares|behindVan|lunch)$/.test(id)) return 0x6fd08c;
+    return 0xf2efe8;
+  }
   function addMarker(id, p, label, hold, active, done, opts) {
     const g = new THREE.Group();
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xff6b1a });
+    const col = markerColour(id), css = `#${col.toString(16).padStart(6, '0')}`;
+    const ringMat = new THREE.MeshBasicMaterial({ color: col });
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 8, 36), ringMat);
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.06;
@@ -3443,16 +3487,17 @@
     progPivot.add(prog);
     progPivot.visible = false;
     g.add(progPivot);
-    const beamM = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.4, 8), new THREE.MeshBasicMaterial({ color: 0xff6b1a, transparent: true, opacity: 0.35 }));
+    const beamM = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.4, 8), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35 }));
     beamM.position.y = 1.2;
     g.add(beamM);
-    const sprite = textSprite(label, { w: (opts && opts.w) || 2.6 });
+    const w = (opts && opts.w) || 2.6;
+    const sprite = textSprite(label, { w, color: css });
     sprite.position.y = 2.7;
     g.add(sprite);
     g.position.set(p.x, (opts && opts.y) || 0, p.z);
     g.visible = false;
     scene.add(g);
-    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, beam: beamM, ringMat, prog, progPivot, quarter: 0, sprite, tool: opts && opts.tool };
+    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, beam: beamM, ringMat, prog, progPivot, quarter: 0, sprite, w, col: css, hex: col, tool: opts && opts.tool };
     markers.push(m);
     return m;
   }
@@ -5556,10 +5601,11 @@
       dm -= step;
       const landed = gs.loads.filter((l) => l && l.at !== null);
       if (landed.length) {
+        loadsGoingOff();
         for (const l of landed) {
           if (l.h >= 100) continue;
           const b = l.h;
-          l.h = Math.min(100, l.h + cureRate(gs.t) * stageMul(l.h) * l.rate * step);
+          l.h = Math.min(100, l.h + cureRate(gs.t) * stageMul(l.h, l.fast) * l.rate * step);
           if (Math.floor(b) !== Math.floor(l.h)) cellsDirty = true;
           // what the overlays show (too soft, ready) changes every few per cent
           if (Math.floor(b / 5) !== Math.floor(l.h / 5)) surfDirty = true;
@@ -8796,8 +8842,11 @@
     player.bob += moved * 2.6;
     // walking on it
     const now = cellAt(player.x, player.z);
+    // on the ride-on you're sitting: your boots are on its footplate, not in the slab, and
+    // whatever the concrete does, it doesn't put you on your backside
+    const seated = gs.tool === 'rideOn';
     // wet concrete comes away on your boots: more of a soup, less of a stiff mix
-    if (now && moved > 0 && gs.pourStarted && now.fill > 20 && cellH(now) < 25) bootsGet(moved * (gs.mixState === 'soup' ? 0.1 : gs.mixState === 'stiff' ? 0.05 : 0.075));
+    if (now && moved > 0 && !seated && gs.pourStarted && now.fill > 20 && cellH(now) < 25) bootsGet(moved * (gs.mixState === 'soup' ? 0.1 : gs.mixState === 'stiff' ? 0.05 : 0.075));
     // Steps come by the clock, not by the metre: counted by distance, a jog came out at nine a
     // second, which is a sewing machine, not a man. Feet do two a second walking, under three running.
     const v = moved / Math.max(dt, 0.001);
@@ -8812,11 +8861,11 @@
       else if (gs.poured && gs.H < 55) sfx('soft');
       else sfx('hard');
     }
-    if (now && moved > 0 && !gs.pourStarted && (gs.phase === 'prep' || gs.phase === 'pipes' || gs.phase === 'pour')
+    if (now && moved > 0 && !seated && !gs.pourStarted && (gs.phase === 'prep' || gs.phase === 'pipes' || gs.phase === 'pour')
       && performance.now() > tripAt && chance((player.run > 0.5 ? 0.004 : 0.0016) * (gs.hangover ? 2 : 1))) trip();
     if (now && moved > 0) {
       player.stepAcc += moved;
-      if (gs.phase === 'pour' && gs.pourStarted && now.fill > 30) {
+      if (gs.phase === 'pour' && gs.pourStarted && now.fill > 30 && !seated) {
         if (!gs.fellInPour && filledShare() > 0.2 && chance(0.0015)) { gs.fellInPour = true; fall(); }
         else if (chance(0.0025) && performance.now() > stuckMsg) {
           gs.stuckUntil = performance.now() + 2600; stuckMsg = performance.now() + 45000;
@@ -8837,8 +8886,12 @@
           toastOnce('own', gs.panPasses.length ? 'Your boots are printing in your fresh trowel work. The next pass can take them — while it\'s still soft enough.' : 'You are leaving footprints in your own slab. The dog is laughing at you.', 'warn', 120000);
         }
       }
-      if (machineTool() && input.action && chance(0.006 * digFactor())) fall('The machine digs in, twists, and throws you on your butt. Told you it was early.');
-      if (gs.energy < 18 && chance(0.003)) fall('Your legs file for early retirement. Down you go.');
+      if (machineTool() && input.action && chance(0.006 * digFactor())) {
+        // the ride-on bucks and you hang on; a walk-behind twists out of your hands and you go down
+        if (seated) { shake = Math.max(shake, 0.25); sfx('thunk'); toastOnce('rodeo', 'The ride-on digs in and bucks like a rodeo bull. You hang on. The slab doesn\'t: it\'s too soft for it yet.', 'warn', 30000); }
+        else fall('The machine digs in, twists, and throws you on your butt. Told you it was early.');
+      }
+      if (gs.energy < 18 && !seated && chance(0.003)) fall('Your legs file for early retirement. Down you go.');
     }
   }
 
@@ -9813,7 +9866,7 @@
         if (gs.pipes < PIPE_N) return (gs.carrying ? `Carry the pipe to marker ${gs.pipes + 1}.` : `Grab a pipe from the pile (${gs.pipes}/${PIPE_N} laid).`) + (nextPrep().length ? `<small>Still open: ${nextPrep().join(', ')}</small>` : '');
         return `Line laid. Waiting for the mixer.<small>Truck due ${clock(gs.nextTruckAt)}</small>`;
       case 'pour': {
-        if (gs.blocked >= 0) return 'The line is blocked. Find the orange marker and hit the pipe!';
+        if (gs.blocked >= 0) return 'The line is blocked. Find the red marker and hit the pipe!';
         if (gs.blowout) return `The formwork burst on the ${gs.blowout.name}. Fix it before you lose more!`;
         if (!laserWorks() && gs.prep.laser) return 'Laser batteries are dead. Spares are in the van.';
         const need = volumeNeeded(), inn = Math.min(need, pouredIn());
@@ -9934,11 +9987,12 @@
       let eta;
       if (!gs.poured) {
         const h = first.h;
-        eta = h < 15 ? `Edges in <b>${dur(etaTo(15, h, first.rate))}</b>` : h < 25 ? `<b>Edges now</b> · pans in <b>${dur(etaTo(25, h, first.rate))}</b>` : h < 55 ? '<b>Pans and edges now</b>' : '<b>Blades now</b>';
+        eta = h < 15 ? `Edges in <b>${dur(etaTo(15, h, first.rate, first.fast))}</b>` : h < 25 ? `<b>Edges now</b> · pans in <b>${dur(etaTo(25, h, first.rate, first.fast))}</b>` : h < 55 ? '<b>Pans and edges now</b>' : '<b>Blades now</b>';
       } else eta = gs.H < 25 ? `Pans in <b>${dur(etaTo(25))}</b>` : gs.H < 55 ? `Blades in <b>${dur(etaTo(55))}</b>` : gs.H < 95 ? `95% in <b>${dur(etaTo(95))}</b>` : '<b>Hard enough to leave</b>';
       // each truck's concrete on its own, the hardest first, once they've drifted apart
       const loads = gs.loads.filter((l) => l && l.at !== null).sort((a, b) => b.h - a.h);
-      const trucks = loads.length > 1 && hi - lo >= 3 ? `<br>${loads.slice(0, 4).map((l) => `T${l.no} <b>${Math.floor(l.h)}%</b>`).join(' · ')}` : '';
+      // an arrow on a load that's in, level and going off on a big pour
+      const trucks = loads.length > 1 && hi - lo >= 3 ? `<br>${loads.slice(0, 4).map((l) => `T${l.no} <b>${Math.floor(l.h)}%${l.fast && !gs.poured ? '↑' : ''}</b>`).join(' · ')}` : '';
       const [ed, ea] = edgeMetres(), edging = gs.tool === 'handTrowel' || gs.tool === 'trowelSmall';
       const edges = `<i class="nw">Edges <b>${ed}/${ea} m</b></i>${site.edges.length && gs.poured ? ` · <i class="nw">corners <b>${gs.edgesDone}/${site.edges.length}</b></i>` : ''}`;
       const passes = gs.poured ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length}<br>${edges}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : edging ? `<br>${edges}` : '';
@@ -10015,6 +10069,8 @@
         info.textContent = `${name}` + (gs.poured ? ` · ${Math.floor(cellH(target))}%${l && many ? ` · truck ${l.no}` : ''}` : '') + (target.marks.length ? ` · ${target.marks.length} mark${target.marks.length > 1 ? 's' : ''}` : '') + (target.defect ? ' · set in' : '');
       }
     } else info.textContent = nearMarker ? nearMarker.label : '';
+    // at a job, its name under the crosshair in the job's own colour
+    info.style.color = !(target && gs.pourStarted) && nearMarker ? nearMarker.col : '';
     drawMap();
   }
   /** Real time spent on the day, as on a timesheet. */
@@ -10086,9 +10142,9 @@
     if (mixer.visible) poly(mixer.position.x - 4.5, mixer.position.z - 1.2, mixer.position.x + 4.5, mixer.position.z + 1.2, '#ff6b1a');
     g.restore();
     const pulse = 5 + Math.sin(performance.now() / 200) * 1.5;
-    g.fillStyle = '#ff6b1a';
     markers.forEach((m) => {
       if (!m.active()) return;
+      g.fillStyle = m.col || '#ff6b1a';
       const [x, y, rim] = onRim(toMap(m.x, m.z));
       g.beginPath(); g.arc(x, y, rim ? 6 : pulse, 0, Math.PI * 2); g.fill();
     });
@@ -10164,6 +10220,15 @@
         m.ring.scale.setScalar(frac > 0 ? 1 : 1 + Math.sin(now / 250) * 0.08);
         m.beam.visible = frac === 0;
         ringProgress(m, frac);
+        // The name: high over the ring and full size from across the site; walking up to it, it
+        // comes down to chest height and shrinks, so it stays in view and about the same size on
+        // the screen instead of sailing off over your head.
+        const near = clamp((hyp(m.x, m.z, player.x, player.z) - 1) / 6, 0, 1);
+        // right at it, the name is under the crosshair already: no second copy in the air
+        m.sprite.visible = m !== nearMarker;
+        m.sprite.position.y = lerp(1.05, 2.7, near);
+        const sw = m.w * lerp(0.26, 1, near);
+        m.sprite.scale.set(sw, sw / 4, 1);
       });
     }
     if (cellsDirty) paintCells();
@@ -10883,7 +10948,7 @@
     return {
       t: 'snap', tm: r2(gs.t), ph: gs.phase, pz: (modalOpen && modalOpen.who === 'Paused') || settingsOpen ? 1 : 0, H: r2(gs.H),
       ls: gs.laserSetup || 0, lc: (site.levelChecks || []).map((c) => (c.done ? 1 : 0) + (c.fixed ? 2 : 0)).join(''),
-      ld: gs.loads.map((l) => (l ? [l.kind, r2(l.h), l.at === null ? -1 : r2(l.at), r4(l.rate)] : 0)), pa: gs.pumpAt, nt: gs.nextTruckAt || 0, ar: gs.arrived, pe: gs.pourEnd,
+      ld: gs.loads.map((l) => (l ? [l.kind, r2(l.h), l.at === null ? -1 : r2(l.at), r4(l.rate), l.fast ? 1 : 0] : 0)), pa: gs.pumpAt, nt: gs.nextTruckAt || 0, ar: gs.arrived, pe: gs.pourEnd,
       fl: [gs.poured, gs.pourStarted, gs.pourDone, gs.washed, gs.gaveUp, gs.laserInVan, gs.laserBattery, gs.laserPacked, gs.pumpHere, gs.pipesGone, gs.prep.unload, gs.prep.laser].map((v) => (v ? 1 : 0)).join(''),
       fm: gs.prep.form.map((v) => (v ? 1 : 0)).join(''),
       pipes: gs.pipes, bl: gs.blocked, bo: gs.blowout ? [gs.blowout.name, r2(gs.blowout.p.x), r2(gs.blowout.p.z)] : 0,
@@ -10913,7 +10978,7 @@
     gs.H = s.H; gs.pumpAt = s.pa; gs.nextTruckAt = s.nt; gs.pourEnd = s.pe;
     if (s.ls > (gs.laserSetup || 0)) { gs.laserSetup = s.ls; if (s.ls >= 1 && !gs.laserPacked) tripod.visible = true; }
     if (s.lc && site.levelChecks) s.lc.split('').forEach((v, k) => { const c = site.levelChecks[k]; if (c) { c.done = c.done || !!(v & 1); c.fixed = c.fixed || !!(v & 2); } });
-    if (s.ld) s.ld.forEach((l, no) => { if (l) gs.loads[no] = { no, kind: l[0], h: l[1], at: l[2] < 0 ? null : l[2], rate: l[3] }; });
+    if (s.ld) s.ld.forEach((l, no) => { if (l) gs.loads[no] = { no, kind: l[0], h: l[1], at: l[2] < 0 ? null : l[2], rate: l[3], fast: !!l[4] }; });
     if (dm > 0 && dm < 240) {
       gs.energy = clamp(gs.energy - 0.04 * dm, 0, 100);
       if (gs.phase !== 'morning') needsTick(dm);
@@ -11248,12 +11313,12 @@
   // changes how a day plays changes this page too, in the same commit (CLAUDE.md says so).
   const HOWTO = [
     ['The day', 'Get to the site, get it ready, lay the line, pour the slab, wash up, wait for it to harden, trowel it, pack up and go home. It\'s one day, from the alarm to the pay slip, and the clock only runs while you play.'],
-    ['Your thumbs', '<b>Left thumb</b> walks; push it all the way to run (not in wet concrete, not carrying anything, not with your energy gone, and not when you badly need a shit). <b>Right thumb</b> looks around.\n<b>Hold the big button</b> to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what\'s in your hands. Slide your thumb on it while you hold and you look round as you work — that\'s how you steer the float and the trowels.\nThe button above <b>Wait</b> picks up, puts down and swaps tools. The one next to it switches the <b>laser</b> view, or fits <b>blades</b> and <b>pans</b> to a trowel machine. <b>Coffee</b> gives you energy (three cups; the kebab stand refills the thermos). The <b>finger</b> is for when words fail. <b>II</b> or the back gesture pauses.'],
-    ['Getting it ready', 'Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door. Walk up, look at one and press Pick up.\nThe jobs glow orange: check the formwork with the hammer, tie loose mesh with the pliers and wire, cut the bar sticking up with the rebar cutter. The laser: set up the tripod, level the head (hold, and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, and check the boards at the corners — knock any that are out.'],
+    ['Your thumbs', '<b>Left thumb</b> walks; push it all the way to run (not in wet concrete, not carrying anything, not with your energy gone, and not when you badly need a shit). <b>Right thumb</b> looks around.\n<b>Hold the big button</b> to work: on whatever job glows nearby (the ring fills as you hold), or on the slab with what\'s in your hands. Every kind of job has its own colour, on its ring, its name and the map: yellow the hammer\'s, blue the mesh, pink the laser, orange the pipe line, purple corners and pipe collars, cyan the water tank, green your own business (toilet, phone, spare clothes, lunch), white the van — and red means now, before it gets worse. The names come down to chest height as you walk up to them. Slide your thumb on it while you hold and you look round as you work — that\'s how you steer the float and the trowels.\nThe button above <b>Wait</b> picks up, puts down and swaps tools. The one next to it switches the <b>laser</b> view, or fits <b>blades</b> and <b>pans</b> to a trowel machine. <b>Coffee</b> gives you energy (three cups; the kebab stand refills the thermos). The <b>finger</b> is for when words fail. <b>II</b> or the back gesture pauses.'],
+    ['Getting it ready', 'Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door. Walk up, look at one and press Pick up.\nThe jobs glow: check the formwork with the hammer (yellow), tie loose mesh with the pliers and wire, cut the bar sticking up with the rebar cutter (both blue). The laser (pink): set up the tripod, level the head (hold, and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, and check the boards at the corners — knock any that are out.'],
     ['The pump and the line', 'The pump arrives (Wait brings it sooner). Carry the pipes from the pile to the numbered markers, one at a time; the rubber end hose goes on the last one. On a boom pump day there are no pipes: the boom swings over the slab and the pump driver follows your hose with his remote. Mostly.'],
     ['Pouring', 'Pick up the hose at the end of the line. Look at a square and hold the big button: the concrete falls out of the hose\'s mouth onto the spot you\'re looking at, up to about five metres away. Keep it moving — held on one spot it builds a heap, and against the boards it goes over the top into the gravel.\nJust past the boards still counts as the slab; clearly out in the gravel is where it goes, onto the waste line, and the manager rings. Fresh concrete is dark and wet; the task card shows how many cubic metres are in and how many the slab needs.\nThe <b>laser</b> button shows the heights on the slab: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. The <b>float</b> (from the van) levels it while it\'s wet; the <b>shovel</b> moves a heap to where it\'s low, and digs spilled concrete back out of the gravel. Walk in it and it\'s on your boots. When it\'s full, finish the pour.'],
-    ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.\nOn a long pour the first end goes off while the last trucks are still coming. The <b>Hardness</b> panel shows up with the first truck: each truck\'s concrete (T1, T2…), and the orange tick on the bar is the hardest part. The map goes paler as it goes off, the square you look at says how hard it is and whose truck it was, and an empty hand does the thumb test. From 15% that end takes the edges and corners, from 25% the pans — put the hose down and trowel it between trucks, but fresh concrete poured over work already done means doing it again.'],
-    ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. With a machine in hand, orange squares are the ones this pass hasn\'t been over, and blue ones are still too soft for it. A pass is done when nine squares in ten have had it, and it\'s judged on how hard each square was when the machine went over it.\n<b>The edges, all the way round</b>: every metre of board needs edging once it\'s 15% hard. Run the small <b>edge trowel</b> along the boards, or kneel with the <b>hand trowel</b> — look at the concrete right against a board and hold, then move along. With either in hand the metres still to do show orange along the boards (blue: too soft yet), and on the map; done ones get a smooth band. Past 85% an edge still closes, but it isn\'t pretty. The corners and pipe collars are hand-trowel jobs at the orange rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
+    ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.\nOn a long pour the first end goes off while the last trucks are still coming. The <b>Hardness</b> panel shows up with the first truck: each truck\'s concrete (T1, T2…), and the orange tick on the bar is the hardest part. The map goes paler as it goes off, the square you look at says how hard it is and whose truck it was, and an empty hand does the thumb test. On a pour of three trucks or more, a truck\'s concrete that\'s all in and lies level (within about 8 mm) gets on with going off: it skips the slow start, and shows an arrow on the panel (T1 12%↑). So level what\'s in, and that end is ready while the last trucks are still coming. From 15% that end takes the edges and corners, from 25% the pans — put the hose down and trowel it between trucks, but fresh concrete poured over work already done means doing it again.'],
+    ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. With a machine in hand, orange squares are the ones this pass hasn\'t been over, and blue ones are still too soft for it. A pass is done when nine squares in ten have had it, and it\'s judged on how hard each square was when the machine went over it.\n<b>The edges, all the way round</b>: every metre of board needs edging once it\'s 15% hard. Run the small <b>edge trowel</b> along the boards, or kneel with the <b>hand trowel</b> — look at the concrete right against a board and hold, then move along. With either in hand the metres still to do show orange along the boards (blue: too soft yet), and on the map; done ones get a smooth band. Past 85% an edge still closes, but it isn\'t pretty. The corners and pipe collars are hand-trowel jobs at the purple rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
     ['Washing up', 'After the pour, carry every tool to the water tank and hold Wash before the concrete sets on it — two and a half hours and it\'s part of the tool, and chipping it off costs. Your boots too: empty hands at the tank. Every tool goes back to the van, washed, before you go home. The manager checks.'],
     ['Your body', 'Energy goes down all day. Coffee helps; so does the kebab stand, which has its own way of getting back at you.\nYou\'ll need a piss every few hours (sooner with coffee), and a shit after the kebab; the weather panel says when. The <b>toilet</b> is the blue box. The little window over the knob is red when somebody\'s in: pull the knob and they\'ll tell you about it, and they come out when they\'re done. Desperate for a piss? Behind the van — there\'s a ring for it, and sometimes a witness.\nHold on too long and you\'ll know: hopping from foot to foot, cramps that fold you in half. Then it happens. The <b>spare clothes</b> are behind the driver\'s seat in the van — and if it was a shit, hose yourself down at the water tank first. There\'s one pair of spare trousers and one pair of spare boots a day; after that it\'s a bin bag.'],
     ['Your phone', 'Texts and calls come up on the phone in your hand. It can slip out of your pocket, or go flying when you fall: it lands face down (orange case, on the ground, or in the pour) and rings to itself until you go back, look at it and hold the button. Face down on a building site means a cracked screen, often.'],
