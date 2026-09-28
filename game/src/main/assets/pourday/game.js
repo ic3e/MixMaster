@@ -3982,7 +3982,7 @@
   function fillIn(str, v) { return str.replace(/\{(\w)\}/g, (m, k) => (v[k] !== undefined ? v[k] : m)); }
   /** The machine tool in hand, if any, and the flag it leaves on a square it has been over. */
   /** The machine in hand while there is troweling to do, if any. */
-  function machineTool() { return gs.phase === 'cure' && isMachine(gs.tool) ? gs.tool : null; }
+  function machineTool() { return (gs.phase === 'cure' || gs.phase === 'wash') && isMachine(gs.tool) ? gs.tool : null; }
   function fitted() { return isMachine(gs.tool) ? gs.fit[gs.tool] : null; }
   function passKey() { return fitted() === 'blades' ? 'covB' : 'covP'; }
 
@@ -5001,7 +5001,8 @@
       toast('Tripod up, legs stamped in. Now level the head: the bubble has to sit in the middle.');
       return true;
     }, { tool: 'hands' });
-    addMarker('laserLevel', P(POS.tripod.x + 0.4, POS.tripod.z), 'Level the laser', 999, () => gs.laserSetup === 1, () => {
+    // levelled from the far side, away from the slab: the formwork check sits on the near side
+    addMarker('laserLevel', P(POS.tripod.x - 0.5, POS.tripod.z), 'Level the laser', 999, () => gs.laserSetup === 1, () => {
       gs.laserSetup = 2;
       sfx('beep', POS.tripod.x, POS.tripod.z);
       toast('Level. The head spins up and beeps: it has found itself. Now a height off the benchmark — the painted peg with the nail.', 'good');
@@ -5378,8 +5379,8 @@
     site.edges.forEach((e, k) => {
       // straight edges take the small machine or the hand trowel; corners and collars only the hand
       const straight = e.kind === 'edge';
-      addMarker('edge' + k, e, e.label, () => (gs.tool === 'trowelSmall' ? 1.0 : 2.2), () => gs.phase === 'cure' && hAt(e.x, e.z) >= 18 && !e.done, () => {
-        if (hAt(e.x, e.z) < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
+      addMarker('edge' + k, e, e.label, () => (gs.tool === 'trowelSmall' ? 1.0 : 2.2), () => (gs.phase === 'cure' || gs.phase === 'wash') && hAt(e.x, e.z) >= 10 && !e.done, () => {
+        if (hAt(e.x, e.z) < 15) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
         if (!netRemote) { addDirt(gs.tool, 0.12); troweledOut(e.x, e.z, player.x, player.z); }
@@ -5878,7 +5879,10 @@
       if (target) return { kind: 'none', label: 'Nothing to shovel here' };
       return { kind: 'none', label: 'Aim at a high spot' };
     }
-    if (gs.phase === 'cure') {
+    // After the pour the slab is yours to work straight away, whether the tools are washed yet or
+    // not: waiting for the washing-up to be done left the float and the trowels doing nothing
+    // until the slab had gone off far enough to start the cure on its own.
+    if (gs.phase === 'cure' || gs.phase === 'wash') {
       if (t === 'float' && target) return { kind: 'repair', label: target.marks.length ? 'Hold: float out marks' : 'Hold: float' };
       if (t === 'handTrowel' && target) return { kind: 'repair', label: target.marks.length ? 'Hold: trowel out marks' : 'Hold: hand trowel' };
       // the machine runs out ahead of you, so it is where its discs are that counts
@@ -7670,14 +7674,14 @@
         const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height` : `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.`;
         return `Pour to ${day.thick} mm: ${f}% filled, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
-      case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The pump driver does his own pipes.</small>`; }
+      case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The float and the hand trowel still work on the slab meanwhile.</small>`; }
         if (gs.gaveUp) return gs.packing ? 'Throwing the tools in the van.' : 'It\'s gone off, tools unwashed. Walk to the van and go home.<small>They\'ll be concrete tools now. Very sturdy.</small>'; return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
       case 'cure': {
         if (gs.packing) return 'Throwing the tools in the van.<small>Therapy, but cheaper.</small>';
         if (gs.gaveUp) return 'It\'s gone off. Nothing more goes on this slab today.<small>Walk to the van: the tools go in, you go home.</small>';
         const marks = gs.cells.filter((c) => c.marks.length && !c.defect).length;
         const warn = marks && gs.H < 80 ? `<small>${marks} m² with marks — ${gs.H < 50 ? 'float or pan' : 'pan'} them out before 80%.</small>` : '';
-        if (gs.H < 25) return `Let it harden. Guard it, eat, or nap.${warn || '<small>Pans from 25%.</small>'}`;
+        if (gs.H < 25) return `Pans from 25% (${Math.floor(gs.H)}% now).${warn || `<small>Meanwhile: float out marks, trowel the edges and corners from 15%, guard it, eat or nap.</small>`}`;
         const mt = machineTool();
         if (!gs.panPasses.length) {
           if (!mt) return `Pan pass: take a power trowel from behind the van.${warn || '<small>They come with pans on.</small>'}`;
@@ -7721,7 +7725,7 @@
       $('#hardPct').textContent = hi - lo >= 3 ? `${Math.floor(lo)}–${Math.floor(hi)}%` : `${Math.floor(gs.H)}%`;
       $('#hardFill').style.width = `${gs.H}%`;
       const eta = gs.H < 25 ? `Pans in <b>${dur(etaTo(25))}</b>` : gs.H < 55 ? `Blades in <b>${dur(etaTo(55))}</b>` : gs.H < 95 ? `95% in <b>${dur(etaTo(95))}</b>` : '<b>Hard enough to leave</b>';
-      const passes = gs.phase === 'cure' ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length} · edges ${gs.edgesDone}/${site.edges.length}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : '';
+      const passes = gs.phase === 'cure' || gs.phase === 'wash' ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length} · edges ${gs.edgesDone}/${site.edges.length}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : '';
       const cov = machineTool() ? `<br>${fitted() === 'pans' ? 'Pan' : 'Blade'} pass <b>${Math.round(passCoverage(passKey()) * 100)}%</b>` : '';
       $('#hardEta').innerHTML = eta + passes + cov;
     }
