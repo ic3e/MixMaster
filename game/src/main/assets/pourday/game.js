@@ -3899,7 +3899,7 @@
   // pump — the surge travels down it — and slapping onto the slab where it lands.
   let streamOn = false;
   const Y_UP = new THREE.Vector3(0, 1, 0);
-  const streamMat = new THREE.MeshPhongMaterial({ color: 0x6c6e70, specular: 0x555555, shininess: 55 });
+  const streamMat = new THREE.MeshPhongMaterial({ color: 0x5f6264, specular: 0x6a6a6a, shininess: 70, flatShading: true });
   /**
    * A tube whose shape is set every frame — the hose in your hands, the concrete falling out of it.
    * Its buffers are made once and rewritten in place, so bending it costs no garbage.
@@ -3954,21 +3954,25 @@
   function drawStream(a, b, dt) {
     const t = performance.now() / 1000;
     const { nSeg, pts, rad } = streamFlex.userData;
-    const out = clamp(hyp(a.x, a.z, b.x, b.z) / 1.5, 0, 1);
+    const out = clamp(hyp(a.x, a.z, b.x, b.z) / 2.5, 0, 1);
     const stroke = gs.mixState === 'stiff' ? 6 : 7.5;
     for (let i = 0; i <= nSeg; i++) {
       const u = i / nSeg;
-      pts[i].set(lerp(a.x, b.x, u), lerp(a.y, b.y, lerp(u, u * u, out)), lerp(a.z, b.z, u));
+      // thrown out it arcs over a little before it drops; poured straight down it just falls
+      pts[i].set(lerp(a.x, b.x, u), lerp(a.y, b.y, lerp(u, u * u, out)) + out * 0.28 * 4 * u * (1 - u), lerp(a.z, b.z, u));
       if (!CALM && i > 0 && i < nSeg) { pts[i].x += Math.sin(t * 17 + i) * 0.006; pts[i].z += Math.cos(t * 13 + i * 1.3) * 0.006; }
       // a pump stroke travels down it as a bulge, and it's never a smooth rod: stones and lumps
       const surge = CALM ? 0.4 : Math.max(0, Math.sin(t * stroke - i * 0.55));
-      rad[i] = (1 + 0.45 * surge * surge + (CALM ? 0 : 0.14 * Math.sin(t * 23 + i * 1.9) + 0.08 * Math.sin(t * 41 + i * 3.1))) * (1 - 0.3 * u);
+      // lumps of it, not a rod: stones and clots travel down it, and it breaks up as it falls
+      const lumps = CALM ? 0 : 0.22 * Math.sin(t * 23 + i * 1.9) + 0.14 * Math.sin(t * 41 + i * 3.1) + 0.1 * Math.sin(t * 67 + i * 5.3);
+      rad[i] = Math.max(0.35, (1 + 0.45 * surge * surge + lumps) * (1 - 0.3 * u));
     }
     rad[0] = 0.9;
     bendTube(streamFlex, gs.mixState === 'soup' ? 0.043 : 0.05);
     streamFlex.visible = true;
-    // lumps falling off it on the way down
-    if (!CALM && chance(0.6)) { sA.copy(pts[irnd(3, nSeg - 2)]); emit(sA.x, sA.y, sA.z, rnd(-0.2, 0.2), rnd(-0.5, 0), rnd(-0.2, 0.2), 0.5, 0x6c6e70, rnd(0.015, 0.03)); }
+    // lumps falling off it on the way down, more the further it's thrown
+    const drops = CALM ? 0 : Math.round(1 + out * 2 + Math.random());
+    for (let k = 0; k < drops; k++) { sA.copy(pts[irnd(2, nSeg - 2)]); emit(sA.x + rnd(-0.04, 0.04), sA.y, sA.z + rnd(-0.04, 0.04), rnd(-0.25, 0.25), rnd(-0.6, 0.1), rnd(-0.25, 0.25), 0.5, pick([0x6c6e70, 0x5e6062, 0x7d7f80]), rnd(0.015, 0.035)); }
     // where it lands: it slaps and throws some back up, more on the surge
     const peak = Math.max(0, Math.sin(t * stroke - nSeg * 0.55));
     const n = Math.round((2 + peak * 5) * Math.min(1, dt * 60));
@@ -3999,17 +4003,25 @@
     grip.updateMatrixWorld(true);
     grip.getWorldPosition(hH);
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
-    // where the mouth wants to be
+    // Where the mouth wants to be: the last half metre of a heavy rubber hose, held out ahead of
+    // your hands and aimed — not two metres of it waving in the air to reach the spot. The concrete
+    // goes the rest of the way itself: straight down when the spot is under you, thrown out a
+    // little when it's further off.
+    let dh = 0, dx = 0, dz = 0;
     if (land) {
-      const dx = land.x - player.x, dz = land.z - player.z, dh = Math.hypot(dx, dz) || 0.001;
-      const reach = Math.min(dh, 2.1);
-      hW.set(player.x + (dx / dh) * reach, land.y + 0.55 + (dh > 2.1 ? 0.2 : 0), player.z + (dz / dh) * reach);
-    } else hW.set(hH.x + fx * 0.5, hH.y - 0.5, hH.z + fz * 0.5);
+      dx = land.x - hH.x; dz = land.z - hH.z; dh = Math.hypot(dx, dz) || 0.001;
+      const out = Math.min(0.55, dh * 0.6);
+      hW.set(hH.x + (dx / dh) * out, Math.max(land.y + 0.3, hH.y - 0.3), hH.z + (dz / dh) * out);
+    } else hW.set(hH.x + fx * 0.35, hH.y - 0.45, hH.z + fz * 0.35);
     if (!Number.isFinite(hoseM.x) || hoseM.distanceTo(hW) > 3) hoseM.copy(hW);
     else hoseM.lerp(hW, 1 - Math.exp(-dt * 9));
     const kick = streamOn && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.03 : 0;
-    // which way the mouth points: at where it's going, or down
-    if (land) hoseD.subVectors(land, hoseM).normalize(); else hoseD.set(fx * 0.35, -1, fz * 0.35).normalize();
+    // which way the mouth points: along the way the concrete leaves it — out and down for a spot
+    // further off, straight down for one under it — or hanging down
+    if (land) {
+      const k = clamp(dh / 2.5, 0, 1);
+      hoseD.set((dx / dh) * (0.35 + k), -1.1 + k * 1.3, (dz / dh) * (0.35 + k)).normalize();
+    } else hoseD.set(fx * 0.35, -1, fz * 0.35).normalize();
     // back along the ground towards the pipe it comes from, or up to the boom's tip
     const last = pipeEnd(), src = day.boom ? boomTip : hT.set(last.x, 0.15, last.z);
     const P = hoseCurve.points;
@@ -4027,8 +4039,8 @@
     }
     P[3].set(hH.x - fx * 0.3, hH.y - 0.55, hH.z - fz * 0.3);
     P[4].copy(hH);
-    P[5].lerpVectors(hH, hoseM, 0.5); P[5].y += 0.08 + kick;
-    P[6].copy(hoseM).addScaledVector(hoseD, -0.22); P[6].y += kick;
+    P[5].lerpVectors(hH, hoseM, 0.5); P[5].y += 0.03 + kick * 0.5;
+    P[6].copy(hoseM).addScaledVector(hoseD, -0.14); P[6].y += kick;
     P[7].copy(hoseM); P[7].y += kick;
     const { nSeg, pts } = hoseFlex.userData;
     for (let i = 0; i <= nSeg; i++) hoseCurve.getPoint(i / nSeg, pts[i]);
@@ -11096,7 +11108,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      viewTools, walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; }, dropPhone: () => dropPhone(), audioState: () => [ac && ac.state, +strokeAt.toFixed(1), loops._pumpEng ? +(loops._pumpEng.frequency.value * 120).toFixed(0) : 0], pickUpPhone: () => pickUpPhone(), get phoneDown() { return gs.phoneDown; }, accident: (k) => accident(k), updateLoo: (dt) => updateLoo(dt), get loo() { return gs.loo; }, get leaver() { return leaver; }, looSignMat, get cramp() { return cramp.t; }, changeClothes: () => changeClothes(), pissBehindVan: () => pissBehindVan(),
+      viewTools, walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; }, dropPhone: () => dropPhone(), hosePts: () => hoseCurve.points.map((v) => [+v.x.toFixed(2), +v.y.toFixed(2), +v.z.toFixed(2)]), audioState: () => [ac && ac.state, +strokeAt.toFixed(1), loops._pumpEng ? +(loops._pumpEng.frequency.value * 120).toFixed(0) : 0], pickUpPhone: () => pickUpPhone(), get phoneDown() { return gs.phoneDown; }, accident: (k) => accident(k), updateLoo: (dt) => updateLoo(dt), get loo() { return gs.loo; }, get leaver() { return leaver; }, looSignMat, get cramp() { return cramp.t; }, changeClothes: () => changeClothes(), pissBehindVan: () => pissBehindVan(),
       speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
       toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
