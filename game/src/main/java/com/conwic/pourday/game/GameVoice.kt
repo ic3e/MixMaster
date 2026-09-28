@@ -125,14 +125,16 @@ internal class GameVoice(context: Context) {
     fun say(text: String, pitch: Float, rate: Float, name: String) {
         val all = engines
         val e = all.firstOrNull { name in it.voices } ?: all.firstOrNull { it.english } ?: all.firstOrNull() ?: return
+        // the new line is the one that counts before anything is stopped: the line cut off to make
+        // room for it says it stopped, and that must not pass for this one being finished
+        val id = "pourday${++count}"
+        current = id
         // one voice at a time, whichever engine it lives in
         all.forEach { if (it !== e) it.tts.stop() }
         val v = e.voices[name] ?: e.base
         if (v != null) runCatching { e.tts.setVoice(v) }
         e.tts.setPitch(pitch.coerceIn(0.5f, 2f))
         e.tts.setSpeechRate(rate.coerceIn(0.5f, 2f))
-        val id = "pourday${++count}"
-        current = id
         e.tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
     }
 
@@ -140,6 +142,8 @@ internal class GameVoice(context: Context) {
     fun speaks(): Boolean = engines.any { it.voices.isNotEmpty() || it.english }
 
     fun hush() {
+        // hushed on purpose: nothing to report, and nothing queued up behind it to start
+        current = ""
         engines.forEach { it.tts.stop() }
     }
 

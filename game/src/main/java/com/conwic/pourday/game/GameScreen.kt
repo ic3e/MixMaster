@@ -109,6 +109,8 @@ class GameScreen(
     /** Gone for good: the voices and any co-workers let go of, and the page with them. */
     fun close() {
         updates?.onChange = null
+        // the engines report the line they're cut off in as done: nobody left to tell
+        voice.onDone = null
         voice.shutdown()
         net.stop()
         view.stopLoading()

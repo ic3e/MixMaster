@@ -3109,16 +3109,61 @@
   let pliersBody = null;           // the pliers inside their group, which twists without the coil
   let rxLight = null;              // the receiver's window: blue low, red high, green on height
   (function buildViewTools() {
+    // The end hose: black rubber off the last pipe, up from your feet into your hand, the open end
+    // pointing where the concrete goes. One bent tube with everything on it placed along its own
+    // curve — the old one was a straight stub with a clamp and some tape hanging in the air near it.
     const hose = new THREE.Group();
-    const h1 = cyl(0.035, 0.04, 0.55, 0x1d1f22, -0.02, -0.02, -0.3, hose);
-    h1.rotation.x = Math.PI / 2 - 0.35;
-    const nozzle = cyl(0.045, 0.045, 0.08, 0x44484d, -0.02, 0.07, -0.56, hose);
-    nozzle.rotation.x = Math.PI / 2 - 0.35;
-    const clamp1 = cyl(0.05, 0.05, 0.025, 0xb9bec3, -0.02, 0.05, -0.5, hose, 12);
-    clamp1.rotation.x = Math.PI / 2 - 0.35;
-    const tape = cyl(0.043, 0.043, 0.12, 0x2c6ad6, -0.02, -0.06, -0.2, hose, 10);
-    tape.rotation.x = Math.PI / 2 - 0.35;
+    const rubber = new THREE.MeshPhongMaterial({ color: 0x1c1e21, specular: 0x3a3a3a, shininess: 22 });
+    const hosePath = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.16, -0.75, 0.3),
+      new THREE.Vector3(0.08, -0.34, 0.06),
+      new THREE.Vector3(-0.04, -0.13, -0.22),
+      new THREE.Vector3(-0.15, -0.09, -0.46),
+      new THREE.Vector3(-0.18, -0.12, -0.6),
+    ]);
+    hose.add(new THREE.Mesh(new THREE.TubeGeometry(hosePath, 48, 0.055, 14, false), rubber));
+    const onHose = (t, r, len, col, seg) => {
+      const m = cyl(r, r, len, col, 0, 0, 0, hose, seg || 16);
+      m.position.copy(hosePath.getPoint(t));
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), hosePath.getTangent(t));
+      return m;
+    };
+    onHose(0.995, 0.061, 0.035, 0x2a2d31);               // the worn lip of the open end
+    onHose(1, 0.046, 0.04, 0x707375);                    // the concrete in the mouth of it
+    onHose(0.3, 0.059, 0.028, 0xb9bec3);                 // a steel clamp where it was mended once
+    onHose(0.33, 0.057, 0.015, 0x8e9398);
+    // a gloved hand round it, fingers over the top
+    const grip = new THREE.Group();
+    grip.position.copy(hosePath.getPoint(0.66));
+    grip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), hosePath.getTangent(0.66));
+    hose.add(grip);
+    [-0.03, -0.01, 0.01, 0.03].forEach((y, k) => {
+      const f = capsule(0.017, 0.07, 0xc79a5c, -0.03, y, 0.035 - Math.abs(k - 1.5) * 0.004, grip);
+      f.rotation.z = Math.PI / 2 + 0.25;
+    });
+    capsule(0.02, 0.05, 0xb88a4e, 0.05, 0.035, 0.02, grip).rotation.x = 0.6;   // the thumb
+    box(0.08, 0.1, 0.06, 0xc79a5c, 0.02, 0, -0.045, grip);                     // the back of the glove
+    // where the concrete leaves it: the stream starts here, wherever the hands are on this screen
+    const tip = new THREE.Object3D();
+    tip.position.copy(hosePath.getPoint(1)).addScaledVector(hosePath.getTangent(1), 0.03);
+    hose.add(tip);
+    hose.userData.tip = tip;
     viewTools.hose = hose;
+    // washing up: a green garden hose with a spray gun, not the pump's
+    const wash = new THREE.Group();
+    const washPath = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.25, -0.7, 0.25), new THREE.Vector3(0.1, -0.3, 0), new THREE.Vector3(0, -0.12, -0.3),
+    ]);
+    wash.add(new THREE.Mesh(new THREE.TubeGeometry(washPath, 24, 0.016, 8, false), new THREE.MeshLambertMaterial({ color: 0x3d8b3d })));
+    const gun = new THREE.Group();
+    gun.position.copy(washPath.getPoint(1));
+    wash.add(gun);
+    box(0.05, 0.12, 0.05, 0xf2b705, 0, 0.03, 0, gun).rotation.x = 0.3;
+    cyl(0.014, 0.018, 0.16, 0x44484d, 0, 0.07, -0.08, gun, 10).rotation.x = Math.PI / 2 - 0.2;
+    box(0.02, 0.05, 0.03, 0x1d1f22, 0, 0.0, -0.035, gun);
+    wash.visible = false;
+    hands.add(wash);
+    viewTools.washHose = wash;
     const carry = new THREE.Group();
     const cp = cyl(0.07, 0.07, 3, 0x6d7278, -0.3, 0.05, -0.2, carry, 10);
     cp.rotation.x = Math.PI / 2;
@@ -4041,7 +4086,7 @@
   // Now it waits in a short queue until the phone says the last one is finished; the notes read
   // out in your own voice don't wait, they'd be old news — they stay on the screen instead.
   const sayQ = [];
-  let talking = false, talkingUntil = 0;
+  let talking = false, talkingUntil = 0, sayN = 0;
   const tellsDone = (() => { try { return !!(appBridge && typeof appBridge.tellsDone === 'function' && appBridge.tellsDone()); } catch (e) { return false; } })();
   function busyTalking() { const now = performance.now(); return now < duckUntil || (talking && now < talkingUntil); }
   /** The phone has finished the line (or it was cut off): the next one can go, after a breath. */
@@ -4100,7 +4145,8 @@
         u.lang = 'en-GB'; u.pitch = p; u.rate = r;
         const vv = name && window.speechSynthesis.getVoices().find((x) => x.name === name);
         if (vv) u.voice = vv;
-        u.onend = voiceDone;
+        const n = ++sayN;
+        u.onend = () => { if (n === sayN) voiceDone(); };
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
       }
@@ -4274,7 +4320,8 @@
   // across the gravel, into the van if you let it. Washed at the tank; left, it sets on them.
   function bootsGet(a) {
     if (!gs || netRemote) return;
-    if ((gs.boots || 0) < 0.05) gs.bootsAt = gs.t;
+    // fresh concrete starts its own clock, on clean boots or on what set on them earlier
+    if ((gs.boots || 0) - (gs.bootsFloor || 0) < 0.05) gs.bootsAt = gs.t;
     gs.boots = Math.min(1, (gs.boots || 0) + a);
     if (gs.boots > 0.35) toastOnce('bootsHeavy', fresh(L.bootsHeavy), 'warn', 240000);
   }
@@ -4284,7 +4331,8 @@
     toast('You climb into the van in those boots. The van floor is concrete now too.', 'warn');
     charge('Concrete footprints on the van floor', 15);
   }
-  function bootsSet() { return (gs.boots || 0) > 0.15 && gs.t - (gs.bootsAt || gs.t) > 150; }
+  function bootsRow() { return (gs.boots || 0) < 0.05 ? 'clean, somehow' : bootsSet() ? 'set solid. A new pair' : gs.bootsFloor && gs.boots < gs.bootsFloor + 0.05 ? 'washed, but grey for ever' : (gs.boots || 0) > 0.5 ? 'concrete to the ankles' : 'grey'; }
+  function bootsSet() { return (gs.boots || 0) - (gs.bootsFloor || 0) > 0.15 && gs.t - (gs.bootsAt || gs.t) > 150; }
   function inVanNow() { return gs.waitMode === 'van'; }
   const trackPrints = new THREE.Group();
   scene.add(trackPrints);
@@ -5873,14 +5921,18 @@
   }
 
   function buildLateMarkers() {
-    addMarker('wash', POS.ibcFront, 'Wash tools and boots', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05) || (!held() && (gs.boots || 0) > 0.2), () => {
+    addMarker('wash', POS.ibcFront, 'Wash tools and boots', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05) || (!held() && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.2), () => {
       // a co-worker's washing: their tool comes clean on its own; the host sees if that's the lot
       if (netRemote) { if (gs.phase === 'wash' && !isGuest() && !dirtyTools().filter((t) => !isMachine(t)).length) enterCure(); return true; }
       const id = held();
-      if (!id && (gs.boots || 0) > 0.05) {
+      if (!id && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.05) {
         const set = bootsSet();
-        gs.boots = set ? 0.12 : 0;
-        toast(set ? 'You hose your boots. What had set on them stays on them. Heavier boots, for ever.' : fresh(L.bootsWashed), set ? 'warn' : 'good');
+        // what had set stays on them for the rest of the day, wash them as often as you like
+        if (set) gs.bootsFloor = 0.12;
+        gs.boots = gs.bootsFloor || 0;
+        gs.bootsAt = gs.t;
+        toast(set ? 'You hose your boots. What had set on them stays on them. Heavier boots, for ever.'
+          : gs.bootsFloor ? 'You hose off the fresh stuff. The grey that set on them this morning stays.' : fresh(L.bootsWashed), set ? 'warn' : 'good');
         if (gs.phase !== 'wash') return true;
       } else if (id && dirtOf(id) > 0.05) {
         const set = dirtSet(id);
@@ -6226,7 +6278,7 @@
       ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
       ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
-      ['Boots', (gs.boots || 0) < 0.05 ? 'clean, somehow' : bootsSet() ? 'set solid. A new pair' : (gs.boots || 0) > 0.5 ? 'concrete to the ankles' : 'grey'],
+      ['Boots', bootsRow()],
       ['Fingers given', String(gs.stats.flips)],
       ['Tools', gs.leftBehind.length || gs.dirtyAtEnd.length ? `${gs.leftBehind.length} left on site, ${gs.dirtyAtEnd.length} dirty` : 'all in the van, clean'],
     ];
@@ -6892,9 +6944,15 @@
     const who = [];
     if (pumpGuy.visible) who.push('pump');
     if (mixGuy.visible) who.push('truck');
-    const busy = gs.waitMode || player.fall > 0 || gs.packing || (input.action && lastCtxKind === 'marker');
-    if (!who.length || busy || hyp(player.x, player.z, idle.x, idle.z) > 0.7) {
-      idle.x = player.x; idle.z = player.z; idle.t = 0; idle.n = 0; idle.next = rnd(8, 10);
+    // floating, trowelling, digging, a job at a flag: that's work, wherever you stand to do it
+    const working = input.action && /^(marker|level|repair|trowel|shovel|unspill)$/.test(lastCtxKind);
+    const busy = gs.waitMode || player.fall > 0 || gs.packing || working;
+    // with the hose going it's where the concrete lands that counts: stand still and sweep it
+    // about and that's pouring; ten seconds on one spot and that's a tower
+    const aim = streamOn ? (target ? [target._hx, target._hz] : pourOut ? [pourOut.x, pourOut.z] : null) : null;
+    const sx = aim ? aim[0] : player.x, sz = aim ? aim[1] : player.z;
+    if (!who.length || busy || hyp(sx, sz, idle.x, idle.z) > 0.7) {
+      idle.x = sx; idle.z = sz; idle.t = 0; idle.n = 0; idle.next = rnd(8, 10);
       return;
     }
     idle.t += dt;
@@ -7524,7 +7582,7 @@
     if (stepSnd >= 1) {
       stepSnd = 0;
       // off the slab with concrete on your boots: grey prints across the gravel, and some of it stays there
-      if (!now && gs.boots > 0.12 && !inVanNow()) { trackPrint(player.x, player.z, player.yaw); gs.boots = Math.max(0, gs.boots - 0.008); }
+      if (!now && gs.boots > 0.12 && !inVanNow()) { trackPrint(player.x, player.z, player.yaw); gs.boots = Math.max(gs.bootsFloor || 0, gs.boots - 0.008); }
       if (!now || (!gs.pourStarted && now.fill < 3)) sfx('gravel');
       else if (gs.phase === 'pour' && now.fill > 20) sfx('wet');
       else if (gs.poured && gs.H < 55) sfx('soft');
@@ -7652,8 +7710,9 @@
     }
     streamOn = !!(ctx && ctx.kind === 'pour' && input.action && (target || pourOut) && gs.truck && gs.truck.left > 0);
     if (streamOn) {
-      const nozzle = new THREE.Vector3(0.2, -0.45, -1.2);
-      camera.localToWorld(nozzle);
+      const nozzle = new THREE.Vector3();
+      viewTools.hose.updateMatrixWorld(true);
+      viewTools.hose.userData.tip.getWorldPosition(nozzle);
       drawStream(nozzle, target ? new THREE.Vector3(target._hx, surfY(target.fill), target._hz) : new THREE.Vector3(pourOut.x, pourOut.inside ? (day.thick + FORM_UP) / 1000 : 0.03, pourOut.z), dt);
     } else hideStream();
     input.actionTapped = false;
@@ -8251,7 +8310,8 @@
     viewTools.pipe.rotation.z = sway * 2;
     viewTools.laser.visible = gs.carrying === 'laser';
     viewTools.laser.rotation.z = sway * 2;
-    viewTools.hose.visible = (t === 'hose' && !gs.carrying) || anim === 'wash';
+    viewTools.hose.visible = t === 'hose' && !gs.carrying && anim !== 'wash';
+    viewTools.washHose.visible = anim === 'wash';
     viewTools.hammer.visible = t === 'hammer';
     viewTools.shovel.visible = t === 'shovel';
     // the hands move in on a tall screen; the shovel stays where it's easy to see
@@ -8294,9 +8354,12 @@
     }
     // the hose kicks with every stroke of the pump
     if (viewTools.hose.visible) {
-      const kick = (streamOn || anim === 'wash') && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.025 : 0;
+      const kick = streamOn && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.025 : 0;
       viewTools.hose.position.set(kick * 0.4, kick, 0);
-      viewTools.hose.rotation.x = anim === 'wash' ? -0.35 : 0;
+    }
+    if (viewTools.washHose.visible) {
+      const jet = CALM ? 0 : Math.sin(toolT * 40) * 0.004;
+      viewTools.washHose.position.set(jet, jet, 0);
     }
     if (anim === 'hammer') {
       // wind up slow, come down fast, bounce: about two and a half a second
@@ -8492,7 +8555,10 @@
         if (gs.blowout) return `The formwork burst on the ${gs.blowout.name}. Fix it before you lose more!`;
         if (!laserWorks() && gs.prep.laser) return 'Laser batteries are dead. Spares are in the van.';
         const f = Math.round(filledShare() * 100);
-        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height` : `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.`;
+        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height`
+          : gs.truck ? `Truck ${gs.truck.no} is here. Float what you have while it backs up.`
+          // the last truck gone and nothing ordered: no time that has already been and gone
+          : gs.nextTruckAt >= gs.t ? `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.` : 'No more concrete coming. Float what\'s there, then finish the pour.';
         return `Pour to ${day.thick} mm: ${f}% filled, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
       case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The float and the hand trowel still work on the slab meanwhile.</small>`; }
@@ -8610,8 +8676,9 @@
         hud.truckBig.textContent = `${left.toFixed(1)} m³`;
         hud.truckFill.style.width = `${truckMax[no] ? (left / truckMax[no]) * 100 : 0}%`;
       } else {
-        hud.truckLine.textContent = 'Next truck';
-        hud.truckBig.textContent = clock(gs.nextTruckAt || gs.t);
+        const coming = gs.nextTruckAt >= gs.t;
+        hud.truckLine.textContent = coming ? 'Next truck' : 'More trucks';
+        hud.truckBig.textContent = coming ? clock(gs.nextTruckAt) : 'none';
         hud.truckFill.style.width = '0%';
       }
       hud.truckSub.textContent = `low spots need ≈ ${low.toFixed(1)} m³`;
@@ -8748,7 +8815,7 @@
     const dt = Math.min(0.1, (now - last) / 1000);
     pumpSay();
     // real time played, for the report: not while paused, not with the app in the background
-    if (gs.phase !== 'title' && gs.phase !== 'end' && !(modalOpen && modalOpen.pause) && document.visibilityState !== 'hidden') gs.stats.playMs = (gs.stats.playMs || 0) + Math.min(1000, now - last);
+    if (gs.phase !== 'title' && gs.phase !== 'end' && !(modalOpen && modalOpen.pause) && !settingsOpen && document.visibilityState !== 'hidden') gs.stats.playMs = (gs.stats.playMs || 0) + Math.min(1000, now - last);
     fpsN++; fpsT += now - last;
     if (fpsT > 1000) { fpsNow = fpsN; fpsN = 0; fpsT = 0; }
     last = now;
@@ -9621,8 +9688,9 @@
     $('#eRank').textContent = m.rank;
     $('#eScore').textContent = m.score;
     $('#ePay').innerHTML = m.pay;
-    // the host's report, with how long you played in it rather than the host
-    $('#eStats').innerHTML = String(m.stats).replace(/(<span>Played for<\/span><b>)[^<]*(<\/b>)/, `$1${playedFor()}$2`);
+    // the host's report, with how long you played and the state of your boots rather than the host's
+    $('#eStats').innerHTML = String(m.stats).replace(/(<span>Played for<\/span><b>)[^<]*(<\/b>)/, `$1${playedFor()}$2`)
+      .replace(/(<span>Boots<\/span><b>)[^<]*(<\/b>)/, `$1${bootsRow()}$2`);
     $('#eStory').innerHTML = m.story;
     $('#btnAgain').hidden = true;
     $('#end').hidden = false;
@@ -9756,7 +9824,7 @@
     Object.keys(cast).forEach((k) => { if (cast[k] === next.n) { delete cast[k]; delete castShift[k]; delete castPitch[k]; } });
     settle('me', next.n, VOICES.me[0]);
     settingsShow();
-    duckUntil = 0;
+    hush();
     say(fresh(L.myVoiceTry), 'me', 2);
   }
   function openSettings() {
@@ -9923,7 +9991,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
+      viewTools, walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
       speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
       toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
