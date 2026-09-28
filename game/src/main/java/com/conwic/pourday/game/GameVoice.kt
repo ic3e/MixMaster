@@ -12,15 +12,18 @@ private const val GOOGLE_TTS = "com.google.android.tts"
 /**
  * The phone's text-to-speech, for the game's lines. They are written in English, so it gathers the
  * English voices that are on the phone — British, American, Australian, Indian, whatever is
- * installed — for the game to cast its characters from. If the phone's own engine has only one or
- * two and Google's engine is on the phone too, it uses Google's, which usually has a handful. Until
- * an engine is up, or if the phone has none, it simply says nothing.
+ * installed — for the game to cast its characters from. Every character is meant to sound like
+ * nobody else, so when Google's engine is on the phone beside the phone's own (Samsung's, say),
+ * both are started and their voices pooled: each line goes to the engine that has the voice asked
+ * for. Until an engine is up, or if the phone has none, it simply says nothing.
  */
 internal class GameVoice(context: Context) {
     private val app = context.applicationContext
-    @Volatile private var tts: TextToSpeech? = null
-    @Volatile private var voices: Map<String, Voice> = emptyMap()
-    @Volatile private var base: Voice? = null
+
+    /** An engine that came up, with the English voices it has and the voice it starts with. */
+    private class Engine(val tts: TextToSpeech, val voices: Map<String, Voice>, val base: Voice?)
+
+    @Volatile private var engines: List<Engine> = emptyList()
     @Volatile private var closed = false
 
     init {
@@ -51,24 +54,21 @@ internal class GameVoice(context: Context) {
         }
         val found = english(t)
         if (engine == null) {
-            use(t, found)
+            // the phone's own is kept whatever it has: with no English voices it still reads in its default one
+            engines = engines + ready(t, found)
             val google = runCatching { t.defaultEngine != GOOGLE_TTS && t.engines.any { it.name == GOOGLE_TTS } }.getOrDefault(false)
-            if (found.size < 4 && google) open(GOOGLE_TTS)
-        } else if (found.size > voices.size) {
-            val old = tts
-            use(t, found)
-            old?.shutdown()
+            if (google) open(GOOGLE_TTS)
+        } else if (found.keys.any { name -> engines.none { name in it.voices } }) {
+            engines = engines + ready(t, found)
         } else {
             t.shutdown()
         }
     }
 
-    private fun use(t: TextToSpeech, found: Map<String, Voice>) {
+    private fun ready(t: TextToSpeech, found: Map<String, Voice>): Engine {
         val uk = t.setLanguage(Locale.UK)
         if (uk == TextToSpeech.LANG_MISSING_DATA || uk == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale.US)
-        base = runCatching { t.voice }.getOrNull()
-        voices = found
-        tts = t
+        return Engine(t, found, runCatching { t.voice }.getOrNull())
     }
 
     /** English voices that are on the phone and work without a network. */
@@ -84,32 +84,40 @@ internal class GameVoice(context: Context) {
 
     fun list(): String {
         val out = JSONArray()
-        voices.values.forEach { v ->
-            out.put(JSONObject().put("n", v.name).put("l", v.locale.toLanguageTag()).put("g", genderOf(v.name)))
+        val seen = HashSet<String>()
+        engines.forEach { e ->
+            e.voices.values.forEach { v ->
+                if (seen.add(v.name)) out.put(JSONObject().put("n", v.name).put("l", v.locale.toLanguageTag()).put("g", genderOf(v.name)))
+            }
         }
         return out.toString()
     }
 
     fun say(text: String, pitch: Float, rate: Float, name: String) {
-        val t = tts ?: return
-        val v = voices[name] ?: base
-        if (v != null) runCatching { t.setVoice(v) }
-        t.setPitch(pitch.coerceIn(0.5f, 2f))
-        t.setSpeechRate(rate.coerceIn(0.5f, 2f))
-        t.speak(text, TextToSpeech.QUEUE_FLUSH, null, "pourday")
+        val all = engines
+        val e = all.firstOrNull { name in it.voices } ?: all.firstOrNull() ?: return
+        // one voice at a time, whichever engine it lives in
+        all.forEach { if (it !== e) it.tts.stop() }
+        val v = e.voices[name] ?: e.base
+        if (v != null) runCatching { e.tts.setVoice(v) }
+        e.tts.setPitch(pitch.coerceIn(0.5f, 2f))
+        e.tts.setSpeechRate(rate.coerceIn(0.5f, 2f))
+        e.tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "pourday")
     }
 
     fun hush() {
-        tts?.stop()
+        engines.forEach { it.tts.stop() }
     }
 
     @Synchronized
     fun shutdown() {
         closed = true
-        val t = tts
-        tts = null
-        t?.stop()
-        t?.shutdown()
+        val all = engines
+        engines = emptyList()
+        all.forEach {
+            it.tts.stop()
+            it.tts.shutdown()
+        }
     }
 }
 

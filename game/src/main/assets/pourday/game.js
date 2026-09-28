@@ -437,14 +437,43 @@
       'You shovel the hill into the hole. Somewhere, a physiotherapist gets a new car.',
       'Shovel, shovel, shovel. Your back writes a strongly worded letter.',
     ],
+    myVoiceTry: [
+      'Right. Concrete. Let\'s get it over with.',
+      'Morning. Where\'s the coffee. Where\'s the pump.',
+      'That\'s me. I sound like I need a holiday.',
+      'Another day, another slab, same knees.',
+      'Who ordered the stiff mix? Was it me? It was me.',
+      'Twenty years on the tools and this is what I sound like.',
+      'If the manager rings, I\'m under the slab.',
+    ],
     flip: {
       person: [
-        'They flip you back. Stalemate.',
-        '"Charming!" They clutch their pearls. They don\'t have pearls. They clutch something.',
-        '"I\'m telling your boss!" Your boss would be proud.',
-        'They gasp, then speed up. It works better than shouting.',
-        '"Same to you, pal!" Fair.',
-        'They film you doing it. You\'ll be on the local Facebook group by lunch.',
+        ['flip1', 'They flip you back. Stalemate.'],
+        ['clutch', '"Charming!" They clutch their pearls. They don\'t have pearls. They clutch something.'],
+        ['phone', '"I\'m telling your boss!" Your boss would be proud.'],
+        ['hurry', 'They gasp, then speed up. It works better than shouting.'],
+        ['flip1', '"Same to you, pal!" Fair.'],
+        ['phone', 'They film you doing it. You\'ll be on the local Facebook group by lunch.'],
+        ['flip2', 'Both hands, both fingers, no hesitation. "And your concrete!" A professional.'],
+        ['flip1', 'They flip you back without looking up from their phone. Multitasking.'],
+        ['flip2', 'They put the shopping down to do it with both hands. "There. Now we\'re even."'],
+        ['clutch', '"In front of the children?" There are no children. They look round for some.'],
+        ['flip1', '"Right back at you, concrete boy." They hold it up until they\'re round the corner.'],
+        ['flip2', 'Two fingers back, and a little bow. "Have a hard day. Like your slab."'],
+      ],
+      pump: [
+        ['flip2', 'The pump driver lets go of the remote and flips you back with both hands. "Two for one, son. Pump\'s special."'],
+        ['flip2', 'Both fingers from the pump driver, the remote swinging off his belly. "Careful. I\'ve got the pump and a long memory."'],
+        ['flip2', 'Both hands, both fingers, not a flicker on his face. "Thirty years I\'ve been doing this. The pumping, too."'],
+        ['flip1', 'He flips you back with one hand and thumbs the remote with the other. The hose gives a cough. "Oops."'],
+        ['flip2', 'Both fingers up, and a smile. "Keep pointing. I\'m paid by the hour."'],
+        ['flip1', 'One finger, held up for a long time. "I can do this all day. I DO do this all day."'],
+      ],
+      mixer: [
+        ['flip1', 'The mixer driver gives you a finger and reaches into the cab with the other hand. Two honks. "Same to you!"'],
+        ['flip2', 'The mixer driver flips you back with both hands, then nods at the drum. "Nine cubes of that, and you\'re the one with the attitude?"'],
+        ['flip1', '"Yeah, yeah." One finger, not even looking. He\'s seen a lot of slabs.'],
+        ['flip2', 'Both fingers, then he taps his watch. "Every minute you wave at me is on your invoice."'],
       ],
       nothing: [
         'You flip off the slab. It doesn\'t care. It\'s concrete.',
@@ -1064,9 +1093,9 @@
     'They cross while filming it for their followers. Both of them.',
   );
   L.flip.person.push(
-    'They flip you off with both hands. They\'ve had practice.',
-    '"Real mature!" They are also giving you the finger. Everybody is mature today.',
-    'They blow you a kiss. That\'s worse. That\'s so much worse.',
+    ['flip2', 'They flip you off with both hands. They\'ve had practice.'],
+    ['flip1', '"Real mature!" They are also giving you the finger. Everybody is mature today.'],
+    ['clutch', 'They blow you a kiss. That\'s worse. That\'s so much worse.'],
   );
   L.flip.nothing.push(
     'You flip off the pump. The pump doesn\'t care. It\'s a pump.',
@@ -1858,6 +1887,13 @@
       p.position.set(x, 1.5, 0);
       capsule(0.055, 0.46, shirt, 0, -0.28, 0, p);
       mesh(new THREE.SphereGeometry(0.055, 8, 6), skin, 0, -0.6, 0, p);
+      // the middle finger, for answering back: turned to point up whatever the arm is doing
+      const f = new THREE.Group();
+      f.position.set(0, -0.6, 0);
+      capsule(0.017, 0.07, skin, 0, 0.07, 0, f);
+      f.visible = false;
+      p.add(f);
+      p.userData.finger = f;
       body.add(p);
       return p;
     };
@@ -1929,6 +1965,25 @@
   const pumpGuy = makePerson({ shirt: 0x2f3540, vest: 0xff7a1a, hat: 'hard', hatColor: 0xf2f0ea });
   pumpGuy.visible = false;
   scene.add(pumpGuy);
+  // the pump's radio remote: a yellow box on a harness at his belly, two sticks, a red stop and an
+  // aerial — he works the pump and the boom from it wherever he stands
+  {
+    const b = pumpGuy.userData.body, r = new THREE.Group();
+    r.position.set(0, 1.1, 0.2);
+    b.add(r);
+    box(0.3, 0.12, 0.13, 0xf2b705, 0, 0, 0, r);
+    box(0.27, 0.012, 0.1, 0x2a2a2a, 0, 0.066, 0, r);
+    [-0.08, 0.08].forEach((x) => {
+      cyl(0.009, 0.011, 0.07, 0x1a1a1a, x, 0.1, 0, r, 6);
+      mesh(new THREE.SphereGeometry(0.022, 8, 6), 0x1a1a1a, x, 0.14, 0, r);
+    });
+    cyl(0.022, 0.022, 0.02, 0xd02020, 0, 0.078, 0.02, r, 10);
+    cyl(0.007, 0.007, 0.2, 0x1a1a1a, 0.13, 0.15, -0.03, r, 6);
+    box(0.02, 0.012, 0.012, 0x44ff66, -0.11, 0.07, 0.04, r);
+    // the harness, up over both shoulders
+    [-0.12, 0.12].forEach((x) => { const st = box(0.035, 0.42, 0.012, 0x1f1f1f, x, 0.26, -0.07, r); st.rotation.x = -0.28; });
+    pumpGuy.userData.remote = r;
+  }
   const mixGuy = makePerson({ shirt: 0x3b5b8c, vest: 0xd4f53c, hat: 'cap' });
   mixGuy.visible = false;
   scene.add(mixGuy);
@@ -3714,7 +3769,7 @@
   let voicesOn = store('pourday.voices') !== 'off';
   const VOICES = {
     manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
-    me: [1.0, 1.02], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
+    me: [0.84, 0.96], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
     dentist: [1.05, 1.0], physio: [0.95, 1.0], gym: [1.2, 1.25], spam: [0.75, 1.2],
   };
   let duckUntil = 0;
@@ -3729,11 +3784,22 @@
   // Each character is cast one of the phone's own voices for the day: a man's voice for the men and
   // a woman's for the women where the phone lets on which is which, and nobody sharing a voice with
   // anybody else while there are voices to go round — so the accents get mixed too.
-  const GENDER = { manager: 'm', foreman: 'm', pump: 'm', truck: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
-  let voiceBook = null;            // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
+  // The player is a man who pours concrete for a living, and sounds like one: a man's voice, pitched
+  // low and a touch slow, and the same one every day (or the one picked in the settings).
+  const GENDER = { me: 'm', manager: 'm', foreman: 'm', pump: 'm', truck: 'm', helper: 'm', plant: 'f', alien: '', kid: '', mum: 'f', radio: 'm' };
+  // who gets first pick of the voices: the ones heard all day long. Anybody else shares only with
+  // somebody else who isn't one of them, and then at a different pitch.
+  const LEADS = ['me', 'manager', 'pump', 'truck', 'foreman', 'helper', 'plant', 'mum', 'partner', 'radio'];
+  const SHIFTS = [0, -0.14, 0.14, -0.25, 0.25, -0.34, 0.34, -0.1, 0.1];
+  let voiceBook = null, voiceBookAt = 0; // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
   let cast = {};                   // who speaks with which today
+  let castShift = {};              // how far off the voice's own pitch, for somebody sharing it
+  let dayGender = {};              // the bank, the dentist, the neighbour: a man one day, a woman the next
   function voicesOnOffer() {
-    if (voiceBook && voiceBook.length) return voiceBook;
+    // an engine that comes up later (Google's, beside the phone's own) brings more: look again now and then
+    const now = performance.now();
+    if (voiceBook && voiceBook.length && now - voiceBookAt < 15000) return voiceBook;
+    voiceBookAt = now;
     let list = [];
     try {
       if (appBridge && typeof appBridge.voices === 'function') list = JSON.parse(appBridge.voices() || '[]');
@@ -3742,20 +3808,58 @@
           .map((v) => ({ n: v.name, l: v.lang, g: /female|woman/i.test(v.name) ? 'f' : /\bmale\b|\bman\b/i.test(v.name) ? 'm' : '' }));
       }
     } catch (e) { list = []; }
-    voiceBook = Array.isArray(list) ? list : [];
-    return voiceBook;
+    if (Array.isArray(list) && list.length >= (voiceBook ? voiceBook.length : 0)) voiceBook = list;
+    return voiceBook || [];
   }
-  function castFor(key, g) {
+  function genderOf(key) {
+    if (key in GENDER) return GENDER[key];
+    if (!dayGender[key]) dayGender[key] = chance(0.5) ? 'm' : 'f';
+    return dayGender[key];
+  }
+  function castFor(key, g, p) {
     if (cast[key]) return cast[key];
+    p = p || 1;
     const book = voicesOnOffer();
     if (!book.length) return '';   // the engine isn't up yet: cast them on their next line
+    const mine = store('pourday.myVoice');
+    if (key === 'me' && mine && book.some((v) => v.n === mine)) return settle('me', mine, p);
     const taken = new Set(Object.values(cast));
+    if (key !== 'me' && mine) taken.add(mine);      // nobody else gets to sound like you
+    const leads = new Set(LEADS.map((k) => cast[k]).filter(Boolean));
+    if (mine) leads.add(mine);
     const fits = (v) => !g || v.g === g;
-    const pools = [book.filter((v) => fits(v) && !taken.has(v.n)), book.filter((v) => !v.g && !taken.has(v.n)), book.filter(fits), book];
-    cast[key] = pick(pools.find((pl) => pl.length)).n;
-    return cast[key];
+    const pools = [
+      book.filter((v) => fits(v) && !taken.has(v.n)),
+      book.filter((v) => !v.g && !taken.has(v.n)),
+      book.filter((v) => fits(v) && !leads.has(v.n)),
+      book.filter((v) => !leads.has(v.n)),
+      book.filter((v) => fits(v) && (key === 'me' || v.n !== mine)),
+      book.filter((v) => key === 'me' || v.n !== mine),
+      book,
+    ];
+    // the least shared of what's left, so a crowd spreads over all the voices there are
+    const pool = pools.find((pl) => pl.length);
+    const uses = (n) => Object.values(cast).filter((x) => x === n).length;
+    const least = Math.min(...pool.map((v) => uses(v.n)));
+    const name = pick(pool.filter((v) => uses(v.n) === least)).n;
+    if (key === 'me' && !mine) store('pourday.myVoice', name);
+    return settle(key, name, p);
   }
-  function newCast() { cast = {}; voiceBook = null; }
+  /**
+   * Gives [key] voice [name] at pitch [p]; sharing it with somebody, the pitch is moved until the two
+   * are clearly apart — by where they end up, not by how far each was moved.
+   */
+  let castPitch = {};
+  function settle(key, name, p) {
+    const others = Object.keys(cast).filter((k) => k !== key && cast[k] === name).map((k) => castPitch[k]);
+    const apart = (x) => others.every((o) => Math.abs(clamp(p + x, 0.55, 1.9) - o) >= 0.12);
+    const free = SHIFTS.find(apart);
+    castShift[key] = free === undefined ? rnd(-0.35, 0.35) : free;
+    castPitch[key] = clamp(p + castShift[key], 0.55, 1.9);
+    cast[key] = name;
+    return name;
+  }
+  function newCast() { cast = {}; castShift = {}; castPitch = {}; dayGender = {}; voiceBook = null; }
   /** A line from a list, not one used lately: the list is gone through before anything comes round again. */
   const usedLines = new Set();
   function fresh(list) {
@@ -3786,8 +3890,10 @@
     let p = 1, r = 1, key = '', g = '';
     if (Array.isArray(who)) [p, r] = who;
     else if (who && typeof who === 'object') ({ p, r, key, g } = who);
-    else if (VOICES[who]) { [p, r] = VOICES[who]; key = who; g = GENDER[who] || ''; }
-    const name = key ? castFor(key, g) : '';
+    else if (VOICES[who]) { [p, r] = VOICES[who]; key = who; g = genderOf(who); }
+    const name = key ? castFor(key, g, p) : '';
+    const sh = (key && castShift[key]) || 0;
+    if (sh) { p = castPitch[key] || clamp(p + sh, 0.55, 1.9); r = clamp(r + (sh > 0 ? 0.06 : -0.05), 0.7, 1.4); }
     const line = spoken(text);
     if (!line) return false;
     saidLog.push(line);
@@ -5834,6 +5940,7 @@
 
   // ------------------------------------------------------------------ what the big button does
   let target = null;          // the cell under the crosshair, in reach
+  let pourOut = null;         // the hose aimed just past the formwork: { x, z, c: the edge square, inside: share that still lands in }
   let nearMarker = null, nearMarkerD = 9;
   let holdT = 0;
   function holdOf(m) { return typeof m.hold === 'function' ? m.hold() : m.hold; }
@@ -5864,6 +5971,7 @@
         if (gs.blocked >= 0) return { kind: 'none', label: 'Line blocked' };
         if (!gs.truck || gs.truck.waiting) return { kind: 'none', label: 'No concrete' };
         if (target) return { kind: 'pour', label: 'Hold: pour' };
+        if (pourOut) return { kind: 'pour', label: pourOut.inside ? 'Hold: pour (onto the boards)' : 'Hold: pour (into the gravel)' };
         return { kind: 'none', label: 'Aim at the slab' };
       }
       if (t === 'float') {
@@ -5923,9 +6031,10 @@
   let pourSeconds = 0;
   let paintT = 0;
   function pourTick(dt) {
-    if (!target || !gs.truck || gs.truck.left <= 0) return;
+    if ((!target && !pourOut) || !gs.truck || gs.truck.left <= 0) return;
     const speed = gs.mixState === 'stiff' ? 90 : gs.mixState === 'soup' ? 125 : 110;
     const add = speed * dt;
+    if (!target) { pourPast(pourOut, add, dt); return; }
     const nb = neighbours(target);
     const spread = gs.mixState === 'soup' ? 0.4 : 0.25;
     target.fill += add * (1 - spread);
@@ -5948,13 +6057,42 @@
     pourTrouble(dt);
     if (gs.truck.left <= 0) truckEmpty();
   }
+  /** The hose pointed past the formwork: it goes where it's pointed. Over the top of the board, half of it still gets in. */
+  function pourPast(o, add, dt) {
+    const m3 = add / 1000;
+    if (isGuest()) net.pourM3 += m3;
+    else { gs.truck.left -= m3; gs.pouredM3 += m3; }
+    const inn = add * o.inside;
+    if (inn) { o.c.fill += inn; addLoad(o.c, inn); spillOver(o.c); cellsDirty = true; }
+    spillAt(o.x, o.z, (add - inn) / 1000, o.c, o.di, o.dj);
+    pourSeconds += dt;
+    if (chance(dt * 6)) emit(o.x, 0.05, o.z, rnd(-0.6, 0.6), rnd(0.3, 0.9), rnd(-0.6, 0.6), 0.6, 0x7d7f80, rnd(0.04, 0.07));
+    if (isGuest()) return;
+    pourTrouble(dt);
+    if (gs.truck.left <= 0) truckEmpty();
+  }
+  /** Where the hose lands when it isn't on the slab: the edge square it's just past, if it's near enough to count. */
+  function pastTheBoards(x, z) {
+    let best = null, bd = 1.1;
+    for (const c of gs.cells) {
+      const dx = Math.max(Math.abs(x - gx(c.i) - 0.5) - 0.5, 0), dz = Math.max(Math.abs(z - gz(c.j) - 0.5) - 0.5, 0);
+      const d = Math.hypot(dx, dz);
+      if (d < bd) { bd = d; best = c; }
+    }
+    if (!best) return null;
+    const ox = x - gx(best.i) - 0.5, oz = z - gz(best.j) - 0.5;
+    const di = Math.abs(ox) >= Math.abs(oz) ? Math.sign(ox) : 0, dj = di ? 0 : Math.sign(oz);
+    // the stream is as wide as your hand: right on the board, half of it goes each way
+    return { x, z, c: best, di, dj, inside: bd < 0.1 ? 0.5 : 0 };
+  }
+
   // ------------------------------------------------------------------ over the formwork
   // The boards stand 60 mm proud of the slab. Pour hard against one and it doesn't stop there: it
   // goes over the top, into the gravel, onto the waste line and into the manager's ear.
   const FORM_UP = 60;
   const spillBlobs = new THREE.Group();
   scene.add(spillBlobs);
-  const spillMat = new THREE.MeshLambertMaterial({ color: 0x8d9092 });
+  const spillMat = new THREE.MeshLambertMaterial({ color: 0x6c7072 });
   let spillSaid = 0;
   /** The ways out of a square that have a board in them, as unit steps. */
   function boardsOf(c) {
@@ -5966,26 +6104,39 @@
     const over = c.fill - (day.thick + FORM_UP);
     if (over <= 0 || !boardsOf(c).length) return;
     c.fill -= over;
-    const m3 = over / 1000;
-    if (isGuest()) net.wasteM3 += m3; else gs.waste += m3;
-    gs.spilled = (gs.spilled || 0) + m3;
     const [di, dj] = pick(boardsOf(c));
     const x = gx(c.i) + 0.5 + di * 0.62, z = gz(c.j) + 0.5 + dj * 0.62;
     // a grey tongue down the outside of the board, and a pool of it in the gravel
     if (chance(0.5)) emit(x, day.thick / 1000 + 0.07, z, di * rnd(0.3, 0.8), rnd(0.2, 0.6), dj * rnd(0.3, 0.8), 0.6, 0x7d7f80, rnd(0.04, 0.07));
-    const key = `${c.i},${c.j},${di},${dj}`;
+    spillAt(gx(c.i) + 0.5 + di * 0.95, gz(c.j) + 0.5 + dj * 0.95, over / 1000, c, di, dj);
+  }
+  /**
+   * Concrete in the gravel: [m3] of it at x, z, on the waste line, in a heap that grows where it
+   * lands — outwards, away from board [di, dj] of square [c], never back in under it.
+   */
+  function spillAt(x, z, m3, c, di, dj) {
+    if (m3 <= 0) return;
+    if (isGuest()) net.wasteM3 += m3; else gs.waste += m3;
+    gs.spilled = (gs.spilled || 0) + m3;
+    const key = `${Math.round(x / 0.7)},${Math.round(z / 0.7)}`;
     let blob = spillBlobs.children.find((b) => b.userData.key === key);
-    if (!blob && spillBlobs.children.length < 40) {
-      blob = new THREE.Mesh(new THREE.CircleGeometry(0.3, 14), spillMat);
-      blob.rotation.x = -Math.PI / 2;
-      blob.userData = { key, v: 0 };
-      blob.position.set(gx(c.i) + 0.5 + di * 0.95, 0.02, gz(c.j) + 0.5 + dj * 0.95);
+    if (!blob && spillBlobs.children.length >= 40) blob = spillBlobs.children.reduce((a, b) => (hyp(b.position.x, b.position.z, x, z) < hyp(a.position.x, a.position.z, x, z) ? b : a));
+    if (!blob) {
+      // a low heap, not a painted circle: it stands up off the gravel a little as it grows
+      blob = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2), spillMat);
+      blob.userData = { key, v: 0, sx: di ? 0.8 : dj ? 1.3 : 1, sz: dj ? 0.8 : di ? 1.3 : 1, c, di, dj, x0: x, z0: z };
+      blob.position.set(x, 0.005, z);
+      blob.receiveShadow = true;
       spillBlobs.add(blob);
     }
-    if (blob) {
-      blob.userData.v += m3;
-      const r = clamp(0.3 + Math.sqrt(blob.userData.v) * 3.2, 0.3, 1.6);
-      blob.scale.set((r / 0.3) * (dj ? 1.3 : 0.8), (r / 0.3) * (di ? 1.3 : 0.8), 1);
+    blob.userData.v += m3;
+    const r = clamp(0.3 + Math.sqrt(blob.userData.v) * 2.8, 0.3, 1.6), h = clamp(0.02 + blob.userData.v * 0.6, 0.02, 0.14);
+    const u = blob.userData;
+    blob.scale.set((r / 0.3) * u.sx, h / 0.3, (r / 0.3) * u.sz);
+    if (u.c) {
+      const bx = gx(u.c.i) + 0.5 + u.di * 0.58, bz = gz(u.c.j) + 0.5 + u.dj * 0.58;
+      if (u.di) blob.position.x = u.di > 0 ? Math.max(u.x0, bx + r * u.sx) : Math.min(u.x0, bx - r * u.sx);
+      if (u.dj) blob.position.z = u.dj > 0 ? Math.max(u.z0, bz + r * u.sz) : Math.min(u.z0, bz - r * u.sz);
     }
     const now = performance.now();
     if (now > spillSaid) { spillSaid = now + 20000; me(fresh(L.meSpill), 'warn'); sfx('splash', x, z); }
@@ -6147,15 +6298,22 @@
     const w = walkerInSight();
     const ufoNear = odd.some((o) => o.kind === 'ufo');
     setTimeout(() => {
-      if (w && w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'flip' }); toast(`You give ${w.name} the finger. ${w.name} saw it.`); } else if (w && w.remoteWid) toast(fresh(L.flip.person), 'warn');
-      else if (w && w.isHelper) { const l = fresh(L.helper.flipped).replace('{n}', helper.name); toast(l); say(l, helper.voice); } else if (w && w.kind === 'driver') {
-        if (w.who === 'pump') { const l = 'The pump driver flips you back with both hands, which is impressive while holding a remote.'; toast(l); }
-        else { toast('The mixer driver honks twice. It means the same thing.'); sfx('honk', mixer.position.x, mixer.position.z); }
+      if (w && w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'flip' }); toast(`You give ${w.name} the finger. ${w.name} saw it.`); } else if (w && w.remoteWid) toast(fresh(L.flip.person)[1], 'warn');
+      else if (w && w.isHelper) { const l = fresh(L.helper.flipped).replace('{n}', helper.name); gesture(helper.m, chance(0.5) ? 'flip2' : 'flip1'); toast(l); say(l, helper.voice); } else if (w && w.kind === 'driver') {
+        const [kind, l] = fresh(w.who === 'pump' ? L.flip.pump : L.flip.mixer);
+        gesture(w.who === 'pump' ? pumpGuy : mixGuy, kind, 2.3, w.who === 'pump');
+        toast(l); say(l, w.who === 'pump' ? 'pump' : 'truck');
+        if (/honk/i.test(l)) { sfx('honk', mixer.position.x, mixer.position.z); setTimeout(() => sfx('honk', mixer.position.x, mixer.position.z), 420); }
+        if (/cough/i.test(l)) sfx('splash', pump.position.x, pump.position.z);
       } else if (w && w.kind === 'dog') toast(fresh(L.flip.dog));
       else if (w) {
-        const l = fresh(L.flip.person);
+        const [kind, l] = fresh(L.flip.person);
         toast(l, 'warn'); say(l, w.voice);
-        if (onSlab(w.m.position.x, w.m.position.z)) w.speed *= 1.5;
+        const off = !onSlab(w.m.position.x, w.m.position.z);
+        // off the slab they stop to do it properly; on it they do it on the move, faster
+        if (off) { w.pause = Math.max(w.pause || 0, 2.1); w.pose = kind === 'phone' ? 'phone' : 'look'; } else w.speed *= 1.5;
+        if (kind === 'hurry') w.speed *= 1.4;
+        else if (kind !== 'phone') gesture(w.m, kind, 2);
       } else if (ufoNear) toast('The saucer flashes every light it has at you. You have started an interstellar incident.', 'warn');
       else toast(fresh(L.flip.nothing));
     }, 450);
@@ -6167,6 +6325,45 @@
     flipHand.visible = true;
     flipHand.position.set(-0.12, -0.62 + up * 0.44, -0.48);
     flipHand.rotation.set(0.15, 0.25, Math.sin(u * 22) * 0.06 * up);
+  }
+
+  // ------------------------------------------------------------------ what they do back
+  // Flip somebody off and they answer with their hands: a finger, both fingers, hands clutched to
+  // the chest. They turn to face you while they do it, so you can see it.
+  const gesturing = new Set();
+  const GESTURE = { flip1: [-1.75, 0.1], flip2: [-1.75, -1.75], clutch: [-1.25, -1.25] };
+  function gesture(m, kind, sec, back) {
+    if (!m || !m.userData.armR) return;
+    sec = sec || 1.9;
+    m.userData.gest = { kind, t: sec, len: sec, yaw0: m.rotation.y, cur: m.rotation.y, back: !!back };
+    gesturing.add(m);
+  }
+  function updateGestures(dt) {
+    gesturing.forEach((m) => {
+      const u = m.userData, g = u.gest, fR = u.armR.userData.finger, fL = u.armL.userData.finger;
+      g.t -= dt;
+      if (g.t <= 0 || !m.visible) {
+        fR.visible = false; fL.visible = false;
+        u.armR.rotation.z = 0; u.armL.rotation.z = 0;
+        if (g.back) m.rotation.y = g.yaw0;
+        u.gest = null;
+        gesturing.delete(m);
+        return;
+      }
+      const on = Math.min(1, (g.len - g.t) / 0.3) * clamp(g.t / 0.35, 0, 1);
+      const face = Math.atan2(player.x - m.position.x, player.z - m.position.z);
+      g.cur = turnTo(g.cur, g.t > 0.4 ? face : g.yaw0, 1 - Math.exp(-dt * 9));
+      m.rotation.y = g.cur;
+      if (u.head) u.head.rotation.y = lerp(u.head.rotation.y, 0, on);
+      const [r, l] = GESTURE[g.kind] || [0, 0], shake = Math.sin(toolT * 19) * 0.06 * on;
+      u.armR.rotation.x = lerp(u.armR.rotation.x, r + shake, on);
+      u.armL.rotation.x = lerp(u.armL.rotation.x, l - shake, on);
+      const hug = g.kind === 'clutch' ? 0.55 : g.kind === 'flip2' ? -0.12 : 0;
+      u.armR.rotation.z = -hug * on; u.armL.rotation.z = hug * on;
+      const up = g.kind !== 'clutch' && on > 0.45;
+      fR.visible = up; fL.visible = up && g.kind === 'flip2';
+      fR.rotation.x = -u.armR.rotation.x; fL.rotation.x = -u.armL.rotation.x;
+    });
   }
 
   // ------------------------------------------------------------------ the helper
@@ -6810,11 +7007,14 @@
     camera.getWorldDirection(tmpV);
     const o = camera.getWorldPosition(tmpV2);
     target = null;
+    pourOut = null;
     if (tmpV.y < -0.02) {
       const yPlane = gs.pourStarted ? surfY(day.thick) : 0.02;
       const t = (yPlane - o.y) / tmpV.y;
       const x = o.x + tmpV.x * t, z = o.z + tmpV.z * t;
       if (onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH) { target = cellAt(x, z); target._hx = x; target._hz = z; }
+      // with the hose, past the boards is somewhere too: into the gravel, and onto the waste line
+      else if (gs.tool === 'hose' && gs.phase === 'pour' && hyp(x, z, player.x, player.z) < REACH + 0.6) pourOut = pastTheBoards(x, z);
     }
     nearMarker = null;
     let best = 2.0;
@@ -6892,11 +7092,11 @@
       holdT = 0;
       if (input.actionTapped && ctx && ctx.kind === 'none' && ctx.label !== '—') toastOnce('idle' + ctx.label, ctx.label + '.', '', 12000);
     }
-    streamOn = !!(ctx && ctx.kind === 'pour' && input.action && target && gs.truck && gs.truck.left > 0);
+    streamOn = !!(ctx && ctx.kind === 'pour' && input.action && (target || pourOut) && gs.truck && gs.truck.left > 0);
     if (streamOn) {
       const nozzle = new THREE.Vector3(0.2, -0.45, -1.2);
       camera.localToWorld(nozzle);
-      drawStream(nozzle, new THREE.Vector3(target._hx, surfY(target.fill), target._hz), dt);
+      drawStream(nozzle, target ? new THREE.Vector3(target._hx, surfY(target.fill), target._hz) : new THREE.Vector3(pourOut.x, pourOut.inside ? (day.thick + FORM_UP) / 1000 : 0.03, pourOut.z), dt);
     } else hideStream();
     input.actionTapped = false;
     // the end hose, from the last pipe to your hand, or to wherever you left it
@@ -7106,6 +7306,43 @@
     }
   }
 
+  // Wet concrete doesn't stand up in a tower where the hose is: it slumps out to the squares round
+  // it until the step between them is what the mix will hold — hardly any for soup, a good bit for
+  // a stiff one. So one spot makes a mound to rake out, and a mound against a board goes over it.
+  const SLUMP = { soup: 12, ok: 32, stiff: 55 };
+  function flowTick(dt) {
+    const step = SLUMP[gs.mixState] || SLUMP.ok, k = Math.min(0.12, 1.5 * dt);
+    let moved = false;
+    const pair = (a, b, s, w) => {
+      const d = a.fill - b.fill;
+      if (d <= s && -d <= s) return;
+      const hi = d > 0 ? a : b, lo = d > 0 ? b : a;
+      if (cellH(hi) > 8) return;           // going off: it stays where it is
+      const amt = (Math.abs(d) - s) * k * w;
+      hi.fill -= amt; lo.fill += amt;
+      carryLoad(hi, lo, amt);
+      moved = true;
+    };
+    for (const c of gs.cells) {
+      if (isOn(c.i + 1, c.j)) pair(c, gs.grid[c.idx + 1], step, 1);
+      if (isOn(c.i, c.j + 1)) pair(c, gs.grid[c.idx + NX], step, 1);
+      if (isOn(c.i + 1, c.j + 1)) pair(c, gs.grid[c.idx + NX + 1], step * 1.41, 0.5);
+      if (isOn(c.i - 1, c.j + 1)) pair(c, gs.grid[c.idx + NX - 1], step * 1.41, 0.5);
+    }
+    if (!moved) return;
+    cellsDirty = true;
+    for (const c of gs.cells) if (c.fill > day.thick + FORM_UP) spillOver(c);
+  }
+  /** Concrete that runs from one square to the next takes its truck with it. */
+  function carryLoad(from, to, mm) {
+    const n = from.load;
+    if (!n) return;
+    if (!to.load || to.fill - mm < 5) { if (to.load === n) to.loadMm += mm; else { to.load = n; to.loadMm = mm; to.otherMm = 0; } return; }
+    if (to.load === n) { to.loadMm += mm; return; }
+    to.otherMm += mm;
+    if (to.otherMm > to.loadMm) { to.load = n; [to.loadMm, to.otherMm] = [to.otherMm, to.loadMm]; }
+  }
+
   function updateWorld(dt) {
     updateBoom(dt);
     updateVanBack(dt);
@@ -7124,6 +7361,7 @@
       if (d.t >= 1) { drives.splice(k, 1); if (d.done) d.done(); }
     }
     if (!isGuest()) updateWalkers(dt);
+    updateGestures(dt);
     // the drum turns about its own axis: slowly one way to keep the load mixed, faster the other
     // way to bring it up and out while it pours
     if (mixer.visible) drumSpin.rotation.x += dt * (streamOn ? -2.4 : 0.7);
@@ -7135,6 +7373,7 @@
       gs.cells.forEach((c) => { if (gs.blowout.cells.has(c.idx) && c.fill > 0) { c.fill = Math.max(0, c.fill - 14 * dt); } });
       cellsDirty = true;
     }
+    if (gs.phase === 'pour' && !isGuest()) flowTick(dt);
     // soup levels itself, slowly
     if (gs.phase === 'pour' && (gs.mixState === 'soup' || gs.water) && !isGuest()) {
       const k = (gs.mixState === 'soup' ? 0.35 : 0.12) * dt;
@@ -8409,7 +8648,9 @@
       if (moved > 0.004) { u.legL.rotation.x = Math.sin(c.phase) * 0.55; u.legR.rotation.x = -Math.sin(c.phase) * 0.55; }
       else { u.legL.rotation.x *= 0.85; u.legR.rotation.x *= 0.85; }
       const working = c.act === 'pour' || c.act === 'level' || c.act === 'repair' || c.act === 'shovel' || c.act === 'trowel' || c.act === 'marker';
-      u.armR.rotation.x = lerp(u.armR.rotation.x, c.flip ? -2.9 : working ? -1.1 + Math.sin(toolT * 6) * 0.25 : c.tool !== 'hands' ? -0.5 : 0, k);
+      u.armR.rotation.x = lerp(u.armR.rotation.x, c.flip ? -1.75 : working ? -1.1 + Math.sin(toolT * 6) * 0.25 : c.tool !== 'hands' ? -0.5 : 0, k);
+      const fg = u.armR.userData.finger;
+      fg.visible = !!c.flip && u.armR.rotation.x < -1.2; fg.rotation.x = -u.armR.rotation.x;
       u.armL.rotation.x = lerp(u.armL.rotation.x, working ? -0.9 : 0, k);
       // concrete out of the hose they're holding
       const pour = c.act === 'pour' && gs.tools.hose && gs.tools.hose.by === c.id;
@@ -8419,7 +8660,7 @@
   }
   function myState() {
     const acting = input.action && lastCtxKind && lastCtxKind !== 'none' ? lastCtxKind : '';
-    return { x: r2(player.x), z: r2(player.z), yaw: r2(player.yaw), tool: gs.tool, act: acting, ax: target ? r2(target._hx) : 0, az: target ? r2(target._hz) : 0, fl: flipT > 0 ? 1 : 0, pr: gs.stats.prints, fa: gs.stats.falls, fp: gs.stats.flips };
+    return { x: r2(player.x), z: r2(player.z), yaw: r2(player.yaw), tool: gs.tool, act: acting, ax: target ? r2(target._hx) : pourOut ? r2(pourOut.x) : 0, az: target ? r2(target._hz) : pourOut ? r2(pourOut.z) : 0, fl: flipT > 0 ? 1 : 0, pr: gs.stats.prints, fa: gs.stats.falls, fp: gs.stats.flips };
   }
   function pokeReceived(fromId, kind) {
     const name = crewName(fromId);
@@ -8801,6 +9042,29 @@
     $('#sensLook').value = Math.round(lookSens * 100);
     $('#walkVal').textContent = walkSens.toFixed(1) + '×';
     $('#lookVal').textContent = lookSens.toFixed(1) + '×';
+    const mine = myVoices(), at = mine.findIndex((v) => v.n === castFor('me', 'm', VOICES.me[0]));
+    $('#myVoiceVal').textContent = at >= 0 ? `${at + 1} of ${mine.length} · ${accentOf(mine[at].l)}` : '';
+  }
+  /** The voices a working man could have on this phone: the men's, or all of them if it won't say. */
+  function myVoices() {
+    const book = voicesOnOffer(), men = book.filter((v) => v.g === 'm');
+    return men.length ? men : book;
+  }
+  function accentOf(tag) {
+    const c = String(tag || '').split(/[-_]/)[1] || '';
+    return { GB: 'British', US: 'American', AU: 'Australian', IN: 'Indian', IE: 'Irish', ZA: 'South African', NG: 'Nigerian', NZ: 'New Zealand', CA: 'Canadian', SG: 'Singapore' }[c.toUpperCase()] || tag || 'English';
+  }
+  function nextMyVoice() {
+    const mine = myVoices();
+    if (!mine.length) { $('#myVoiceVal').textContent = 'no voices on this phone yet'; return; }
+    const next = mine[(mine.findIndex((v) => v.n === cast.me) + 1) % mine.length];
+    store('pourday.myVoice', next.n);
+    // whoever had that voice today gets another one on their next line
+    Object.keys(cast).forEach((k) => { if (cast[k] === next.n) { delete cast[k]; delete castShift[k]; delete castPitch[k]; } });
+    settle('me', next.n, VOICES.me[0]);
+    settingsShow();
+    duckUntil = 0;
+    say(fresh(L.myVoiceTry), 'me', 2);
   }
   function openSettings() {
     audioStart();
@@ -8819,6 +9083,7 @@
   $('#setMusic').addEventListener('click', () => { setMusic(!musicOn); settingsShow(); });
   $('#setVoices').addEventListener('click', () => { setVoices(!voicesOn); settingsShow(); if (voicesOn) say('"Voices on. God help us."', 'foreman'); });
   $('#setRead').addEventListener('click', () => { readNotes = !readNotes; store('pourday.readNotes', readNotes ? 'on' : 'off'); settingsShow(); if (readNotes) say('"That\'s me. That\'s what I sound like. Great."', 'me', 1); });
+  $('#setMyVoice').addEventListener('click', nextMyVoice);
   $('#setSubs').addEventListener('click', () => { subsOn = !subsOn; store('pourday.subs', subsOn ? 'on' : 'off'); settingsShow(); });
   $('#setInvert').addEventListener('click', () => { invertY = !invertY; store('pourday.invertY', invertY ? 'on' : 'off'); settingsShow(); });
   $('#volSound').addEventListener('input', (e) => {
@@ -8965,9 +9230,9 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), net, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      sayTest: (t, w) => say(t, w), get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
-      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
+      toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, walkers, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
       setupLaser: () => { gs.carrying = null; gs.laserInVan = false; gs.laserSetup = 4; gs.prep.laser = true; tripod.visible = true; site.levelChecks.forEach((c) => { c.done = true; c.fixed = true; }); },
       get lvl() { return lvl; }, get levelChecks() { return site.levelChecks; },
