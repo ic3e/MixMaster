@@ -797,12 +797,13 @@
       manager: ['Emotional damages (the manager\'s)', 'Therapy for the manager', 'The manager\'s blood pressure tablets'],
       falls: ['Dry cleaning: {n} × €10', 'Laundry, {n} × €10. The dog would have come home cleaner'],
       edges: ['Edges closed too late, {n} of them', 'Edges closed after they set ({n}). Brave, not clever'],
+      edgesLate: ['{n} m of edge closed after it had set', 'Edging a stone ({n} m). Brave, not clever'],
       ufo: ['Unexplained lettering in the slab', 'Alien vandalism (not covered by insurance)', 'Removing an interstellar insult'],
       hell: ['Told {n} people to go to hell: no charge, company policy', 'Told {n} people to go to hell: free, and honestly the best part of your day'],
       shine: ['Bonus: it actually shines', 'Bonus: the client could see their face in it. They didn\'t like the face, but still'],
       noPan: ['No pan pass. The client paid for a floor, not a beach'],
       noBlade: ['No blade pass. You\'ll call it "matte finish". They won\'t', 'Shine not included'],
-      roughEdges: ['{n} edges left rough, like your manners'],
+      roughEdges: ['Left rough: {n}. Like your manners', 'Rough edges ({n}): the client found them with a sock'],
       thrown: ['{n} tools thrown in the van: dents at cost, plus feelings', 'Tool abuse ({n} airborne)'],
       leftTools: ['Tools left on site ({n}): the yard sends a van for them, and you pay for the van', 'Abandoned equipment ({n}). The scrap man says thank you'],
       dirtyTools: ['Concrete on the tools ({n}), chiselled off by an apprentice who hates you', 'Tool cleaning ({n}), billed at therapy rates'],
@@ -1500,6 +1501,12 @@
     for (const c of gs.cells) if (c.fill > 20) { sum += cellH(c); n++; }
     return n ? sum / n : gs.H;
   }
+  /** Whether there's concrete at a point to work on: poured there already, or the pour is over. */
+  function concreteIn(x, z) {
+    if (gs.phase !== 'pour' && gs.phase !== 'wash' && gs.phase !== 'cure') return false;
+    const c = cellAt(x, z);
+    return !!c && (gs.poured || c.fill > 20);
+  }
   /** The softest and hardest of it. */
   function spreadH() {
     let lo = 100, hi = 0;
@@ -1512,6 +1519,8 @@
     if (!n || !gs.loads[n]) return;
     const l = gs.loads[n];
     if (l.at === null) l.at = gs.t;
+    // fresh concrete over work already done on it: the pass and the edge have to be done again
+    if ((c.covP || c.covB || c.edged) && mm > 0.5) { c.covP = c.covB = false; c.edged = 0; c.ep = null; surfDirty = true; }
     if (!c.load) { c.load = n; c.loadMm = mm; return; }
     if (c.load === n) { c.loadMm += mm; return; }
     // fresh on top of a load that has started to go off: the two won't marry
@@ -1528,11 +1537,18 @@
     toast(`Truck ${now.no} going onto truck ${old.no}'s concrete, which has started to set (${Math.floor(old.h)}%). A cold joint: they won't bond properly.`, 'warn');
     if (!gs.coldJointNoted) { gs.coldJointNoted = true; remember(`Truck ${now.no} went onto truck ${old.no}'s concrete after it had started to set. There's a cold joint in the slab now.`); }
   }
-  function etaTo(target) {
-    if (gs.H >= target) return 0;
-    let H = gs.H, t = gs.t, m = 0;
-    while (H < target && m < 4000) { H += cureRate(t) * stageMul(H) * 5; t += 5; m += 5; }
+  /** Minutes until [target]%: the slab's figure, or one load's from where it is at its own pace. */
+  function etaTo(target, from, rate) {
+    let H = from === undefined ? gs.H : from, t = gs.t, m = 0;
+    if (H >= target) return 0;
+    while (H < target && m < 4000) { H += cureRate(t) * stageMul(H) * (rate || 1) * 5; t += 5; m += 5; }
     return m;
+  }
+  /** The hardest load in the slab so far: the end the first trucks filled. */
+  function firstLoad() {
+    let best = null;
+    for (const l of gs.loads) if (l && l.at !== null && (!best || l.h > best.h)) best = l;
+    return best;
   }
 
   // ------------------------------------------------------------------ state
@@ -1541,7 +1557,7 @@
     // the whole grid, for looking a square up by where it is; `cells` is just the slab's
     const grid = [];
     for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
-      grid.push({ i, j, idx: j * NX + i, on: !!(day && day.on[j * NX + i]), fill: 0, pan: 0, blade: 0, covP: false, covB: false, marks: [], defect: false, load: 0, loadMm: 0, otherMm: 0 });
+      grid.push({ i, j, idx: j * NX + i, on: !!(day && day.on[j * NX + i]), fill: 0, pan: 0, blade: 0, covP: false, covB: false, marks: [], defect: false, load: 0, loadMm: 0, otherMm: 0, edged: 0 });
     }
     const cells = grid.filter((c) => c.on);
     return {
@@ -1563,7 +1579,7 @@
       washed: false,
       H: 0, poured: false,
       panPasses: [], bladePasses: [],
-      edgesDone: 0, edgeNotes: [],
+      edgesDone: 0, edgeNotes: [], edgeLate: 0,
       waitMode: null, fastForward: null,
       schedule: [], nextNuisance: Infinity, rained: false, lastSleep: 0,
       milestones: {},
@@ -2859,7 +2875,7 @@
   slabMesh.receiveShadow = true;
   scene.add(slabMesh);
   let surfDirty = true;
-  let surfWait = 0;
+  let surfWait = 0, surfTool = '';
   const tmpC = new THREE.Color();
 
   const speckle = (function () {
@@ -3255,7 +3271,8 @@
       site.pens.push(p);
     }
 
-    // what has to be troweled by hand: every corner, the middle of each long edge, the collars
+    // what has to be troweled by hand as a job of its own: every corner and the pipe collars. The
+    // straight edges in between are every metre of board, done along the board (see edgeTick).
     const edges = [];
     for (let vj = 0; vj <= NZ; vj++) for (let vi = 0; vi <= NX; vi++) {
       const tl = isOn(vi - 1, vj - 1), tr = isOn(vi, vj - 1), bl = isOn(vi - 1, vj), br = isOn(vi, vj);
@@ -3267,11 +3284,6 @@
       const inX = n === 1 ? one[0] : -one[0], inZ = n === 1 ? one[1] : -one[1];
       edges.push({ kind: 'corner', label: n === 1 ? 'Corner' : 'Inside corner', x: gx(vi) + inX * 0.3, z: gz(vj) + inZ * 0.3, inX, inZ });
     }
-    // straight edges: one spot on a run of four metres or more, two on a very long one
-    runs.filter((r) => r.len >= (site.area > 90 ? 6 : 4)).forEach((r) => {
-      const at = r.len >= 16 ? [1 / 3, 2 / 3] : [0.5];
-      at.forEach((f) => edges.push({ kind: 'edge', label: 'Edge', x: lerp(r.x0, r.x1, f) - r.ox * 0.3, z: lerp(r.z0, r.z1, f) - r.oz * 0.3, inX: -r.ox, inZ: -r.oz, alongX: r.dir === 'x' ? 1 : 0, alongZ: r.dir === 'z' ? 1 : 0 }));
-    });
     site.pens.forEach((p, k) => edges.push({ kind: 'collar', label: 'Pipe collar', x: p.x, z: p.z, pipe: k }));
     edges.forEach((e) => { e.done = false; });
     site.edges = edges;
@@ -3440,7 +3452,7 @@
     g.position.set(p.x, (opts && opts.y) || 0, p.z);
     g.visible = false;
     scene.add(g);
-    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, beam: beamM, ringMat, prog, progPivot, quarter: 0, sprite, tool: opts && opts.tool, byMachine: !!(opts && opts.byMachine) };
+    const m = { id, x: p.x, z: p.z, label, hold, active, done, group: g, ring, beam: beamM, ringMat, prog, progPivot, quarter: 0, sprite, tool: opts && opts.tool };
     markers.push(m);
     return m;
   }
@@ -5326,7 +5338,7 @@
   function fillIn(str, v) { return str.replace(/\{(\w)\}/g, (m, k) => (v[k] !== undefined ? v[k] : m)); }
   /** The machine tool in hand, if any, and the flag it leaves on a square it has been over. */
   /** The machine in hand while there is troweling to do, if any. */
-  function machineTool() { return (gs.phase === 'cure' || gs.phase === 'wash') && isMachine(gs.tool) ? gs.tool : null; }
+  function machineTool() { return (gs.phase === 'cure' || gs.phase === 'wash' || gs.phase === 'pour') && isMachine(gs.tool) ? gs.tool : null; }
   function fitted() { return isMachine(gs.tool) ? gs.fit[gs.tool] : null; }
   function passKey() { return fitted() === 'blades' ? 'covB' : 'covP'; }
 
@@ -5362,10 +5374,17 @@
       sp.needsUpdate = true;
     }
     slabGeo.computeVertexNormals();
-    // wet concrete gleams, drying concrete goes matt, and the blades bring the shine back
-    const shine = !gs.poured ? 1 : gs.H < 30 ? 1 - gs.H / 40 : 0.25;
+    // wet concrete gleams, drying concrete goes matt, and the blades bring the shine back. Mid-pour
+    // the first trucks' end has gone matt while the rest is wet: the gleam is the wet share of it.
+    let fresh = 1;
+    if (!gs.poured) {
+      let n = 0, f = 0;
+      for (const c of gs.cells) if (c.fill > 20) { n++; if (cellH(c) < 20) f++; }
+      if (n) fresh = f / n;
+    }
+    const shine = !gs.poured ? 0.3 + 0.7 * fresh : gs.H < 30 ? 1 - gs.H / 40 : 0.25;
     const blade = Math.min(3, gs.bladePasses.length);
-    slabMat.shininess = gs.poured && gs.H >= 30 ? 8 + blade * 16 : 70;
+    slabMat.shininess = gs.poured && gs.H >= 30 ? 8 + blade * 16 : !gs.poured ? lerp(12, 70, fresh) : 70;
     slabMat.specular.setScalar(Math.max(shine * 0.32, blade * 0.09));
     cellsDirty = false;
   }
@@ -5384,14 +5403,20 @@
       for (const m of c.marks) drawMark(view, m, c.defect);
     }
     const tool = machineTool();
-    if (tool && gs.H >= 15) {
-      const key = passKey();
+    // mid-pour, only the part that's in, and of that only what has gone off enough to carry it
+    const inn = (c) => gs.poured || c.fill > 20;
+    if (tool) {
+      const key = passKey(), soft = fitted() === 'blades' ? 50 : 20;
       view.globalAlpha = 1;
-      view.fillStyle = 'rgba(255,150,40,0.16)';
-      for (const c of gs.cells) if (!c[key]) view.fillRect(c.i * PPM, c.j * PPM, PPM, PPM);
+      for (const c of gs.cells) {
+        if (c[key] || !inn(c)) continue;
+        // orange: still to do; blue: too soft for it yet
+        view.fillStyle = cellH(c) < soft ? 'rgba(90,169,255,0.2)' : 'rgba(255,150,40,0.16)';
+        view.fillRect(c.i * PPM, c.j * PPM, PPM, PPM);
+      }
       view.fillStyle = 'rgba(255,150,40,0.35)';
       for (const c of gs.cells) {
-        if (c[key]) continue;
+        if (c[key] || !inn(c) || cellH(c) < soft) continue;
         // a thin rim on the edge of what is left, so the unfinished part reads as a shape
         const x = c.i * PPM, y = c.j * PPM;
         const done = (i, j) => !isOn(i, j) || gs.grid[j * NX + i][key];
@@ -5401,6 +5426,31 @@
         if (done(c.i, c.j + 1)) view.fillRect(x, y + PPM - 3, PPM, 3);
       }
     }
+    // the edges: every metre done has the edger's smooth band along the board and the groove its
+    // runner leaves; with an edging tool in hand, the metres still to do show along the board —
+    // orange where it will take the trowel, blue where it's still too soft
+    const edging = gs.tool === 'handTrowel' || gs.tool === 'trowelSmall', w = 0.09 * PPM, wo = 0.13 * PPM;
+    for (const c of gs.cells) {
+      const bs = boardsOf(c);
+      if (!bs.length) continue;
+      const x = c.i * PPM, y = c.j * PPM;
+      for (const [di, dj] of bs) {
+        const band = di > 0 ? [x + PPM - w, y, w, PPM] : di < 0 ? [x, y, w, PPM] : dj > 0 ? [x, y + PPM - w, PPM, w] : [x, y, PPM, w];
+        if (c.edged & sideBit(di, dj)) {
+          view.globalAlpha = 0.5; view.fillStyle = '#f4f4f1';
+          view.fillRect(band[0], band[1], band[2], band[3]);
+          view.globalAlpha = 0.5; view.fillStyle = '#76766f';
+          if (di) view.fillRect(di > 0 ? x + PPM - w : x + w - 1.5, y, 1.5, PPM);
+          else view.fillRect(x, dj > 0 ? y + PPM - w : y + w - 1.5, PPM, 1.5);
+        } else if (edging && inn(c)) {
+          const ok = cellH(c) >= 15;
+          view.globalAlpha = ok ? 0.75 : 0.35; view.fillStyle = ok ? '#ff7a1a' : '#5aa9ff';
+          if (di) view.fillRect(di > 0 ? x + PPM - wo : x, y, wo, PPM);
+          else view.fillRect(x, dj > 0 ? y + PPM - wo : y, PPM, wo);
+        }
+      }
+    }
+    view.globalAlpha = 1;
     surfTex.needsUpdate = true;
     surfDirty = false;
   }
@@ -5511,13 +5561,15 @@
           const b = l.h;
           l.h = Math.min(100, l.h + cureRate(gs.t) * stageMul(l.h) * l.rate * step);
           if (Math.floor(b) !== Math.floor(l.h)) cellsDirty = true;
+          // what the overlays show (too soft, ready) changes every few per cent
+          if (Math.floor(b / 5) !== Math.floor(l.h / 5)) surfDirty = true;
         }
         if (gs.poured) {
           const before = gs.H;
           gs.H = Math.min(100, meanH());
           milestone(before, gs.H);
           loadMilestones();
-        }
+        } else if (gs.phase === 'pour') pourMilestones();
       } else if (gs.poured && gs.H < 100) {
         const before = gs.H;
         gs.H = Math.min(100, gs.H + cureRate(gs.t) * stageMul(gs.H) * step);
@@ -5561,6 +5613,14 @@
     // at 95% whatever marks are left are in it for good; enough of them and somebody has to tell
     // the manager. That somebody is you.
     if (hit(95) && !gs.managerCalled && marksLeft() > 15) { gs.managerCalled = true; at(now < 100 ? gs.t + 3 : gs.t, managerCall); }
+  }
+  /** Mid-pour: the first truck's end going off while the rest is still coming in. */
+  function pourMilestones() {
+    const first = firstLoad();
+    if (!first) return;
+    const note = (key, text) => { if (gs.milestones[key]) return; gs.milestones[key] = true; if (gs.waitMode) { gs.waitMode = null; showWait(); } toast(text, 'good'); };
+    if (first.h >= 15) note('pe', `Truck ${first.no}'s concrete is at ${Math.floor(first.h)}%: its edges and corners will take the hand trowel now, pour or no pour.`);
+    if (first.h >= 25) note('pp', `Truck ${first.no}'s end takes the pans now (${Math.floor(first.h)}%). Get a trowel on it between trucks, or it'll be past its best by the time the pour is done.`);
   }
   /** When the loads are far apart: the first part ready for the pans while the rest isn't. */
   function loadMilestones() {
@@ -6782,7 +6842,7 @@
         personal: true,
         who: 'Now it hardens', title: 'The waiting part.',
         text: `It's ${Math.round(tempAt(gs.t))} °C with ${day.rh}% humidity and a ${day.thick} mm slab of ${day.area} m². Keep an eye on the hardness meter.\n\n` +
-          `• Pans from about 25%: take a power trowel from the bottom of the van\'s ramp — they come with pans on. One to three passes.${day.area > 50 ? ' The ride-on does a big slab in half the time.' : ''}\n• Blades from about 55%: fit them on the machine (button next to Put down), then pass again.\n• Corners and pipe collars with the hand trowel; straight edges with the hand trowel or the small edge trowel.\n• Pack up the laser and put it in the van.\n• Nobody leaves before 95%.\n\n` +
+          `• Pans from about 25%: take a power trowel from the bottom of the van\'s ramp — they come with pans on. One to three passes.${day.area > 50 ? ' The ride-on does a big slab in half the time.' : ''}\n• Blades from about 55%: fit them on the machine (button next to Put down), then pass again.\n• The edges all the way round, from 15%: run the small edge trowel along the boards, or the hand trowel. Corners and pipe collars with the hand trowel.${edgeLeft() < edgeMetres()[1] ? ` ${edgeMetres()[0]} m of ${edgeMetres()[1]} already done.` : ''}\n• Pack up the laser and put it in the van.\n• Nobody leaves before 95%.\n\n` +
           'Meanwhile: guard the slab, nap in the van, or walk to the kebab stand.\n\nFootprints: the float takes them out under 50%, the hand trowel under 70%, the machines up to about 80%. After that they\'re in it for good.\n\nWhen you go home, every tool goes back in the van, washed.',
         choices: [{ label: 'Right', primary: true }],
       });
@@ -6811,18 +6871,18 @@
     addMarker('lunch', POS.kioskFront, 'Lunch', 1.2, () => gs.phase === 'cure' && gs.H < 90, () => { lunch(); });
     addMarker('home', POS.vanDoor, 'Go home', 1.2, () => !isGuest() && !gs.packing && ((gs.phase === 'cure' && (gs.panPasses.length > 0 || gs.gaveUp) && (gs.carrying !== 'laser' || gs.gaveUp)) || (gs.phase === 'wash' && gs.gaveUp)), () => { tryGoHome(); });
     site.edges.forEach((e, k) => {
-      // straight edges take the small machine or the hand trowel; corners and collars only the hand
-      const straight = e.kind === 'edge';
-      addMarker('edge' + k, e, e.label, () => (gs.tool === 'trowelSmall' ? 1.0 : 2.2), () => (gs.phase === 'cure' || gs.phase === 'wash') && hAt(e.x, e.z) >= 10 && !e.done, () => {
+      // corners and collars: the hand trowel only, as soon as the concrete there will take it —
+      // during the pour too, where the first truck's end has gone off
+      addMarker('edge' + k, e, e.label, 2.2, () => !e.done && concreteIn(e.x, e.z) && hAt(e.x, e.z) >= 10, () => {
         if (hAt(e.x, e.z) < 15) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
         if (!netRemote) { addDirt(gs.tool, 0.12); troweledOut(e.x, e.z, player.x, player.z); }
         const left = site.edges.length - gs.edgesDone;
         if (hAt(e.x, e.z) > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
-        else toastOnce('edge', `${e.label} done. ${left ? `${left} to go.` : 'That\'s all the edges.'}`, 'good', 8000);
+        else toastOnce('edge', `${e.label} done. ${left ? `${left} more corner${left > 1 ? 's' : ''} and collar${left > 1 ? 's' : ''} to go.` : 'That\'s all the corners.'}`, 'good', 8000);
         return true;
-      }, { w: 2.2, tool: straight ? ['handTrowel', 'trowelSmall'] : 'handTrowel', byMachine: straight });
+      }, { w: 2.2, tool: 'handTrowel' });
     });
   }
 
@@ -7100,7 +7160,7 @@
     if (gs.H < 95) missing.push(`It's only ${Math.floor(gs.H)}% hard. 95% or you sleep here.`);
     if (!gs.panPasses.length) missing.push('No pan pass yet.');
     if (!gs.bladePasses.length) missing.push('No blade pass yet.');
-    if (gs.edgesDone < site.edges.length) missing.push(`${site.edges.length - gs.edgesDone} edges, corners or collars still to trowel.`);
+    if (edgeWorkLeft()) missing.push(`${edgeWorkText()} still to trowel.`);
     if ((gs.prep.laser || gs.laserSetup) && !gs.laserPacked) missing.push('The laser is still out. Pack it up and put it in the van.');
     if (missing.length) {
       modal({ personal: true, who: 'Foreman, in your head', title: 'Not yet.', text: missing.join('\n'), choices: [{ label: 'Fine', primary: true }] });
@@ -7124,14 +7184,14 @@
   }
 
   /** The slab's work is done: pans, blades, and every edge. (The laser is only a tool.) */
-  function slabFinished() { return gs.panPasses.length > 0 && gs.bladePasses.length > 0 && gs.edgesDone >= site.edges.length; }
+  function slabFinished() { return gs.panPasses.length > 0 && gs.bladePasses.length > 0 && !edgeWorkLeft(); }
   /** 100% and not finished: nothing more will go on this slab today. */
   function tooLate() {
     gs.gaveUp = true;
     const what = [];
     if (!gs.panPasses.length) what.push('no pan pass');
     if (!gs.bladePasses.length) what.push('no blade pass');
-    if (gs.edgesDone < site.edges.length) what.push(`${site.edges.length - gs.edgesDone} edges still rough`);
+    if (edgeWorkLeft()) what.push(`${edgeWorkText()} still rough`);
     remember('It went to 100% before the slab was done.');
     modal({
       who: 'Hardness 100%', title: 'It\'s gone off.', sound: 'buzz', voice: 'foreman',
@@ -7230,17 +7290,23 @@
   // ------------------------------------------------------------------ troweling
   function passCoverage(key) { return gs.cells.filter((c) => c[key]).length / gs.cells.length; }
   function completePass(kind) {
-    const H = gs.H;
+    // A pass is judged square by square, on how hard each was when the machine went over it: on a
+    // long pour the first truck's end is panned mid-pour and the last one's after, each in its time.
+    const key = kind === 'pan' ? 'covP' : 'covB', [lo, hi] = kind === 'pan' ? [25, 65] : [55, 92];
+    const hs = gs.cells.map((c) => (c[key] && c[key + 'H'] !== undefined ? c[key + 'H'] : cellH(c)));
+    const H = hs.reduce((a, b) => a + b, 0) / (hs.length || 1);
+    const inWin = hs.filter((h) => h >= lo && h <= hi).length / (hs.length || 1);
+    const most = inWin >= 0.75, part = inWin < 0.95 && most ? ` ${Math.round(inWin * 100)}% of it in the window.` : '';
     let verdict, good;
     if (kind === 'pan') {
-      good = H >= 25 && H <= 65;
-      verdict = H < 25 ? 'Too early: the pans dug in and made waves.' : H <= 65 ? `In the window. ±${rms().toFixed(1)} mm now.` : 'Late pan pass: skated over the top. Better than nothing.';
-      gs.cells.forEach((c) => { c.pan++; c.covP = false; });
+      good = most;
+      verdict = most ? `In the window.${part} ±${rms().toFixed(1)} mm now.` : H < lo + 5 ? 'Too early: the pans dug in and made waves.' : H > hi - 5 ? 'Late pan pass: skated over the top. Better than nothing.' : `Half of it too soft, half too hard: only ${Math.round(inWin * 100)}% in the window.`;
+      gs.cells.forEach((c) => { c.pan++; c.covP = false; delete c.covPH; });
       gs.panPasses.push({ H, good });
     } else {
-      good = H >= 55 && H <= 92 && gs.panPasses.length > 0;
-      verdict = !gs.panPasses.length ? 'Blades with no pan pass first. It shines, but it isn\'t flat.' : H < 50 ? 'Blades too early: tore the paste.' : H <= 92 ? 'In the window. It\'s starting to shine.' : 'Blades on a slab that\'s already hard. You\'re polishing a stone.';
-      gs.cells.forEach((c) => { c.blade++; c.covB = false; });
+      good = most && gs.panPasses.length > 0;
+      verdict = !gs.panPasses.length ? 'Blades with no pan pass first. It shines, but it isn\'t flat.' : most ? `In the window.${part} It's starting to shine.` : H < lo + 5 ? 'Blades too early: tore the paste.' : H > hi - 5 ? 'Blades on a slab that\'s already hard. You\'re polishing a stone.' : `Blades on a patchy slab: only ${Math.round(inWin * 100)}% of it in the window.`;
+      gs.cells.forEach((c) => { c.blade++; c.covB = false; delete c.covBH; });
       gs.bladePasses.push({ H, good });
     }
     cellsDirty = true;
@@ -7276,7 +7342,7 @@
     const late = Math.max(0, gs.arrived - 6 * 60);
     const goodPans = gs.panPasses.filter((p) => p.good).length;
     const goodBlades = gs.bladePasses.filter((p) => p.good).length;
-    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.gaveUp ? 80 : 0) - (site.edges.length - Math.min(gs.edgesDone, site.edges.length)) * 12 - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12 - (gs.stats.accidents || 0) * 40
+    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.gaveUp ? 80 : 0) - (site.edges.length - Math.min(gs.edgesDone, site.edges.length)) * 12 - edgeLeft() * 3 - gs.edgeLate * 2 - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12 - (gs.stats.accidents || 0) * 40
       + Math.min(goodPans, 3) * 40 + Math.min(goodBlades, 3) * 40 + gs.stats.hell * 5;
     score = Math.round(clamp(score, 0, 1200));
     const rank = score >= 950 ? 'Slab wizard' : score >= 800 ? 'Proper concrete person' : score >= 620 ? 'Adequate slab operator' : score >= 420 ? 'Footprint curator' : 'The dog\'s favourite';
@@ -7347,7 +7413,8 @@
     if (glyphs) cut('ufo', 25 + glyphs * 5);
     if (!gs.panPasses.length) cut('noPan', 60);
     if (!gs.bladePasses.length) cut('noBlade', 50);
-    if (gs.edgesDone < site.edges.length) cut('roughEdges', (site.edges.length - gs.edgesDone) * 10, { n: site.edges.length - gs.edgesDone });
+    if (edgeWorkLeft()) cut('roughEdges', (site.edges.length - gs.edgesDone) * 10 + edgeLeft() * 3, { n: edgeWorkText() });
+    if (gs.edgeLate) cut('edgesLate', gs.edgeLate * 2, { n: gs.edgeLate });
     gs.charges.forEach(([label, eur]) => lines.push([label, -Math.round(eur)]));
     if (gs.leftBehind.length) cut('leftTools', gs.leftBehind.reduce((a, id) => a + (isMachine(id) ? 150 : 25), 0), { n: gs.leftBehind.length });
     if (gs.dirtyAtEnd.length) cut('dirtyTools', gs.dirtyAtEnd.reduce((a, id) => a + (isMachine(id) ? 45 : 15) * (dirtSet(id) ? 2 : 1), 0), { n: gs.dirtyAtEnd.length });
@@ -7504,6 +7571,7 @@
     const w = walkerInSight();
     if (w) return { kind: 'shout', label: w.kind === 'driver' ? (w.isHelper ? `Talk to ${helper.name}` : w.crewId ? `Shout at ${w.name}` : 'Talk') : w.kind === 'dog' ? (gs.sausage ? 'Throw the sausage' : 'Shoo!') : 'Oi! Off the slab!', w };
     const t = gs.tool;
+    edgeSpot = null;
     if (gs.phase === 'pour') {
       if (t === 'hose') {
         if (gs.blocked >= 0) return { kind: 'none', label: 'Line blocked' };
@@ -7513,12 +7581,16 @@
         return { kind: 'none', label: 'Aim at the slab' };
       }
       if (t === 'float') {
-        if (target && target.fill > 5) return { kind: 'level', label: 'Hold: float' };
+        // wet, it moves and levels; once that end has started to go off it only closes the top
+        if (target && target.fill > 5 && cellH(target) < 18) return { kind: 'level', label: 'Hold: float' };
+        if (target && target.fill > 20) return { kind: 'repair', label: target.marks.length ? 'Hold: float out marks' : 'Hold: float (it\'s going off)' };
         return { kind: 'none', label: 'Aim at concrete' };
       }
+      // an empty hand on concrete that has been in a while: how far has it gone?
+      if (t === 'hands' && target && target.fill > 20 && mixOf(target)) return { kind: 'thumb', label: 'Thumb test' };
       if (t === 'hands' && gs.tools.hose && gs.tools.hose.in === 'ground') return { kind: 'none', label: 'Get the hose' };
     }
-    if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || (gs.phase === 'cure' && (target ? cellH(target) : gs.H) < 30))) {
+    if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || gs.phase === 'cure') && (target ? cellH(target) : gs.H) < 30) {
       // concrete over the boards and into the gravel: dig it back out while it's wet
       const sp = !target && gs.H < 30 ? spillInReach() : null;
       if (sp) return { kind: 'unspill', label: 'Hold: shovel the spill back in', blob: sp };
@@ -7530,17 +7602,27 @@
     }
     // After the pour the slab is yours to work straight away, whether the tools are washed yet or
     // not: waiting for the washing-up to be done left the float and the trowels doing nothing
-    // until the slab had gone off far enough to start the cure on its own.
-    if (gs.phase === 'cure' || gs.phase === 'wash') {
-      if (t === 'float' && target) return { kind: 'repair', label: target.marks.length ? 'Hold: float out marks' : 'Hold: float' };
-      if (t === 'handTrowel' && target) return { kind: 'repair', label: target.marks.length ? 'Hold: trowel out marks' : 'Hold: hand trowel' };
+    // until the slab had gone off far enough to start the cure on its own. And on a long pour the
+    // first truck's end goes off while the last is still coming: that end can take the trowels,
+    // the edges and the corners while the pour goes on.
+    if (gs.phase === 'cure' || gs.phase === 'wash' || gs.phase === 'pour') {
+      const inn = target && concreteIn(target._hx, target._hz);
+      if (t === 'float' && inn) return { kind: 'repair', label: target.marks.length ? 'Hold: float out marks' : 'Hold: float' };
+      if (t === 'handTrowel' && inn) {
+        // against a board that's still rough: along the board; anywhere else, the marks
+        // once down on one knee at it, the eye is lower and the look lands nearer: it stays the edge
+        const e = cellH(target) >= 10 ? openSide(target, target._hx, target._hz, input.action && lastCtxKind === 'edge' ? 0.9 : 0.45) : null;
+        if (e) { edgeSpot = e; return { kind: 'edge', label: 'Hold: edge along the board' }; }
+        return { kind: 'repair', label: target.marks.length ? 'Hold: trowel out marks' : 'Hold: hand trowel' };
+      }
       // the machine runs out ahead of you, so it is where its discs are that counts
       if (isMachine(t)) {
-        const on = discs().some((d) => onSlab(d.x, d.z));
-        if (on) return { kind: 'trowel', label: `Hold: ${gs.fit[t] === 'pans' ? 'pan' : 'blade'} pass` };
+        const on = discs().some((d) => concreteIn(d.x, d.z));
+        if (on) return { kind: 'trowel', label: `Hold: ${gs.fit[t] === 'pans' ? 'pan' : 'blade'} pass${t === 'trowelSmall' ? ' · edges' : ''}` };
+        if (gs.phase === 'pour' && discs().some((d) => onSlab(d.x, d.z))) return { kind: 'none', label: 'Nothing poured here yet' };
         return { kind: 'none', label: TOOLS[t].ride ? 'Drive onto the slab' : 'Steer it onto the slab' };
       }
-      if (t === 'hands' && target) return { kind: 'thumb', label: 'Thumb test' };
+      if (t === 'hands' && inn && gs.phase !== 'pour') return { kind: 'thumb', label: 'Thumb test' };
     }
     return { kind: 'none', label: '—' };
   }
@@ -7576,6 +7658,7 @@
     if (ctx.kind === 'pour') pourTick(dt);
     else if (ctx.kind === 'level') levelTick(target, dt);
     else if (ctx.kind === 'repair') repairTick(target, dt);
+    else if (ctx.kind === 'edge') { if (edgeSpot) edgeTick(edgeSpot, dt); }
     else if (ctx.kind === 'trowel') trowelTick(dt);
     else if (ctx.kind === 'shovel') shovelTick(target, dt);
     else if (ctx.kind === 'unspill') unspillTick(ctx.blob, dt);
@@ -7650,6 +7733,85 @@
     if (c.boards) return c.boards;
     c.boards = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([di, dj]) => !isOn(c.i + di, c.j + dj));
     return c.boards;
+  }
+  // ------------------------------------------------------------------ the edges
+  // Every metre of board round the slab gets edged: the concrete against it closed and its arris
+  // rounded, with the edge trowel run along the board or the hand trowel, kneeling. A power
+  // trowel can't get there, and a rough edge is the first thing the client's finger finds.
+  // Each square keeps its done sides as bits; the corners and pipe collars are jobs of their own.
+  function sideBit(di, dj) { return di > 0 ? 1 : di < 0 ? 2 : dj > 0 ? 4 : 8; }
+  /** Metres of board edged, and metres of board. */
+  function edgeMetres() {
+    let done = 0, all = 0;
+    for (const c of gs.cells) for (const [di, dj] of boardsOf(c)) { all++; if (c.edged & sideBit(di, dj)) done++; }
+    return [done, all];
+  }
+  function edgeLeft() { const [d, a] = edgeMetres(); return a - d; }
+  /** Everything round the outside still to do: metres of edge, corners and collars. */
+  function edgeWorkLeft() { return edgeLeft() + site.edges.length - gs.edgesDone; }
+  /** The same in words: "12 m of edge and 3 corners". */
+  function edgeWorkText() {
+    const m = edgeLeft(), c = site.edges.length - gs.edgesDone;
+    const col = site.edges.filter((e) => !e.done && e.kind === 'collar').length, cor = c - col;
+    return [m ? `${m} m of edge` : '', cor ? `${cor} corner${cor > 1 ? 's' : ''}` : '', col ? `${col} pipe collar${col > 1 ? 's' : ''}` : ''].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' and $1');
+  }
+  /**
+   * The board side of square c nearest a point, if it still wants edging and the point is within
+   * [reach] of it: the side's line, where along it the point is, and how far in.
+   */
+  function openSide(c, x, z, reach) {
+    let best = null;
+    for (const [di, dj] of boardsOf(c)) {
+      const bit = sideBit(di, dj);
+      if (c.edged & bit) continue;
+      // the board: a metre long, starting at (bx, bz), running (ax, az); the slab is (inX, inZ) of it
+      const bx = gx(c.i) + (di > 0 ? 1 : 0), bz = gz(c.j) + (dj > 0 ? 1 : 0);
+      const ax = di ? 0 : 1, az = di ? 1 : 0, inX = -di, inZ = -dj;
+      const along = (x - bx) * ax + (z - bz) * az, off = (x - bx) * inX + (z - bz) * inZ;
+      if (along < -0.25 || along > 1.25 || off > reach) continue;
+      if (!best || off < best.off) best = { c, bit, bx, bz, ax, az, inX, inZ, along: clamp(along, 0.12, 0.88), off };
+    }
+    return best;
+  }
+  /** A metre of edge closed, by whoever: counted, and a late one noted. */
+  function edgeDone(c, bit) {
+    if (c.edged & bit) return;
+    c.edged |= bit;
+    surfDirty = true;
+    if (netRemote) return;
+    const H = cellH(c);
+    if (H > 85) {
+      gs.edgeLate++;
+      toastOnce('edgelate', 'That edge was too hard to close properly. It\'s done. It isn\'t pretty.', 'warn', 40000);
+    }
+    const left = edgeLeft();
+    if (!left) toast(`Every metre of edge done.${site.edges.length > gs.edgesDone ? ` The corners${site.pens.length ? ' and collars' : ''} still want the hand trowel.` : ''}`, 'good');
+    else if (left % 5 === 0) toastOnce('edgeM' + left, `${left} m of edge to go.`, '', 60000);
+  }
+  let edgeSpot = null;      // the metre of edge the hand trowel is on, while it is on one
+  /** The hand trowel along a board: about a metre every two seconds, kneeling. */
+  function edgeTick(e, dt) {
+    const c = e.c, H = cellH(c);
+    addDirt('handTrowel', dt * 0.03);
+    if (H < 15) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return; }
+    c.ep = c.ep || {};
+    c.ep[e.bit] = (c.ep[e.bit] || 0) + dt / 1.9;
+    if (c.ep[e.bit] >= 1) edgeDone(c, e.bit);
+  }
+  /** The edge trowel's disc along a board: a steady run past a metre of it closes that metre. */
+  function edgeByMachine(disc, dt) {
+    for (const c of gs.cells) {
+      if (!boardsOf(c).length || !(c.fill > 20 || gs.poured)) continue;
+      const ccx = gx(c.i) + 0.5, ccz = gz(c.j) + 0.5;
+      if (Math.abs(ccx - disc.x) > 1.3 || Math.abs(ccz - disc.z) > 1.3) continue;
+      const e = openSide(c, disc.x, disc.z, disc.r + 0.12);
+      if (!e) continue;
+      const H = cellH(c);
+      if (H < 15 || H > 95) continue;
+      c.ep = c.ep || {};
+      c.ep[e.bit] = (c.ep[e.bit] || 0) + dt / 0.45;
+      if (c.ep[e.bit] >= 1) edgeDone(c, e.bit);
+    }
   }
   function spillOver(c) {
     const over = c.fill - (day.thick + FORM_UP);
@@ -8092,6 +8254,22 @@
         setTimeout(() => { if (!e.done && gs.phase === 'cure') { e.done = true; gs.edgesDone++; if (chance(0.35)) { gs.edgeNotes.push('helper'); toast(`${helper.name} did the ${e.label.toLowerCase()}. It's… done. That's the most anyone can say.`, 'warn'); } else toast(`${helper.name} did the ${e.label.toLowerCase()}. Not bad, actually. Don't tell him.`); } }, 9000);
         return;
       }
+      // no corners left: a few metres along the boards, round wherever he kneels down
+      const open = gs.cells.filter((x) => boardsOf(x).some(([di, dj]) => !(x.edged & sideBit(di, dj))));
+      if (open.length) {
+        const c0 = pick(open);
+        helper.goal = P(gx(c0.i) + 0.5, gz(c0.j) + 0.5);
+        setTimeout(() => {
+          if (gs.phase !== 'cure') return;
+          let n = 0;
+          for (const c of open) {
+            if (Math.abs(c.i - c0.i) + Math.abs(c.j - c0.j) > 2) continue;
+            for (const [di, dj] of boardsOf(c)) { const b = sideBit(di, dj); if (!(c.edged & b)) { edgeDone(c, b); n++; } }
+          }
+          if (n) toast(`${helper.name} edged ${n} m along the boards. ${chance(0.4) ? 'Wavy, but edged.' : 'Dead straight. Suspicious.'}`);
+        }, 9000);
+        return;
+      }
     }
     if (gs.poured && gs.H < 55 && chance(0.12)) {
       // straight across the slab, to ask you something
@@ -8290,7 +8468,11 @@
     let covered = false, digAny = 0;
     for (const disc of ds) {
       const R = disc.r;
+      // the small one is the edge trowel: run along a board, it closes the edge as it goes
+      if (id === 'trowelSmall') edgeByMachine(disc, dt);
       for (const c of gs.cells) {
+        // mid-pour, only what has been poured: the rest is mesh and stones
+        if (!gs.poured && c.fill <= 20) continue;
         const ccx = SLAB.x0 + c.i + 0.5, ccz = SLAB.z0 + c.j + 0.5;
         const d = hyp(ccx, ccz, disc.x, disc.z);
         if (d > 1.4) continue;
@@ -8318,7 +8500,8 @@
         const reach = R + 0.5;
         if (d > reach) continue;
         const w = 1 - d / reach;
-        if (d < R + 0.35 && !c[key]) { c[key] = true; covered = true; surfDirty = true; }
+        // each square remembers how hard it was when the pass went over it: that's what the pass is judged on
+        if (d < R + 0.35 && !c[key]) { c[key] = true; c[key + 'H'] = Hc; covered = true; surfDirty = true; }
         if (dig > 0) {
           // too soft: the disc pushes the paste out from under itself and it heaps up round the rim
           const push = 26 * dig * dt * (pans ? 1 : 0.5) * (id === 'rideOn' ? 1.4 : 1);
@@ -8363,7 +8546,7 @@
     }
   }
   function thumb(c) {
-    if (!gs.poured) { toast('It\'s still a building site, not a slab. Nothing to test.'); return; }
+    if (!gs.poured && !mixOf(c)) { toast('It\'s still a building site, not a slab. Nothing to test.'); return; }
     const Hc = cellH(c), l = mixOf(c);
     const line = L.thumb.find(([h]) => Hc < h)[1];
     sfx(Hc < 60 ? 'soft' : 'hard');
@@ -8681,14 +8864,17 @@
           pourOut = null;
         }
       }
+      // edging, you look at the board itself: that is the concrete right against it
+      else if (gs.tool === 'handTrowel' && !onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH + 0.6) {
+        const o = pastTheBoards(x, z);
+        if (o && o.d < 0.45) { const c = o.c; target = c; target._hx = clamp(x, gx(c.i) + 0.05, gx(c.i) + 0.95); target._hz = clamp(z, gz(c.j) + 0.05, gz(c.j) + 0.95); }
+      }
     }
     nearMarker = null;
     let best = 2.0;
     for (const m of markers) {
       if (!m.active()) continue;
-      let d = hyp(m.x, m.z, player.x, player.z);
-      // the edge trowel does a straight edge from where the machine is, not from your boots
-      if (m.byMachine && gs.tool === 'trowelSmall' && mpos.on) d = Math.min(d, hyp(m.x, m.z, mpos.x, mpos.z) + 0.6);
+      const d = hyp(m.x, m.z, player.x, player.z);
       if (d < best) { best = d; nearMarker = m; }
     }
     nearTool = null;
@@ -8742,7 +8928,7 @@
   const btnState = { idle: null, label: null, fill: null, tool: null, alt: null, wait: null };
   const btnTool = $('#btnTool'), btnAlt = $('#btnLaser');
   const actLabel = $('#actLabel'), actFill = $('#actFill'), actIco = $('#actIco');
-  const ACT_ICON = { pour: 'hose', level: 'float', repair: 'trowel', trowel: 'machine', shovel: 'shovel', unspill: 'shovel', thumb: 'hand', shout: 'speak', marker: 'flag', none: 'hand' };
+  const ACT_ICON = { pour: 'hose', level: 'float', repair: 'trowel', edge: 'trowel', trowel: 'machine', shovel: 'shovel', unspill: 'shovel', thumb: 'hand', shout: 'speak', marker: 'flag', none: 'hand' };
   function updateAction(dt) {
     if (gs.packing) { input.action = false; return; }
     updateTarget();
@@ -9011,6 +9197,7 @@
   }
   /** Concrete that runs from one square to the next takes its truck with it. */
   function carryLoad(from, to, mm) {
+    if ((to.covP || to.covB || to.edged) && mm > 0.3) { to.covP = to.covB = false; to.edged = 0; to.ep = null; surfDirty = true; }
     const n = from.load;
     if (!n) return;
     if (!to.load || to.fill - mm < 5) { if (to.load === n) to.loadMm += mm; else { to.load = n; to.loadMm = mm; to.otherMm = 0; } return; }
@@ -9333,6 +9520,7 @@
   const handPos = new THREE.Vector3();
   /** What the hands are doing at a job marker, when they are doing one. */
   function markerAnim() {
+    if (input.action && lastCtxKind === 'edge' && edgeSpot) return 'edger';
     if (!nearMarker || !input.action || lastCtxKind !== 'marker') return null;
     const id = nearMarker.id;
     if (/^form|^block|^blowout/.test(id)) return 'hammer';
@@ -9349,8 +9537,16 @@
   function moveMachine(t, R, tx, tz, running) {
     // a spot that already doesn't fit (lifted over a board, say) lets it go anywhere
     const stuck = !discFits(t.x, t.z, R, running);
-    const ok = (x, z) => stuck || discFits(x, z, R, running);
-    if (ok(tx, tz)) { t.x = tx; t.z = tz; } else if (ok(tx, t.z)) t.x = tx; else if (ok(t.x, tz)) t.z = tz;
+    // on the slab, the boards hold it in: pushed at one it runs along it, which is how an edge
+    // gets done. It goes over a board only with you, stopped, walking off the slab with it.
+    const held = onSlab(t.x, t.z) && (running || onSlab(player.x, player.z));
+    const ok = (x, z) => (!held || (onSlab(x, z) && (stuck || edgeClearance(x, z) >= R + 0.01))) && (stuck || discFits(x, z, R, running));
+    if (ok(tx, tz)) { t.x = tx; t.z = tz; return; }
+    // as far towards it as it will go — up against the board — then along whatever stopped it
+    let lo = 0, hi = 1;
+    for (let k = 0; k < 6; k++) { const m = (lo + hi) / 2; if (ok(lerp(t.x, tx, m), lerp(t.z, tz, m))) lo = m; else hi = m; }
+    t.x = lerp(t.x, tx, lo); t.z = lerp(t.z, tz, lo);
+    if (ok(tx, t.z)) t.x = tx; else if (ok(t.x, tz)) t.z = tz;
   }
   function placeTools(dt) {
     toolT += dt;
@@ -9442,22 +9638,26 @@
     // and along the edge; the view eases round to it, as you would look at what you are doing
     workTrowel.visible = workArm.visible = anim === 'edger';
     if (anim === 'edger') {
-      const e = site.edges[+nearMarker.id.slice(4)] || {};
+      // a corner or collar job, or the metre of board the trowel is on
+      const sp = lastCtxKind === 'edge' && edgeSpot;
+      const e = sp ? { inX: sp.inX, inZ: sp.inZ, alongX: sp.ax, alongZ: sp.az } : site.edges[+nearMarker.id.slice(4)] || {};
+      const at = sp ? P(sp.bx + sp.ax * sp.along + sp.inX * 0.1, sp.bz + sp.az * sp.along + sp.inZ * 0.1) : nearMarker;
       const inX = e.inX || 0, inZ = e.inZ || 0;
       const sw = Math.sin(toolT * 5), al = e.alongX !== undefined ? P(e.alongX, e.alongZ) : P(-inZ, inX);
-      const wx = nearMarker.x + al.x * sw * 0.18 + inX * (0.06 + Math.cos(toolT * 5) * 0.04);
-      const wz = nearMarker.z + al.z * sw * 0.18 + inZ * (0.06 + Math.cos(toolT * 5) * 0.04);
+      const wx = at.x + al.x * sw * 0.18 + inX * (0.06 + Math.cos(toolT * 5) * 0.04);
+      const wz = at.z + al.z * sw * 0.18 + inZ * (0.06 + Math.cos(toolT * 5) * 0.04);
       workTrowel.position.set(wx, groundY(wx, wz) + 0.006, wz);
       workTrowel.rotation.set(0, Math.atan2(-al.z, al.x) + sw * 0.35, 0.04);
       handPos.set(0.22, -0.42, -0.25);
       camera.localToWorld(handPos);
       tmpV2.set(wx, workTrowel.position.y + 0.06, wz);
       stretch(workArm, handPos, tmpV2);
-      const want = Math.atan2(-(nearMarker.x - player.x), -(nearMarker.z - player.z));
-      const d = Math.max(0.3, hyp(nearMarker.x, nearMarker.z, player.x, player.z));
+      // the view eases down to the work; at a corner it turns round to it too, along a board
+      // which way you face is yours
+      const d = Math.max(0.3, hyp(at.x, at.z, player.x, player.z));
       const k = 1 - Math.exp(-dt * 3);
-      player.yaw = turnTo(player.yaw, want, k);
-      player.pitch = lerp(player.pitch, -Math.atan2(camera.position.y - groundY(nearMarker.x, nearMarker.z), d), k);
+      if (!sp) player.yaw = turnTo(player.yaw, Math.atan2(-(at.x - player.x), -(at.z - player.z)), k);
+      player.pitch = lerp(player.pitch, -Math.atan2(camera.position.y - groundY(at.x, at.z), d), k);
     }
     viewTools.handTrowel.visible = t === 'handTrowel' && anim !== 'edger';
     // working a spot with it: sweeps arcs, the blade's leading edge lifted
@@ -9617,10 +9817,11 @@
         if (gs.blowout) return `The formwork burst on the ${gs.blowout.name}. Fix it before you lose more!`;
         if (!laserWorks() && gs.prep.laser) return 'Laser batteries are dead. Spares are in the van.';
         const need = volumeNeeded(), inn = Math.min(need, pouredIn());
-        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height`
-          : gs.truck ? `Truck ${gs.truck.no} is here. Float what you have while it backs up.`
+        const first = firstLoad(), ready = first && first.h >= 15 ? `Truck ${first.no}'s end is at ${Math.floor(first.h)}%: ${first.h >= 25 ? 'pans, edges and corners' : 'edges and corners'} can start.` : '';
+        const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? `Pick up the hose at the end of the line.${ready && isMachine(gs.tool) ? ' Or trowel between trucks.' : ''}` : gs.truck && !gs.truck.waiting ? ready || `Hose: pour · Float (van): level · Laser shows the height`
+          : gs.truck ? `Truck ${gs.truck.no} is here. ${ready || 'Float what you have while it backs up.'}`
           // the last truck gone and nothing ordered: no time that has already been and gone
-          : gs.nextTruckAt >= gs.t ? `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.` : 'No more concrete coming. Float what\'s there, then finish the pour.';
+          : gs.nextTruckAt >= gs.t ? `Next truck due ${clock(gs.nextTruckAt)}. ${ready ? ready : 'Float what you have.'}` : 'No more concrete coming. Float what\'s there, then finish the pour.';
         return `Pour to ${day.thick} mm: ${inn.toFixed(1)} of ${need.toFixed(1)} m³ in, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
       case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The float and the hand trowel still work on the slab meanwhile.</small>`; }
@@ -9637,7 +9838,7 @@
           if (gs.fit[mt] !== 'pans') return `Fit the pans (the button next to Put down).${warn}`;
           return `Run it over every orange square.${warn || '<small>Hold the big button; slide your thumb on it to steer.</small>'}`;
         }
-        if (gs.edgesDone < site.edges.length) return `Edges, corners and collars (${gs.edgesDone}/${site.edges.length}).${warn || '<small>Hand trowel from the van; the edge trowel does straight edges.</small>'}`;
+        if (edgeWorkLeft()) return `Edges all round: ${edgeWorkText()} to go.${warn || '<small>Along the boards: the edge trowel or the hand trowel. Corners and collars: the hand trowel.</small>'}`;
         if (!gs.bladePasses.length) {
           if (gs.H < 55) return `Wait for blades (55%).${warn || '<small>Another pan pass flattens it more.</small>'}`;
           if (!mt) return `Blade pass: take a power trowel and fit the blades.${warn}`;
@@ -9717,19 +9918,37 @@
     hud.energyFill.style.width = `${gs.energy}%`;
     hud.energyFill.className = gs.energy < 25 ? 'low' : gs.energy < 50 ? 'mid' : '';
     hud.cupsTxt.textContent = `${gs.cups} cup${gs.cups === 1 ? '' : 's'}`;
-    const hard = $('#hard');
-    hard.hidden = !gs.poured;
-    if (gs.poured) {
-      const [lo, hi] = spreadH();
-      $('#hardPct').textContent = hi - lo >= 3 ? `${Math.floor(lo)}–${Math.floor(hi)}%` : `${Math.floor(gs.H)}%`;
-      $('#hardFill').style.width = `${gs.H}%`;
-      const eta = gs.H < 25 ? `Pans in <b>${dur(etaTo(25))}</b>` : gs.H < 55 ? `Blades in <b>${dur(etaTo(55))}</b>` : gs.H < 95 ? `95% in <b>${dur(etaTo(95))}</b>` : '<b>Hard enough to leave</b>';
-      const passes = gs.phase === 'cure' || gs.phase === 'wash' ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length} · edges ${gs.edgesDone}/${site.edges.length}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : '';
+    // The hardness, from the first truck on: mid-pour the end that went in first is going off while
+    // the last is still coming, and that's the end to get the trowels on.
+    const hard = $('#hard'), first = firstLoad();
+    const showHard = gs.poured || (gs.phase === 'pour' && !!first);
+    hard.hidden = !showHard;
+    hard.classList.toggle('mid', !gs.poured);
+    if (showHard) {
+      const [lo, hi] = spreadH(), mean = gs.poured ? gs.H : meanH();
+      $('#hardPct').textContent = hi - lo >= 3 ? `${Math.floor(lo)}–${Math.floor(hi)}%` : `${Math.floor(mean)}%`;
+      $('#hardFill').style.width = `${mean}%`;
+      $('#hardFirst').style.left = `${hi}%`;
+      $('#hardFirst').hidden = hi - lo < 3;
+      // mid-pour it has to share the side with the truck: short, and about the first end
+      let eta;
+      if (!gs.poured) {
+        const h = first.h;
+        eta = h < 15 ? `Edges in <b>${dur(etaTo(15, h, first.rate))}</b>` : h < 25 ? `<b>Edges now</b> · pans in <b>${dur(etaTo(25, h, first.rate))}</b>` : h < 55 ? '<b>Pans and edges now</b>' : '<b>Blades now</b>';
+      } else eta = gs.H < 25 ? `Pans in <b>${dur(etaTo(25))}</b>` : gs.H < 55 ? `Blades in <b>${dur(etaTo(55))}</b>` : gs.H < 95 ? `95% in <b>${dur(etaTo(95))}</b>` : '<b>Hard enough to leave</b>';
+      // each truck's concrete on its own, the hardest first, once they've drifted apart
+      const loads = gs.loads.filter((l) => l && l.at !== null).sort((a, b) => b.h - a.h);
+      const trucks = loads.length > 1 && hi - lo >= 3 ? `<br>${loads.slice(0, 4).map((l) => `T${l.no} <b>${Math.floor(l.h)}%</b>`).join(' · ')}` : '';
+      const [ed, ea] = edgeMetres(), edging = gs.tool === 'handTrowel' || gs.tool === 'trowelSmall';
+      const edges = `<i class="nw">Edges <b>${ed}/${ea} m</b></i>${site.edges.length && gs.poured ? ` · <i class="nw">corners <b>${gs.edgesDone}/${site.edges.length}</b></i>` : ''}`;
+      const passes = gs.poured ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length}<br>${edges}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : edging ? `<br>${edges}` : '';
       const cov = machineTool() ? `<br>${fitted() === 'pans' ? 'Pan' : 'Blade'} pass <b>${Math.round(passCoverage(passKey()) * 100)}%</b>` : '';
-      $('#hardEta').innerHTML = eta + passes + cov;
+      $('#hardEta').innerHTML = eta + trucks + passes + cov;
     }
     const ti = $('#truckInfo');
     ti.hidden = !(gs.phase === 'pour' || (gs.phase === 'pipes' && gs.pipes === PIPE_N));
+    // both on the side at once: sideways, the truck's panel keeps to the truck
+    $('#hud').classList.toggle('both', !ti.hidden && showHard);
     if (!ti.hidden) {
       const low = gs.cells.reduce((sum, c) => sum + Math.max(0, day.thick - c.fill), 0) / 1000;
       if (truckMax.gs !== gs) truckMax = { gs };
@@ -9784,13 +10003,15 @@
     if (target && gs.pourStarted) {
       const d = target.fill - day.thick;
       const name = `${String.fromCharCode(65 + target.i)}${target.j + 1}`;
+      // concrete that's been in a while: how hard it is, and whose it is
+      const l = mixOf(target), many = gs.loads.filter(Boolean).length > 1;
+      const hard = gs.phase === 'pour' && l && target.fill > 20 ? ` · ${Math.floor(l.h)}%${many ? ` · truck ${l.no}` : ''}` : '';
       if (gs.phase === 'pour' && gs.laserOn && laserWorks()) {
         const cls = Math.abs(d) <= 3 ? 'dev-ok' : d > 0 ? 'dev-hi' : 'dev-lo';
-        info.innerHTML = `${name} · <span class="${cls}">${d > 0 ? '+' : ''}${d.toFixed(0)} mm</span>`;
+        info.innerHTML = `${name} · <span class="${cls}">${d > 0 ? '+' : ''}${d.toFixed(0)} mm</span>${hard}`;
       } else if (gs.phase === 'pour') {
-        info.textContent = `${name} · ${target.fill < 5 ? 'empty' : 'looks about right?'}`;
+        info.textContent = `${name} · ${target.fill < 5 ? 'empty' : hard ? hard.slice(3) : 'looks about right?'}`;
       } else {
-        const l = mixOf(target), many = gs.loads.filter(Boolean).length > 1;
         info.textContent = `${name}` + (gs.poured ? ` · ${Math.floor(cellH(target))}%${l && many ? ` · truck ${l.no}` : ''}` : '') + (target.marks.length ? ` · ${target.marks.length} mark${target.marks.length > 1 ? 's' : ''}` : '') + (target.defect ? ' · set in' : '');
       }
     } else info.textContent = nearMarker ? nearMarker.label : '';
@@ -9831,9 +10052,28 @@
       for (let k = 1; k < 4; k++) g.lineTo(pts[k][0], pts[k][1]);
       g.closePath(); g.fill();
     };
-    const v = gs.poured ? Math.round(90 + gs.H * 1.2) : 150;
-    const slabCol = gs.pourStarted ? `rgb(${v},${v},${v + 4})` : '#8c8577';
-    gs.cells.forEach((c) => poly(gx(c.i) - 0.02, gz(c.j) - 0.02, gx(c.i + 1) + 0.02, gz(c.j + 1) + 0.02, slabCol));
+    // the slab square by square: stones and mesh where nothing's poured yet, then dark and wet,
+    // going pale as each truck's concrete goes off
+    gs.cells.forEach((c) => {
+      let col = '#8c8577';
+      if (gs.poured || (gs.pourStarted && c.fill > 20)) { const v = Math.round(90 + cellH(c) * 1.2); col = `rgb(${v},${v},${v + 4})`; }
+      poly(gx(c.i) - 0.02, gz(c.j) - 0.02, gx(c.i + 1) + 0.02, gz(c.j + 1) + 0.02, col);
+    });
+    // the edges that will take the trowel now and haven't had it
+    if (gs.phase === 'pour' || gs.phase === 'wash' || gs.phase === 'cure') {
+      g.strokeStyle = '#ff6b1a'; g.lineWidth = 3.5;
+      g.beginPath();
+      for (const c of gs.cells) {
+        if (!(gs.poured || c.fill > 20) || cellH(c) < 15) continue;
+        for (const [di, dj] of boardsOf(c)) {
+          if (c.edged & sideBit(di, dj)) continue;
+          const x0 = gx(c.i) + (di > 0 ? 1 : 0), z0 = gz(c.j) + (dj > 0 ? 1 : 0);
+          const a = toMap(x0, z0), b = toMap(di ? x0 : x0 + 1, di ? z0 + 1 : z0);
+          g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
+        }
+      }
+      g.stroke();
+    }
     const rpoly = (o, col) => {
       const pts = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => { const [wx, wz] = turnXZ(a * o.hx, b * o.hz, o.ang); return toMap(o.cx + wx, o.cz + wz); });
       g.fillStyle = col; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
@@ -9927,6 +10167,8 @@
       });
     }
     if (cellsDirty) paintCells();
+    // the overlays on the slab go with the tool in hand
+    if (gs.tool !== surfTool) { surfTool = gs.tool; surfDirty = true; }
     surfWait -= dt;
     if (surfDirty && surfWait <= 0) { surfWait = 0.1; refreshSurface(); }
     if (playing && !modalOpen) updateEffects(dt);
@@ -10519,17 +10761,18 @@
   function cellKey(c) {
     let h = 0;
     for (const m of c.marks) h = (h * 31 + Math.round(m.depth * 100) + Math.round(m.x * 10)) | 0;
-    return `${Math.round(c.fill * 2)}|${c.covP ? 1 : 0}${c.covB ? 1 : 0}${c.defect ? 1 : 0}|${c.pan}|${c.blade}|${c.marks.length}|${h}|${c.load}`;
+    return `${Math.round(c.fill * 2)}|${c.covP ? 1 : 0}${c.covB ? 1 : 0}${c.defect ? 1 : 0}${c.edged}|${c.pan}|${c.blade}|${c.marks.length}|${h}|${c.load}`;
   }
   function cellRec(c) {
-    return [c.idx, Math.round(c.fill * 2) / 2, (c.covP ? 1 : 0) | (c.covB ? 2 : 0) | (c.defect ? 4 : 0), c.pan, c.blade,
+    // the flags: pan, blade, set-in, then the edged sides four bits up
+    return [c.idx, Math.round(c.fill * 2) / 2, (c.covP ? 1 : 0) | (c.covB ? 2 : 0) | (c.defect ? 4 : 0) | ((c.edged || 0) << 3), c.pan, c.blade,
       c.marks.map((m) => [m.kind, r2(m.x), r2(m.z), r2(m.rot), r2(m.depth), m.ch || '']), c.load];
   }
   function applyCells(msg) {
     (msg.d || []).forEach((r) => {
       const c = gs.grid[r[0]];
       if (!c) return;
-      c.fill = r[1]; c.covP = !!(r[2] & 1); c.covB = !!(r[2] & 2); c.defect = !!(r[2] & 4); c.pan = r[3]; c.blade = r[4];
+      c.fill = r[1]; c.covP = !!(r[2] & 1); c.covB = !!(r[2] & 2); c.defect = !!(r[2] & 4); c.edged = (r[2] >> 3) & 15; c.pan = r[3]; c.blade = r[4];
       c.marks = r[5].map(([kind, x, z, rot, depth, ch]) => (ch ? { kind, x, z, rot, depth, ch } : { kind, x, z, rot, depth }));
       if (r[6] !== undefined) c.load = r[6];
       net.shadowCells[c.idx] = cellKey(c);
@@ -10626,7 +10869,7 @@
   }
   /** The passes are the host's to call: when the crew between them has been over nine squares in ten. */
   function hostPassWatch() {
-    if (gs.phase !== 'cure' || !gs.poured) return;
+    if (gs.phase !== 'cure' && gs.phase !== 'wash' && gs.phase !== 'pour') return;
     [['covP', 'pan', gs.panPasses], ['covB', 'blade', gs.bladePasses]].forEach(([key, kind, done]) => {
       if (passCoverage(key) < 0.9) return;
       if (done.length >= 3) gs.cells.forEach((c) => { c[key] = false; });
@@ -11009,14 +11252,14 @@
     ['Getting it ready', 'Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door. Walk up, look at one and press Pick up.\nThe jobs glow orange: check the formwork with the hammer, tie loose mesh with the pliers and wire, cut the bar sticking up with the rebar cutter. The laser: set up the tripod, level the head (hold, and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, and check the boards at the corners — knock any that are out.'],
     ['The pump and the line', 'The pump arrives (Wait brings it sooner). Carry the pipes from the pile to the numbered markers, one at a time; the rubber end hose goes on the last one. On a boom pump day there are no pipes: the boom swings over the slab and the pump driver follows your hose with his remote. Mostly.'],
     ['Pouring', 'Pick up the hose at the end of the line. Look at a square and hold the big button: the concrete falls out of the hose\'s mouth onto the spot you\'re looking at, up to about five metres away. Keep it moving — held on one spot it builds a heap, and against the boards it goes over the top into the gravel.\nJust past the boards still counts as the slab; clearly out in the gravel is where it goes, onto the waste line, and the manager rings. Fresh concrete is dark and wet; the task card shows how many cubic metres are in and how many the slab needs.\nThe <b>laser</b> button shows the heights on the slab: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. The <b>float</b> (from the van) levels it while it\'s wet; the <b>shovel</b> moves a heap to where it\'s low, and digs spilled concrete back out of the gravel. Walk in it and it\'s on your boots. When it\'s full, finish the pour.'],
-    ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.'],
-    ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. Orange squares are the ones this pass hasn\'t been over. The small edge trowel does the straight edges; corners and pipe collars are hand-trowel work, down on one knee at the orange rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
+    ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.\nOn a long pour the first end goes off while the last trucks are still coming. The <b>Hardness</b> panel shows up with the first truck: each truck\'s concrete (T1, T2…), and the orange tick on the bar is the hardest part. The map goes paler as it goes off, the square you look at says how hard it is and whose truck it was, and an empty hand does the thumb test. From 15% that end takes the edges and corners, from 25% the pans — put the hose down and trowel it between trucks, but fresh concrete poured over work already done means doing it again.'],
+    ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. With a machine in hand, orange squares are the ones this pass hasn\'t been over, and blue ones are still too soft for it. A pass is done when nine squares in ten have had it, and it\'s judged on how hard each square was when the machine went over it.\n<b>The edges, all the way round</b>: every metre of board needs edging once it\'s 15% hard. Run the small <b>edge trowel</b> along the boards, or kneel with the <b>hand trowel</b> — look at the concrete right against a board and hold, then move along. With either in hand the metres still to do show orange along the boards (blue: too soft yet), and on the map; done ones get a smooth band. Past 85% an edge still closes, but it isn\'t pretty. The corners and pipe collars are hand-trowel jobs at the orange rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
     ['Washing up', 'After the pour, carry every tool to the water tank and hold Wash before the concrete sets on it — two and a half hours and it\'s part of the tool, and chipping it off costs. Your boots too: empty hands at the tank. Every tool goes back to the van, washed, before you go home. The manager checks.'],
     ['Your body', 'Energy goes down all day. Coffee helps; so does the kebab stand, which has its own way of getting back at you.\nYou\'ll need a piss every few hours (sooner with coffee), and a shit after the kebab; the weather panel says when. The <b>toilet</b> is the blue box. The little window over the knob is red when somebody\'s in: pull the knob and they\'ll tell you about it, and they come out when they\'re done. Desperate for a piss? Behind the van — there\'s a ring for it, and sometimes a witness.\nHold on too long and you\'ll know: hopping from foot to foot, cramps that fold you in half. Then it happens. The <b>spare clothes</b> are behind the driver\'s seat in the van — and if it was a shit, hose yourself down at the water tank first. There\'s one pair of spare trousers and one pair of spare boots a day; after that it\'s a bin bag.'],
     ['Your phone', 'Texts and calls come up on the phone in your hand. It can slip out of your pocket, or go flying when you fall: it lands face down (orange case, on the ground, or in the pour) and rings to itself until you go back, look at it and hold the button. Face down on a building site means a cracked screen, often.'],
     ['People, dogs and cats', 'Passers-by, dogs and cats head for your slab: look at them and tap the big button to shout. The finger works on anything you look at, and some of them answer back. The pump and truck drivers are on the clock: stand about doing nothing for eight or ten seconds and they let you know. On a big slab the manager sends a helper. The manager rings anyway. Your family texts.'],
     ['Waiting', '<b>Wait</b> makes time fly: for the pump, for the next truck, standing guard over the slab (you\'re up if something happens), or napping in the van behind the wheel — fastest, and nobody guards the slab. Tap Wait again to get out.'],
-    ['Going home', 'Home at 95% hard, with a pan pass and a blade pass done, every edge, corner and collar trowelled, the laser packed and every tool back in the van, washed. Then the report: flatness, marks, waste, the people you told where to go, how long you played, and the pay slip. Every mistake is on it.'],
+    ['Going home', 'Home at 95% hard, with a pan pass and a blade pass done, every metre of edge, every corner and collar trowelled, the laser packed and every tool back in the van, washed. Then the report: flatness, marks, waste, the people you told where to go, how long you played, and the pay slip. Every mistake is on it.'],
     ['Playing together', '"Play together" on the title, with the phones close by and Bluetooth on (location too, on older phones). One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.'],
     ['Upright or sideways', 'Pour Day plays both ways. Turn the phone sideways for more slab and less thumb; upright gives your thumbs more room.'],
   ];
@@ -11078,6 +11321,8 @@
       get near() { return nearMarker && nearMarker.id; }, get target() { return target && target.idx; }, get input() { return input; },
       get fps() { return fpsNow; }, context: () => context(),
       markers, player, simulate, finishPour, tryGoHome, completePass, nuisance, fall,
+      edgeMetres, edgeWorkLeft, edgeWorkText, firstLoad, slabFinished, SLAB, edgeAll: () => { for (const c of gs.cells) for (const [di, dj] of boardsOf(c)) edgeDone(c, sideBit(di, dj)); }, get edgeSpot() { return edgeSpot && { i: edgeSpot.c.i, j: edgeSpot.c.j, bit: edgeSpot.bit }; },
+      get hardHtml() { return $('#hard').hidden ? null : $('#hardPct').textContent + ' | ' + $('#hardEta').textContent; },
       doMarker(id) {
         const m = markers.find((x) => x.id === id && x.active());
         if (!m) return false;

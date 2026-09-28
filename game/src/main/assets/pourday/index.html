@@ -161,10 +161,15 @@
   #hardBar .pans { left: 25%; width: 40%; border-top: 3px solid rgba(255, 210, 63, 0.9); }
   #hardBar .blades { left: 55%; width: 37%; border-bottom: 3px solid rgba(90, 169, 255, 0.95); }
   #hardBar .m95 { left: 95%; width: 2px; background: var(--laser); box-shadow: 0 0 6px var(--laser); }
+  /* the hardest part of it, when the trucks have drifted apart: the end to trowel first */
+  #hardFirst { position: absolute; top: 1px; bottom: 1px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--hivis); box-shadow: 0 0 6px var(--hivis); transition: left 0.8s ease; }
   .hscale { position: relative; height: 11px; margin-top: 2px; font-size: 8.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .hscale span { position: absolute; transform: translateX(-50%); }
   #hardEta { margin-top: 3px; font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.35; font-variant-numeric: tabular-nums; }
   #hardEta b { color: var(--chalk); }
+  #hardEta .nw { font-style: normal; white-space: nowrap; }
+  /* mid-pour it shares the side with the truck, so it keeps to the point */
+  #hard.mid { padding: 6px 9px; } #hard.mid .hscale { display: none; } #hard.mid .lbl b { font-size: 15px; }
   #truckInfo { padding: 7px 9px 8px; font-size: 11.5px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
   .trk { display: flex; align-items: center; gap: 7px; }
   #truckIco { width: 44px; height: 26px; flex: none; }
@@ -446,6 +451,8 @@
     .wx .ico { width: 11px; height: 11px; }
     #toasts { top: var(--hud-top, 66px); left: 144px; right: 162px; }
     #btnFlip { right: 14px; bottom: 180px; width: 58px; height: 40px; font-size: 22px; }
+    #hud.both #truckSub { display: none; }
+    #hud.both #btnFlip { right: 176px; }
     #phone { left: calc(50% - 175px); bottom: -22px; transform: translateY(118%) rotate(10deg) scale(0.72); }
     #phone.up { transform: rotate(-5deg) scale(0.72); }
     #speaker { top: calc(50% - 74px); }
@@ -474,7 +481,7 @@
     </div>
     <div id="hard" class="panel" hidden>
       <div class="lbl"><span>Hardness</span><b id="hardPct">0%</b></div>
-      <div id="hardBar"><div id="hardFill"></div><div class="win pans"></div><div class="win blades"></div><div class="win m95"></div></div>
+      <div id="hardBar"><div id="hardFill"></div><div class="win pans"></div><div class="win blades"></div><div class="win m95"></div><i id="hardFirst" hidden></i></div>
       <div class="hscale"><span style="left:25%">pans</span><span style="left:55%">blades</span><span style="left:95%">95</span></div>
       <div id="hardEta"></div>
     </div>
