@@ -1275,6 +1275,65 @@
     return Math.max(0.075, 0.181 * fT * fRH * fW * fTh * gs.mixFactor);
   }
   function stageMul(H) { return H < 15 ? 0.6 : H < 85 ? 1.2 : 0.7; }
+
+  // Every truck is a mix of its own, batched at its own time: it starts going off when it lands,
+  // at its own pace — a load with retarder in it lags, a hot one runs ahead. So the slab doesn't
+  // harden as one: the end the first truck filled can take the pans while the last truck's end
+  // is still soup, and each square is as hard as the load it's made of.
+  const MIXES = {
+    standard: { rate: 1.0, say: 'Standard mix.' },
+    retarded: { rate: 0.74, say: 'Retarder in this one: it\'ll set slower than the last.' },
+    accelerated: { rate: 1.32, say: 'Accelerator in it. This one goes off fast. Get it flat quick.' },
+    hot: { rate: 1.15, say: 'It\'s warm from the plant. It\'ll go off quicker.' },
+    wet: { rate: 0.9, say: 'Wetter than the last. Slower, and it bleeds.' },
+  };
+  /** The load a square is made of, if it's made of one yet. */
+  function mixOf(c) { const l = c && c.load ? gs.loads[c.load] : null; return l && l.at !== null ? l : null; }
+  /** How hard one square is: the load it's made of, or the slab's figure if nothing's landed there. */
+  function cellH(c) { const l = mixOf(c); return l ? l.h : gs.H; }
+  /** Hardness at a point: the squares round it, so the edge between two loads isn't a cliff. */
+  function hAt(x, z) {
+    let n = 0, sum = 0;
+    for (const [dx, dz] of [[-0.35, -0.35], [0.35, -0.35], [-0.35, 0.35], [0.35, 0.35]]) {
+      const c = cellAt(x + dx, z + dz);
+      if (c) { sum += cellH(c); n++; }
+    }
+    return n ? sum / n : gs.H;
+  }
+  /** The slab as one figure, for the clock and the HUD: the average over the concrete. */
+  function meanH() {
+    let n = 0, sum = 0;
+    for (const c of gs.cells) if (c.fill > 20) { sum += cellH(c); n++; }
+    return n ? sum / n : gs.H;
+  }
+  /** The softest and hardest of it. */
+  function spreadH() {
+    let lo = 100, hi = 0;
+    for (const c of gs.cells) if (c.fill > 20) { const h = cellH(c); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+    return hi >= lo ? [lo, hi] : [gs.H, gs.H];
+  }
+  /** A load's worth landing in a square: whichever load has put most in, the square is. */
+  function addLoad(c, mm) {
+    const n = gs.truckNo;
+    if (!n || !gs.loads[n]) return;
+    const l = gs.loads[n];
+    if (l.at === null) l.at = gs.t;
+    if (!c.load) { c.load = n; c.loadMm = mm; return; }
+    if (c.load === n) { c.loadMm += mm; return; }
+    // fresh on top of a load that has started to go off: the two won't marry
+    const old = gs.loads[c.load];
+    if (old && old.h > 12 && c.fill > 30) coldJoint(old, l);
+    c.otherMm += mm;
+    if (c.otherMm > c.loadMm) { c.load = n; [c.loadMm, c.otherMm] = [c.otherMm, c.loadMm]; }
+  }
+  let coldSaid = 0;
+  function coldJoint(old, now) {
+    gs.coldJoint += 1;
+    if (performance.now() < coldSaid) return;
+    coldSaid = performance.now() + 30000;
+    toast(`Truck ${now.no} going onto truck ${old.no}'s concrete, which has started to set (${Math.floor(old.h)}%). A cold joint: they won't bond properly.`, 'warn');
+    if (!gs.coldJointNoted) { gs.coldJointNoted = true; remember(`Truck ${now.no} went onto truck ${old.no}'s concrete after it had started to set. There's a cold joint in the slab now.`); }
+  }
   function etaTo(target) {
     if (gs.H >= target) return 0;
     let H = gs.H, t = gs.t, m = 0;
@@ -1288,10 +1347,11 @@
     // the whole grid, for looking a square up by where it is; `cells` is just the slab's
     const grid = [];
     for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
-      grid.push({ i, j, idx: j * NX + i, on: !!(day && day.on[j * NX + i]), fill: 0, pan: 0, blade: 0, covP: false, covB: false, marks: [], defect: false });
+      grid.push({ i, j, idx: j * NX + i, on: !!(day && day.on[j * NX + i]), fill: 0, pan: 0, blade: 0, covP: false, covB: false, marks: [], defect: false, load: 0, loadMm: 0, otherMm: 0 });
     }
     const cells = grid.filter((c) => c.on);
     return {
+      loads: [], coldJoint: 0,
       t: 4 * 60 + 45, phase: 'title',
       arrived: 0,
       energy: 76, cups: 3, sausage: false,
@@ -1481,9 +1541,21 @@
     const leg = cyl(0.02, 0.02, 1.5, 0xd8b23a, Math.cos(a) * 0.25, 0.7, Math.sin(a) * 0.25, tripod);
     leg.rotation.z = Math.cos(a) * 0.3;
     leg.rotation.x = -Math.sin(a) * 0.3;
+    // the lower, telescoped half of each leg, and the steel point it's stamped in with
+    const low = cyl(0.014, 0.014, 0.5, 0x9ea3a8, Math.cos(a) * 0.43, 0.22, Math.sin(a) * 0.43, tripod, 6);
+    low.rotation.copy(leg.rotation);
+    cyl(0.012, 0.001, 0.07, 0x5a5f64, Math.cos(a) * 0.5, 0.02, Math.sin(a) * 0.5, tripod, 5);
   });
+  cyl(0.12, 0.12, 0.04, 0xd8b23a, 0, 1.4, 0, tripod, 14);
   const laserHead = new THREE.Group();
   box(0.22, 0.2, 0.22, 0xd84a2a, 0, 0, 0, laserHead);
+  // the glass band the beam comes out of, the cap over it, a carry handle, the battery door
+  cyl(0.085, 0.085, 0.07, 0x1d2a33, 0, 0.13, 0, laserHead, 16);
+  cyl(0.09, 0.09, 0.025, 0x2a2d31, 0, 0.18, 0, laserHead, 16);
+  box(0.16, 0.02, 0.03, 0x2a2d31, 0, 0.23, 0, laserHead);
+  [-1, 1].forEach((sd) => box(0.02, 0.05, 0.03, 0x2a2d31, sd * 0.07, 0.205, 0, laserHead));
+  box(0.12, 0.1, 0.01, 0x3a3d41, 0, -0.02, 0.113, laserHead);
+  box(0.05, 0.02, 0.012, 0x3ec16a, 0.03, 0.05, 0.114, laserHead);
   const beam = new THREE.Mesh(new THREE.BoxGeometry(14, 0.01, 0.01), new THREE.MeshBasicMaterial({ color: 0xff3b30, transparent: true, opacity: 0.55 }));
   beam.position.x = 7;
   laserHead.add(beam);
@@ -2548,6 +2620,31 @@
       return t;
     });
     const edgeCells = spots.filter((c) => !isOn(c.i - 1, c.j) || !isOn(c.i + 1, c.j) || !isOn(c.i, c.j - 1) || !isOn(c.i, c.j + 1));
+    // Where the laser's height comes from — a painted peg outside the slab with a nail in it — and
+    // the corners of the formwork it checks the boards at. Most are near enough; now and then one
+    // has been set a centimetre out, and has to be knocked up or down before the pour.
+    const corners = site.edges.filter((e) => e.kind === 'corner');
+    const picked = [];
+    for (const e of corners.sort(() => Math.random() - 0.5)) {
+      if (picked.length >= (site.area > 60 ? 4 : 3)) break;
+      if (picked.some((q) => hyp(q.x, q.z, e.x, e.z) < 3)) continue;
+      picked.push(e);
+    }
+    const bad = chance(0.55) ? irnd(0, Math.max(0, picked.length - 1)) : -1;
+    site.levelChecks = picked.map((e, k) => ({
+      x: e.x - e.inX * 0.75, z: e.z - e.inZ * 0.75,
+      name: `${e.inZ > 0 ? 'north' : 'south'}-${e.inX > 0 ? 'west' : 'east'} corner`,
+      off: k === bad ? Math.round(pick([-1, 1]) * rnd(7, 16)) : Math.round(rnd(-3, 3)),
+      done: false, fixed: false,
+    }));
+    site.bench = P(site.box.x0 - 1.8, site.box.z0 - 1.6);
+    {
+      const peg = new THREE.Group();
+      for (let k = 0; k < 4; k++) cyl(0.035, 0.035, 0.1, k % 2 ? 0xf2f0ea : 0xd8392f, 0, 0.05 + k * 0.1, 0, peg, 8);
+      cyl(0.008, 0.008, 0.05, 0x9ea3a8, 0, 0.43, 0, peg, 6);
+      peg.position.set(site.bench.x, 0, site.bench.z);
+      siteGroup.add(peg);
+    }
     site.cuts = edgeCells.filter((c) => !site.ties.some((t) => t.i === c.i && t.j === c.j)).slice(0, site.area > 100 ? 3 : site.area > 25 ? 2 : 1).map((c) => {
       const t = { x: gx(c.i) + 0.5 + rnd(-0.25, 0.25), z: gz(c.j) + 0.5 + rnd(-0.25, 0.25), done: false, i: c.i, j: c.j };
       t.bar = cyl(0.009, 0.009, 0.8, RUST, t.x, ry + 0.4, t.z, siteGroup, 5);
@@ -2840,12 +2937,17 @@
   camera.add(hands);
   const viewTools = {};
   let pliersBody = null;           // the pliers inside their group, which twists without the coil
+  let rxLight = null;              // the receiver's window: blue low, red high, green on height
   (function buildViewTools() {
     const hose = new THREE.Group();
     const h1 = cyl(0.035, 0.04, 0.55, 0x1d1f22, -0.02, -0.02, -0.3, hose);
     h1.rotation.x = Math.PI / 2 - 0.35;
     const nozzle = cyl(0.045, 0.045, 0.08, 0x44484d, -0.02, 0.07, -0.56, hose);
     nozzle.rotation.x = Math.PI / 2 - 0.35;
+    const clamp1 = cyl(0.05, 0.05, 0.025, 0xb9bec3, -0.02, 0.05, -0.5, hose, 12);
+    clamp1.rotation.x = Math.PI / 2 - 0.35;
+    const tape = cyl(0.043, 0.043, 0.12, 0x2c6ad6, -0.02, -0.06, -0.2, hose, 10);
+    tape.rotation.x = Math.PI / 2 - 0.35;
     viewTools.hose = hose;
     const carry = new THREE.Group();
     const cp = cyl(0.07, 0.07, 3, 0x6d7278, -0.3, 0.05, -0.2, carry, 10);
@@ -2918,6 +3020,19 @@
     cu.position.set(-0.3, 0.0, -0.5);
     cu.userData.parts = cub.userData;
     viewTools.cutter = cu;
+    // the levelling staff, upright in the hand, with the receiver clipped on at slab height
+    const st = new THREE.Group();
+    for (let k = 0; k < 8; k++) box(0.04, 0.25, 0.02, k % 2 ? 0xf2f0ea : 0xf2b705, 0, -0.5 + k * 0.25, 0, st);
+    for (let k = 0; k < 16; k++) box(0.012, 0.006, 0.021, 0x1d1f22, -0.012, -0.55 + k * 0.125, 0.001, st);
+    const rx = new THREE.Group();
+    box(0.09, 0.14, 0.04, 0xff6b1a, 0, 0, 0.03, rx);
+    box(0.06, 0.03, 0.005, 0x2a2d31, 0, 0.03, 0.052, rx);
+    rxLight = box(0.05, 0.018, 0.006, 0x3a3d41, 0, -0.03, 0.052, rx);
+    rx.position.y = 0.35;
+    st.add(rx);
+    st.position.set(-0.12, 0.05, -0.28);
+    st.rotation.set(0.05, 0, -0.08);
+    viewTools.staff = st;
     Object.values(viewTools).forEach((o) => { o.visible = false; hands.add(o); });
   })();
 
@@ -2988,6 +3103,18 @@
     box(0.34 * k, 0.24 * k, 0.28 * k, 0xff6b1a, 0, 0.2 + 0.14 * k, 0, g);
     box(0.27 * k, 0.1 * k, 0.22 * k, 0x1d1f22, 0, 0.2 + 0.31 * k, -0.02, g);
     cyl(0.04, 0.04, 0.05, 0x999999, 0.18 * k, 0.2 + 0.16 * k, 0, g).rotation.z = Math.PI / 2;
+    // the engine's bits: the fuel tank and its cap, the air filter, the exhaust and its heat
+    // shield, the pull-start with its handle hanging off the side
+    box(0.2 * k, 0.09 * k, 0.16 * k, 0xd8392f, -0.04 * k, 0.2 + 0.4 * k, 0.02, g);
+    cyl(0.025 * k, 0.025 * k, 0.03, 0x1d1f22, 0.02 * k, 0.2 + 0.46 * k, 0.04, g, 8);
+    cyl(0.06 * k, 0.06 * k, 0.08 * k, 0x1d1f22, 0.15 * k, 0.2 + 0.32 * k, -0.1 * k, g, 12);
+    const muffler = cyl(0.045 * k, 0.045 * k, 0.16 * k, 0xb9bec3, -0.19 * k, 0.2 + 0.2 * k, -0.08 * k, g, 10);
+    muffler.rotation.x = Math.PI / 2;
+    box(0.02, 0.1 * k, 0.18 * k, 0x6d7278, -0.24 * k, 0.2 + 0.2 * k, -0.08 * k, g);
+    const pull = cyl(0.07 * k, 0.07 * k, 0.04, 0x2a2d31, 0.19 * k, 0.2 + 0.18 * k, 0.1 * k, g, 12);
+    pull.rotation.z = Math.PI / 2;
+    box(0.02, 0.06, 0.015, 0x111111, 0.22 * k, 0.2 + 0.1 * k, 0.1 * k, g);
+    box(0.13 * k, 0.06 * k, 0.005, 0xf2f0ea, 0, 0.2 + 0.18 * k, 0.141 * k, g);
     // the handle runs back to waist height, where the operator's hands are
     const grip = 1.75;
     const handle = cyl(0.02, 0.02, Math.hypot(grip - 0.1, 0.5), DARK, 0, 0.7, (grip + 0.1) / 2, g);
@@ -2995,6 +3122,12 @@
     box(0.56, 0.03, 0.03, DARK, 0, 0.95, grip, g);
     box(0.08, 0.04, 0.04, 0x111111, 0.24, 0.95, grip, g);
     box(0.08, 0.04, 0.04, 0x111111, -0.24, 0.95, grip, g);
+    // the throttle lever at the right hand, its cable down the handle, and the blade-pitch crank
+    box(0.03, 0.015, 0.09, 0xd8392f, 0.2, 0.975, grip - 0.06, g);
+    const cable = cyl(0.006, 0.006, Math.hypot(grip - 0.1, 0.5), 0x1d1f22, 0.03, 0.72, (grip + 0.1) / 2, g, 5);
+    cable.rotation.x = Math.atan2(grip - 0.1, 0.5);
+    cyl(0.012, 0.012, 0.16, 0x6d7278, 0, 1.03, grip - 0.12, g, 6);
+    box(0.12, 0.018, 0.018, 0x1d1f22, 0, 1.11, grip - 0.12, g);
     scene.add(g);
     return { group: g, rotors: [r], R, grip, twin: false };
   }
@@ -3015,15 +3148,28 @@
     });
     box(0.9, 0.06, 0.08, 0x2a2d31, 0, 0.4, -0.58, g);
     [-0.35, 0.35].forEach((x) => box(0.12, 0.06, 0.03, 0xfff3d6, x, 0.4, -0.63, g));
+    // vents in the engine cover, the fuel cap, a seat cushion, the rubber grips on the sticks
+    for (let n = 0; n < 5; n++) box(0.6, 0.012, 0.02, 0x1d1f22, 0, 0.62 + n * 0.05, 0.001, g);
+    cyl(0.04, 0.04, 0.03, 0x1d1f22, -0.3, 0.78, 0.15, g, 10);
+    box(0.46, 0.05, 0.4, 0x2a2d31, 0, 0.9, 0.3, g);
+    [-0.42, 0.42].forEach((x) => cyl(0.02, 0.02, 0.1, 0x111111, x, 0.84, -0.12, g, 8));
+    // an orange beacon on a stalk, lit and turning while the engine runs
+    cyl(0.012, 0.012, 0.35, 0x2a2d31, 0.4, 1.2, 0.5, g, 6);
+    const beacon = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.08, 12), new THREE.MeshLambertMaterial({ color: 0xff8a1a, emissive: 0x000000 }), 0.4, 1.41, 0.5, g);
     scene.add(g);
-    return { group: g, rotors: [left, right], R, grip: 0, twin: true };
+    return { group: g, rotors: [left, right], R, grip: 0, twin: true, beacon };
   }
   const machines = { trowelSmall: mkTrowel(0.3), trowelBig: mkTrowel(0.46), rideOn: mkRideOn() };
   Object.values(machines).forEach((m) => { m.group.visible = false; m.spin = 0; });
 
   // a magnesium float on a pole, for levelling the pour and smoothing out prints
   const floatTool = new THREE.Group();
-  box(0.9, 0.02, 0.2, 0xaeb4b9, 0, 0.012, 0, floatTool);
+  box(0.8, 0.02, 0.2, 0xaeb4b9, 0, 0.012, 0, floatTool);
+  [-0.4, 0.4].forEach((x) => cyl(0.1, 0.1, 0.02, 0xaeb4b9, x, 0.012, 0, floatTool, 16));
+  [-0.07, 0.07].forEach((z) => box(0.86, 0.02, 0.012, 0x8e959b, 0, 0.03, z, floatTool));
+  box(0.1, 0.05, 0.06, 0x5a5f64, 0, 0.05, 0, floatTool);
+  const fpv = cyl(0.018, 0.018, 0.1, 0x2a2d31, 0, 0.08, 0, floatTool, 8);
+  fpv.rotation.x = Math.PI / 2;
   floatTool.visible = false;
   scene.add(floatTool);
   const floatPole = cyl(0.016, 0.016, 1, 0xc79a52, 0, 0, 0, scene, 8);
@@ -3236,11 +3382,15 @@
         tone(t, 'triangle', 520, 505, 0.22, 0.002, 0.45, dest); tone(t, 'triangle', 1370, 1330, 0.12, 0.002, 0.3, dest);
         burst(t, 'highpass', 2500, 0.6, 0.2, 0.001, 0.05, dest);
         break;
-      case 'hammer':
-        tone(t, 'sine', 170, 70, 0.4, 0.002, 0.14, dest);
-        burst(t, 'bandpass', 1600, 1.2, 0.35, 0.001, 0.07, dest);
-        tone(t, 'triangle', 1900, 1850, 0.05, 0.001, 0.12, dest);
+      case 'hammer': {
+        const k = rnd(0.88, 1.12);
+        tone(t, 'sine', 170 * k, 70 * k, 0.4, 0.002, 0.14, dest);
+        burst(t, 'bandpass', 1600 * k, 1.2, 0.35, 0.001, 0.07, dest);
+        tone(t, 'triangle', 1900 * k, 1850 * k, 0.05, 0.001, 0.12, dest);
+        // the stake answering, a hollow wooden knock
+        tone(t + 0.01, 'sine', 420 * k, 380 * k, 0.12, 0.002, 0.09, dest);
         break;
+      }
       case 'beep': tone(t, 'sine', 2900, 2900, 0.12, 0.005, 0.07, dest); tone(t + 0.13, 'sine', 2900, 2900, 0.12, 0.005, 0.07, dest); break;
       case 'honk':
         [0, 0.45].forEach((d) => { tone(t + d, 'square', 390, 385, 0.1, 0.02, 0.32, dest); tone(t + d, 'square', 494, 490, 0.08, 0.02, 0.32, dest); });
@@ -3283,6 +3433,12 @@
       case 'engine': tone(t, 'sawtooth', 48, 70, 0.18, 0.3, 1.8, dest); burst(t, 'lowpass', 300, 0.5, 0.25, 0.3, 1.8, dest); break;
       case 'shout': { const g2 = ac.createGain(); g2.gain.value = 1.8; g2.connect(dest); voice(t, rnd(95, 115), 3, g2); break; }
       case 'pickup': burst(t, 'bandpass', 2600, 2, 0.14, 0.003, 0.08, dest); tone(t + 0.02, 'triangle', 900, 700, 0.06, 0.003, 0.08, dest); break;
+      case 'pick_steel': { const f = rnd(1900, 2600); tone(t, 'triangle', f, f * 0.98, 0.1, 0.001, 0.25, dest); tone(t, 'sine', f * 2.7, f * 2.6, 0.04, 0.001, 0.18, dest); burst(t, 'highpass', 3500, 0.7, 0.12, 0.001, 0.04, dest); break; }
+      case 'pick_alu': tone(t, 'sine', 780, 760, 0.12, 0.002, 0.5, dest); tone(t, 'sine', 1960, 1930, 0.05, 0.002, 0.35, dest); burst(t, 'bandpass', 1800, 1.5, 0.1, 0.002, 0.05, dest); break;
+      case 'pick_rubber': burst(t, 'lowpass', 500, 0.8, 0.25, 0.01, 0.18, dest); tone(t, 'sine', 120, 80, 0.15, 0.005, 0.15, dest); break;
+      case 'pick_shovel': burst(t, 'bandpass', 1400, 1.2, 0.2, 0.004, 0.2, dest); tone(t + 0.02, 'triangle', 620, 600, 0.07, 0.002, 0.3, dest); break;
+      case 'stab': burst(t, 'bandpass', 900, 1.1, 0.28, 0.005, 0.18, dest); burst(t + 0.05, 'lowpass', 420, 1, 0.3, 0.02, 0.25, dest); break;
+      case 'slop': burst(t, 'lowpass', 600, 1.2, 0.35, 0.01, 0.3, dest); tone(t, 'sine', 180, 60, 0.18, 0.01, 0.25, dest); break;
       case 'putdown': tone(t, 'sine', 160, 80, 0.25, 0.003, 0.12, dest); burst(t, 'lowpass', 700, 0.7, 0.18, 0.003, 0.1, dest); break;
       case 'thunk': tone(t, 'sine', 95, 45, 0.4, 0.004, 0.22, dest); burst(t, 'lowpass', 500, 0.7, 0.3, 0.004, 0.18, dest); tone(t, 'triangle', 420, 400, 0.05, 0.002, 0.25, dest); break;
       case 'pullstart':
@@ -3301,6 +3457,7 @@
         break;
       }
       case 'rx': tone(t, 'square', 2900, 2900, 0.035, 0.002, 0.045, dest); break;
+      case 'grade': tone(t, 'square', 2900, 2900, 0.04, 0.004, 0.55, dest); tone(t, 'sine', 1450, 1450, 0.03, 0.004, 0.55, dest); break;
       case 'ufo': {
         // a theremin with opinions
         const o = ac.createOscillator(), g2 = ac.createGain(), v = ac.createOscillator(), vd = ac.createGain();
@@ -3364,15 +3521,28 @@
     // the power trowel: a small petrol engine and the disc hissing over the paste
     make('trowel', (g) => {
       const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 62;
+      const o2 = ac.createOscillator(); o2.type = 'square'; o2.frequency.value = 31;
       const lp = filt('lowpass', 900, 1.5);
-      const og = ac.createGain(); og.gain.value = 0.5;
+      const og = ac.createGain(); og.gain.value = 0.45;
       lfo(9, 6, o.frequency);
-      chain(o, lp, og, g); o.start();
-      loops._trowelOsc = o;
+      // the firing: each stroke a puff, so the note putters instead of humming
+      const fire = ac.createGain(); fire.gain.value = 0.6;
+      const fl = ac.createOscillator(); fl.type = 'square'; fl.frequency.value = 26;
+      const fd = ac.createGain(); fd.gain.value = 0.4; fl.connect(fd); fd.connect(fire.gain); fl.start();
+      chain(o, lp, fire, og, g); o.start();
+      const o2g = ac.createGain(); o2g.gain.value = 0.2; chain(o2, filt('lowpass', 300, 1), o2g, g); o2.start();
+      loops._trowelOsc = o; loops._trowelOsc2 = o2; loops._trowelFire = fl;
+      // the engine rattling on its mounts
+      const rn = noiseSrc(true); const rg = ac.createGain(); rg.gain.value = 0.12;
+      lfo(13, 0.1, rg.gain); chain(rn, filt('bandpass', 1700, 2), rg, g); rn.start();
       const n = noiseSrc(true); const bp = filt('bandpass', 2200, 0.9);
       const ng = ac.createGain(); ng.gain.value = 0;
       chain(n, bp, ng, g); n.start();
       loops._trowelHiss = ng;
+      const cn = noiseSrc(true); const cg = ac.createGain(); cg.gain.value = 0;
+      const cl = ac.createGain(); cl.gain.value = 0.5; lfo(22, 0.5, cl.gain);
+      chain(cn, filt('highpass', 3400, 0.8), cl, cg, g); cn.start();
+      loops._trowelClatter = cg;
     });
     // concrete out of the hose, and water out of the other hose
     make('pour', (g) => {
@@ -3380,6 +3550,9 @@
       const gl = ac.createGain(); gl.gain.value = 0.7;
       lfo(7.5, 0.35, gl.gain);
       chain(n, lp, gl, g); n.start();
+      const o = ac.createOscillator(); o.frequency.value = 55;
+      const th = ac.createGain(); th.gain.value = 0.2; lfo(1.2, 0.2, th.gain);
+      chain(o, th, g); o.start();
     });
     make('water', (g) => { const n = noiseSrc(true); chain(n, filt('bandpass', 2600, 0.5), g); n.start(); });
     // a float or a hand trowel scraping
@@ -3388,6 +3561,10 @@
       const sg = ac.createGain(); sg.gain.value = 0.6;
       lfo(2.2, 0.4, sg.gain);
       chain(n, bp, sg, g); n.start();
+      // the grit under the blade: a thinner, rougher layer that comes and goes faster
+      const n2 = noiseSrc(true); const g2 = ac.createGain(); g2.gain.value = 0.25;
+      lfo(5.3, 0.22, g2.gain);
+      chain(n2, filt('bandpass', 3100, 2.2), g2, g); n2.start();
     });
     // weather and night
     make('wind', (g) => {
@@ -3493,8 +3670,14 @@
     const running = live && mpos.on && input.action && lastCtxKind === 'trowel';
     const ride = gs.tool === 'rideOn', small = gs.tool === 'trowelSmall';
     loopTo('trowel', live && mpos.on && !gs.fitting ? (running ? 0.32 : 0.12) * (ride ? 1.4 : 1) : 0, mpos.x, mpos.z);
-    if (loops._trowelOsc) loops._trowelOsc.frequency.setTargetAtTime((running ? 96 : 58) * (ride ? 0.72 : small ? 1.25 : 1), ac.currentTime, 0.25);
-    if (loops._trowelHiss) loops._trowelHiss.gain.setTargetAtTime(running ? (gs.tool === 'pans' ? 0.5 : 0.28) : 0, ac.currentTime, 0.1);
+    // revs up under the throttle, and sags when the disc digs into soft concrete
+    const lug = running && mpos.on ? digFactor() * 0.25 : 0;
+    const rpm = (running ? 96 * (1 - lug) : 58) * (ride ? 0.72 : small ? 1.25 : 1);
+    if (loops._trowelOsc) loops._trowelOsc.frequency.setTargetAtTime(rpm, ac.currentTime, 0.25);
+    if (loops._trowelOsc2) loops._trowelOsc2.frequency.setTargetAtTime(rpm / 2, ac.currentTime, 0.25);
+    if (loops._trowelFire) loops._trowelFire.frequency.setTargetAtTime(rpm * 0.42, ac.currentTime, 0.25);
+    if (loops._trowelHiss) loops._trowelHiss.gain.setTargetAtTime(running ? (fitted() === 'pans' ? 0.5 : 0.28) : 0, ac.currentTime, 0.1);
+    if (loops._trowelClatter) loops._trowelClatter.gain.setTargetAtTime(running && fitted() === 'blades' ? 0.18 : 0, ac.currentTime, 0.1);
     loopTo('pour', live && streamOn ? 0.45 : 0);
     const anim = live ? markerAnim() : null;
     loopTo('water', anim === 'wash' ? 0.22 : 0, POS.ibc.x, POS.ibc.z);
@@ -3699,13 +3882,13 @@
   // A mark is kept as where it is and how deep it went, and drawn over the surface every time the
   // surface is redrawn — so a machine wearing it down shows it fading, pass by pass, not all at once.
   /** How deep a print goes: to the laces in fresh concrete, a dent at 60%. */
-  function markDepth() { return clamp((65 - gs.H) / 45, 0.3, 1); }
+  function markDepth(c) { return clamp((65 - (c ? cellH(c) : gs.H)) / 45, 0.3, 1); }
   function stamp(kind, x, z, rot, silent, scale) {
     const c = cellAt(x, z);
-    if (!c || !gs.poured || gs.H >= 60 || c.fill < 20) return false;
+    if (!c || !gs.poured || cellH(c) >= 60 || c.fill < 20) return false;
     // enough to read as trampled; more would only make every redraw slower
     if (c.marks.length >= 16) return false;
-    c.marks.push({ kind, x, z, rot: rot || 0, depth: markDepth() * (scale || 1) });
+    c.marks.push({ kind, x, z, rot: rot || 0, depth: markDepth(c) * (scale || 1) });
     surfDirty = true;
     if (!silent) gs.stats.prints++;
     return true;
@@ -3767,6 +3950,27 @@
     return Math.sqrt(s / gs.cells.length);
   }
   function laserWorks() { return gs.prep.laser && gs.laserBattery; }
+  /** Every corner checked: the laser is set. A board still out stays out, and shows in the slab. */
+  function laserMaybeReady() {
+    if (gs.laserSetup !== 3 || site.levelChecks.some((c) => !c.done)) return;
+    gs.laserSetup = 4;
+    gs.prep.laser = true;
+    const out = site.levelChecks.filter((c) => Math.abs(c.off) > 4 && !c.fixed);
+    toast(out.length ? `Laser set. The ${out[0].name} board is still ${Math.abs(out[0].off)} mm out — knock it before the pour, or the slab follows it.` : 'Laser set, boards on height. Now it\'s a laser, not a spinning ornament.', out.length ? 'warn' : 'good');
+  }
+  /** Boards left out of height when the pour starts: the screed follows them, so the slab does too. */
+  function boardsOut() {
+    if (gs.boardsApplied || !site.levelChecks) return;
+    gs.boardsApplied = true;
+    site.levelChecks.filter((c) => Math.abs(c.off) > 4 && !c.fixed).forEach((c) => {
+      gs.cells.forEach((cell) => {
+        const d = hyp(gx(cell.i) + 0.5, gz(cell.j) + 0.5, c.x, c.z);
+        if (d < 3) cell.fill += c.off * (1 - d / 3);
+      });
+      remember(`The ${c.name} board was ${Math.abs(c.off)} mm ${c.off < 0 ? 'low' : 'high'} and nobody fixed it. The slab ${c.off < 0 ? 'dips' : 'rises'} to meet it.`);
+    });
+    cellsDirty = true;
+  }
   /** How the slab came out: mean thickness against the order, and how wavy it is around its own mean. */
   function slabReport() {
     const n = gs.cells.length || 1;
@@ -3790,10 +3994,12 @@
     const laser = gs.laserOn && laserWorks() && !gs.pourDone;
     const base = tmpC.copy(WET).lerp(DRY, clamp(gs.H / 70, 0, 1));
     const devC = new THREE.Color();
+    const loads = gs.loads.some((l) => l && l.at !== null);
     for (const k of slabVerts) {
       const x = slabPos.getX(k), z = slabPos.getZ(k);
       const f = fillAt(x, z);
       slabPos.setY(k, surfY(f));
+      if (loads) base.copy(WET).lerp(DRY, clamp(hAt(x, z) / 70, 0, 1));
       if (laser) {
         const d = f - day.thick;
         devC.copy(Math.abs(d) <= 3 ? DEV.ok : d > 0 ? (d > 10 ? DEV.vhi : DEV.hi) : (d < -10 ? DEV.vlo : DEV.lo));
@@ -3951,7 +4157,21 @@
       const step = Math.min(dm, 2);
       gs.t += step;
       dm -= step;
-      if (gs.poured && gs.H < 100) {
+      const landed = gs.loads.filter((l) => l && l.at !== null);
+      if (landed.length) {
+        for (const l of landed) {
+          if (l.h >= 100) continue;
+          const b = l.h;
+          l.h = Math.min(100, l.h + cureRate(gs.t) * stageMul(l.h) * l.rate * step);
+          if (Math.floor(b) !== Math.floor(l.h)) cellsDirty = true;
+        }
+        if (gs.poured) {
+          const before = gs.H;
+          gs.H = Math.min(100, meanH());
+          milestone(before, gs.H);
+          loadMilestones();
+        }
+      } else if (gs.poured && gs.H < 100) {
         const before = gs.H;
         gs.H = Math.min(100, gs.H + cureRate(gs.t) * stageMul(gs.H) * step);
         milestone(before, gs.H);
@@ -3974,7 +4194,7 @@
           gs.nextNuisance = gs.t + rnd(22, 50);
           nuisance(away);
         }
-        if (gs.H >= 80) hardenMarks();
+        if (spreadH()[1] >= 80) hardenMarks();
       }
       if (modalOpen) break;
     }
@@ -3994,6 +4214,18 @@
     // at 95% whatever marks are left are in it for good; enough of them and somebody has to tell
     // the manager. That somebody is you.
     if (hit(95) && !gs.managerCalled && marksLeft() > 15) { gs.managerCalled = true; at(now < 100 ? gs.t + 3 : gs.t, managerCall); }
+  }
+  /** When the loads are far apart: the first part ready for the pans while the rest isn't. */
+  function loadMilestones() {
+    const [lo, hi] = spreadH();
+    if (hi - lo < 5) return;
+    const soft = gs.loads.filter((l) => l && l.at !== null).sort((a, b) => a.h - b.h)[0];
+    const hard = gs.loads.filter((l) => l && l.at !== null).sort((a, b) => b.h - a.h)[0];
+    if (!soft || !hard || soft === hard) return;
+    const note = (key, text) => { if (gs.milestones[key]) return; gs.milestones[key] = true; if (gs.waitMode) { gs.waitMode = null; showWait(); } toast(text, 'good'); };
+    if (hi >= 25 && lo < 25) note('p1', `Truck ${hard.no}'s concrete takes the pans now (${Math.floor(hard.h)}%). Truck ${soft.no}'s is still at ${Math.floor(soft.h)}% — the pans dig in there.`);
+    if (hi >= 55 && lo < 55) note('b1', `Truck ${hard.no}'s end is ready for blades. Truck ${soft.no}'s isn't (${Math.floor(soft.h)}%).`);
+    if (hi >= 85 && lo < 70) note('late1', `Truck ${hard.no}'s concrete is nearly set (${Math.floor(hard.h)}%). Whatever isn't closed there stays open.`);
   }
   function marksLeft() { return gs.cells.reduce((n, c) => n + c.marks.length, 0); }
   function managerCall() {
@@ -4021,7 +4253,7 @@
   }
   function hardenMarks() {
     gs.cells.forEach((c) => {
-      if (c.marks.length && !c.defect) { c.defect = true; surfDirty = true; }
+      if (c.marks.length && !c.defect && cellH(c) >= 80) { c.defect = true; surfDirty = true; }
     });
   }
 
@@ -4746,7 +4978,7 @@
         toast(fresh(L.vanSpill).replace('{t}', names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]) + ' The rest is on the ramp; the machines are at the bottom of it.' + (day.area > 50 ? ' The ride-on came too.' : ''), 'warn');
       };
     });
-    addMarker('laserFetch', POS.vanSide, 'Take the laser', 1.2, () => gs.prep.unload && gs.laserInVan && !gs.prep.laser && !gs.carrying && vanBack.open >= 1, () => {
+    addMarker('laserFetch', POS.vanSide, 'Take the laser', 1.2, () => gs.prep.unload && gs.laserInVan && !gs.laserSetup && !gs.carrying && vanBack.open >= 1, () => {
       gs.laserInVan = false;
       if (!netRemote) gs.carrying = 'laser';
       sfx('clank', POS.vanSide.x, POS.vanSide.z);
@@ -4759,14 +4991,46 @@
         if (!netRemote && chance(0.18)) setTimeout(() => breakHandTool('hammer', fresh(L.hammerBreaks), 18), 1200);
       }, { tool: 'hammer' });
     });
-    addMarker('laser', POS.tripod, 'Set up laser', 2.6, () => !gs.prep.laser && gs.carrying === 'laser', () => {
+    // The laser isn't set and go: the tripod goes up, the head is levelled until the bubble sits,
+    // a height is taken off the benchmark, and the boards are checked against it at the corners.
+    addMarker('laser', POS.tripod, 'Set up the tripod', 2.2, () => !gs.laserSetup && gs.carrying === 'laser', () => {
       if (!netRemote) gs.carrying = null;
-      gs.prep.laser = true;
+      gs.laserSetup = 1;
       tripod.visible = true;
-      sfx('beep', POS.tripod.x, POS.tripod.z);
-      toast(`Laser set to ${day.thick} mm above the base. It spins. You feel like a scientist.`, 'good');
+      sfx('clank', POS.tripod.x, POS.tripod.z);
+      toast('Tripod up, legs stamped in. Now level the head: the bubble has to sit in the middle.');
       return true;
     }, { tool: 'hands' });
+    addMarker('laserLevel', P(POS.tripod.x + 0.4, POS.tripod.z), 'Level the laser', 999, () => gs.laserSetup === 1, () => {
+      gs.laserSetup = 2;
+      sfx('beep', POS.tripod.x, POS.tripod.z);
+      toast('Level. The head spins up and beeps: it has found itself. Now a height off the benchmark — the painted peg with the nail.', 'good');
+      return true;
+    }, { tool: 'hands' });
+    addMarker('laserBench', site.bench, 'Shoot the benchmark', 2.4, () => gs.laserSetup === 2, () => {
+      gs.laserSetup = 3;
+      gs.benchRead = (1.25 + ((site.bench.x * 7.3 + site.bench.z * 3.1) % 1 + 1) % 1 * 0.4).toFixed(3);
+      sfx('grade');
+      toast(`Benchmark: the staff reads ${gs.benchRead} m. The slab's top is ${day.thick} mm over the base — the receiver's set to that. Now the boards, corner by corner.`, 'good');
+      return true;
+    }, { tool: 'hands', w: 2.4 });
+    site.levelChecks.forEach((c, k) => {
+      addMarker('laserCheck' + k, c, 'Check the height', 1.8, () => gs.laserSetup === 3 && !c.done, () => {
+        c.done = true;
+        sfx('grade', c.x, c.z);
+        const o = c.off, mm = `${o > 0 ? '+' : ''}${o} mm`;
+        if (Math.abs(o) <= 4) toast(`The ${c.name}: ${mm}. Near enough.`);
+        else { toast(`The ${c.name}: ${mm} — ${o < 0 ? 'low' : 'high'}. That board needs knocking ${o < 0 ? 'up' : 'down'} before the pour.`, 'warn'); if (!netRemote) me(pick(['"Who set that board? Oh. Me."', '"A centimetre out. Of course it is."', '"And that\'s why we check."'])); }
+        laserMaybeReady();
+        return true;
+      }, { tool: 'hands', w: 2.2 });
+      addMarker('boardFix' + k, P(c.x + 0.25, c.z + 0.25), `Knock the board ${c.off < 0 ? 'up' : 'down'}`, 2.4, () => c.done && Math.abs(c.off) > 4 && !c.fixed && !gs.pourStarted, () => {
+        c.fixed = true;
+        sfx('hammer', c.x, c.z);
+        toast(`Stake knocked, board ${c.off < 0 ? 'up' : 'down'}, shot again: on height. ${pick(['Beautiful.', 'The laser is pleased. Nobody else is.', 'That\'s a centimetre of slab you won\'t get called about.'])}`, 'good');
+        return true;
+      }, { tool: 'hammer', w: 2.4 });
+    });
     site.ties.forEach((t, k) => {
       addMarker('tie' + k, t, 'Tie the mesh', 1.6, () => !t.done && !gs.pourStarted, () => {
         t.done = true;
@@ -4872,6 +5136,12 @@
   function truckArrives(no) {
     gs.truckNo = no;
     gs.truck = { no, left: loadOf(no), waiting: true };
+    if (!gs.loads[no]) {
+      const kind = no === 1 ? weighted([[0.7, 'standard'], [0.12, 'retarded'], [0.1, 'hot'], [0.08, 'accelerated']])
+        : weighted([[0.45, 'standard'], [0.17, 'retarded'], [0.14, 'accelerated'], [0.14, 'hot'], [0.1, 'wet']]);
+      gs.loads[no] = { no, kind, rate: MIXES[kind].rate * rnd(0.94, 1.06), h: 0, at: null };
+      if (no > 1 && kind !== 'standard') setTimeout(() => toast(`Truck ${no}'s ticket: ${MIXES[kind].say}`, 'warn'), 2500);
+    }
     gs.fastForward = null;
     mixer.position.set(70, 0, day.boom ? BOOM_AT.z : POS.mixer.z);
     // backwards, the chute first: it empties into the pump's hopper, at the back of the pump
@@ -4984,6 +5254,7 @@
   }
 
   function finishPour() {
+    boardsOut();
     const share = filledShare();
     const dev = rms();
     const left = gs.truck ? gs.truck.left : 0;
@@ -5088,14 +5359,14 @@
       toast('Fresh batteries. The laser beeps like nothing happened. You know what happened.', 'good');
     });
     // the laser goes back in its case, the receiver with it: nothing left to beep at
-    addMarker('laserPack', POS.tripod, 'Pack up the laser', 2.4, () => gs.pourDone && gs.prep.laser && !gs.laserPacked && gs.carrying !== 'laser' && tripod.visible, () => {
+    addMarker('laserPack', POS.tripod, 'Pack up the laser', 2.4, () => gs.pourDone && (gs.prep.laser || gs.laserSetup) && !gs.laserPacked && gs.carrying !== 'laser' && tripod.visible, () => {
       tripod.visible = false;
       if (!netRemote) gs.carrying = 'laser';
       gs.laserOn = false;
       sfx('clank', POS.tripod.x, POS.tripod.z);
       toast('Laser off, tripod folded. To the van with it, receiver and all.');
     }, { tool: 'hands' });
-    addMarker('laserVan', POS.vanSide, 'Laser in the van', 1.2, () => gs.carrying === 'laser' && gs.prep.laser, () => {
+    addMarker('laserVan', POS.vanSide, 'Laser in the van', 1.2, () => gs.carrying === 'laser' && (gs.prep.laser || gs.laserSetup), () => {
       if (!netRemote) gs.carrying = null;
       gs.laserPacked = true;
       gs.laserInVan = true;
@@ -5107,13 +5378,13 @@
     site.edges.forEach((e, k) => {
       // straight edges take the small machine or the hand trowel; corners and collars only the hand
       const straight = e.kind === 'edge';
-      addMarker('edge' + k, e, e.label, () => (gs.tool === 'trowelSmall' ? 1.0 : 2.2), () => gs.phase === 'cure' && gs.H >= 18 && !e.done, () => {
-        if (gs.H < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
+      addMarker('edge' + k, e, e.label, () => (gs.tool === 'trowelSmall' ? 1.0 : 2.2), () => gs.phase === 'cure' && hAt(e.x, e.z) >= 18 && !e.done, () => {
+        if (hAt(e.x, e.z) < 25) { toastOnce('edgesoft', 'Too soft. You\'re drawing in it, not troweling it. Give it a bit.', 'warn', 20000); return false; }
         e.done = true;
         gs.edgesDone++;
         if (!netRemote) { addDirt(gs.tool, 0.12); troweledOut(e.x, e.z, player.x, player.z); }
         const left = site.edges.length - gs.edgesDone;
-        if (gs.H > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
+        if (hAt(e.x, e.z) > 85) { gs.edgeNotes.push('late'); toast(`${e.label}: too hard to close properly. It'll do. It won't be pretty.`, 'warn'); }
         else toastOnce('edge', `${e.label} done. ${left ? `${left} to go.` : 'That\'s all the edges.'}`, 'good', 8000);
         return true;
       }, { w: 2.2, tool: straight ? ['handTrowel', 'trowelSmall'] : 'handTrowel', byMachine: straight });
@@ -5189,7 +5460,7 @@
     if (!gs.panPasses.length) missing.push('No pan pass yet.');
     if (!gs.bladePasses.length) missing.push('No blade pass yet.');
     if (gs.edgesDone < site.edges.length) missing.push(`${site.edges.length - gs.edgesDone} edges, corners or collars still to trowel.`);
-    if (gs.prep.laser && !gs.laserPacked) missing.push('The laser is still out. Pack it up and put it in the van.');
+    if ((gs.prep.laser || gs.laserSetup) && !gs.laserPacked) missing.push('The laser is still out. Pack it up and put it in the van.');
     if (missing.length) {
       modal({ personal: true, who: 'Foreman, in your head', title: 'Not yet.', text: missing.join('\n'), choices: [{ label: 'Fine', primary: true }] });
       return false;
@@ -5437,6 +5708,7 @@
     if (gs.thrown && gs.thrown.hand + gs.thrown.machine) cut('thrown', gs.thrown.hand * 5 + gs.thrown.machine * 35, { n: gs.thrown.hand + gs.thrown.machine });
     if (gs.stats.hell) lines.push([fillIn(pick(P2.hell), { n: gs.stats.hell }), 0]);
     if (gs.stats.flips) lines.push([`Fingers given: ${gs.stats.flips}. No charge, but HR has been told`, 0]);
+    if (gs.coldJoint > 3) lines.push([pick(['Cold joint between two loads. The slab will crack along it, at your expense, eventually', 'Two loads that never met properly. Like your parents']), -60]);
     if (gs.spilled > 0.02) lines.push([`Concrete over the formwork: ${gs.spilled.toFixed(2)} m³ in the gravel. The worms have a floor now`, 0]);
     if (gs.stats.pukeSlab) lines.push([pick(['Grinding out a "personal contribution" from the slab', 'Removing last night from the concrete', 'Biohazard surcharge. The client asked what the yellow bit is']), -40 * gs.stats.pukeSlab]);
     else if (gs.stats.puked) lines.push([pick(['Hangover: no charge. The foreman smelled it from the road', 'Threw up on the gravel. The gravel didn\'t complain. Nobody else is happy either']), 0]);
@@ -5500,6 +5772,8 @@
     sfx(isMachine(id) ? 'thunk' : 'putdown');
     if (!quiet) toastOnce('put' + id, `${TOOLS[id].name} down. It'll be here when you come back for it.`, '', 60000);
   }
+  // what each hand tool sounds like, picked up and put down
+  const TOOL_MAT = { hammer: 'steel', pliers: 'steel', cutter: 'steel', handTrowel: 'steel', shovel: 'shovel', float: 'alu', hose: 'rubber' };
   function pickUp(id) {
     if (held()) putDown(true);
     const t = gs.tools[id];
@@ -5514,7 +5788,7 @@
     } else if (isMachine(id)) {
       player.yaw = Math.atan2(-(t.x - player.x), -(t.z - player.z));
       sfx('pullstart');
-    } else sfx('pickup');
+    } else sfx(TOOL_MAT[id] ? 'pick_' + TOOL_MAT[id] : 'pickup');
     const fit = isMachine(id) ? ` ${gs.fit[id] === 'pans' ? 'Pans' : 'Blades'} on it.` : '';
     toastOnce('take' + id, `${TOOLS[id].name} in hand.${fit}`, '', 45000);
   }
@@ -5597,7 +5871,7 @@
       }
       if (t === 'hands' && gs.tools.hose && gs.tools.hose.in === 'ground') return { kind: 'none', label: 'Get the hose' };
     }
-    if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || (gs.phase === 'cure' && gs.H < 30))) {
+    if (t === 'shovel' && (gs.phase === 'pour' || gs.phase === 'wash' || (gs.phase === 'cure' && (target ? cellH(target) : gs.H) < 30))) {
       if (target && target.fill > day.thick + 4) return { kind: 'shovel', label: 'Hold: shovel off the extra' };
       // it digs wherever there's wet concrete to dig — including where it shouldn't
       if (target && target.fill > 25) return { kind: 'shovel', label: target.fill < day.thick - 15 ? 'Hold: dig the hole deeper' : 'Hold: shovel (it\'s level already)' };
@@ -5651,7 +5925,8 @@
     const nb = neighbours(target);
     const spread = gs.mixState === 'soup' ? 0.4 : 0.25;
     target.fill += add * (1 - spread);
-    nb.forEach((n) => { n.fill += (add * spread) / nb.length; });
+    addLoad(target, add * (1 - spread));
+    nb.forEach((n) => { n.fill += (add * spread) / nb.length; addLoad(n, (add * spread) / nb.length); });
     const m3 = add / 1000;
     if (isGuest()) net.pourM3 += m3;
     else { gs.truck.left -= m3; gs.pouredM3 += m3; }
@@ -6107,15 +6382,16 @@
    */
   function repairTick(c, dt) {
     const hand = gs.tool === 'handTrowel';
-    addDirt(gs.tool, dt * (gs.H < 70 ? 0.04 : 0.008));
+    const Hc = cellH(c);
+    addDirt(gs.tool, dt * (Hc < 70 ? 0.04 : 0.008));
     const limit = hand ? 70 : 50;
     paintT -= dt;
-    if (gs.H < limit && paintT <= 0) {
+    if (Hc < limit && paintT <= 0) {
       paintT = 0.08;
       if (hand) paintBlade(target._hx, target._hz, 0.16); else paintFloat(floatTool.position.x, floatTool.position.z, player.yaw);
     }
     if (!c.marks.length || c.defect) return;
-    if (gs.H >= limit) {
+    if (Hc >= limit) {
       if (input.actionTapped) toastOnce('toohard' + gs.tool, hand ? 'Too hard even for the hand trowel. The machine might, until about 80%.' : 'Too hard for the float now. The hand trowel or the machine can still do it, until 70–80%.', 'warn', 30000);
       return;
     }
@@ -6154,13 +6430,13 @@
   // the power trowels
   const mpos = { x: 0, z: 0, on: false };   // the middle of the machine in hand, set every frame
   /** 0 when the concrete carries the machine, up to 1 when it is still soft enough to dig into. */
-  function digFactor() {
-    const H = gs.H, heavy = gs.tool === 'rideOn' ? 5 : 0;
+  function digFactor(Hat) {
+    const H = Hat === undefined ? (mpos.on ? hAt(mpos.x, mpos.z) : gs.H) : Hat, heavy = gs.tool === 'rideOn' ? 5 : 0;
     return fitted() === 'blades' ? clamp((50 - H) / 20, 0, 1) : clamp((25 + heavy - H) / 15, 0, 1);
   }
   let dugWarn = 0;
   function trowelTick(dt) {
-    const id = gs.tool, pans = fitted() === 'pans', H = gs.H;
+    const id = gs.tool, pans = fitted() === 'pans', H = mpos.on ? hAt(mpos.x, mpos.z) : gs.H;
     if (gs.broken[id]) { toastOnce('dead' + id, `The ${TOOLS[id].name.toLowerCase()} is dead. A spare is on its way from the yard.`, 'warn', 30000); return; }
     gs.runSecs[id] = (gs.runSecs[id] || 0) + dt;
     if (day.breakTool === id && gs.runSecs[id] > day.breakAfter && !gs.broken[id + 'Died']) { gs.broken[id + 'Died'] = true; breakMachine(id); return; }
@@ -6169,19 +6445,22 @@
     if (input.actionTapped && pans && gs.panPasses.length >= 3) toastOnce('pans3', 'Three pan passes is plenty. Now you\'re just polishing the pans.', '', 60000);
     if (input.actionTapped && !pans && gs.bladePasses.length >= 3) toastOnce('blades3', 'Three blade passes. It shines like a bowling alley. You can stop.', '', 60000);
     const key = passKey();
-    const dig = digFactor();
-    // how much the surface still gives: everything at 50%, nothing at 80%. The pan wipes prints
-    // 60% faster than the blades: one steady pass takes a fresh boot print out with the pan.
-    const give = clamp((80 - H) / 30, 0, 1);
-    const wear = (pans ? 1.6 : 1.0) * give * dt;
+    const dig = digFactor(H);
     const ds = discs();
-    let covered = false;
+    let covered = false, digAny = 0;
     for (const disc of ds) {
       const R = disc.r;
       for (const c of gs.cells) {
         const ccx = SLAB.x0 + c.i + 0.5, ccz = SLAB.z0 + c.j + 0.5;
         const d = hyp(ccx, ccz, disc.x, disc.z);
         if (d > 1.4) continue;
+        // each square as hard as its own load: the machine digs into one and glides over the next
+        const Hc = cellH(c), dig = digFactor(Hc);
+        digAny = Math.max(digAny, dig);
+        // how much the surface still gives: everything at 50%, nothing at 80%. The pan wipes prints
+        // 60% faster than the blades: one steady pass takes a fresh boot print out with the pan.
+        const give = clamp((80 - Hc) / 30, 0, 1);
+        const wear = (pans ? 1.6 : 1.0) * give * dt;
         // marks: worn down where the disc actually is, harder the closer to its middle
         if (c.marks.length && !c.defect && wear > 0) {
           let gone = false;
@@ -6215,6 +6494,9 @@
         }
       }
     }
+    if (digAny > 0 && dig <= 0) {
+      if (performance.now() > dugWarn) { dugWarn = performance.now() + 20000; toast('Soft patch: a later load, still behind the rest. The machine dips into it.', 'warn'); }
+    }
     if (dig > 0) {
       gs.stats.dug += dt * dig;
       if (performance.now() > dugWarn) {
@@ -6242,10 +6524,11 @@
   }
   function thumb(c) {
     if (!gs.poured) { toast('It\'s still a building site, not a slab. Nothing to test.'); return; }
-    const line = L.thumb.find(([h]) => gs.H < h)[1];
-    sfx(gs.H < 60 ? 'soft' : 'hard');
-    toast(`${Math.floor(gs.H)}% · ${line}`);
-    if (gs.H < 30) stamp('thumb', SLAB.x0 + c.i + 0.5 + rnd(-0.3, 0.3), SLAB.z0 + c.j + 0.5 + rnd(-0.3, 0.3), 0);
+    const Hc = cellH(c), l = mixOf(c);
+    const line = L.thumb.find(([h]) => Hc < h)[1];
+    sfx(Hc < 60 ? 'soft' : 'hard');
+    toast(`${Math.floor(Hc)}%${l && gs.loads.filter(Boolean).length > 1 ? ` (truck ${l.no})` : ''} · ${line}`);
+    if (Hc < 30) stamp('thumb', SLAB.x0 + c.i + 0.5 + rnd(-0.3, 0.3), SLAB.z0 + c.j + 0.5 + rnd(-0.3, 0.3), 0);
   }
 
   // ------------------------------------------------------------------ controls
@@ -6315,6 +6598,12 @@
   });
   btnAction.addEventListener('pointermove', (e) => {
     if (e.pointerId !== actId) return;
+    if (lvl.on) {
+      lvl.bx += (e.clientX - actX) * 0.006;
+      lvl.by += (e.clientY - actY) * 0.006;
+      actX = e.clientX; actY = e.clientY;
+      return;
+    }
     const sens = (e.pointerType === 'mouse' ? 0.0045 : 0.0058) * lookSens;
     player.yaw -= (e.clientX - actX) * sens;
     player.pitch = clamp(player.pitch - (e.clientY - actY) * sens * (invertY ? -1 : 1), -1.35, 1.1);
@@ -6554,6 +6843,32 @@
     }
   }
 
+  const lvl = { bx: 0, by: 0, ok: 0, on: false, beep: 0, started: false };
+  function levelTick(dt) {
+    const el = $('#level');
+    if (!lvl.started) { const a = rnd(0, Math.PI * 2), r = rnd(0.55, 0.9); lvl.bx = Math.cos(a) * r; lvl.by = Math.sin(a) * r; lvl.started = true; }
+    lvl.on = true;
+    el.hidden = false;
+    // the head settles a little by itself, and the tripod creeps; your thumb does the rest
+    lvl.bx += (rnd(-1, 1) * 0.5 - lvl.bx * 0.15) * dt;
+    lvl.by += (rnd(-1, 1) * 0.5 - lvl.by * 0.15) * dt;
+    const r = Math.hypot(lvl.bx, lvl.by);
+    if (r > 1) { lvl.bx /= r; lvl.by /= r; }
+    const inside = r < 0.2;
+    lvl.ok = inside ? lvl.ok + dt : Math.max(0, lvl.ok - dt * 2);
+    lvl.beep -= dt;
+    if (inside && lvl.beep <= 0) { lvl.beep = 0.28; sfx('rx'); }
+    $('#bubble').style.transform = `translate(${(lvl.bx * 38).toFixed(1)}px, ${(lvl.by * 38).toFixed(1)}px)`;
+    $('#bubble').classList.toggle('in', inside);
+    $('#levelFill').style.width = `${Math.min(100, (lvl.ok / 1.4) * 100)}%`;
+    if (lvl.ok >= 1.4 && nearMarker && nearMarker.id === 'laserLevel') {
+      const m = nearMarker;
+      lvl.on = false; el.hidden = true;
+      if (m.done() !== false) netMarker(m.id);
+      if (!m.active()) m.group.visible = false;
+    }
+  }
+  function levelOff() { if (lvl.on) { lvl.on = false; $('#level').hidden = true; } }
   let lastCtxKind = '';
   const btnState = { idle: null, label: null, fill: null, tool: null, alt: null, wait: null };
   const btnTool = $('#btnTool'), btnAlt = $('#btnLaser');
@@ -6564,6 +6879,8 @@
     const ctx = context();
     if (!ctx || ctx.kind !== lastCtxKind) holdT = 0;
     lastCtxKind = ctx ? ctx.kind : '';
+    if (input.action && ctx && ctx.kind === 'marker' && nearMarker && nearMarker.id === 'laserLevel') levelTick(dt);
+    else levelOff();
     if (input.action && ctx && ctx.kind !== 'none') {
       if (gs.waitMode === 'guard') { gs.waitMode = null; showWait(); }
       doAction(ctx, dt);
@@ -6806,7 +7123,8 @@
     // the drum turns about its own axis: slowly one way to keep the load mixed, faster the other
     // way to bring it up and out while it pours
     if (mixer.visible) drumSpin.rotation.x += dt * (streamOn ? -2.4 : 0.7);
-    if (tripod.visible) laserHead.rotation.y += dt * 6;
+    if (tripod.visible && gs.laserSetup !== 1) laserHead.rotation.y += dt * 6;
+    laserHead.rotation.z = gs.laserSetup === 1 ? 0.12 + Math.sin(toolT * 1.3) * 0.02 : 0;
     beam.visible = gs.laserOn && laserWorks();
     // blowout drains the edge
     if (gs.blowout && gs.phase === 'pour' && !isGuest()) {
@@ -7048,7 +7366,7 @@
   // ------------------------------------------------------------------ tools, moving
   let toolT = 0, cupT = 0, lastSwing = 0, kneel = 0, wasKneeling = false;
   // a tool that has just come into your hands comes up into view from below, not out of thin air
-  let equipT = 0, equipped = 'hands', shovelPh = 0, lastCut = 0;
+  let equipT = 0, equipped = 'hands', shovelPh = 0, lastCut = 0, staffBeep = 0;
   const smooth = (a, b, t) => { const k = clamp(t, 0, 1); return a + (b - a) * k * k * (3 - 2 * k); };
   // the shovel's stroke, as poses: stab in, lever up with a load, lift across, tip it out, back
   const SHOVEL_POSES = [
@@ -7076,6 +7394,7 @@
     if (id.startsWith('tie')) return 'tie';
     if (id.startsWith('cut')) return 'cut';
     if (id === 'wash') return 'wash';
+    if (id === 'laserBench' || id.startsWith('laserCheck')) return 'staff';
     return null;
   }
   function onTarp() { return false; }
@@ -7123,7 +7442,8 @@
       pv.rotation.set(rx, ry, rz);
       const load = viewTools.shovel.userData.load;
       if (load) load.visible = shovelPh > 0.36 && shovelPh < 0.76;
-      if (was < 0.2 && shovelPh >= 0.2) sfx('wet');
+      if (was < 0.2 && shovelPh >= 0.2) sfx('stab');
+      if (was < 0.72 && shovelPh >= 0.72) sfx('slop');
       if (was < 0.74 && shovelPh >= 0.74 && target) {
         // the load leaves the blade, off to the side
         const o = camera.localToWorld(new THREE.Vector3(-0.35, -0.2, -0.9));
@@ -7138,6 +7458,15 @@
     }
     viewTools.pliers.visible = t === 'pliers';
     viewTools.cutter.visible = t === 'cutter';
+    // the staff: up, the receiver hunting for the beam, beeping faster as it closes in, then steady
+    viewTools.staff.visible = anim === 'staff';
+    if (anim === 'staff') {
+      const frac = clamp(holdT / Math.max(0.1, holdOf(nearMarker)), 0, 1);
+      viewTools.staff.position.y = 0.05 + Math.sin(frac * Math.PI * 3) * 0.05 * (1 - frac);
+      staffBeep -= dt;
+      if (staffBeep <= 0) { staffBeep = lerp(0.45, 0.07, frac); sfx('rx'); }
+      rxLight.material = lam(frac > 0.85 ? 0x3ec16a : Math.sin(toolT * 20) > 0 ? 0x3e8ed8 : 0xd84a2a);
+    }
     // the hose kicks with every stroke of the pump
     if (viewTools.hose.visible) {
       const kick = (streamOn || anim === 'wash') && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.025 : 0;
@@ -7261,14 +7590,15 @@
         r.pan.visible = fit === 'pans';
         r.blades.visible = fit === 'blades';
         // the blades tilt up as the concrete gets harder, the way a finisher sets them
-        r.blades.children.forEach((arm) => { arm.children[0].rotation.x = 0.04 + clamp((gs.H - 55) / 40, 0, 1) * 0.16; });
+        r.blades.children.forEach((arm) => { arm.children[0].rotation.x = 0.04 + clamp((hAt(tl.x, tl.z) - 55) / 40, 0, 1) * 0.16; });
       });
+      if (m.beacon) m.beacon.material.emissive.setHex(on || (inHand && !gs.fitting) ? (Math.sin(toolT * 9) > 0.2 ? 0xff6a00 : 0x401800) : 0x000000);
       const buzz = inHand && !CALM && !gs.fitting ? (on ? Math.sin(toolT * 71) * 0.004 : Math.sin(toolT * 43) * 0.0015) : 0;
       m.group.position.set(tl.x, groundY(tl.x, tl.z) + buzz, tl.z);
       // tipped back on its handle while the pans or blades are changed
       const tip = gs.fitting && gs.fitting.id === id ? -0.35 : 0;
       m.group.rotation.set(m.twin ? 0 : tip, tl.yaw, on && !CALM ? Math.sin(toolT * 11) * 0.012 : 0, 'YXZ');
-      if (on && gs.H < 70 && chance(dt * 30 * m.rotors.length)) {
+      if (on && hAt(tl.x, tl.z) < 70 && chance(dt * 30 * m.rotors.length)) {
         const d = discs()[irnd(0, m.rotors.length - 1)];
         const a = rnd(0, Math.PI * 2);
         const px = d.x + Math.cos(a) * d.r, pz = d.z + Math.sin(a) * d.r;
@@ -7312,7 +7642,12 @@
       const p = gs.prep, left = [];
       if (!p.unload) left.push('open the van');
       if (p.form.includes(false)) left.push('check the formwork (hammer)');
-      if (!p.laser) left.push(gs.laserInVan ? 'take the laser out of the van and set it up' : 'set up the laser');
+      if (!p.laser) {
+        const st = gs.laserSetup || 0;
+        left.push(st === 0 ? (gs.laserInVan ? 'take the laser out of the van and set up the tripod' : 'set up the tripod') : st === 1 ? 'level the laser (bubble in the middle)'
+          : st === 2 ? 'shoot the benchmark (the painted peg)' : `check the board heights (${site.levelChecks.filter((c) => !c.done).length} corners left)`);
+      }
+      if (site.levelChecks && site.levelChecks.some((c) => c.done && Math.abs(c.off) > 4 && !c.fixed)) left.push('knock the board that\'s out back to height (hammer)');
       if (site.ties.some((t) => !t.done)) left.push('tie the loose mesh (pliers & wire)');
       if (site.cuts.some((t) => !t.done)) left.push('cut the bar sticking up (rebar cutter)');
       return left;
@@ -7382,7 +7717,8 @@
     const hard = $('#hard');
     hard.hidden = !gs.poured;
     if (gs.poured) {
-      $('#hardPct').textContent = `${Math.floor(gs.H)}%`;
+      const [lo, hi] = spreadH();
+      $('#hardPct').textContent = hi - lo >= 3 ? `${Math.floor(lo)}–${Math.floor(hi)}%` : `${Math.floor(gs.H)}%`;
       $('#hardFill').style.width = `${gs.H}%`;
       const eta = gs.H < 25 ? `Pans in <b>${dur(etaTo(25))}</b>` : gs.H < 55 ? `Blades in <b>${dur(etaTo(55))}</b>` : gs.H < 95 ? `95% in <b>${dur(etaTo(95))}</b>` : '<b>Hard enough to leave</b>';
       const passes = gs.phase === 'cure' ? `<br>Pans ${gs.panPasses.length} · blades ${gs.bladePasses.length} · edges ${gs.edgesDone}/${site.edges.length}<br>Flatness <b>±${rms().toFixed(1)} mm</b>` : '';
@@ -7428,7 +7764,8 @@
       } else if (gs.phase === 'pour') {
         info.textContent = `${name} · ${target.fill < 5 ? 'empty' : 'looks about right?'}`;
       } else {
-        info.textContent = `${name}` + (target.marks.length ? ` · ${target.marks.length} mark${target.marks.length > 1 ? 's' : ''}` : '') + (target.defect ? ' · set in' : '');
+        const l = mixOf(target), many = gs.loads.filter(Boolean).length > 1;
+        info.textContent = `${name}` + (gs.poured ? ` · ${Math.floor(cellH(target))}%${l && many ? ` · truck ${l.no}` : ''}` : '') + (target.marks.length ? ` · ${target.marks.length} mark${target.marks.length > 1 ? 's' : ''}` : '') + (target.defect ? ' · set in' : '');
       }
     } else info.textContent = nearMarker ? nearMarker.label : '';
     drawMap();
@@ -8092,11 +8429,11 @@
   function cellKey(c) {
     let h = 0;
     for (const m of c.marks) h = (h * 31 + Math.round(m.depth * 100) + Math.round(m.x * 10)) | 0;
-    return `${Math.round(c.fill * 2)}|${c.covP ? 1 : 0}${c.covB ? 1 : 0}${c.defect ? 1 : 0}|${c.pan}|${c.blade}|${c.marks.length}|${h}`;
+    return `${Math.round(c.fill * 2)}|${c.covP ? 1 : 0}${c.covB ? 1 : 0}${c.defect ? 1 : 0}|${c.pan}|${c.blade}|${c.marks.length}|${h}|${c.load}`;
   }
   function cellRec(c) {
     return [c.idx, Math.round(c.fill * 2) / 2, (c.covP ? 1 : 0) | (c.covB ? 2 : 0) | (c.defect ? 4 : 0), c.pan, c.blade,
-      c.marks.map((m) => [m.kind, r2(m.x), r2(m.z), r2(m.rot), r2(m.depth), m.ch || ''])];
+      c.marks.map((m) => [m.kind, r2(m.x), r2(m.z), r2(m.rot), r2(m.depth), m.ch || '']), c.load];
   }
   function applyCells(msg) {
     (msg.d || []).forEach((r) => {
@@ -8104,6 +8441,7 @@
       if (!c) return;
       c.fill = r[1]; c.covP = !!(r[2] & 1); c.covB = !!(r[2] & 2); c.defect = !!(r[2] & 4); c.pan = r[3]; c.blade = r[4];
       c.marks = r[5].map(([kind, x, z, rot, depth, ch]) => (ch ? { kind, x, z, rot, depth, ch } : { kind, x, z, rot, depth }));
+      if (r[6] !== undefined) c.load = r[6];
       net.shadowCells[c.idx] = cellKey(c);
     });
     if ((msg.d || []).length) { cellsDirty = true; surfDirty = true; }
@@ -8165,7 +8503,7 @@
     let ready;
     if (/^pipe\d$/.test(id)) ready = gs.pipes === Number(id.slice(4));
     else if (id === 'laserFetch') ready = gs.laserInVan;
-    else if (id === 'laser') ready = !gs.prep.laser;
+    else if (id === 'laser') ready = !gs.laserSetup;
     else if (id === 'laserVan') ready = !gs.laserPacked;
     else if (id === 'laserPack') ready = !gs.laserPacked && tripod.visible;
     else if (id === 'wash') ready = true;
@@ -8210,7 +8548,9 @@
     const crew = [['H', net.name].concat(Object.values(myState()))];
     net.crew.forEach((c) => { if (c.id !== 'H') crew.push([c.id, c.name, c.tx, c.tz, c.yaw, c.tool, c.act, c.ax, c.az, c.flip, c.prints, c.falls, c.flips]); });
     return {
-      t: 'snap', tm: r2(gs.t), ph: gs.phase, pz: (modalOpen && modalOpen.who === 'Paused') || settingsOpen ? 1 : 0, H: r2(gs.H), pa: gs.pumpAt, nt: gs.nextTruckAt || 0, ar: gs.arrived, pe: gs.pourEnd,
+      t: 'snap', tm: r2(gs.t), ph: gs.phase, pz: (modalOpen && modalOpen.who === 'Paused') || settingsOpen ? 1 : 0, H: r2(gs.H),
+      ls: gs.laserSetup || 0, lc: (site.levelChecks || []).map((c) => (c.done ? 1 : 0) + (c.fixed ? 2 : 0)).join(''),
+      ld: gs.loads.map((l) => (l ? [l.kind, r2(l.h), l.at === null ? -1 : r2(l.at), r4(l.rate)] : 0)), pa: gs.pumpAt, nt: gs.nextTruckAt || 0, ar: gs.arrived, pe: gs.pourEnd,
       fl: [gs.poured, gs.pourStarted, gs.pourDone, gs.washed, gs.gaveUp, gs.laserInVan, gs.laserBattery, gs.laserPacked, gs.pumpHere, gs.pipesGone, gs.prep.unload, gs.prep.laser].map((v) => (v ? 1 : 0)).join(''),
       fm: gs.prep.form.map((v) => (v ? 1 : 0)).join(''),
       pipes: gs.pipes, bl: gs.blocked, bo: gs.blowout ? [gs.blowout.name, r2(gs.blowout.p.x), r2(gs.blowout.p.z)] : 0,
@@ -8238,6 +8578,9 @@
     gs.t = s.tm;
     if (gs.phase !== 'morning' || s.ph !== 'prep') gs.phase = s.ph;
     gs.H = s.H; gs.pumpAt = s.pa; gs.nextTruckAt = s.nt; gs.pourEnd = s.pe;
+    if (s.ls > (gs.laserSetup || 0)) { gs.laserSetup = s.ls; if (s.ls >= 1 && !gs.laserPacked) tripod.visible = true; }
+    if (s.lc && site.levelChecks) s.lc.split('').forEach((v, k) => { const c = site.levelChecks[k]; if (c) { c.done = c.done || !!(v & 1); c.fixed = c.fixed || !!(v & 2); } });
+    if (s.ld) s.ld.forEach((l, no) => { if (l) gs.loads[no] = { no, kind: l[0], h: l[1], at: l[2] < 0 ? null : l[2], rate: l[3] }; });
     if (dm > 0 && dm < 240) {
       gs.energy = clamp(gs.energy - 0.04 * dm, 0, 100);
       if (gs.phase !== 'morning') needsTick(dm);
@@ -8536,7 +8879,7 @@
     modal({
       personal: true,
       who: 'How to play', title: 'The short version.',
-      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.\n\nIt plays upright or sideways: turn the phone to landscape for a wider view of the slab.\n\nWith co-workers: "Play together" on the title, phones close by with Bluetooth on. One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.',
+      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: set up the tripod, level the head (hold the button and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, then check the boards at the corners and knock any that are out. On the slab: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nEvery truck is a new mix and starts setting when it lands, at its own pace: the end the first truck filled is ready sooner than the last. The thumb test and the square you aim at tell you how hard that bit is.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.\n\nIt plays upright or sideways: turn the phone to landscape for a wider view of the slab.\n\nWith co-workers: "Play together" on the title, phones close by with Bluetooth on. One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.',
       choices: [{ label: 'Back to work', primary: true }],
     });
   }
@@ -8622,6 +8965,8 @@
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
       toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
+      setupLaser: () => { gs.carrying = null; gs.laserInVan = false; gs.laserSetup = 4; gs.prep.laser = true; tripod.visible = true; site.levelChecks.forEach((c) => { c.done = true; c.fixed = true; }); },
+      get lvl() { return lvl; }, get levelChecks() { return site.levelChecks; },
       retchNow: () => startRetch(), get retch() { return retch; }, hangoverNow: () => hangoverNow(), trip: () => trip(),
       mishapNow: () => { mishapAt = 1; duckUntil = 0; updateMishaps(); }, rantNow: () => { rantAt = 1; duckUntil = 0; updateManager(); },
       get spilled() { return gs.spilled || 0; }, openSettings: () => openSettings(),
