@@ -112,7 +112,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // Pour Day with co-workers, phone to phone: Nearby Connections finds the other phones over
-    // Bluetooth and talks over Wi-Fi Direct or Bluetooth, no server and no signal needed.
-    implementation("com.google.android.gms:play-services-nearby:19.1.0")
+    // Pour Day, the break-time game: shared with the Pour Day app for people outside the company.
+    implementation(project(":game"))
 }

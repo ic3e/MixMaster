@@ -13,7 +13,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-SRC = 'app/src/main/java'
+# MixMaster, the game module it shares with the Pour Day app, and the Pour Day app itself.
+SRCS = ('app/src/main/java', 'game/src/main/java', 'pourday/src/main/java')
 RES = 'app/src/main/res'
 
 # Members of the layout scopes and of Modifier itself: these need no import.
@@ -26,7 +27,7 @@ IMPLICIT = {'getValue', 'setValue', 'provideDelegate', 'plusAssign', 'minusAssig
 
 
 def kotlin_files():
-    return sorted(glob.glob(f'{SRC}/**/*.kt', recursive=True))
+    return sorted(f for src in SRCS for f in glob.glob(f'{src}/**/*.kt', recursive=True))
 
 
 def strip_code(body):

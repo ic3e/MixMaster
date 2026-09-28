@@ -18,8 +18,12 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const hyp = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);
   const DEBUG = /[?&]debug\b/.test(location.search);
-  // inside MixMaster the app hands the page a way out, and a voice; in a plain browser, neither
-  const appBridge = window.MixMaster && typeof window.MixMaster.quit === 'function' ? window.MixMaster : null;
+  // Inside an app — MixMaster, or the Pour Day app on its own — the app hands the page a way out,
+  // voices and co-workers' phones; in a plain browser, none of those.
+  const appBridge = window.PourDayApp && typeof window.PourDayApp.quit === 'function' ? window.PourDayApp : null;
+  const appName = (() => { try { return appBridge && appBridge.appName ? String(appBridge.appName()) : ''; } catch (e) { return ''; } })();
+  // Pour Day on its own just closes; inside MixMaster the way out goes back to it.
+  const QUIT_LABEL = appName && appName !== 'Pour Day' ? `Back to ${appName}` : 'Quit';
   const CALM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   function clock(m) {
@@ -6957,7 +6961,7 @@
       case 'searching': lobbyStatus('Looking for a day nearby… Bluetooth on, and stand close.'); break;
       case 'found': if (net.role === 'joining' && net.found.get(e.id) !== e.name) { net.found.set(e.id, e.name); lobbyStatus('Found one. Tap to join:'); lobbyList(); } break;
       case 'lost': net.found.delete(e.id); lobbyList(); break;
-      case 'denied': leaveCrew('Without "Nearby devices" the phones can\'t find each other. It can be allowed for MixMaster in the phone\'s settings.'); break;
+      case 'denied': leaveCrew(`Without "Nearby devices" the phones can't find each other. It can be allowed for ${appName || 'the app'} in the phone's settings.`); break;
       case 'error': leaveCrew(`That didn't work (${e.text}). Is Bluetooth on? Location too, on older phones.`); break;
       case 'failed': lobbyStatus(`Couldn't get through to ${e.name}. Try again, closer.`); break;
       case 'connected':
@@ -6982,7 +6986,8 @@
     switch (m.t) {
       // at the host
       case 'hello': {
-        if (m.ver !== NET_VER || m.app !== appVersion()) { netSendTo(from, { t: 'nope', why: `different versions of MixMaster (you ${m.app}, ${net.name} ${appVersion()}). Update both phones.` }); return; }
+        // the same game on both phones, whichever app carries it: MixMaster or Pour Day on its own
+        if (m.ver !== NET_VER || m.app !== appVersion()) { netSendTo(from, { t: 'nope', why: `a different version of the game on the two phones. Update both to the newest.` }); return; }
         if (net.started) { netSendTo(from, { t: 'nope', why: `${net.name} has already clocked in. Join the next day.` }); return; }
         const c = crewMember(from, m.name);
         c.colour = CREW_COLOURS[++net.joined % CREW_COLOURS.length];
@@ -7479,11 +7484,13 @@
   $('#btnJoin').addEventListener('click', () => { audioStart(); joinDay(); });
   $('#btnLeave').addEventListener('click', () => leaveCrew());
 
-  // Inside MixMaster the app hands the page a way out; in a plain browser there isn't one.
-  const bridge = window.MixMaster && typeof window.MixMaster.quit === 'function' ? window.MixMaster : null;
+  // Inside an app the page has a way out; in a plain browser there isn't one.
+  const bridge = appBridge;
   const quit = () => { if (bridge) bridge.quit(); };
   $('#btnQuitTitle').hidden = !bridge;
   $('#btnQuitEnd').hidden = !bridge;
+  $('#btnQuitTitle').textContent = QUIT_LABEL;
+  $('#btnQuitEnd').textContent = QUIT_LABEL;
   $('#btnQuitTitle').addEventListener('click', quit);
   $('#btnQuitEnd').addEventListener('click', quit);
 
@@ -7511,7 +7518,7 @@
     choices.splice(2, 0, { label: soundOn ? 'Sound: on — switch off' : 'Sound: off — switch on', fn: () => { setSound(!soundOn); soundLabel(); } },
       { label: musicOn ? 'Music: on — switch off' : 'Music: off — switch on', fn: () => { setMusic(!musicOn); musicLabel(); } },
       { label: voicesOn ? 'Voices: on — switch off' : 'Voices: off — switch on', fn: () => { setVoices(!voicesOn); voicesLabel(); } });
-    if (bridge) choices.push({ label: 'Back to MixMaster', danger: true, fn: quit });
+    if (bridge) choices.push({ label: QUIT_LABEL, danger: true, fn: quit });
     modal({
       personal: true,
       // The host keeps the clock, so the host's break stops it for everyone; a co-worker's doesn't.

@@ -9,13 +9,20 @@ CI run.
 Kotlin · Jetpack Compose (Material 3) · Room · DataStore · single activity · hand-rolled DI
 (`di/AppContainer.kt`). minSdk 26, targetSdk 34.
 
+**Pour Day**, the break-time game, lives in its own module, `:game` (the page in
+`game/src/main/assets/pourday`, plus the phone's voices, Nearby for co-workers and `GameScreen`,
+which puts it in a WebView). Two apps carry it: MixMaster (Settings → Break time) and `:pourday`,
+the game on its own for people outside the company, with nothing of MixMaster in it. Phones play
+together when they carry the same game — the check is a hash of `game.js` and `index.html`, not
+either app's version.
+
 ## Building
 
 There is **no Android SDK in this sandbox** — never try to run Gradle. The build happens in CI:
 
-- Push to `main`. GitHub Actions builds and commits `dist/MixMaster_1.0.<run_number>.apk` plus
-  `dist/latest.json`; a failure commits `.ci-logs/last-failure.log` instead. Read that file first
-  when a build fails — it names the line.
+- Push to `main`. GitHub Actions builds and commits `dist/MixMaster_1.0.<run_number>.apk`,
+  `dist/PourDay_1.0.<run_number>.apk` and `dist/latest.json`; a failure commits
+  `.ci-logs/last-failure.log` instead. Read that file first when a build fails — it names the line.
 - `gh` is not installed. Poll with `git fetch -q origin main` in a background loop and look for
   the `ci: publish` commit.
 - CI also commits the Room schema it generates (`app/schemas/`), so `<version>.json` appears after

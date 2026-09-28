@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dusk on site, the way the game opens: the sky, and the ground under the slab. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#1D2733" android:pathData="M0,0H108V108H0Z" />
+    <path android:fillColor="#232E3A" android:pathData="M0,70L108,62L108,108L0,108Z" />
+</vector>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The dusk the game opens on, so there's no white flash before the page draws. -->
+    <color name="dusk">#10141A</color>
+
+    <style name="PourDay" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/dusk</item>
+        <item name="android:statusBarColor">@color/dusk</item>
+        <item name="android:navigationBarColor">@color/dusk</item>
+    </style>
+</resources>

@@ -1,4 +1,4 @@
-package com.conwic.mixmaster.ui.breaktime
+package com.conwic.pourday.game
 
 import android.Manifest
 import android.content.Context

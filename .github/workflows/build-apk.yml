@@ -60,7 +60,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MixMaster_1.0.${{ github.run_number }}
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            pourday/build/outputs/apk/debug/*.apk
 
       # This session's network access to GitHub Actions' own artifact
       # storage (Azure blob storage) is blocked, so also commit the APK
@@ -75,6 +77,9 @@ jobs:
           mkdir -p dist
           rm -f dist/*.apk
           cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
+          # Pour Day on its own, for people outside the company: built from the same run, so it
+          # carries the same game as the MixMaster beside it.
+          cp pourday/build/outputs/apk/debug/*.apk "dist/PourDay_$VERSION.apk"
 
           # The in-app updater reads this to decide whether the phone is behind. versionCode is
           # the same run number the APK was built with, so the file can't describe a build that
@@ -98,7 +103,7 @@ jobs:
           git add -A dist
           git add .ci-logs/warnings.log
           git add -f app/schemas || true
-          git commit -m "ci: publish MixMaster_$VERSION.apk" || echo "nothing to commit"
+          git commit -m "ci: publish MixMaster_$VERSION.apk and PourDay_$VERSION.apk" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}
 
       # This session's network access to GitHub Actions' own log/artifact

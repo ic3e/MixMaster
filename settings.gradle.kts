@@ -16,3 +16,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "MixMaster"
 include(":app")
+// the game, shared by MixMaster and by the Pour Day app on its own
+include(":game")
+include(":pourday")

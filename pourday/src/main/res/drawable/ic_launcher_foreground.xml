@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A fresh slab in its timber formwork, trowelled to a sheen, and the trowel still over it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- the formwork -->
+    <path android:fillColor="#6D4424" android:pathData="M24,63L46,72L46,77L24,68Z" />
+    <path android:fillColor="#8A5A2E" android:pathData="M46,72L82,64L82,69L46,77Z" />
+    <!-- the slab, and the shine the trowel leaves -->
+    <path android:fillColor="#BDB8AD" android:pathData="M24,63L62,55L82,64L46,72Z" />
+    <path
+        android:pathData="M34,64Q50,58 70,62"
+        android:strokeColor="#E6E2D8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M40,67Q54,63 66,65"
+        android:strokeColor="#D6D1C6"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round" />
+    <!-- the trowel's shadow, then the trowel -->
+    <path android:fillColor="#8F8A80" android:fillAlpha="0.55" android:pathData="M42,64L62,59.5L69,62.5L49,67Z" />
+    <path
+        android:fillColor="#DDE3E8"
+        android:pathData="M40,50L62,45L71,49L49,54Z"
+        android:strokeColor="#8F99A1"
+        android:strokeWidth="0.8"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M55.5,49.5L55.5,41"
+        android:strokeColor="#3E444B"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M46,41.5L65,37.2"
+        android:strokeColor="#FF6B1A"
+        android:strokeWidth="5.2"
+        android:strokeLineCap="round" />
+</vector>
