@@ -1,8 +1,8 @@
 {
-  "versionCode": 219,
-  "versionName": "1.0.219",
-  "apk": "MixMaster_1.0.219.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.219.apk",
-  "sizeBytes": 21527807,
-  "notes": "Settings: a gamepad in front of Break time, being played"
+  "versionCode": 220,
+  "versionName": "1.0.220",
+  "apk": "MixMaster_1.0.220.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.220.apk",
+  "sizeBytes": 21528062,
+  "notes": "Pour Day as an app of its own, for people outside the company"
 }
