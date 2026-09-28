@@ -499,6 +499,17 @@
       '"Recycling. The manager loves recycling. He\'ll never know."',
       '"Shovelled back. My back will send the invoice later."',
     ],
+    bootsHeavy: [
+      'Your boots weigh a kilo each now. Concrete ones. Very Italian.',
+      'Every step brings half the slab with it. The slab would like it back.',
+      'Your boots are grey to the laces. Walk off the slab and you\'ll print a map of your day across the gravel.',
+      'Heavy boots. You walk like a deep-sea diver on his day off.',
+    ],
+    bootsWashed: [
+      'Boots hosed. Black again, for about four minutes.',
+      'You hose your boots and most of your socks. Clean-ish.',
+      'Boots washed. The water tank has seen things today.',
+    ],
     myVoiceTry: [
       'Right. Concrete. Let\'s get it over with.',
       'Morning. Where\'s the coffee. Where\'s the pump.',
@@ -538,16 +549,39 @@
         ['flip2', 'Both fingers, then he taps his watch. "Every minute you wave at me is on your invoice."'],
       ],
       nothing: [
-        'You flip off the slab. It doesn\'t care. It\'s concrete.',
-        'You flip off the sky. It starts to drizzle. Coincidence, probably.',
         'You flip off the day in general. It helps a bit.',
-        'You flip off the van. The van has seen worse.',
         'You flip off nobody in particular. A crow takes it personally.',
+        'You flip off thin air. The air takes it well.',
       ],
       dog: [
         'The dog doesn\'t understand. It wags harder.',
         'The dog tilts its head. You feel bad now.',
+        'The dog sits and offers you a paw. You are the worst person on this site.',
       ],
+      cat: [
+        'The cat looks at your finger, then at you, then away. You have been judged and found boring.',
+        'The cat blinks slowly. In cat, that\'s worse than what you just did.',
+        'The cat yawns at you. Every tooth. On purpose.',
+        'The cat turns round and shows you its behind. Stalemate.',
+      ],
+      things: {
+        van: ['You flip off the van. The van has seen worse. It was there for most of it.', 'You flip off your own reflection in the van window. It flips you back. Fair.', 'You flip off the van. It\'s the only one driving you home, so maybe apologise.'],
+        pump: ['You flip off the pump. The pump doesn\'t care. It\'s a pump.', 'You flip off the pump. It thumps on, a heart that bills by the hour.'],
+        mixer: ['You flip off the mixer truck. The drum keeps turning. It\'s seen your slab.', 'You flip off nine cubes of concrete. They go off either way.'],
+        laser: ['You flip off the laser. It beeps. You decide that was an apology.', 'You flip off the laser. It stays perfectly level about it. Smug.'],
+        loo: ['You flip off the portable toilet. Honestly, it had it coming.', 'You flip off the loo. It answers with the smell.'],
+        kiosk: ['You flip off the kebab stand. You\'ll be back at lunch and you both know it.', 'You flip off the kebab. The kebab turns slowly away from you.'],
+        tank: ['You flip off the water tank. It gurgles. That\'s a no.', 'You flip off the water tank. It\'s the only clean thing on site and now it\'s been insulted.'],
+        pipes: ['You flip off the pipes. All of them. They\'re still heavy.', 'You flip off the pipe pile. It rolls one at you. Probably the wind.'],
+        crane: ['You flip off the crane on the next site. The driver is too high up to care. Or see.'],
+        hall: ['You flip off the wall. The wall stays. Walls always win.', 'You flip off the building. It echoes. So does your career.'],
+        tool: ['You flip off the {t}. It isn\'t going to wash itself either.', 'You flip off the {t}. It had it coming. Tools always do.', 'You flip off the {t}. It lies there, unimpressed. Like the manager.'],
+        slab: ['You flip off the slab. It doesn\'t care. It\'s concrete.', 'You flip off the slab. It sets a little harder, out of spite.', 'You flip off your own work. Honest, at least.'],
+        gravel: ['You flip off the gravel. The gravel remains gravel.', 'You flip off the ground. It\'s been walked on all day. It\'s used to it.'],
+        sky: ['You flip off the sky. It starts to drizzle. Coincidence, probably.', 'You flip off the weather. The weather has a long memory.'],
+        sun: ['You flip off the sun. It carries on drying your slab too fast. On purpose now.'],
+        moon: ['You flip off the moon. It has watched you work since five. It knows.'],
+      },
     },
     helper: {
       names: [
@@ -1168,8 +1202,6 @@
     ['clutch', 'They blow you a kiss. That\'s worse. That\'s so much worse.'],
   );
   L.flip.nothing.push(
-    'You flip off the pump. The pump doesn\'t care. It\'s a pump.',
-    'You flip off your own reflection in the van window. It flips you back. Fair.',
     'You flip off the clock. It keeps going. Rude.',
   );
   L.helper.talk.push(
@@ -1931,6 +1963,8 @@
       return p;
     };
     const legL = leg(-0.1), legR = leg(0.1);
+    // concrete on the boots, for whoever walks through the pour
+    const bootCrust = [legL, legR].map((p) => { const c = box(0.135, 0.06, 0.2, 0x9b9d9a, 0, -0.84, 0.09, p); c.visible = false; return c; });
     box(0.34, 0.14, 0.2, pants, 0, 0.93, 0, body);
     const torso = cyl(0.2, 0.16, 0.6, shirt, 0, 1.24, 0, body, 12);
     torso.scale.z = 0.65;
@@ -1989,7 +2023,7 @@
     }
     // a ponytail, under whatever is on top
     if (opts.g === 'f') capsule(0.042, 0.15, pick(HAIR), 0, -0.07, -0.125, head).rotation.x = 0.35;
-    g.userData = { legL, legR, armL, armR, head, body, phase: Math.random() * 6 };
+    g.userData = { legL, legR, armL, armR, head, body, bootCrust, phase: Math.random() * 6 };
     return g;
   }
   /** A dog: capsule body, a proper head with a snout and ears, a tail that wags. Faces +x. A cat is
@@ -3988,9 +4022,9 @@
     return l;
   }
   const saidLog = [];              // what was said lately, for the tests
-  // Who may talk over whom: somebody with a real line (2) over the player's own mutter (1), and
-  // that over the player reading the notes out (0), which never cuts in on anybody.
-  let talkPrio = 0, lastSayAt = -1e9;
+  // Who goes first when lines are waiting: somebody with a real line (2), then the player's own
+  // mutter (1); the player reading the notes out (0) never waits — nor cuts in on anybody.
+  let lastSayAt = -1e9;
   /** Whether anything can be heard: the app's engine up with a voice in it, or the browser's. */
   function canVoice() {
     try {
@@ -4002,11 +4036,44 @@
     } catch (e) { return false; }
   }
   /** Says a line out loud; true if it was. [prio] as above — 2 unless said otherwise. */
+  // Lines wait their turn. A new line used to go straight out and cut off whoever was still
+  // talking (the phone flushes whatever it's saying), which with a site this chatty was often.
+  // Now it waits in a short queue until the phone says the last one is finished; the notes read
+  // out in your own voice don't wait, they'd be old news — they stay on the screen instead.
+  const sayQ = [];
+  let talking = false, talkingUntil = 0;
+  const tellsDone = (() => { try { return !!(appBridge && typeof appBridge.tellsDone === 'function' && appBridge.tellsDone()); } catch (e) { return false; } })();
+  function busyTalking() { const now = performance.now(); return now < duckUntil || (talking && now < talkingUntil); }
+  /** The phone has finished the line (or it was cut off): the next one can go, after a breath. */
+  function voiceDone() {
+    talking = false;
+    duckUntil = Math.min(duckUntil, performance.now() + 250);
+  }
+  window.pdVoice = { done: voiceDone };
+  function pumpSay() {
+    if (!sayQ.length || busyTalking()) return;
+    const q = sayQ.shift();
+    if (performance.now() - q.at > 9000) { pumpSay(); return; }   // stale by now: somebody else's moment
+    speakNow(q.text, q.who, q.prio, q.line);
+  }
+  /** Says a line out loud; true if it was, or will be when it's its turn. [prio] as above — 2 unless said otherwise. */
   function say(text, who, prio) {
     prio = prio === undefined ? 2 : prio;
     if (!voicesOn || !text || netRemote || netCapture || !canVoice()) return false;
+    const line = spoken(text);
+    if (!line) return false;
+    if (busyTalking() || sayQ.length) {
+      if (prio === 0) return false;
+      if (sayQ.some((q) => q.line === line)) return true;
+      sayQ.push({ text, who, prio, line, at: performance.now() });
+      sayQ.sort((x, y) => y.prio - x.prio || x.at - y.at);
+      if (sayQ.length > 3) sayQ.length = 3;
+      return true;
+    }
+    return speakNow(text, who, prio, line);
+  }
+  function speakNow(text, who, prio, line) {
     const now = performance.now();
-    if (now < duckUntil && (prio === 0 || prio < talkPrio)) return false;
     let p = 1, r = 1, key = '', g = '';
     if (Array.isArray(who)) [p, r] = who;
     else if (who && typeof who === 'object') ({ p, r, key, g } = who);
@@ -4016,12 +4083,13 @@
     if (key && castPitch[key]) p = castPitch[key];
     if (sh) r += sh > 0 ? 0.04 : -0.04;
     if (key !== 'alien') { p = clamp(p, PITCH_LO, PITCH_HI); r = clamp(r, RATE_LO, RATE_HI); }
-    const line = spoken(text);
-    if (!line) return false;
     saidLog.push(line);
     if (saidLog.length > 40) saidLog.shift();
-    duckUntil = now + line.length * 70 + 600;
-    talkPrio = prio;
+    // about 14 letters a second at normal pace: a guess, until the phone says it's done
+    const est = (line.length * 72) / r + 700;
+    duckUntil = now + est;
+    talking = true;
+    talkingUntil = now + (tellsDone ? est * 2.5 + 3000 : est);
     lastSayAt = now;
     speakerShow(who, prio);
     try {
@@ -4030,8 +4098,9 @@
       if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
         const u = new SpeechSynthesisUtterance(line);
         u.lang = 'en-GB'; u.pitch = p; u.rate = r;
-        const v = name && window.speechSynthesis.getVoices().find((x) => x.name === name);
-        if (v) u.voice = v;
+        const vv = name && window.speechSynthesis.getVoices().find((x) => x.name === name);
+        if (vv) u.voice = vv;
+        u.onend = voiceDone;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
       }
@@ -4060,6 +4129,8 @@
   }
   function hush() {
     duckUntil = 0;
+    sayQ.length = 0;
+    talking = false;
     try {
       if (appBridge && typeof appBridge.hush === 'function') appBridge.hush();
       else if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -4196,6 +4267,78 @@
       const dx = pos.x - player.x, dz = pos.z - player.z, c = Math.cos(player.yaw), sn = Math.sin(player.yaw);
       dir.style.setProperty('--dir', `${Math.atan2(dx * c - dz * sn, -dx * sn - dz * c)}rad`);
     }
+  }
+
+  // ------------------------------------------------------------------ your boots
+  // Walk in the pour and it comes with you: on the boots, heavier with every step, printed grey
+  // across the gravel, into the van if you let it. Washed at the tank; left, it sets on them.
+  function bootsGet(a) {
+    if (!gs || netRemote) return;
+    if ((gs.boots || 0) < 0.05) gs.bootsAt = gs.t;
+    gs.boots = Math.min(1, (gs.boots || 0) + a);
+    if (gs.boots > 0.35) toastOnce('bootsHeavy', fresh(L.bootsHeavy), 'warn', 240000);
+  }
+  function vanFloor() {
+    if ((gs.boots || 0) < 0.2 || gs.vanFloor) return;
+    gs.vanFloor = true;
+    toast('You climb into the van in those boots. The van floor is concrete now too.', 'warn');
+    charge('Concrete footprints on the van floor', 15);
+  }
+  function bootsSet() { return (gs.boots || 0) > 0.15 && gs.t - (gs.bootsAt || gs.t) > 150; }
+  function inVanNow() { return gs.waitMode === 'van'; }
+  const trackPrints = new THREE.Group();
+  scene.add(trackPrints);
+  const trackMat = new THREE.MeshLambertMaterial({ color: 0x86898a, transparent: true, opacity: 0.8, depthWrite: false });
+  const trackGeo = new THREE.CircleGeometry(0.5, 10);
+  let trackSide = 1;
+  function trackPrint(x, z, yaw) {
+    trackSide = -trackSide;
+    const p = trackPrints.children.length >= 90 ? trackPrints.children[0] : new THREE.Mesh(trackGeo, trackMat);
+    if (p.parent) trackPrints.remove(p);
+    const sx = Math.cos(yaw) * 0.12 * trackSide, sz = -Math.sin(yaw) * 0.12 * trackSide;
+    p.position.set(x + sx, groundY(x + sx, z + sz) + 0.012, z + sz);
+    p.rotation.set(-Math.PI / 2, 0, yaw);
+    p.scale.set(0.2, 0.52, 1);
+    trackPrints.add(p);
+  }
+  // your own, at the bottom of the view when you look down: the boots, and what's on them
+  const myBoots = new THREE.Group();
+  scene.add(myBoots);
+  const bootCrust = [];
+  const myFeet = [-1, 1].map((sd) => {
+    const f = new THREE.Group();
+    f.position.x = sd * 0.13;
+    box(0.13, 0.022, 0.31, 0x151311, 0, 0.011, -0.03, f);          // the sole, cleated
+    box(0.12, 0.075, 0.27, 0x2d2823, 0, 0.055, -0.02, f);          // the upper
+    box(0.115, 0.05, 0.08, 0x3b3530, 0, 0.06, -0.15, f).rotation.x = 0.35; // toecap
+    box(0.1, 0.12, 0.1, 0x2d2823, 0, 0.14, 0.07, f);               // the ankle
+    box(0.104, 0.018, 0.104, 0xd9b44a, 0, 0.19, 0.07, f);          // the collar, yellow stitching
+    const cr = new THREE.Group();
+    box(0.135, 0.06, 0.2, 0x9b9d9a, 0, 0.035, -0.09, cr);
+    mesh(new THREE.SphereGeometry(0.05, 8, 6), 0x9a9c99, 0.03, 0.07, -0.12, cr).scale.set(1.2, 0.6, 1);
+    mesh(new THREE.SphereGeometry(0.04, 8, 6), 0x8f918e, -0.05, 0.1, 0.02, cr).scale.set(0.8, 0.9, 1.1);
+    mesh(new THREE.SphereGeometry(0.035, 8, 6), 0x9a9c99, 0.05, 0.12, 0.06, cr);
+    cr.visible = false;
+    f.add(cr);
+    bootCrust.push(cr);
+    myBoots.add(f);
+    return f;
+  });
+  function updateMyBoots() {
+    const on = gs.phase !== 'title' && gs.phase !== 'end' && !inVanNow() && gs.tool !== 'rideOn' && player.fall <= 0;
+    myBoots.visible = on;
+    if (!on) return;
+    myBoots.position.set(player.x, groundY(player.x, player.z), player.z);
+    myBoots.rotation.y = player.yaw;
+    const stuck = performance.now() < gs.stuckUntil;
+    myFeet.forEach((f, k) => {
+      const ph = player.bob + k * Math.PI;
+      f.position.z = -0.1 + (player.moving ? Math.sin(ph) * 0.12 : 0);
+      f.position.y = player.moving ? Math.max(0, Math.cos(ph)) * 0.035 : 0;
+      if (stuck && k === 0) f.position.y = -0.06;
+    });
+    const b = gs.boots || 0;
+    bootCrust.forEach((cr) => { cr.visible = b > 0.05; cr.scale.set(1, 0.5 + b, 1); });
   }
 
   // ------------------------------------------------------------------ the player
@@ -4695,26 +4838,84 @@
     w.acc = 0;
     if (speed) w.speed = speed;
   }
-  /** The walker (or driver) under the crosshair, close enough to shout at or talk to. */
-  function walkerInSight() {
+  /**
+   * The walker (or driver) under the crosshair, close enough to shout at or talk to. The view ray
+   * against each body from its feet to the top of its head, not one point on its chest: aim at a
+   * man's boots or a cat's ears and it's still him, or it. The nearest along the ray wins. [all]
+   * counts somebody just shouted at too (shouting skips them for a few seconds; a finger doesn't).
+   */
+  function walkerInSight(all) {
     camera.getWorldDirection(tmpV);
     const o = camera.position;
-    let best = null, bestA = 9;
-    const check = (w, x, y, z) => {
-      const dx = x - o.x, dy = y - o.y, dz = z - o.z, d = Math.hypot(dx, dy, dz);
-      if (d > 16 || d < 0.4) return;
-      const a = Math.acos(clamp((dx * tmpV.x + dy * tmpV.y + dz * tmpV.z) / d, -1, 1));
-      if (a < Math.atan((w.kind === 'dog' ? 0.8 : 0.55) / d) + 0.03 && a < bestA) { bestA = a; best = w; }
+    let best = null, bestT = 18;
+    const check = (w, x, y0, y1, r, z) => {
+      for (let k = 0; k <= 6; k++) {
+        const y = y0 + ((y1 - y0) * k) / 6;
+        const dx = x - o.x, dy = y - o.y, dz = z - o.z;
+        const t = dx * tmpV.x + dy * tmpV.y + dz * tmpV.z;
+        if (t < 0.3 || t >= bestT) continue;
+        // a touch more forgiving further off, where a person is a few pixels across
+        if (Math.hypot(dx - tmpV.x * t, dy - tmpV.y * t, dz - tmpV.z * t) < r + t * 0.012) { bestT = t; best = w; }
+      }
     };
-    walkers.forEach((w) => { if (performance.now() > w.shouted) check(w, w.m.position.x, w.m.position.y + (w.kind === 'dog' ? 0.45 : 1.2), w.m.position.z); });
-    if (helper.m) check({ kind: 'driver', who: 'helper', isHelper: true, voice: helper.voice }, helper.m.position.x, 1.2, helper.m.position.z);
+    const person = (w, x, y, z) => check(w, x, y + 0.1, y + 1.85, 0.3, z);
+    const animal = (w, m, cat) => {
+      const sz = (m.userData && m.userData.size) || (cat ? 0.55 : 1);
+      check(w, m.position.x, m.position.y + 0.1, m.position.y + 0.8 * sz, 0.45 * sz, m.position.z);
+    };
+    walkers.forEach((w) => {
+      if (!all && performance.now() <= w.shouted) return;
+      if (w.kind === 'dog') animal(w, w.m, w.cat); else person(w, w.m.position.x, w.m.position.y, w.m.position.z);
+    });
+    if (helper.m) person({ kind: 'driver', who: 'helper', isHelper: true, voice: helper.voice }, helper.m.position.x, helper.m.position.y, helper.m.position.z);
     if (inTeam()) {
-      net.crew.forEach((c) => { if (c.id !== net.me && c.m) check({ kind: 'driver', who: 'crew', crewId: c.id, name: c.name }, c.x, 1.3, c.z); });
-      net.remoteWalkers.forEach((w, uid) => check({ kind: w.kind === 'p' ? 'person' : 'dog', remoteWid: uid, m: w.m, cat: w.kind === 'c' }, w.m.position.x, w.m.position.y + (w.kind === 'p' ? 1.2 : 0.45), w.m.position.z));
+      net.crew.forEach((c) => { if (c.id !== net.me && c.m) person({ kind: 'driver', who: 'crew', crewId: c.id, name: c.name }, c.x, c.m.position.y, c.z); });
+      net.remoteWalkers.forEach((w, uid) => {
+        const t = { kind: w.kind === 'p' ? 'person' : 'dog', remoteWid: uid, m: w.m, cat: w.kind === 'c' };
+        if (w.kind === 'p') person(t, w.m.position.x, w.m.position.y, w.m.position.z); else animal(t, w.m, w.kind === 'c');
+      });
     }
-    if (pumpGuy.visible) check({ kind: 'driver', who: 'pump' }, pumpGuy.position.x, 1.2, pumpGuy.position.z);
-    if (mixGuy.visible) check({ kind: 'driver', who: 'mixer' }, mixGuy.position.x, 1.2, mixGuy.position.z);
+    if (pumpGuy.visible) person({ kind: 'driver', who: 'pump' }, pumpGuy.position.x, pumpGuy.position.y, pumpGuy.position.z);
+    if (mixGuy.visible) person({ kind: 'driver', who: 'mixer' }, mixGuy.position.x, mixGuy.position.y, mixGuy.position.z);
     return best;
+  }
+  /**
+   * With nobody under the crosshair, the thing that is: the van, a truck, the loo, a tool, the
+   * slab, the gravel, the sky — so the finger lands on what you actually pointed it at.
+   */
+  const aimRay = new THREE.Raycaster();
+  function thingInSight() {
+    camera.getWorldDirection(tmpV);
+    const o = camera.position;
+    const things = [[van, 'van'], [pump, 'pump'], [mixer, 'mixer'], [tripod, 'laser'], [loo, 'loo'], [kiosk, 'kiosk'], [ibc, 'tank'], [pile, 'pipes'], [jib, 'crane'], [hall, 'hall']];
+    TOOL_IDS.forEach((id) => {
+      const tl = gs.tools[id];
+      if (!tl || tl.in !== 'ground') return;
+      if (lying[id] && lying[id].visible) things.push([lying[id], 'tool:' + id]);
+      if (machines[id] && machines[id].group.visible) things.push([machines[id].group, 'tool:' + id]);
+    });
+    const live = things.filter(([g]) => g && g.visible);
+    aimRay.set(o, tmpV);
+    aimRay.far = 60;
+    aimRay.camera = camera;          // the name boards are sprites, and a sprite needs to know the camera
+    let hits = [];
+    try { hits = aimRay.intersectObjects(live.map(([g]) => g), true); } catch (e) { hits = []; }
+    for (const h of hits) {
+      if (h.distance > 60) break;
+      let x = h.object;
+      while (x) {
+        const f = live.find(([g]) => g === x);
+        if (f) return f[1];
+        x = x.parent;
+      }
+    }
+    // no thing: the ground, or what's above it
+    if (tmpV.y < -0.02) {
+      const t = (0.05 - o.y) / tmpV.y;
+      return onSlab(o.x + tmpV.x * t, o.z + tmpV.z * t) ? 'slab' : 'gravel';
+    }
+    if (tmpV.y > 0.12) { const h = (gs.t % 1440) / 60; return h > 7 && h < 19 ? (chance(0.5) ? 'sun' : 'sky') : 'moon'; }
+    return '';
   }
   function shoutAt(w) {
     if (w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'shout' }); toast(`You shout at ${w.name}. ${fresh(L.crewShoutOut)}`); sfx('shout'); return; }
@@ -5133,6 +5334,7 @@
     gs.stats.falls++;
     gs.energy = clamp(gs.energy - 5, 0, 100);
     const c = cellAt(player.x, player.z);
+    if (c && gs.phase === 'pour' && c.fill > 20) bootsGet(0.4);
     sfx('thud');
     if (c && (gs.phase === 'pour' || gs.H < 30)) sfx('splash');
     if (c && gs.phase === 'pour') { c.fill = Math.max(0, c.fill - 12); cellsDirty = true; }
@@ -5671,11 +5873,16 @@
   }
 
   function buildLateMarkers() {
-    addMarker('wash', POS.ibcFront, 'Wash tools', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05), () => {
+    addMarker('wash', POS.ibcFront, 'Wash tools and boots', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05) || (!held() && (gs.boots || 0) > 0.2), () => {
       // a co-worker's washing: their tool comes clean on its own; the host sees if that's the lot
       if (netRemote) { if (gs.phase === 'wash' && !isGuest() && !dirtyTools().filter((t) => !isMachine(t)).length) enterCure(); return true; }
       const id = held();
-      if (id && dirtOf(id) > 0.05) {
+      if (!id && (gs.boots || 0) > 0.05) {
+        const set = bootsSet();
+        gs.boots = set ? 0.12 : 0;
+        toast(set ? 'You hose your boots. What had set on them stays on them. Heavier boots, for ever.' : fresh(L.bootsWashed), set ? 'warn' : 'good');
+        if (gs.phase !== 'wash') return true;
+      } else if (id && dirtOf(id) > 0.05) {
         const set = dirtSet(id);
         gs.dirt[id] = { d: 0, at: gs.t };
         toast(set ? `You chip and scrub at the ${TOOLS[id].name.toLowerCase()}. Most of it comes off. The rest is part of it now.` : `${TOOLS[id].name} washed. ${fresh(L.washed)}`, set ? 'warn' : 'good');
@@ -6000,6 +6207,8 @@
     if (score > best) store('pourday.best', String(score));
     $('#eRank').textContent = rank;
     $('#eScore').textContent = `${score} points` + (score > best ? ' · new best' : best ? ` · best ${best}` : '');
+    if (bootsSet() && !gs.bootsCharged) { gs.bootsCharged = true; charge('Boots set solid in concrete: a new pair', 75); }
+    vanFloor();
     const rows = [
       ['Played for', playedFor()],
       ['Arrived', clock(gs.arrived) + (late > 15 ? ` (${dur(late)} late)` : '')],
@@ -6017,6 +6226,7 @@
       ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
       ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
+      ['Boots', (gs.boots || 0) < 0.05 ? 'clean, somehow' : bootsSet() ? 'set solid. A new pair' : (gs.boots || 0) > 0.5 ? 'concrete to the ankles' : 'grey'],
       ['Fingers given', String(gs.stats.flips)],
       ['Tools', gs.leftBehind.length || gs.dirtyAtEnd.length ? `${gs.leftBehind.length} left on site, ${gs.dirtyAtEnd.length} dirty` : 'all in the van, clean'],
     ];
@@ -6432,6 +6642,7 @@
   const SPILL_BACK = 0.85;
   function unspillTick(b, dt) {
     const u = b.userData;
+    bootsGet(dt * 0.02);
     addDirt('shovel', Math.max(dt * 0.35, dirtOf('shovel') < 0.2 ? 0.2 : 0));
     gs.energy = clamp(gs.energy - dt * 0.5, 0, 100);
     const can = u.v * SPILL_BACK - (u.back || 0);
@@ -6598,7 +6809,8 @@
     flipReady = now + 1500;
     flipT = 1.5;
     gs.stats.flips++;
-    const w = walkerInSight();
+    const w = walkerInSight(true);
+    const thing = w ? '' : thingInSight();
     const ufoNear = odd.some((o) => o.kind === 'ufo');
     setTimeout(() => {
       if (w && w.crewId) { netSend({ t: 'poke', to: w.crewId, kind: 'flip' }); toast(`You give ${w.name} the finger. ${w.name} saw it.`); } else if (w && w.remoteWid) toast(fresh(L.flip.person)[1], 'warn');
@@ -6608,7 +6820,7 @@
         toast(l); say(l, w.who === 'pump' ? 'pump' : 'truck');
         if (/honk/i.test(l)) { sfx('honk', mixer.position.x, mixer.position.z); setTimeout(() => sfx('honk', mixer.position.x, mixer.position.z), 420); }
         if (/cough/i.test(l)) sfx('splash', pump.position.x, pump.position.z);
-      } else if (w && w.kind === 'dog') toast(fresh(L.flip.dog));
+      } else if (w && w.kind === 'dog') toast(fresh(w.cat ? L.flip.cat : L.flip.dog));
       else if (w) {
         const [kind, l] = fresh(L.flip.person);
         toast(l, 'warn'); say(l, w.voice);
@@ -6618,6 +6830,8 @@
         if (kind === 'hurry') w.speed *= 1.4;
         else if (kind !== 'phone') gesture(w.m, kind, 2);
       } else if (ufoNear) toast('The saucer flashes every light it has at you. You have started an interstellar incident.', 'warn');
+      else if (thing.startsWith('tool:')) toast(fresh(L.flip.things.tool).replace('{t}', TOOLS[thing.slice(5)].name.toLowerCase()));
+      else if (L.flip.things[thing]) toast(fresh(L.flip.things[thing]));
       else toast(fresh(L.flip.nothing));
     }, 450);
   }
@@ -6734,6 +6948,7 @@
     u.legL.rotation.x = Math.sin(u.phase) * 0.5; u.legR.rotation.x = -Math.sin(u.phase) * 0.5;
     p.y = gs.phase === 'pour' && onSlab(p.x, p.z) ? groundY(p.x, p.z) * 0.4 : groundY(p.x, p.z);
     if (gs.poured && onSlab(p.x, p.z) && gs.H < 60 && chance(dt * 1.6)) stamp('boot', p.x, p.z, helper.m.rotation.y + Math.PI);
+    if (gs.pourStarted && gs.H < 25 && onSlab(p.x, p.z) && helper.m.userData.bootCrust) helper.m.userData.bootCrust.forEach((b) => { b.visible = true; });
     return false;
   }
   function updateHelper(dt) {
@@ -7222,7 +7437,7 @@
     if ((gs.phase === 'pipes' || gs.phase === 'pour') && gs.pipes === PIPE_N && !gs.truck && gs.nextTruckAt > gs.t) choices.push({ label: `Wait for the truck (due ${clock(gs.nextTruckAt)})`, primary: true, fn: () => { gs.fastForward = 'truck'; showWait(); } });
     if (gs.phase === 'cure' || gs.phase === 'wash') {
       if (hyp(player.x, player.z, site.mid.x, site.mid.z) < 16) choices.push({ label: 'Stand guard by the slab', primary: true, fn: () => { gs.waitMode = 'guard'; showWait(); } });
-      choices.push({ label: 'Nap in the van (fastest, but nobody guards the slab)', fn: () => { gs.waitMode = 'van'; showWait(); } });
+      choices.push({ label: 'Nap in the van (fastest, but nobody guards the slab)', fn: () => { gs.waitMode = 'van'; showWait(); vanFloor(); } });
     }
     if (!choices.length) { toast('Nothing to wait for. There is always something to do. That\'s the job.'); return; }
     choices.push({ label: 'Never mind' });
@@ -7263,6 +7478,8 @@
       if (player.run >= 1) toastOnce('run', 'Running. On a building site. Your mother would be so proud.', '', 600000);
     }
     if (gs.energy < 20) speed *= 0.8;
+    // a kilo of concrete on each boot slows anybody down
+    speed *= 1 - 0.22 * (gs.boots || 0);
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     let vx = (fx * -my + rx * mx) * speed, vz = (fz * -my + rz * mx) * speed;
@@ -7298,12 +7515,16 @@
     player.bob += moved * 2.6;
     // walking on it
     const now = cellAt(player.x, player.z);
+    // wet concrete comes away on your boots: more of a soup, less of a stiff mix
+    if (now && moved > 0 && gs.pourStarted && now.fill > 20 && cellH(now) < 25) bootsGet(moved * (gs.mixState === 'soup' ? 0.1 : gs.mixState === 'stiff' ? 0.05 : 0.075));
     // Steps come by the clock, not by the metre: counted by distance, a jog came out at nine a
     // second, which is a sewing machine, not a man. Feet do two a second walking, under three running.
     const v = moved / Math.max(dt, 0.001);
     if (v > 0.4) stepSnd += dt * clamp(1.3 + v * 0.22, 1.5, 2.9);
     if (stepSnd >= 1) {
       stepSnd = 0;
+      // off the slab with concrete on your boots: grey prints across the gravel, and some of it stays there
+      if (!now && gs.boots > 0.12 && !inVanNow()) { trackPrint(player.x, player.z, player.yaw); gs.boots = Math.max(0, gs.boots - 0.008); }
       if (!now || (!gs.pourStarted && now.fill < 3)) sfx('gravel');
       else if (gs.phase === 'pour' && now.fill > 20) sfx('wet');
       else if (gs.poured && gs.H < 55) sfx('soft');
@@ -7317,6 +7538,7 @@
         if (!gs.fellInPour && filledShare() > 0.2 && chance(0.0015)) { gs.fellInPour = true; fall(); }
         else if (chance(0.0025) && performance.now() > stuckMsg) {
           gs.stuckUntil = performance.now() + 2600; stuckMsg = performance.now() + 45000;
+          bootsGet(0.25);
           sfx('wet');
           me(fresh(L.meStuck));
           if (chance(0.3)) remember(fresh(L.stuck));
@@ -7537,6 +7759,7 @@
       // "Fine, quickly": a phone call halfway over
       if (w.callAt && onSlab(x, z) && (w.callAt -= 1) <= 0) { w.callAt = 0; w.pause = 3.5; w.pose = 'phone'; }
       w.dist = (w.dist || 0) + moved;
+      if (!dog && u.bootCrust && !u.bootCrust[0].visible) { const cw = cellAt(x, z); if (cw && gs.pourStarted && cw.fill > 20 && cellH(cw) < 25) u.bootCrust.forEach((b) => { b.visible = true; }); }
       const spacing = dog ? 0.42 * u.size : 0.72;
       if (w.dist > spacing) {
         w.dist = 0;
@@ -7705,6 +7928,7 @@
     updateVanBack(dt);
     updateFlip(dt);
     updateIdle(dt);
+    updateMyBoots();
     if (!isGuest()) soakTools(dt);
     updateChatter();
     if (!isGuest()) {
@@ -8522,6 +8746,7 @@
     // Up to a tenth of a second a frame: an older phone at 12 frames a second still plays in real
     // time, and a long stall (the app in the background) doesn't jump the day forward.
     const dt = Math.min(0.1, (now - last) / 1000);
+    pumpSay();
     // real time played, for the report: not while paused, not with the app in the background
     if (gs.phase !== 'title' && gs.phase !== 'end' && !(modalOpen && modalOpen.pause) && document.visibilityState !== 'hidden') gs.stats.playMs = (gs.stats.playMs || 0) + Math.min(1000, now - last);
     fpsN++; fpsT += now - last;
@@ -9059,7 +9284,7 @@
   }
   function crewUpdate(c, s) {
     c.tx = s.x; c.tz = s.z; c.yaw = s.yaw; c.tool = s.tool; c.act = s.act || ''; c.ax = s.ax; c.az = s.az; c.flip = s.fl || 0;
-    c.prints = s.pr || 0; c.falls = s.fa || 0; c.flips = s.fp || 0; c.seen = performance.now();
+    c.prints = s.pr || 0; c.falls = s.fa || 0; c.flips = s.fp || 0; c.seen = performance.now(); c.boots = s.bt || 0;
     if (!c.m) { c.x = s.x; c.z = s.z; }
   }
   function crewMesh(c) {
@@ -9100,6 +9325,7 @@
       c.phase += moved * 4.5;
       if (moved > 0.004) { u.legL.rotation.x = Math.sin(c.phase) * 0.55; u.legR.rotation.x = -Math.sin(c.phase) * 0.55; }
       else { u.legL.rotation.x *= 0.85; u.legR.rotation.x *= 0.85; }
+      if (u.bootCrust) u.bootCrust.forEach((b) => { b.visible = !!c.boots; });
       const working = c.act === 'pour' || c.act === 'level' || c.act === 'repair' || c.act === 'shovel' || c.act === 'trowel' || c.act === 'marker';
       u.armR.rotation.x = lerp(u.armR.rotation.x, c.flip ? -1.75 : working ? -1.1 + Math.sin(toolT * 6) * 0.25 : c.tool !== 'hands' ? -0.5 : 0, k);
       const fg = u.armR.userData.finger;
@@ -9113,7 +9339,7 @@
   }
   function myState() {
     const acting = input.action && lastCtxKind && lastCtxKind !== 'none' ? lastCtxKind : '';
-    return { x: r2(player.x), z: r2(player.z), yaw: r2(player.yaw), tool: gs.tool, act: acting, ax: target ? r2(target._hx) : pourOut ? r2(pourOut.x) : 0, az: target ? r2(target._hz) : pourOut ? r2(pourOut.z) : 0, fl: flipT > 0 ? 1 : 0, pr: gs.stats.prints, fa: gs.stats.falls, fp: gs.stats.flips };
+    return { bt: (gs.boots || 0) > 0.05 ? 1 : 0, x: r2(player.x), z: r2(player.z), yaw: r2(player.yaw), tool: gs.tool, act: acting, ax: target ? r2(target._hx) : pourOut ? r2(pourOut.x) : 0, az: target ? r2(target._hz) : pourOut ? r2(pourOut.z) : 0, fl: flipT > 0 ? 1 : 0, pr: gs.stats.prints, fa: gs.stats.falls, fp: gs.stats.flips };
   }
   function pokeReceived(fromId, kind) {
     const name = crewName(fromId);
@@ -9697,7 +9923,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
+      walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
       speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
       toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },

@@ -60,6 +60,8 @@ class GameScreen(
                 view.post { view.evaluateJavascript("window.pdUpdate && window.pdUpdate(${JSONObject.quote(u.state)})", null) }
             }
         }
+        // a line finished: the page says the next one
+        voice.onDone = { view.post { view.evaluateJavascript("window.pdVoice && window.pdVoice.done()", null) } }
         // what Nearby hears goes to the page as an event
         net.emit = { json -> view.evaluateJavascript("window.pdNet && window.pdNet.onEvent(${JSONObject.quote(json)})", null) }
         // Called from the page's own thread, so handed over to the main one.
@@ -192,6 +194,10 @@ private class GameBridge(
     /** The English voices the phone can speak in, as JSON: name, language tag, and "f" or "m" when it's known. */
     @JavascriptInterface
     fun voices(): String = voice.list()
+
+    /** Whether the app tells the page when a line has been said: it does, through pdVoice.done(). */
+    @JavascriptInterface
+    fun tellsDone(): Boolean = true
 
     /** Whether anything said would be heard yet: false until an engine with English in it is up. */
     @JavascriptInterface

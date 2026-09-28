@@ -2,6 +2,7 @@ package com.conwic.pourday.game
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import java.util.Locale
 import org.json.JSONArray
@@ -28,6 +29,28 @@ internal class GameVoice(context: Context) {
 
     @Volatile private var engines: List<Engine> = emptyList()
     @Volatile private var closed = false
+
+    /**
+     * Told when the line being said is finished or cut off, so the game can say the next one then
+     * instead of guessing — a guess too short and the next line cut the last one off mid-word.
+     */
+    @Volatile var onDone: (() -> Unit)? = null
+    @Volatile private var current = ""
+    private var count = 0
+
+    private val progress = object : UtteranceProgressListener() {
+        override fun onStart(utteranceId: String?) = Unit
+        override fun onDone(utteranceId: String?) = finished(utteranceId)
+        @Deprecated("Deprecated in Java")
+        override fun onError(utteranceId: String?) = finished(utteranceId)
+        override fun onError(utteranceId: String?, errorCode: Int) = finished(utteranceId)
+        override fun onStop(utteranceId: String?, interrupted: Boolean) = finished(utteranceId)
+    }
+
+    /** Only the latest line counts: the one a new line flushed reports being stopped, and that's not news. */
+    private fun finished(id: String?) {
+        if (id != null && id == current) onDone?.invoke()
+    }
 
     init {
         open(null)
@@ -73,6 +96,7 @@ internal class GameVoice(context: Context) {
         val uk = t.setLanguage(Locale.UK)
         val took = if (uk == TextToSpeech.LANG_MISSING_DATA || uk == TextToSpeech.LANG_NOT_SUPPORTED) t.setLanguage(Locale.US) else uk
         val english = took != TextToSpeech.LANG_MISSING_DATA && took != TextToSpeech.LANG_NOT_SUPPORTED
+        t.setOnUtteranceProgressListener(progress)
         return Engine(t, found, runCatching { t.voice }.getOrNull(), english)
     }
 
@@ -107,7 +131,9 @@ internal class GameVoice(context: Context) {
         if (v != null) runCatching { e.tts.setVoice(v) }
         e.tts.setPitch(pitch.coerceIn(0.5f, 2f))
         e.tts.setSpeechRate(rate.coerceIn(0.5f, 2f))
-        e.tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "pourday")
+        val id = "pourday${++count}"
+        current = id
+        e.tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
     }
 
     /** Whether a line in English would be heard: an engine is up that has an English voice, named or its own. */
