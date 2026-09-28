@@ -62,7 +62,7 @@
   const REACH = 5.5;
   const P = (x, z) => ({ x, z });
   const POS = {
-    van: P(-26, 9), vanDoor: P(-23.4, 8.0),
+    van: P(-26, 9), vanDoor: P(-23.4, 8.0), vanSeat: P(-25, 7), vanCorner: P(-23, 10),
     ibc: P(-21, -9), ibcFront: P(-21, -7.6),
     kiosk: P(-38, -24), kioskFront: P(-35.4, -22.2),
     tripod: P(-8.6, 0.6),
@@ -397,29 +397,63 @@
       '"{d}. Filthy. Did you wash them in the slab?"',
     ],
     looOne: [
-      'Number one. The portaloo smells like a festival that went wrong.',
-      'Sweet relief. The door doesn\'t lock. Somebody tries it. You hold it shut with one foot.',
-      'You go. The loo has no paper, one spider, and a phone number on the wall you do not call.',
+      'A long piss. The portaloo smells like a festival that went wrong.',
+      'You piss for a full minute. The door doesn\'t lock. Somebody tries it. You hold it shut with one foot.',
+      'A piss at last. No paper, one spider, and a phone number on the wall you do not call.',
     ],
     looTwo: [
-      'Number two. You sit in a plastic box and think about your choices. Twelve minutes, all of them yours.',
-      'The kebab comes back to visit, and it brings friends. You come out a changed person.',
-      'You do your business. There\'s no paper. There\'s a delivery note. You use the delivery note.',
-    ],
-    looLocked: [
-      '"Occupied!" It\'s the pump driver. It is never five minutes with the pump driver.',
-      'Locked. A voice from inside: "I\'m reading!" Reading what. It\'s a portaloo.',
-      '"Someone\'s in here!" It\'s the kebab man. He doesn\'t even work here.',
+      'A shit of historic proportions. You sit in a plastic box and think about your choices. Twelve minutes, all of them yours.',
+      'The kebab comes back to visit, and it brings friends. You come out a changed man.',
+      'You take a shit. There\'s no paper. There\'s a delivery note. You use the delivery note.',
     ],
     weeSoon: [
-      '"I need a wee."',
+      '"I need a piss."',
       '"Should not have had that third coffee."',
-      '"Right. Loo. Soon."',
+      '"Right. Toilet. Soon. Very soon."',
+      '"My bladder is filing a formal complaint."',
     ],
     pooSoon: [
       '"Oh no. The kebab."',
       '"That is not a noise a stomach should make."',
-      '"The loo. Now. Walk, don\'t run. Running is dangerous."',
+      '"I need a shit. Now. Walk, don\'t run. Running is dangerous."',
+      '"Code brown. This is not a drill."',
+    ],
+    // holding it in: what you mutter, and the cramps
+    pissHold: [
+      '"Think of deserts. Dry, dusty deserts."',
+      '"Hold it. Hold it. You\'re a professional."',
+      '"Don\'t look at the water tank. Don\'t look at the hose."',
+      '"I can hear running water. Why can I always hear running water."',
+      '"Legs crossed. Legs crossed and dignity."',
+    ],
+    cramp: [
+      '"Nnnngh."',
+      '"Clench. Clench like your job depends on it. It does."',
+      '"Not here. Not now. Not on the slab."',
+      '"Whatever that kebab was, it wants out, and it wants out NOW."',
+    ],
+    pissedSelf: [
+      'Too late. It\'s warm, and then it isn\'t. A dark patch spreads down one leg, in front of everybody.',
+      'You couldn\'t hold it. Your trousers are now two colours. The pump driver saw. The pump driver is filming.',
+    ],
+    shatSelf: [
+      'You didn\'t make it. Nobody who was there will ever speak of it. Everybody who wasn\'t will hear about it.',
+      'The kebab wins. Your trousers lose. The flies arrive before you\'ve finished swearing.',
+    ],
+    mePissed: ['"Nobody saw. Nobody saw. Everybody saw."', '"It\'s sweat. It\'s very specific sweat."'],
+    meShat: ['"I\'m going to need the water tank. And a new name."', '"Walk normally. Walk NORMALLY."'],
+    // everybody else, getting a whiff of you
+    smellReact: [
+      '"Something died. Something died IN YOU."',
+      '"Is that you? Mate. MATE."',
+      '"Stand downwind. Stand in another town."',
+      '"I\'ve smelt a lot of sites. That\'s a new one."',
+      '"The flies have found you. They\'re calling their friends."',
+    ],
+    wetReact: [
+      '"Spilled your coffee, did you? Down there? Right."',
+      '"Mate, your trousers. No, the front. Yeah."',
+      '"We\'ve all been there. Not on site. Not in front of the pump driver."',
     ],
     rebarUp: [
       'A corner of the mesh comes up out of the concrete like a hand from a grave. Push it down before it sets!',
@@ -569,7 +603,7 @@
         pump: ['You flip off the pump. The pump doesn\'t care. It\'s a pump.', 'You flip off the pump. It thumps on, a heart that bills by the hour.'],
         mixer: ['You flip off the mixer truck. The drum keeps turning. It\'s seen your slab.', 'You flip off nine cubes of concrete. They go off either way.'],
         laser: ['You flip off the laser. It beeps. You decide that was an apology.', 'You flip off the laser. It stays perfectly level about it. Smug.'],
-        loo: ['You flip off the portable toilet. Honestly, it had it coming.', 'You flip off the loo. It answers with the smell.'],
+        loo: ['You flip off the portable toilet. Honestly, it had it coming.', 'You flip off the toilet. It answers with the smell.'],
         kiosk: ['You flip off the kebab stand. You\'ll be back at lunch and you both know it.', 'You flip off the kebab. The kebab turns slowly away from you.'],
         tank: ['You flip off the water tank. It gurgles. That\'s a no.', 'You flip off the water tank. It\'s the only clean thing on site and now it\'s been insulted.'],
         pipes: ['You flip off the pipes. All of them. They\'re still heavy.', 'You flip off the pipe pile. It rolls one at you. Probably the wind.'],
@@ -1204,6 +1238,35 @@
   L.flip.nothing.push(
     'You flip off the clock. It keeps going. Rude.',
   );
+  // Whoever is in the toilet, answering the door handle. Everybody has these; some have their own.
+  L.looInside = [
+    '"Occupied! And I\'d give it a while. And a match. And a priest."',
+    '"Knock again and I\'m taking the last of the paper with me."',
+    '"I\'m not coming out. I live here now. Forward my post."',
+    '"If I don\'t make it, tell my wife I died doing what I loved. Sitting down."',
+    '"There\'s no paper. There was never any paper. Have you got a receipt? A long one?"',
+    '"Go away, I\'m writing my will. On the wall. With a marker."',
+    '"Give me five minutes. Or fifty. The kebab decides, not me."',
+    '"Busy! I\'m making the air unbreathable for the next man. That\'s you."',
+    '"This box has seen things. Now it\'s seeing me. Poor box."',
+    '"Do you mind? It\'s the only quiet five minutes I\'ll get this year."',
+    '"I\'ve been in here so long the concrete\'s gone off. Both lots."',
+  ];
+  L.looInsideBy = {
+    pump: ['"The pump bills by the hour whether I\'m on it or on this. Relax."', '"I\'m running the pump from in here. The remote works through walls. Mostly."', '"Not now. I\'m in the middle of a very long stroke."'],
+    truck: ['"The drum keeps turning. So does my stomach. Wait your turn."', '"Nine cubes on the truck, one in here. Give me a minute."'],
+    kebab: ['"You want to know why the special is special? Wait till I come out."', '"Yesterday\'s kebab, returning to sender."'],
+    office: ['"I\'m in a meeting!" You can hear him scrolling his phone.', '"Site engineer! I\'m inspecting the facilities. Thoroughly."'],
+    stranger: ['A voice you have never heard: "Who\'s that? Do I work here? Does anyone?"', '"I don\'t even work here. I saw a toilet and I believed."'],
+  };
+  L.looFume = ['"Fine! FINE! I\'m hurrying!" He is not hurrying.', '"You rattle that handle once more and I\'m staying till Christmas."'];
+  L.looOut = [
+    '"All yours. I\'d give it ten minutes. And a gas mask."',
+    '"Don\'t light a match. I mean it."',
+    '"The paper\'s gone. You\'ll have to improvise. I believe in you."',
+    '"Sorry. Sorry about that. Truly. Sorry."',
+    '"I left the seat up. And some other things."',
+  ];
   L.helper.talk.push(
     '"I don\'t usually do floors. I don\'t usually do work."',
     '"My last job was painting. I like it here less."',
@@ -1545,6 +1608,8 @@
   }
   window.addEventListener('resize', resize);
   resize();
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); document.body.classList.add('glLost'); }, false);
+  canvas.addEventListener('webglcontextrestored', () => { document.body.classList.remove('glLost'); resize(); }, false);
 
   const MATS = {};
   function lam(c) { return MATS[c] || (MATS[c] = new THREE.MeshLambertMaterial({ color: c })); }
@@ -1576,6 +1641,17 @@
     return t;
   }
 
+  /** A small texture painted by [draw] on a [w] x [h] canvas, repeated [rx] x [ry]. */
+  function paintTex(w, h, rx, ry, draw) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx, ry);
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
   function textSprite(text, opts) {
     opts = opts || {};
     const c = document.createElement('canvas');
@@ -1613,16 +1689,33 @@
   // water tank for washing
   const ibc = new THREE.Group();
   box(1.2, 1.1, 1.2, new THREE.MeshLambertMaterial({ color: 0xdfe6ea, transparent: true, opacity: 0.85 }), 0, 0.75, 0, ibc);
+  box(1.14, 0.7, 1.14, new THREE.MeshLambertMaterial({ color: 0x8fb3c4, transparent: true, opacity: 0.5 }), 0, 0.56, 0, ibc);   // the water in it
   box(1.3, 0.15, 1.3, 0x6c7176, 0, 0.12, 0, ibc);
   cyl(0.05, 0.05, 0.25, 0x333333, 0, 0.35, 0.7, ibc).rotation.x = Math.PI / 2;
+  // the galvanised cage round it, the filler cap, the tap's handle
+  const cageTex = paintTex(32, 32, 4, 4, (g, w) => { g.strokeStyle = '#fff'; g.lineWidth = 3; g.strokeRect(1.5, 1.5, w - 3, w - 3); });
+  box(1.26, 1.14, 1.26, new THREE.MeshLambertMaterial({ color: 0xa9aeb3, map: cageTex, alphaMap: cageTex, alphaTest: 0.5, side: THREE.DoubleSide }), 0, 0.77, 0, ibc);
+  cyl(0.12, 0.12, 0.06, 0x2a2d31, 0, 1.33, 0, ibc, 12);
+  box(0.16, 0.03, 0.03, 0x2c6ad6, 0, 0.43, 0.8, ibc);
   ibc.position.set(POS.ibc.x, 0, POS.ibc.z);
   scene.add(ibc);
 
   // kebab stand
   const kiosk = new THREE.Group();
   box(3.2, 2.6, 2.6, 0x2f6f6a, 0, 1.3, 0, kiosk);
-  box(3.6, 0.12, 1.3, 0xd83a2e, 0, 2.5, 1.8, kiosk);
+  const awnTex = paintTex(64, 16, 5, 1, (g, w, h) => { for (let x = 0; x < w; x += 16) { g.fillStyle = '#d83a2e'; g.fillRect(x, 0, 8, h); g.fillStyle = '#f4efe6'; g.fillRect(x + 8, 0, 8, h); } });
+  box(3.6, 0.12, 1.3, new THREE.MeshLambertMaterial({ map: awnTex }), 0, 2.5, 1.8, kiosk);
+  for (let k = 0; k < 9; k++) { const sc = cyl(0.2, 0.2, 0.12, k % 2 ? 0xf4efe6 : 0xd83a2e, -1.6 + k * 0.4, 2.42, 2.45, kiosk, 10, ); sc.rotation.x = Math.PI / 2; sc.scale.set(1, 1, 0.5); }
   box(3.2, 0.9, 0.05, 0x1b2224, 0, 1.6, 1.31, kiosk);
+  // behind the hatch: the spit, glowing, and the heater behind it
+  box(0.4, 0.6, 0.02, new THREE.MeshBasicMaterial({ color: 0xff7a2a }), 0.8, 1.6, 1.34, kiosk);
+  cyl(0.13, 0.09, 0.55, 0x8a4a22, 0.8, 1.6, 1.47, kiosk, 10);
+  box(3.3, 0.07, 0.4, 0xb9bec3, 0, 1.14, 1.48, kiosk);                                // the counter
+  sign(['KEBAB  9 €', 'SAUSAGE  4 €', 'COFFEE  2 €', 'CAN  2 €'], 0.9, 0.75, '#1d1f22', '#ffd23f', kiosk, -1.05, 1.63, 1.34, { align: 'left', weight: 700 });
+  [-0.6, 0.4].forEach((x) => { cyl(0.03, 0.04, 0.7, 0x5a5f64, x, 0.35, 2.05, kiosk, 8); cyl(0.17, 0.17, 0.06, 0xd83a2e, x, 0.72, 2.05, kiosk, 14); });
+  cyl(0.22, 0.2, 0.75, 0x2e5d3a, 1.95, 0.38, 1.6, kiosk, 12);                         // the bin
+  cyl(0.15, 0.15, 0.6, 0xd8392f, -1.75, 0.3, -0.9, kiosk, 12);                        // the gas bottle
+  cyl(0.05, 0.05, 0.12, 0x5a5f64, -1.75, 0.66, -0.9, kiosk, 8);
   const kLabel = textSprite('KEBAB & COFFEE', { w: 3.2, color: '#ffd23f' });
   kLabel.position.set(0, 3.3, 0);
   kiosk.add(kLabel);
@@ -1632,8 +1725,19 @@
 
   // site office container and the portable toilet, for the atmosphere
   const office = new THREE.Group();
-  box(6, 2.6, 2.4, 0x3c6e9e, 0, 1.3, 0, office);
+  const ribTex = paintTex(64, 8, 12, 1, (g, w, h) => { const gr = g.createLinearGradient(0, 0, w, 0); [0, 0.25, 0.5, 0.75, 1].forEach((p, k) => gr.addColorStop(p, k % 2 ? '#c9d6e2' : '#ffffff')); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  box(6, 2.6, 2.4, new THREE.MeshLambertMaterial({ color: 0x3c6e9e, map: ribTex }), 0, 1.3, 0, office);
+  box(1.36, 0.96, 0.03, 0xd8dcdf, 1.2, 1.6, 1.205, office);                            // the window's frame
   box(1.2, 0.8, 0.05, 0x1e2a33, 1.2, 1.6, 1.21, office);
+  box(0.02, 0.8, 0.055, 0xd8dcdf, 1.2, 1.6, 1.21, office);
+  box(0.95, 2.05, 0.05, 0x2a4f73, -1.6, 1.08, 1.215, office);                         // the door
+  box(0.35, 0.3, 0.052, 0x1e2a33, -1.6, 1.65, 1.217, office);
+  box(0.12, 0.03, 0.05, 0xb9bec3, -1.25, 1.05, 1.24, office);
+  box(1.1, 0.18, 0.7, 0x6c7176, -1.6, 0.09, 1.6, office);                             // the steel step
+  box(0.62, 0.46, 0.32, 0xe9e7e2, 2.3, 2.1, 1.35, office);                            // the air conditioner
+  cyl(0.17, 0.17, 0.02, 0x5a5f64, 2.3, 2.1, 1.52, office, 16).rotation.x = Math.PI / 2;
+  sign(['SITE OFFICE', 'Hard hats beyond this point'], 1.5, 0.45, '#f4f4f0', '#1d1f22', office, 0.1, 2.25, 1.215, { border: '#2c6ad6' });
+  [[-3, -1.2], [3, -1.2], [-3, 1.2], [3, 1.2]].forEach(([x, z]) => [0.07, 2.53].forEach((y) => box(0.16, 0.14, 0.16, 0x2a2d31, x, y, z, office)));
   office.position.set(POS.office.x, 0, POS.office.z);
   office.rotation.y = 0.1;
   scene.add(office);
@@ -1641,9 +1745,75 @@
   box(1.1, 2.2, 1.1, 0x2c6ad6, 0, 1.1, 0, loo);
   box(1.2, 0.08, 1.2, 0x1d4a99, 0, 2.24, 0, loo);
   box(0.8, 1.9, 0.04, 0x1d4a99, 0, 1.0, 0.56, loo);
-  box(0.16, 0.06, 0.03, 0xd83a2e, 0.25, 1.1, 0.59, loo);
+  // the knob you pull, and the little window over it: red when somebody's in, green when not
+  cyl(0.035, 0.035, 0.05, 0x9ea3a8, 0.28, 1.05, 0.6, loo, 10).rotation.x = Math.PI / 2;
+  const looSignMat = new THREE.MeshBasicMaterial({ color: 0x2fbf5a });
+  box(0.13, 0.05, 0.02, looSignMat, 0.28, 1.17, 0.585, loo);
+  box(0.16, 0.08, 0.012, 0x1d4a99, 0.28, 1.17, 0.578, loo);
+  cyl(0.05, 0.05, 0.45, 0x1d4a99, -0.35, 2.45, -0.35, loo, 8);                       // the vent pipe
+  sign(['WC'], 0.24, 0.16, '#f4f4f0', '#1d4a99', loo, 0, 1.75, 0.585);
+  [-1, 1].forEach((sd) => { for (let k = 0; k < 4; k++) box(0.012, 0.03, 0.3, 0x1d4a99, sd * 0.556, 2.0 - k * 0.05, 0, loo); });
   loo.position.set(POS.loo.x, 0, POS.loo.z);
   scene.add(loo);
+
+  // The clutter of a site: a skip, a pallet of blocks, a heap of sand, timber, cones, a barrow, a
+  // cable drum, a generator, a bundle of bars. Somewhere new every day, and in your way. Each is
+  // [group, radius, half x, half z, colour on the map].
+  const props = [];
+  function prop(r, hx, hz, col, build) { const g = new THREE.Group(); build(g); g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); scene.add(g); props.push([g, r, hx, hz, col]); return g; }
+  prop(2.2, 1.8, 1.0, '#e0a21a', (g) => {
+    box(3.4, 0.08, 1.7, 0xd99a12, 0, 0.1, 0, g);
+    [-1, 1].forEach((sd) => { box(3.4, 1.1, 0.07, 0xe0a21a, 0, 0.65, sd * 0.85, g); const e = box(0.07, 1.1, 1.75, 0xe0a21a, sd * 1.9, 0.62, 0, g); e.rotation.z = sd * 0.35; });
+    [[-0.8, 0.4], [0.3, -0.2], [0.9, 0.3], [-0.2, 0.1]].forEach(([x, z]) => { box(rnd(0.3, 0.7), rnd(0.2, 0.5), rnd(0.3, 0.6), pick([0x8f918e, 0x6a4a32, 0xb9b5aa]), x, 0.35, z, g).rotation.y = rnd(0, 3); });
+    sign(['SKIP HIRE'], 1.4, 0.3, '#1d1f22', '#f2b705', g, 0, 0.8, 0.89);
+  });
+  const blockTex = paintTex(64, 64, 2, 2, (gc) => {
+    gc.fillStyle = '#c9c6bf'; gc.fillRect(0, 0, 64, 64);
+    gc.fillStyle = '#9c9a94';
+    for (let y = 0; y < 64; y += 16) { gc.fillRect(0, y, 64, 2); for (let x = (y / 16) % 2 ? 16 : 0; x < 64; x += 32) gc.fillRect(x, y, 2, 16); }
+  });
+  prop(1.2, 0.65, 0.55, '#bdb8ad', (g) => {
+    box(1.2, 0.12, 1.0, 0xa47a4a, 0, 0.06, 0, g);
+    box(1.14, 0.9, 0.94, new THREE.MeshLambertMaterial({ map: blockTex }), 0, 0.57, 0, g);
+    box(1.16, 0.02, 0.96, new THREE.MeshLambertMaterial({ color: 0xdfe8ee, transparent: true, opacity: 0.35 }), 0, 1.03, 0, g);
+  });
+  prop(1.5, 1.3, 1.3, '#c9b27a', (g) => {
+    const heap = mesh(new THREE.ConeGeometry(1.35, 0.85, 14), new THREE.MeshLambertMaterial({ map: noiseTex([201, 178, 122], 40, 3) }), 0, 0.42, 0, g);
+    heap.scale.z = 0.8;
+  });
+  prop(1.8, 1.6, 0.5, '#a47a4a', (g) => {
+    [-1.1, 1.1].forEach((x) => box(0.12, 0.1, 0.9, 0x6a4a32, x, 0.05, 0, g));
+    for (let k = 0; k < 7; k++) box(3.1, 0.05, 0.19, pick([0xc49a6a, 0xb88c5a, 0xd0a878]), rnd(-0.08, 0.08), 0.13 + Math.floor(k / 4) * 0.06, -0.3 + (k % 4) * 0.2, g);
+  });
+  prop(1.0, 0.9, 0.3, '#ff6b1a', (g) => {
+    [-0.6, 0, 0.6].forEach((x) => {
+      box(0.34, 0.04, 0.34, 0x1d1f22, x, 0.02, 0, g);
+      cyl(0.02, 0.14, 0.62, 0xff6b1a, x, 0.35, 0, g, 12);
+      cyl(0.07, 0.095, 0.1, 0xf2f0ea, x, 0.4, 0, g, 12);
+    });
+  });
+  prop(1.0, 0.8, 0.4, '#2e8b3a', (g) => {
+    const tray = mesh(new THREE.CylinderGeometry(0.5, 0.32, 0.32, 4, 1, true), new THREE.MeshLambertMaterial({ color: 0x2e8b3a, side: THREE.DoubleSide }), 0, 0.55, 0, g);
+    tray.rotation.y = Math.PI / 4; tray.scale.set(1.3, 1, 0.9);
+    const wh = cyl(0.18, 0.18, 0.08, 0x1d1f22, 0.72, 0.18, 0, g, 14); wh.rotation.x = Math.PI / 2;
+    [-1, 1].forEach((sd) => { box(1.3, 0.035, 0.035, 0x5a5f64, 0.05, 0.42, sd * 0.24, g).rotation.z = 0.12; box(0.035, 0.36, 0.035, 0x5a5f64, -0.35, 0.2, sd * 0.24, g); });
+  });
+  prop(0.8, 0.5, 0.5, '#6a4a32', (g) => {
+    [-0.28, 0.28].forEach((z) => { const d = cyl(0.55, 0.55, 0.05, 0xa47a4a, 0, 0.55, z, g, 18); d.rotation.x = Math.PI / 2; });
+    const core = cyl(0.36, 0.36, 0.52, 0x1d1f22, 0, 0.55, 0, g, 16); core.rotation.x = Math.PI / 2;
+  });
+  prop(0.9, 0.6, 0.4, '#f2b705', (g) => {
+    box(1.0, 0.55, 0.6, 0xf2b705, 0, 0.42, 0, g);
+    box(1.08, 0.04, 0.68, 0x2a2d31, 0, 0.72, 0, g);
+    [-1, 1].forEach((sd) => box(1.08, 0.04, 0.04, 0x2a2d31, 0, 0.12, sd * 0.32, g));
+    box(0.3, 0.2, 0.02, 0x2a2d31, -0.25, 0.45, 0.31, g);
+    box(0.05, 0.05, 0.02, new THREE.MeshBasicMaterial({ color: 0x3ec16a }), -0.3, 0.5, 0.325, g);
+    cyl(0.03, 0.03, 0.2, 0x5a5f64, 0.35, 0.82, 0.1, g, 8);
+  });
+  prop(1.6, 1.6, 0.35, '#8e4b2c', (g) => {
+    [-1, 1].forEach((x) => box(0.1, 0.1, 0.7, 0x6a4a32, x, 0.05, 0, g));
+    for (let k = 0; k < 10; k++) { const b = cyl(0.012, 0.012, 3, 0x8e4b2c, rnd(-0.05, 0.05), 0.12 + Math.floor(k / 5) * 0.03, -0.12 + (k % 5) * 0.06, g, 5); b.rotation.z = Math.PI / 2; }
+  });
 
   // fence, with a gap for the gate on the east
   (function fence() {
@@ -1655,6 +1825,14 @@
     const m4 = new THREE.Matrix4();
     posts.forEach(([x, z], k) => { m4.makeTranslation(x, 1, z); im.setMatrixAt(k, m4); });
     scene.add(im);
+    // each post in its concrete foot, and a rail along the top
+    const feet = new THREE.InstancedMesh(new THREE.BoxGeometry(0.6, 0.14, 0.24), lam(0x9a9c99), posts.length);
+    const q2 = new THREE.Quaternion(), up2 = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1), at2 = new THREE.Vector3();
+    posts.forEach(([x, z], k) => { m4.compose(at2.set(x, 0.07, z), q2.setFromAxisAngle(up2, Math.abs(x) === 44 ? Math.PI / 2 : 0), one); feet.setMatrixAt(k, m4); });
+    scene.add(feet);
+    box(88, 0.04, 0.04, 0x9aa1a7, 0, 1.92, -34); box(88, 0.04, 0.04, 0x9aa1a7, 0, 1.92, 34);
+    box(0.04, 0.04, 68, 0x9aa1a7, -44, 1.92, 0);
+    box(0.04, 0.04, 28, 0x9aa1a7, 44, 1.92, -20); box(0.04, 0.04, 28, 0x9aa1a7, 44, 1.92, 20);
     const mesh2 = new THREE.MeshBasicMaterial({ color: 0x9aa1a7, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
     box(88, 1.8, 0.02, mesh2, 0, 1.0, -34); box(88, 1.8, 0.02, mesh2, 0, 1.0, 34);
     box(0.02, 1.8, 68, mesh2, -44, 1.0, 0);
@@ -1697,6 +1875,30 @@
   scene.add(tripod);
 
   // ------------------------------------------------------------------ vehicles
+  /**
+   * A flat sign: [lines] of text painted on a [w] x [h] metre panel, in [fg] on [bg]. Number plates,
+   * the name on the van, the menu at the kebab stand. It faces +z; turn it to face where it should.
+   */
+  function sign(lines, w, h, bg, fg, parent, x, y, z, opts) {
+    opts = opts || {};
+    const c = document.createElement('canvas'), px = 256;
+    c.width = px; c.height = Math.max(16, Math.round((px * h) / w));
+    const g = c.getContext('2d');
+    if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); } else g.clearRect(0, 0, c.width, c.height);
+    if (opts.border) { g.strokeStyle = opts.border; g.lineWidth = 4; g.strokeRect(2, 2, c.width - 4, c.height - 4); }
+    g.fillStyle = fg; g.textAlign = opts.align || 'center'; g.textBaseline = 'middle';
+    const lh = c.height / lines.length;
+    lines.forEach((l, k) => {
+      const size = Math.min(lh * 0.72, (px * 1.6) / Math.max(4, l.length));
+      g.font = `${opts.weight || 800} ${size}px Manrope, Roboto, sans-serif`;
+      g.fillText(l, opts.align === 'left' ? 10 : px / 2, lh * (k + 0.5));
+    });
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = 4;
+    const m = mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshLambertMaterial({ map: tex, transparent: !bg, alphaTest: bg ? 0 : 0.3 }), x, y, z, parent);
+    return m;
+  }
   /** A side profile, extruded to a width and softened at the edges: cabs and van bodies. */
   function profile(pts, width, color, parent) {
     const sh = new THREE.Shape();
@@ -1727,9 +1929,9 @@
   // the van: a panel van, windscreen raked, orange stripe, ladder on the roof
   const van = new THREE.Group();
   profile([[-2.6, 0.45], [3.25, 0.45], [3.3, 1.05], [2.9, 1.38], [2.0, 2.28], [1.7, 2.45], [-2.45, 2.45], [-2.6, 2.3]], 1.95, 0xe9e7e2, van);
-  glassSlope(van, 2.92, 1.4, 2.0, 2.28, 1.8, 0.035);
-  box(0.95, 0.55, 2.08, GLASS, 1.45, 1.9, 0, van);
-  box(5.75, 0.16, 2.07, 0xff6b1a, 0.3, 1.12, 0, van);
+  const vanWs = glassSlope(van, 2.92, 1.4, 2.0, 2.28, 1.8, 0.035);
+  const vanSideGlass = box(0.95, 0.55, 2.08, GLASS, 1.45, 1.9, 0, van);
+  const vanStripe = box(5.75, 0.16, 2.07, 0xff6b1a, 0.3, 1.12, 0, van);
   box(0.16, 0.3, 2.1, 0x2a2d31, 3.32, 0.62, 0, van);
   box(0.16, 0.3, 2.1, 0x2a2d31, -2.66, 0.62, 0, van);
   box(0.05, 0.28, 1.1, 0x2a2d31, 3.33, 0.92, 0, van);
@@ -1739,6 +1941,24 @@
   [-0.45, 0.45].forEach((z) => box(3.4, 0.05, 0.06, 0xc0c4c8, -0.4, 2.63, z, van));
   for (let x = -1.9; x <= 1.1; x += 0.4) box(0.04, 0.04, 0.9, 0xc0c4c8, x, 2.64, 0, van);
   [[-1.7, 1.0], [-1.7, -1.0], [2.3, 1.0], [2.3, -1.0]].forEach(([x, z]) => wheel(van, x, z, 0.38, 0.26));
+  // the grille and its badge, the plates, the tail lights, the doors' seams, the orange light on the
+  // roof, and the firm's name down both sides
+  box(0.04, 0.22, 0.95, 0x1a1b1d, 3.33, 0.84, 0, van);
+  [0.78, 0.86, 0.94].forEach((y) => box(0.05, 0.018, 0.9, 0x44484d, 3.34, y, 0, van));
+  cyl(0.05, 0.05, 0.02, 0xb9bec3, 3.36, 0.86, 0, van, 14).rotation.z = Math.PI / 2;
+  sign(['FIN', 'ABC-123'], 0.52, 0.12, '#f4f4f0', '#111', van, 3.42, 0.6, 0, { border: '#111' }).rotation.y = Math.PI / 2;
+  sign(['ABC-123'], 0.52, 0.12, '#f4f4f0', '#111', van, -2.76, 0.72, 0, { border: '#111' }).rotation.y = -Math.PI / 2;
+  [-1, 1].forEach((sd) => {
+    box(0.04, 0.34, 0.12, 0xb3261e, -2.66, 1.02, sd * 0.86, van);
+    box(0.045, 0.08, 0.12, 0xff9a1a, -2.665, 1.24, sd * 0.86, van);
+    [0.95, 2.35, -0.25].forEach((x) => box(0.012, x < 0 ? 1.55 : 1.35, 0.004, 0x5a5f64, x, x < 0 ? 1.25 : 1.2, sd * 1.028, van));
+    box(0.14, 0.035, 0.012, 0x2a2d31, 2.2, 1.42, sd * 1.03, van);                  // the cab door's handle
+    const nm = sign(inMixMaster ? ['CONWIC', 'FLOORS FOR LIVING'] : ['POUR DAY', 'CONCRETE FLOORS'], 2.4, 0.5, null, '#2a1c10', van, -0.7, 1.62, sd * 1.032);
+    if (sd < 0) nm.rotation.y = Math.PI;
+  });
+  cyl(0.09, 0.1, 0.05, 0x1d1f22, 1.35, 2.5, 0, van, 10);
+  const vanBeacon = cyl(0.07, 0.08, 0.1, new THREE.MeshBasicMaterial({ color: 0xff8a1a }), 1.35, 2.57, 0, van, 10);
+  void vanBeacon;
   // the back: two doors that swing right round, a ramp that slides out and down, and just inside
   // the door the laser in its orange case and a bucket of this and that
   const vanBack = { doors: [], open: 0, want: 0 };
@@ -1778,6 +1998,122 @@
   van.rotation.y = -0.25;
   scene.add(van);
 
+  // Inside the cab, for a nap behind the wheel: the dash, the wheel, the seats, your legs, what
+  // lives on the dash of a work van, and glass you can see the site through. It's only there while
+  // you're in it; the outside's own glass is dark, so that goes while you're in.
+  const vanCab = new THREE.Group();
+  vanCab.visible = false;
+  van.add(vanCab);
+  const vanClock = { canvas: document.createElement('canvas'), last: -1 };
+  vanClock.canvas.width = 128; vanClock.canvas.height = 40;
+  vanClock.tex = new THREE.CanvasTexture(vanClock.canvas);
+  (function cabInside() {
+    const g = vanCab;
+    const see = new THREE.MeshLambertMaterial({ color: 0xbfd3de, transparent: true, opacity: 0.12, depthWrite: false });
+    const DASH = 0x2b2d30, TRIM = 0x3d4046, SEAT = 0x34373c, LINER = 0xc2beb4, PANTS = 0x3a3226;
+    glassSlope(g, 2.92, 1.4, 2.0, 2.28, 1.8, 0).material = see;
+    [-1, 1].forEach((sd) => {
+      box(1.02, 0.66, 0.02, see, 1.47, 1.86, sd * 0.955, g);                        // the side window
+      const pil = box(Math.hypot(0.92, 0.88), 0.08, 0.07, DASH, 2.46, 1.84, sd * 0.92, g);
+      pil.rotation.z = Math.atan2(0.88, -0.92);                                     // the pillar by the windscreen
+      box(1.3, 0.92, 0.05, TRIM, 1.55, 0.98, sd * 0.95, g);                          // the door, from inside
+      box(0.5, 0.06, 0.1, 0x25272b, 1.5, 1.24, sd * 0.89, g);                        // its armrest
+      box(0.1, 0.04, 0.03, 0x9ea3a8, 1.85, 1.3, sd * 0.915, g);                      // its handle
+      box(1.1, 0.06, 0.06, TRIM, 1.45, 2.22, sd * 0.94, g);                          // over the window
+      box(0.06, 0.7, 0.06, TRIM, 0.95, 1.86, sd * 0.94, g);                          // the pillar behind you
+    });
+    box(0.14, 0.1, 1.9, TRIM, 1.97, 2.31, 0, g);                                    // over the windscreen
+    box(1.25, 0.04, 1.9, LINER, 1.38, 2.39, 0, g);                                  // the roof lining
+    box(1.9, 0.04, 1.9, 0x1d1f22, 1.65, 0.53, 0, g);                                // the floor mat
+    box(0.05, 1.9, 1.9, 0x5a5f64, 0.76, 1.45, 0, g);                                // the bulkhead, the tools behind it
+    // the dash: a long shelf under the windscreen, the clocks in front of you, the radio in the middle
+    box(0.55, 0.42, 1.86, DASH, 2.47, 1.1, 0, g);
+    box(0.72, 0.05, 1.86, DASH, 2.55, 1.35, 0, g).rotation.z = -0.1;
+    box(0.2, 0.1, 0.44, DASH, 2.2, 1.42, -0.45, g);
+    [-0.52, -0.38].forEach((z, k) => {
+      const dial = cyl(0.052, 0.052, 0.01, 0x0d0f11, 2.094, 1.4, z, g, 18);
+      dial.rotation.z = Math.PI / 2;
+      mesh(new THREE.TorusGeometry(0.052, 0.004, 4, 20), new THREE.MeshBasicMaterial({ color: 0xff9a3c }), 2.088, 1.4, z, g).rotation.y = Math.PI / 2;
+      box(0.004, 0.042, 0.006, new THREE.MeshBasicMaterial({ color: 0xffffff }), 2.086, 1.39, z, g).rotation.x = k ? -0.4 : 0.9;
+    });
+    box(0.04, 0.1, 0.26, 0x1a1b1d, 2.215, 1.2, 0.02, g);
+    const radio = mesh(new THREE.PlaneGeometry(0.2, 0.06), new THREE.MeshBasicMaterial({ map: vanClock.tex }), 2.193, 1.2, 0.02, g);
+    radio.rotation.y = -Math.PI / 2;
+    // the wheel, tipped back towards you like a bus's, on its column into the dash
+    const wheelG = new THREE.Group();
+    wheelG.position.set(1.95, 1.42, -0.45);
+    wheelG.rotation.z = -0.62;
+    g.add(wheelG);
+    mesh(new THREE.TorusGeometry(0.19, 0.022, 8, 30), 0x1a1b1d, 0, 0, 0, wheelG).rotation.y = Math.PI / 2;
+    [0, 2.2, 4.1].forEach((a) => { box(0.02, 0.17, 0.035, 0x2a2c30, 0, Math.cos(a) * 0.085, Math.sin(a) * 0.085, wheelG).rotation.x = a; });
+    cyl(0.055, 0.055, 0.04, 0x2a2c30, 0, 0, 0, wheelG, 14).rotation.z = Math.PI / 2;
+    cyl(0.035, 0.045, 0.45, 0x25272b, 0.22, 0, 0, wheelG, 10).rotation.z = Math.PI / 2;
+    [-0.58, -0.45, -0.3].forEach((z, k) => { box(0.1, 0.02, 0.07, 0x2a2c30, 2.05, 0.66 + k * 0.01, z, g).rotation.z = 0.6; });
+    cyl(0.012, 0.014, 0.28, 0x2a2c30, 1.9, 1.02, -0.08, g, 8).rotation.z = 0.35;       // the gear stick
+    mesh(new THREE.SphereGeometry(0.03, 10, 8), 0x1a1b1d, 1.86, 1.15, -0.08, g);
+    // the seats; the passenger's has the hard hat on it
+    [-1, 1].forEach((sd) => {
+      box(0.52, 0.14, 0.5, SEAT, 1.28, 0.98, sd * 0.45, g);
+      box(0.13, 0.72, 0.5, SEAT, 0.98, 1.4, sd * 0.45, g).rotation.z = 0.14;
+      box(0.1, 0.18, 0.3, SEAT, 0.93, 1.88, sd * 0.45, g);
+    });
+    mesh(new THREE.SphereGeometry(0.13, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), 0xf2f0ea, 1.3, 1.05, 0.45, g);
+    cyl(0.16, 0.16, 0.012, 0xf2f0ea, 1.33, 1.055, 0.45, g, 18);
+    // your legs, asleep: thighs along the seat, shins down to the pedals, gloves in your lap
+    [-0.55, -0.35].forEach((z) => {
+      capsule(0.075, 0.42, PANTS, 1.5, 1.1, z, g).rotation.z = Math.PI / 2 - 0.1;
+      capsule(0.065, 0.4, PANTS, 1.85, 0.87, z, g).rotation.z = 0.56;
+      box(0.26, 0.1, 0.12, 0x22211f, 2.0, 0.62, z, g);
+    });
+    [-0.53, -0.37].forEach((z) => { mesh(new THREE.SphereGeometry(0.05, 10, 8), 0xc79a5c, 1.55, 1.2, z, g).scale.set(1.3, 0.7, 1); });
+    // what lives on the dash: every delivery note since March, yesterday's coffee, the folding rule
+    box(0.24, 0.025, 0.19, 0xf2f0ea, 2.62, 1.41, 0.42, g).rotation.y = 0.2;
+    box(0.22, 0.02, 0.17, 0xffe9a8, 2.6, 1.435, 0.4, g).rotation.y = -0.1;
+    cyl(0.035, 0.03, 0.1, 0xf2f0ea, 2.5, 1.44, 0.12, g, 12);
+    cyl(0.037, 0.037, 0.012, 0x5a3b22, 2.5, 1.495, 0.12, g, 12);
+    box(0.18, 0.03, 0.03, 0xf2b705, 2.66, 1.41, -0.05, g).rotation.y = 0.5;
+    // a hi-vis on its hook, the mirror, the pine tree that stopped smelling of pine in 2021
+    box(0.02, 0.5, 0.36, 0xd4f53c, 0.8, 1.72, 0.3, g);
+    [1.6, 1.8].forEach((y) => box(0.022, 0.035, 0.36, 0xd9dde0, 0.8, y, 0.3, g));
+    box(0.03, 0.02, 0.02, 0x1a1b1d, 2.0, 2.27, 0, g);
+    box(0.03, 0.07, 0.24, 0x1a1b1d, 1.99, 2.19, 0, g);
+    box(0.005, 0.06, 0.22, 0x8aa0b0, 1.973, 2.19, 0, g);
+    const fresh = new THREE.Group();
+    fresh.position.set(1.99, 2.15, 0.07);
+    g.add(fresh);
+    box(0.002, 0.08, 0.002, 0xdddddd, 0, -0.04, 0, fresh);
+    const tree = mesh(new THREE.ConeGeometry(0.035, 0.09, 3), 0x2e8b3a, 0, -0.12, 0, fresh);
+    tree.rotation.y = 0.4; tree.scale.z = 0.25;
+    g.userData.fresh = fresh;
+    box(0.02, 0.17, 0.55, LINER, 1.99, 2.25, -0.45, g);                             // your sun visor, down
+    // the bonnet through the windscreen, and the wipers parked on it
+    box(0.52, 0.03, 1.9, 0xe9e7e2, 3.1, 1.22, 0, g).rotation.z = -0.69;
+    [-1, 1].forEach((sd) => box(0.03, 0.012, 0.55, 0x111111, 2.86, 1.45, sd * 0.33, g));
+  })();
+  let snoreAt = 0, inVanWas = false;
+  /** The cab while you nap in it: the dark glass out, the clock on the radio, the pine tree swinging, eyes heavy. */
+  function updateVanCab() {
+    const inVan = gs.waitMode === 'van' && gs.phase !== 'title' && gs.phase !== 'end';
+    if (vanCab.visible !== inVan) {
+      vanCab.visible = inVan;
+      vanWs.visible = vanSideGlass.visible = vanStripe.visible = !inVan;
+      document.body.classList.toggle('napping', inVan);
+    }
+    if (!inVan) return;
+    const now = performance.now();
+    vanCab.userData.fresh.rotation.x = CALM ? 0 : Math.sin(now / 900) * 0.12;
+    const m = Math.floor(gs.t);
+    if (m !== vanClock.last) {
+      vanClock.last = m;
+      const c = vanClock.canvas.getContext('2d');
+      c.fillStyle = '#0a0d0b'; c.fillRect(0, 0, 128, 40);
+      c.fillStyle = '#5dff8a'; c.font = '700 26px monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(clock(gs.t), 64, 21);
+      vanClock.tex.needsUpdate = true;
+    }
+    if (now > snoreAt) { snoreAt = now + rnd(3.4, 4.8) * 1000; sfx('snore'); }
+  }
+
   // a truck cab, facing -x: raked windscreen, grille, bumper, mirrors, steps
   function cab(parent, color) {
     profile([[-4.7, 0.8], [-2.35, 0.8], [-2.35, 3.2], [-4.35, 3.2], [-4.55, 3.0], [-4.7, 2.1]], 2.3, color, parent);
@@ -1792,6 +2128,19 @@
     box(9.2, 0.35, 1.0, 0x2a2d31, 0, 0.95, 0, parent);
     const tank = cyl(0.26, 0.26, 1.0, 0xb9bec3, -1.7, 1.0, 1.05, parent, 12);
     tank.rotation.z = Math.PI / 2;
+    // the grille's slats, the indicators, a sun visor, the roof lights, the exhaust stack, the plate,
+    // the wipers, the door handles
+    [1.15, 1.3, 1.45, 1.6, 1.75].forEach((y) => box(0.05, 0.03, 1.4, 0x5a5f64, -4.79, y, 0, parent));
+    [-1, 1].forEach((sd) => {
+      box(0.05, 0.09, 0.16, 0xff9a1a, -4.92, 0.98, sd * 1.05, parent);
+      box(0.3, 0.05, 0.12, 0x2a2d31, -3.3, 1.9, sd * 1.16, parent);
+      box(0.04, 0.012, 0.75, 0x111111, -4.64, 2.2, sd * 0.45, parent).rotation.x = sd * 0.1;
+    });
+    box(0.4, 0.06, 2.35, color, -4.5, 3.26, 0, parent);
+    [-0.6, 0, 0.6].forEach((z) => box(0.08, 0.06, 0.14, new THREE.MeshBasicMaterial({ color: 0xffa640 }), -4.3, 3.3, z, parent));
+    cyl(0.07, 0.07, 1.7, 0x9ea3a8, -2.25, 3.05, 1.02, parent, 10);
+    cyl(0.09, 0.07, 0.12, 0x5a5f64, -2.25, 3.95, 1.02, parent, 10);
+    sign(['XYZ-789'], 0.52, 0.12, '#f4f4f0', '#111', parent, -4.93, 0.7, 0, { border: '#111' }).rotation.y = -Math.PI / 2;
   }
   function truckWheels(parent) {
     [-3.3, 1.6, 3.0].forEach((x) => [1.1, -1.1].forEach((z) => wheel(parent, x, z, 0.5, 0.36)));
@@ -1810,6 +2159,14 @@
   box(0.9, 0.12, 0.3, 0x2a2d31, 3.6, 0.7, -1.45, pump);
   [-0.4, 0, 0.4].forEach((y) => { const r = cyl(0.07, 0.07, 4.2, 0x6d7278, 0.6, 2.05 + y, 1.22, pump, 8); r.rotation.z = Math.PI / 2; });
   cyl(0.07, 0.07, 1.3, 0x2a2d31, -2.2, 2.9, -1.0, pump, 8);
+  // the control panel at the back, lit; the grate over the hopper; the firm's name; the beacons
+  box(0.12, 0.55, 0.4, 0xd8dcdf, 3.05, 1.7, -0.95, pump);
+  [[0x3ec16a, 1.85], [0xff3b30, 1.72], [0xf2b705, 1.59]].forEach(([c2, y]) => box(0.02, 0.06, 0.06, new THREE.MeshBasicMaterial({ color: c2 }), 3.0, y, -0.85, pump));
+  cyl(0.035, 0.035, 0.02, 0xd02020, 2.99, 1.5, -1.05, pump, 10).rotation.z = Math.PI / 2;
+  for (let k = -2; k <= 2; k++) box(0.03, 0.03, 1.2, 0x2a2d31, 3.8 + k * 0.18, 2.14, 0, pump);
+  // (the far side has the pipe rack over it; the name goes on this one)
+  sign(['CONCRETE PUMPING', 'PUMP HIRE · 24 H'], 3.2, 0.7, null, '#1d1f22', pump, 0.6, 1.95, -1.162).rotation.y = Math.PI;
+  cyl(0.09, 0.1, 0.12, new THREE.MeshBasicMaterial({ color: 0xff8a1a }), -3.4, 3.4, 0.7, pump, 10);
   const pumpLabel = textSprite('LINE PUMP', { w: 2.4, color: '#ffd23f' });
   pumpLabel.position.set(0.6, 3.9, 0);
   pump.add(pumpLabel);
@@ -1865,6 +2222,8 @@
   const drum = new THREE.Mesh(new THREE.LatheGeometry(drumProfile, 26), new THREE.MeshLambertMaterial({ map: drumTex }));
   drum.rotation.z = -Math.PI / 2;
   drumSpin.add(drum);
+  // steel bands round the drum where the rollers run
+  [[-0.4, 1.19], [0.7, 1.1]].forEach(([x, r]) => { mesh(new THREE.TorusGeometry(r, 0.035, 6, 30), 0x5a5f64, x, 0, 0, drumSpin).rotation.y = Math.PI / 2; });
   mixer.add(drumPivot);
   box(0.4, 1.4, 0.25, 0x2a2d31, -1.3, 1.7, 0.75, mixer);
   box(0.4, 1.4, 0.25, 0x2a2d31, -1.3, 1.7, -0.75, mixer);
@@ -1875,6 +2234,14 @@
   mhop.rotation.y = Math.PI / 4;
   const wtank = cyl(0.33, 0.33, 1.8, 0x3c6e9e, -1.95, 2.3, 0, mixer, 12);
   wtank.rotation.x = Math.PI / 2;
+  // the ladder up the back to the hopper, the rear lights, the mudflaps, the beacon
+  [-0.25, 0.25].forEach((z) => box(0.05, 2.1, 0.05, 0x9ea3a8, 3.45, 2.15, z + 0.45, mixer));
+  for (let y = 1.25; y < 3.2; y += 0.3) box(0.04, 0.035, 0.5, 0x9ea3a8, 3.45, y, 0.45, mixer);
+  [-1, 1].forEach((sd) => {
+    box(0.05, 0.14, 0.28, 0xb3261e, 3.72, 1.0, sd * 1.0, mixer);
+    box(0.02, 0.45, 0.4, 0x1d1f22, 3.72, 0.62, sd * 1.1, mixer);
+  });
+  cyl(0.09, 0.1, 0.12, new THREE.MeshBasicMaterial({ color: 0xff8a1a }), -3.4, 3.4, 0.7, mixer, 10);
   mixer.position.set(80, 0, POS.mixer.z);
   mixer.visible = false;
   scene.add(mixer);
@@ -1954,11 +2321,16 @@
     const shirt = opts.shirt || pick([0x3b5b8c, 0x8c3b3b, 0x4e7a44, 0x5a4f7a, 0xc9c3b8, 0x2f3540, 0x7a5a3a]);
     const pants = opts.pants || pick([0x2f3540, 0x3a3226, 0x23262b, 0x4a5a70, 0x5b5a52]);
     const skin = opts.skin || pick(SKINS);
+    const hairCol = pick(HAIR);
+    const worker = !!opts.vest;
     const leg = (x) => {
       const p = new THREE.Group();
       p.position.set(x, 0.9, 0);
       capsule(0.075, 0.62, pants, 0, -0.42, 0, p);
       box(0.12, 0.08, 0.27, 0x22211f, 0, -0.86, 0.04, p);
+      box(0.13, 0.025, 0.29, 0x121212, 0, -0.895, 0.045, p);                         // the sole
+      box(0.115, 0.05, 0.07, 0x3a352f, 0, -0.84, 0.15, p);                           // the toecap
+      if (worker) box(0.1, 0.11, 0.03, 0x1f2124, 0, -0.46, 0.07, p);                  // a knee pad
       g.add(p);
       return p;
     };
@@ -1968,6 +2340,10 @@
     box(0.34, 0.14, 0.2, pants, 0, 0.93, 0, body);
     const torso = cyl(0.2, 0.16, 0.6, shirt, 0, 1.24, 0, body, 12);
     torso.scale.z = 0.65;
+    // a belt with a buckle, a collar at the neck
+    cyl(0.168, 0.166, 0.045, 0x2a2520, 0, 0.98, 0, body, 12).scale.z = 0.68;
+    box(0.05, 0.035, 0.02, 0xb9bec3, 0, 0.98, 0.114, body);
+    mesh(new THREE.TorusGeometry(0.062, 0.02, 6, 14), new THREE.Color(shirt).multiplyScalar(0.8).getHex(), 0, 1.57, 0, body).rotation.x = Math.PI / 2;
     if (opts.vest) {
       const v = cyl(0.206, 0.166, 0.46, opts.vest, 0, 1.22, 0, body, 12);
       v.scale.z = 0.68;
@@ -1977,6 +2353,8 @@
         const st = cyl(opts.logo ? vr(y + 0.0175) + 0.006 : 0.209, opts.logo ? vr(y - 0.0175) + 0.006 : 0.19, 0.035, 0xd9dde0, 0, y, 0, body, 12);
         st.scale.z = 0.69;
       });
+      // two pockets on the front, a shade darker
+      [-1, 1].forEach((sd) => box(0.07, 0.06, 0.012, new THREE.Color(opts.vest).multiplyScalar(0.82).getHex(), sd * 0.08, 1.1, 0.13, body));
       if (opts.logo) {
         // the back is -z; a strip of the vest's own curve, 110 degrees round, just proud of it
         const arc = 1.92;
@@ -1990,7 +2368,9 @@
       const p = new THREE.Group();
       p.position.set(x, 1.5, 0);
       capsule(0.055, 0.46, shirt, 0, -0.28, 0, p);
-      mesh(new THREE.SphereGeometry(0.055, 8, 6), skin, 0, -0.6, 0, p);
+      // workers' hands are in gloves; everybody else's are hands
+      mesh(new THREE.SphereGeometry(0.055, 8, 6), worker ? 0xc79a5c : skin, 0, -0.6, 0, p).scale.set(1, 1.15, 0.8);
+      if (worker) cyl(0.05, 0.05, 0.05, 0x8a6a3a, 0, -0.54, 0, p, 8);
       // the middle finger, for answering back: turned to point up whatever the arm is doing
       const f = new THREE.Group();
       f.position.set(0, -0.6, 0);
@@ -2007,22 +2387,38 @@
     head.position.set(0, 1.74, 0);
     body.add(head);
     mesh(new THREE.SphereGeometry(0.12, 14, 12), skin, 0, 0, 0, head).scale.set(0.92, 1.05, 1);
-    [-1, 1].forEach((s) => box(0.022, 0.022, 0.01, 0x111111, s * 0.04, 0.02, 0.112, head));
+    // a face: eyes, brows, a nose, a mouth, ears — and on some a beard or a pair of glasses
+    [-1, 1].forEach((s) => {
+      box(0.022, 0.022, 0.01, 0x111111, s * 0.04, 0.02, 0.112, head);
+      box(0.036, 0.009, 0.012, hairCol, s * 0.042, 0.05, 0.108, head).rotation.z = -s * 0.12;
+      mesh(new THREE.SphereGeometry(0.028, 8, 6), skin, s * 0.112, 0.0, -0.005, head).scale.set(0.45, 1, 0.8);
+    });
     box(0.022, 0.035, 0.03, skin, 0, -0.012, 0.12, head);
+    box(0.042, 0.008, 0.01, 0x7a3b30, 0, -0.05, 0.109, head);
+    if (opts.g !== 'f' && opts.g !== 'kid' && chance(0.35)) {
+      mesh(new THREE.SphereGeometry(0.118, 12, 6, 0, Math.PI * 2, Math.PI * 0.56, Math.PI * 0.44), hairCol, 0, 0.006, 0.004, head).scale.set(0.95, 1.05, 1.02);
+      box(0.05, 0.012, 0.012, hairCol, 0, -0.032, 0.114, head);                     // the moustache
+    }
+    if (chance(0.15)) {
+      [-1, 1].forEach((s) => mesh(new THREE.TorusGeometry(0.02, 0.004, 4, 12), 0x1d1f22, s * 0.042, 0.02, 0.118, head));
+      box(0.025, 0.004, 0.004, 0x1d1f22, 0, 0.024, 0.12, head);
+    }
     const hat = opts.hat === undefined ? pick(['hard', 'cap', 'hair', 'hair']) : opts.hat;
     if (hat === 'hard') {
       const hc = opts.hatColor || pick([0xf2b705, 0xf2f0ea, 0xff6b1a, 0x2c6ad6]);
       mesh(new THREE.SphereGeometry(0.138, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), hc, 0, 0.03, 0, head);
       cyl(0.165, 0.165, 0.014, hc, 0, 0.035, 0.025, head, 18);
+      box(0.02, 0.012, 0.25, hc, 0, 0.165, -0.01, head);                              // the ridge over the top
+      box(0.05, 0.03, 0.012, 0x1d1f22, 0, 0.07, 0.13, head);                          // the badge on the front
     } else if (hat === 'cap') {
       const cc = pick([0x2f3540, 0x8c3b3b, 0x4e7a44, 0xc9c3b8]);
       mesh(new THREE.SphereGeometry(0.128, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), cc, 0, 0.02, 0, head);
       box(0.15, 0.012, 0.1, cc, 0, 0.03, 0.14, head);
     } else {
-      mesh(new THREE.SphereGeometry(0.126, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2.1), pick(HAIR), 0, 0.015, -0.012, head);
+      mesh(new THREE.SphereGeometry(0.126, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2.1), hairCol, 0, 0.015, -0.012, head);
     }
     // a ponytail, under whatever is on top
-    if (opts.g === 'f') capsule(0.042, 0.15, pick(HAIR), 0, -0.07, -0.125, head).rotation.x = 0.35;
+    if (opts.g === 'f') capsule(0.042, 0.15, hairCol, 0, -0.07, -0.125, head).rotation.x = 0.35;
     g.userData = { legL, legR, armL, armR, head, body, bootCrust, phase: Math.random() * 6 };
     return g;
   }
@@ -2041,25 +2437,49 @@
     head.position.set(0.38, 0.68, 0);
     body.add(head);
     mesh(new THREE.SphereGeometry(cat ? 0.12 : 0.1, 12, 10), c, 0, 0, 0, head);
-    if (cat) mesh(new THREE.SphereGeometry(0.02, 6, 6), 0xd98a9a, 0.12, -0.01, 0, head);
-    else {
-      capsule(0.045, 0.08, c, 0.1, -0.03, 0, head).rotation.z = Math.PI / 2;
+    const light = new THREE.Color(c).lerp(new THREE.Color(0xf2ece0), 0.55).getHex();
+    const floppy = !cat && chance(0.5);
+    if (cat) {
+      mesh(new THREE.SphereGeometry(0.02, 6, 6), 0xd98a9a, 0.12, -0.01, 0, head);
+      // whiskers, three a side
+      [-1, 1].forEach((sd) => [0, 1, 2].forEach((k) => { box(0.002, 0.002, 0.09, 0xf2f0ea, 0.115, -0.02 + k * 0.009, sd * 0.06, head).rotation.y = sd * (0.2 + k * 0.12); }));
+    } else {
+      capsule(0.045, 0.08, chance(0.4) ? light : c, 0.1, -0.03, 0, head).rotation.z = Math.PI / 2;
       mesh(new THREE.SphereGeometry(0.025, 6, 6), 0x111111, 0.175, -0.02, 0, head);
+      if (chance(0.4)) box(0.05, 0.008, 0.028, 0xe07a8a, 0.15, -0.075, 0, head).rotation.z = -0.5;   // the tongue out
     }
     [-1, 1].forEach((s) => {
-      const ear = mesh(new THREE.ConeGeometry(cat ? 0.05 : 0.035, cat ? 0.12 : 0.09, cat ? 4 : 6), c, -0.02, cat ? 0.11 : 0.1, s * (cat ? 0.07 : 0.06), head);
-      ear.rotation.x = s * (cat ? 0.25 : 0.35);
-      box(0.014, cat ? 0.022 : 0.014, 0.014, cat ? 0x9bd14a : 0x111111, cat ? 0.1 : 0.075, 0.03, s * 0.045, head);
+      if (floppy) {
+        const ear = mesh(new THREE.SphereGeometry(0.05, 8, 6), c, -0.02, 0.02, s * 0.088, head);
+        ear.scale.set(0.55, 1.25, 0.25); ear.rotation.x = s * 0.25;
+      } else {
+        const ear = mesh(new THREE.ConeGeometry(cat ? 0.05 : 0.035, cat ? 0.12 : 0.09, cat ? 4 : 6), c, -0.02, cat ? 0.11 : 0.1, s * (cat ? 0.07 : 0.06), head);
+        ear.rotation.x = s * (cat ? 0.25 : 0.35);
+      }
+      // the eyes: a cat's green with a slit, a dog's dark with a glint
+      mesh(new THREE.SphereGeometry(cat ? 0.02 : 0.017, 8, 6), cat ? 0x9bd14a : 0x1a1410, cat ? 0.098 : 0.074, 0.03, s * 0.045, head);
+      if (cat) box(0.004, 0.024, 0.005, 0x111111, 0.117, 0.03, s * 0.045, head);
+      else mesh(new THREE.SphereGeometry(0.005, 4, 4), 0xffffff, 0.088, 0.037, s * 0.043, head);
     });
+    // a collar, and on most a tag
+    const collar = mesh(new THREE.TorusGeometry(cat ? 0.06 : 0.075, 0.012, 6, 16), pick([0xd83a2e, 0x2c6ad6, 0x2e8b3a, 0xf2b705]), 0.29, 0.6, 0, body);
+    collar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0.78, 0.62, 0));
+    cyl(0.018, 0.018, 0.006, cat ? 0xd9c24a : 0xb9bec3, 0.33, 0.52, 0, body, 8).rotation.x = Math.PI / 2;
+    // patches on some dogs, stripes on a tabby, a white bib on others
+    if (!cat && chance(0.4)) [[-0.1, 0.55, 0.1], [0.08, 0.5, -0.11], [-0.22, 0.47, -0.05]].forEach(([x, y, z]) => mesh(new THREE.SphereGeometry(0.07, 8, 6), pick([0xf2ece0, 0x2b2622, 0x6b4a2b]), x, y, z, body).scale.set(1.2, 0.8, 0.35));
+    if (cat && chance(0.45)) [-0.15, -0.05, 0.05, 0.15].forEach((x) => mesh(new THREE.TorusGeometry(0.13, 0.012, 4, 14), new THREE.Color(c).multiplyScalar(0.6).getHex(), x, 0.45, 0, body).rotation.y = Math.PI / 2);
+    if (chance(0.35)) mesh(new THREE.SphereGeometry(0.075, 8, 6), 0xf2ece0, 0.26, 0.47, 0, body).scale.set(0.6, 1, 0.9);
     const tail = new THREE.Group();
     tail.position.set(-0.3, 0.52, 0);
     body.add(tail);
     capsule(0.025, cat ? 0.42 : 0.2, c, 0, cat ? 0.22 : 0.12, 0, tail);
     tail.rotation.z = cat ? 0.15 : 0.7;
+    const socks = chance(0.3);
     const legs = [[0.2, 0.08], [0.2, -0.08], [-0.2, 0.08], [-0.2, -0.08]].map(([x, z]) => {
       const p = new THREE.Group();
       p.position.set(x, 0.38, z);
       capsule(0.035, 0.26, c, 0, -0.19, 0, p);
+      mesh(new THREE.SphereGeometry(0.042, 8, 6), socks ? 0xf2ece0 : c, 0.015, -0.34, 0, p).scale.set(1.3, 0.7, 1);   // the paw
       body.add(p);
       return p;
     });
@@ -2174,7 +2594,85 @@
     q.identity();
     spots.forEach(([x, z, s, pine], k) => { m4.compose(ps.set(x, 0, z), q, sc.set(s, (pine ? 1.4 : 3) * s, s)); trunkM.setMatrixAt(k, m4); });
     [pineM, leafM, trunkM].forEach((m) => { m.castShadow = true; scene.add(m); });
+    // a second tier on every pine, a second clump on every leafy tree
+    const pine2 = new THREE.InstancedMesh(pineGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), pines.length);
+    const leaf2 = new THREE.InstancedMesh(leafGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), leafy.length);
+    pines.forEach(([x, z, s], k) => {
+      m4.compose(ps.set(x, 5.4 * s, z), q.identity(), sc.set(1.5 * s, 5.6 * s, 1.5 * s)); pine2.setMatrixAt(k, m4);
+      pine2.setColorAt(k, col.setHSL(0.34 + rnd(-0.03, 0.03), 0.36, rnd(0.19, 0.27)));
+    });
+    leafy.forEach(([x, z, s], k) => {
+      m4.compose(ps.set(x + rnd(-1, 1) * s, 5.6 * s, z + rnd(-1, 1) * s), q.setFromEuler(new THREE.Euler(rnd(0, 3), rnd(0, 3), 0)), sc.set(1.8 * s, 1.9 * s, 1.8 * s)); leaf2.setMatrixAt(k, m4);
+      leaf2.setColorAt(k, col.setHSL(0.25 + rnd(-0.04, 0.05), 0.45, rnd(0.28, 0.38)));
+    });
+    [pine2, leaf2].forEach((m) => { m.castShadow = true; scene.add(m); });
+    // tufts of grass along the fence, outside it and in the corners of the yard
+    const tufts = [];
+    for (let k = 0; k < 2000 && tufts.length < 520; k++) {
+      const x = rnd(-75, 75), z = rnd(-60, 60);
+      const outside = Math.abs(x) > 44.5 || Math.abs(z) > 34.5, corner = Math.abs(x) > 39 || Math.abs(z) > 29;
+      if (!(outside || corner) || Math.abs(z - 44) < 6 || (Math.abs(x - 50) < 6 && z > -20)) continue;
+      tufts.push([x, z]);
+    }
+    const tuftM = new THREE.InstancedMesh(new THREE.ConeGeometry(0.14, 0.4, 4).translate(0, 0.2, 0), new THREE.MeshLambertMaterial({ color: 0xffffff }), tufts.length);
+    tufts.forEach(([x, z], k) => {
+      m4.compose(ps.set(x, 0, z), q.setFromEuler(new THREE.Euler(rnd(-0.2, 0.2), rnd(0, 3), rnd(-0.2, 0.2))), sc.setScalar(rnd(0.6, 1.5)));
+      tuftM.setMatrixAt(k, m4);
+      tuftM.setColorAt(k, col.setHSL(0.22 + rnd(-0.03, 0.05), 0.4, rnd(0.22, 0.36)));
+    });
+    scene.add(tuftM);
+    // the road: a dashed line down the middle, kerbs, a pavement, lamp posts; a few parked cars
+    const dash = new THREE.InstancedMesh(new THREE.BoxGeometry(3, 0.02, 0.15), lam(0xe8e6df), 120);
+    for (let k = 0; k < 100; k++) { m4.makeTranslation(-400 + k * 8, 0.025, 44); dash.setMatrixAt(k, m4); }
+    for (let k = 0; k < 20; k++) { m4.makeRotationY(Math.PI / 2).setPosition(50, 0.025, -18 + k * 3.2); dash.setMatrixAt(100 + k, m4); }
+    scene.add(dash);
+    [39.4, 48.6].forEach((z) => box(900, 0.14, 0.25, 0xb9b5aa, 0, 0.07, z));
+    box(900, 0.03, 2.2, 0x8f8f8a, 0, 0.015, 38.1);
+    const lampN = 9, poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.07, 0.1, 6, 8).translate(0, 3, 0), lam(0x5a5f64), lampN);
+    const heads = new THREE.InstancedMesh(new THREE.BoxGeometry(0.8, 0.14, 0.3), lam(0x3a3d42), lampN);
+    for (let k = 0; k < lampN; k++) {
+      const x = -120 + k * 30;
+      m4.makeTranslation(x, 0, 38.6); poles.setMatrixAt(k, m4);
+      m4.makeTranslation(x, 6, 39.1); heads.setMatrixAt(k, m4);
+    }
+    scene.add(poles); scene.add(heads);
+    [[-30, 0xa9b8c4], [-8, 0x8c3b3b], [26, 0xe9e2d0], [70, 0x2f3540]].forEach(([x, c2]) => {
+      const car = new THREE.Group();
+      box(4.2, 0.62, 1.8, c2, 0, 0.62, 0, car);
+      box(2.3, 0.55, 1.62, GLASS, -0.2, 1.2, 0, car);
+      box(2.1, 0.06, 1.6, c2, -0.2, 1.5, 0, car);
+      [-1, 1].forEach((sd) => { box(0.05, 0.14, 0.34, 0xfff3d6, 2.1, 0.72, sd * 0.6, car); box(0.05, 0.14, 0.3, 0xb3261e, -2.1, 0.75, sd * 0.62, car); });
+      [[-1.35, 0.8], [-1.35, -0.8], [1.35, 0.8], [1.35, -0.8]].forEach(([wx, wz]) => wheel(car, wx, wz, 0.32, 0.22));
+      car.position.set(x, 0, 41.2);
+      car.rotation.y = chance(0.5) ? 0 : Math.PI;
+      scene.add(car);
+    });
   })();
+  // clouds, drifting over, the colour of whatever the sky is doing
+  const cloudTex = paintTex(128, 64, 1, 1, (g) => {
+    for (let k = 0; k < 14; k++) {
+      const x = 20 + Math.random() * 88, y = 22 + Math.random() * 22, r = 12 + Math.random() * 18;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+  });
+  cloudTex.wrapS = cloudTex.wrapT = THREE.ClampToEdgeWrapping;
+  const cloudMat = new THREE.SpriteMaterial({ map: cloudTex, transparent: true, depthWrite: false, fog: false, opacity: 0.85 });
+  const clouds = Array.from({ length: 11 }, () => {
+    const c = new THREE.Sprite(cloudMat);
+    c.position.set(rnd(-260, 260), rnd(75, 120), rnd(-260, 260));
+    const w = rnd(70, 130);
+    c.scale.set(w, w * 0.45, 1);
+    scene.add(c);
+    return c;
+  });
+  function updateClouds(dayness) {
+    const drift = performance.now() / 1000 * 1.1;
+    clouds.forEach((c, k) => { c.position.x = ((c.userData.x0 === undefined ? (c.userData.x0 = c.position.x) : c.userData.x0) + drift + 300) % 600 - 300; void k; });
+    cloudMat.color.setRGB(0.25 + 0.75 * dayness, 0.27 + 0.73 * dayness, 0.32 + 0.68 * dayness);
+    cloudMat.opacity = day && day.rh > 80 ? 0.95 : 0.8;
+  }
   // the town: blocks with windows that light up when it gets dark
   const winTex = (function () {
     const c = document.createElement('canvas');
@@ -2208,7 +2706,18 @@
     }
     const wallGeo = new THREE.BoxGeometry(1, 1, 1); wallGeo.translate(0, 0.5, 0);
     const roofGeo = new THREE.CylinderGeometry(0.5, 0.5, 1, 3); roofGeo.rotateX(-Math.PI / 2); roofGeo.translate(0, 0.25, 0);
-    const wallMat = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0 });
+    // a front with windows (white frames, a cross in each) and a door, so a house reads as a house
+    const facade = paintTex(128, 64, 1, 1, (g) => {
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 128, 64);
+      [[10, 12], [48, 12], [90, 12], [10, 38], [90, 38]].forEach(([x, y]) => {
+        g.fillStyle = '#f7f7f4'; g.fillRect(x - 2, y - 2, 28, 20);
+        g.fillStyle = '#35475a'; g.fillRect(x, y, 24, 16);
+        g.fillStyle = '#f7f7f4'; g.fillRect(x + 11, y, 2, 16); g.fillRect(x, y + 7, 24, 2);
+      });
+      g.fillStyle = '#6a4a32'; g.fillRect(54, 36, 18, 28);
+      g.fillStyle = '#c9c3b8'; g.fillRect(0, 60, 128, 4);
+    });
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xffffff, map: facade, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0 });
     townMats.push(wallMat);
     const walls = new THREE.InstancedMesh(wallGeo, wallMat, spots.length);
     const roofs = new THREE.InstancedMesh(roofGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), spots.length);
@@ -2221,6 +2730,13 @@
       m4.compose(ps.set(x, h, z), q, sc.set(w * 1.2, rh / 0.75, d * 1.08)); roofs.setMatrixAt(k, m4); roofs.setColorAt(k, col.setHex(pick(ROOFS)));
     });
     [walls, roofs].forEach((m) => { m.castShadow = true; scene.add(m); });
+    const chim = new THREE.InstancedMesh(new THREE.BoxGeometry(0.7, 1.8, 0.7), lam(0x8a3a2a), spots.length);
+    spots.forEach(([x, z, w, , h, yaw, rh], k) => {
+      const [cx, cz] = [Math.cos(yaw) * w * 0.28, -Math.sin(yaw) * w * 0.28];
+      m4.compose(ps.set(x + cx, h + rh * 0.55, z + cz), q.setFromAxisAngle(up, yaw), sc.set(1, 1, 1));
+      chim.setMatrixAt(k, m4);
+    });
+    scene.add(chim);
     // the church, on the far side of the town
     const ch = new THREE.Group();
     box(9, 9, 18, 0xe6e0d2, 0, 4.5, 0, ch);
@@ -2627,7 +3143,7 @@
   const site = { on: new Array(NX * NZ).fill(false), area: 0, runs: [], edges: [], pens: [], ties: [], cuts: [], forms: [], weak: null, box: { x0: -6, x1: 6, z0: -4, z1: 4 }, mid: P(0, 0) };
   const siteGroup = new THREE.Group();
   scene.add(siteGroup);
-  const baseMat = new THREE.MeshLambertMaterial({ map: noiseTex([140, 134, 122], 60, 1) });
+  const baseMat = new THREE.MeshLambertMaterial({ map: noiseTex([176, 166, 146], 55, 1) });
   const rebarMat = new THREE.LineBasicMaterial({ color: 0x8e4b2c });
   const skirtMat = new THREE.MeshLambertMaterial({ color: 0x8f9193 });
   const PLY = 0xc9a26b, STAKE = 0x9b7a4a, RUST = 0x7d4127;
@@ -3109,33 +3625,12 @@
   let pliersBody = null;           // the pliers inside their group, which twists without the coil
   let rxLight = null;              // the receiver's window: blue low, red high, green on height
   (function buildViewTools() {
-    // The end hose: black rubber off the last pipe, up from your feet into your hand, the open end
-    // pointing where the concrete goes. One bent tube with everything on it placed along its own
-    // curve — the old one was a straight stub with a clamp and some tape hanging in the air near it.
+    // The end hose in your hands: only the glove lives here, with the camera. The hose itself is
+    // out in the world (hoseFlex, below): off the last pipe, along the ground behind you, up
+    // through this glove and out to its mouth over wherever the concrete is going.
     const hose = new THREE.Group();
-    const rubber = new THREE.MeshPhongMaterial({ color: 0x1c1e21, specular: 0x3a3a3a, shininess: 22 });
-    const hosePath = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.16, -0.75, 0.3),
-      new THREE.Vector3(0.08, -0.34, 0.06),
-      new THREE.Vector3(-0.04, -0.13, -0.22),
-      new THREE.Vector3(-0.15, -0.09, -0.46),
-      new THREE.Vector3(-0.18, -0.12, -0.6),
-    ]);
-    hose.add(new THREE.Mesh(new THREE.TubeGeometry(hosePath, 48, 0.055, 14, false), rubber));
-    const onHose = (t, r, len, col, seg) => {
-      const m = cyl(r, r, len, col, 0, 0, 0, hose, seg || 16);
-      m.position.copy(hosePath.getPoint(t));
-      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), hosePath.getTangent(t));
-      return m;
-    };
-    onHose(0.995, 0.061, 0.035, 0x2a2d31);               // the worn lip of the open end
-    onHose(1, 0.046, 0.04, 0x707375);                    // the concrete in the mouth of it
-    onHose(0.3, 0.059, 0.028, 0xb9bec3);                 // a steel clamp where it was mended once
-    onHose(0.33, 0.057, 0.015, 0x8e9398);
-    // a gloved hand round it, fingers over the top
     const grip = new THREE.Group();
-    grip.position.copy(hosePath.getPoint(0.66));
-    grip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), hosePath.getTangent(0.66));
+    grip.position.set(-0.07, -0.1, -0.3);
     hose.add(grip);
     [-0.03, -0.01, 0.01, 0.03].forEach((y, k) => {
       const f = capsule(0.017, 0.07, 0xc79a5c, -0.03, y, 0.035 - Math.abs(k - 1.5) * 0.004, grip);
@@ -3143,11 +3638,8 @@
     });
     capsule(0.02, 0.05, 0xb88a4e, 0.05, 0.035, 0.02, grip).rotation.x = 0.6;   // the thumb
     box(0.08, 0.1, 0.06, 0xc79a5c, 0.02, 0, -0.045, grip);                     // the back of the glove
-    // where the concrete leaves it: the stream starts here, wherever the hands are on this screen
-    const tip = new THREE.Object3D();
-    tip.position.copy(hosePath.getPoint(1)).addScaledVector(hosePath.getTangent(1), 0.03);
-    hose.add(tip);
-    hose.userData.tip = tip;
+    box(0.085, 0.03, 0.065, 0x8a6a3a, 0.02, -0.06, -0.04, grip);               // the cuff
+    hose.userData.grip = grip;
     viewTools.hose = hose;
     // washing up: a green garden hose with a spray gun, not the pump's
     const wash = new THREE.Group();
@@ -3403,51 +3895,156 @@
 
   const stream = cyl(0.06, 0.06, 1, 0x7d7f80, 0, 0, 0, scene, 8);
   stream.visible = false;
-  // Concrete out of the hose: not a rod but an arc of it, out of the nozzle and down, swelling with
-  // every stroke of the pump — the surge travels down it — and slapping onto the slab where it
-  // lands, throwing a bit back up.
+  // Concrete out of the hose: out of its mouth and down, lumpy, swelling with every stroke of the
+  // pump — the surge travels down it — and slapping onto the slab where it lands.
   let streamOn = false;
-  const STREAM_SEG = 9;
+  const Y_UP = new THREE.Vector3(0, 1, 0);
   const streamMat = new THREE.MeshPhongMaterial({ color: 0x6c6e70, specular: 0x555555, shininess: 55 });
-  const streamSegs = Array.from({ length: STREAM_SEG }, () => {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8, 1, true), streamMat);
+  /**
+   * A tube whose shape is set every frame — the hose in your hands, the concrete falling out of it.
+   * Its buffers are made once and rewritten in place, so bending it costs no garbage.
+   */
+  function flexTube(nSeg, nRad, mat) {
+    const cols = nRad + 1, rows = nSeg + 1, idx = [];
+    for (let i = 0; i < nSeg; i++) for (let j = 0; j < nRad; j++) { const a = i * cols + j, b = a + cols; idx.push(a, a + 1, b, b, a + 1, b + 1); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(rows * cols * 3), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(rows * cols * 3), 3));
+    g.setIndex(idx);
+    const m = new THREE.Mesh(g, mat);
+    m.frustumCulled = false;
     m.visible = false;
+    m.userData = { nSeg, nRad, pts: Array.from({ length: rows }, () => new THREE.Vector3()), rad: new Float32Array(rows).fill(1) };
     scene.add(m);
     return m;
-  });
-  const sA = new THREE.Vector3(), sB = new THREE.Vector3(), sC = new THREE.Vector3();
-  function hideStream() { streamSegs.forEach((m) => { m.visible = false; }); }
+  }
+  const ftT = new THREE.Vector3(), ftN = new THREE.Vector3(), ftB = new THREE.Vector3();
+  /** Lays a flexTube along its points, each ring [radius] times that ring's own size. */
+  function bendTube(m, radius) {
+    const { nSeg, nRad, pts, rad } = m.userData, cols = nRad + 1;
+    const pos = m.geometry.attributes.position.array, nor = m.geometry.attributes.normal.array;
+    for (let i = 0; i <= nSeg; i++) {
+      ftT.subVectors(pts[Math.min(nSeg, i + 1)], pts[Math.max(0, i - 1)]);
+      if (ftT.lengthSq() < 1e-10) ftT.set(0, 1, 0);
+      ftT.normalize();
+      if (i === 0) { if (Math.abs(ftT.y) > 0.9) ftN.set(1, 0, 0); else ftN.set(0, 1, 0); }
+      // each ring's frame carried on from the last one, so the tube doesn't twist
+      ftN.addScaledVector(ftT, -ftN.dot(ftT)).normalize();
+      ftB.crossVectors(ftT, ftN);
+      const r = radius * rad[i], p = pts[i];
+      for (let j = 0; j <= nRad; j++) {
+        const th = (j / nRad) * Math.PI * 2, c = Math.cos(th), sn = Math.sin(th);
+        const nx = c * ftN.x + sn * ftB.x, ny = c * ftN.y + sn * ftB.y, nz = c * ftN.z + sn * ftB.z;
+        const k = (i * cols + j) * 3;
+        pos[k] = p.x + nx * r; pos[k + 1] = p.y + ny * r; pos[k + 2] = p.z + nz * r;
+        nor[k] = nx; nor[k + 1] = ny; nor[k + 2] = nz;
+      }
+    }
+    m.geometry.attributes.position.needsUpdate = true;
+    m.geometry.attributes.normal.needsUpdate = true;
+  }
+  const streamFlex = flexTube(20, 9, streamMat);
+  const sA = new THREE.Vector3();
+  function hideStream() { streamFlex.visible = false; }
+  /**
+   * Concrete out of the hose's mouth [a] onto [b]: it leaves the mouth moving the way the mouth
+   * points and falls — straight down when the mouth is over the spot, bending over when it's
+   * thrown a little way out — lumpy, swelling with every stroke of the pump.
+   */
   function drawStream(a, b, dt) {
     const t = performance.now() / 1000;
-    // out along where the hose points, then gravity
-    const reach = Math.hypot(b.x - a.x, b.z - a.z);
-    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
-    sC.set(a.x + fx * reach * 0.45, a.y + 0.08, a.z + fz * reach * 0.45);
-    const at = (u, out) => {
-      const v = 1 - u;
-      return out.set(v * v * a.x + 2 * v * u * sC.x + u * u * b.x, v * v * a.y + 2 * v * u * sC.y + u * u * b.y, v * v * a.z + 2 * v * u * sC.z + u * u * b.z);
-    };
+    const { nSeg, pts, rad } = streamFlex.userData;
+    const out = clamp(hyp(a.x, a.z, b.x, b.z) / 1.5, 0, 1);
     const stroke = gs.mixState === 'stiff' ? 6 : 7.5;
-    for (let k = 0; k < STREAM_SEG; k++) {
-      const m = streamSegs[k];
-      at(k / STREAM_SEG, sA); at((k + 1) / STREAM_SEG, sB);
-      if (!CALM) { sB.x += Math.sin(t * 17 + k) * 0.01; sB.z += Math.cos(t * 13 + k) * 0.01; }
-      stretch(m, sA, sB);
-      const surge = CALM ? 0.4 : Math.max(0, Math.sin(t * stroke - k * 0.7));
-      const r = (gs.mixState === 'soup' ? 0.04 : 0.05) + 0.03 * surge * surge + k * 0.002;
-      m.scale.x = m.scale.z = r;
-      m.visible = true;
+    for (let i = 0; i <= nSeg; i++) {
+      const u = i / nSeg;
+      pts[i].set(lerp(a.x, b.x, u), lerp(a.y, b.y, lerp(u, u * u, out)), lerp(a.z, b.z, u));
+      if (!CALM && i > 0 && i < nSeg) { pts[i].x += Math.sin(t * 17 + i) * 0.006; pts[i].z += Math.cos(t * 13 + i * 1.3) * 0.006; }
+      // a pump stroke travels down it as a bulge, and it's never a smooth rod: stones and lumps
+      const surge = CALM ? 0.4 : Math.max(0, Math.sin(t * stroke - i * 0.55));
+      rad[i] = (1 + 0.45 * surge * surge + (CALM ? 0 : 0.14 * Math.sin(t * 23 + i * 1.9) + 0.08 * Math.sin(t * 41 + i * 3.1))) * (1 - 0.3 * u);
     }
-    // drops falling off it on the way down
-    if (!CALM && chance(0.6)) { at(rnd(0.3, 0.9), sA); emit(sA.x, sA.y, sA.z, rnd(-0.2, 0.2), rnd(-0.5, 0), rnd(-0.2, 0.2), 0.5, 0x6c6e70, rnd(0.015, 0.03)); }
+    rad[0] = 0.9;
+    bendTube(streamFlex, gs.mixState === 'soup' ? 0.043 : 0.05);
+    streamFlex.visible = true;
+    // lumps falling off it on the way down
+    if (!CALM && chance(0.6)) { sA.copy(pts[irnd(3, nSeg - 2)]); emit(sA.x, sA.y, sA.z, rnd(-0.2, 0.2), rnd(-0.5, 0), rnd(-0.2, 0.2), 0.5, 0x6c6e70, rnd(0.015, 0.03)); }
     // where it lands: it slaps and throws some back up, more on the surge
-    const peak = Math.max(0, Math.sin(t * stroke - STREAM_SEG * 0.7));
+    const peak = Math.max(0, Math.sin(t * stroke - nSeg * 0.55));
     const n = Math.round((2 + peak * 5) * Math.min(1, dt * 60));
     for (let k = 0; k < n; k++) {
       const ang = rnd(0, Math.PI * 2), sp = rnd(0.4, 1.4);
       emit(b.x, b.y + 0.02, b.z, Math.cos(ang) * sp, rnd(0.6, 1.8), Math.sin(ang) * sp, rnd(0.3, 0.6), pick([0x7d7f80, 0x8c8e90, 0x6d6f71]), rnd(0.025, 0.05));
     }
   }
+
+  // The end hose in your hands, as the world sees it: from the last pipe (or down off the boom),
+  // along the ground behind you, up through your glove and out to its mouth. The mouth goes over
+  // the spot you're pouring — as far out as the hose and your arms go — and hangs in front of you
+  // when you're not. It swings there rather than jumping, and kicks with every stroke.
+  const hoseFlex = flexTube(56, 10, new THREE.MeshPhongMaterial({ color: 0x1c1e21, specular: 0x3a3a3a, shininess: 22 }));
+  const hoseMouth = new THREE.Group();
+  mesh(new THREE.CylinderGeometry(0.062, 0.06, 0.05, 16, 1, true), new THREE.MeshPhongMaterial({ color: 0x2a2d31, side: THREE.DoubleSide, shininess: 10 }), 0, -0.02, 0, hoseMouth); // the worn lip
+  const mouthIn = cyl(0.05, 0.05, 0.004, 0x151618, 0, -0.03, 0, hoseMouth, 14);   // dark inside, or grey when it's coming
+  mesh(new THREE.CylinderGeometry(0.061, 0.061, 0.03, 14, 1, true), 0xb9bec3, 0, -0.3, 0, hoseMouth);  // a steel clamp where it was mended
+  const mouthDark = mouthIn.material, mouthWet = lam(0x6c6e70);
+  hoseMouth.visible = false;
+  scene.add(hoseMouth);
+  const hoseCurve = new THREE.CatmullRomCurve3(Array.from({ length: 8 }, () => new THREE.Vector3()), false, 'centripetal');
+  const hoseM = new THREE.Vector3(NaN, 0, 0), hoseD = new THREE.Vector3(0, -1, 0);
+  const hH = new THREE.Vector3(), hW = new THREE.Vector3(), hT = new THREE.Vector3(), hQ = new THREE.Quaternion();
+  /** The hose in hand this frame; [land] is where the concrete is going, or null. Returns the mouth. */
+  function updateHose(land, dt) {
+    const grip = viewTools.hose.userData.grip;
+    grip.updateMatrixWorld(true);
+    grip.getWorldPosition(hH);
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+    // where the mouth wants to be
+    if (land) {
+      const dx = land.x - player.x, dz = land.z - player.z, dh = Math.hypot(dx, dz) || 0.001;
+      const reach = Math.min(dh, 2.1);
+      hW.set(player.x + (dx / dh) * reach, land.y + 0.55 + (dh > 2.1 ? 0.2 : 0), player.z + (dz / dh) * reach);
+    } else hW.set(hH.x + fx * 0.5, hH.y - 0.5, hH.z + fz * 0.5);
+    if (!Number.isFinite(hoseM.x) || hoseM.distanceTo(hW) > 3) hoseM.copy(hW);
+    else hoseM.lerp(hW, 1 - Math.exp(-dt * 9));
+    const kick = streamOn && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.03 : 0;
+    // which way the mouth points: at where it's going, or down
+    if (land) hoseD.subVectors(land, hoseM).normalize(); else hoseD.set(fx * 0.35, -1, fz * 0.35).normalize();
+    // back along the ground towards the pipe it comes from, or up to the boom's tip
+    const last = pipeEnd(), src = day.boom ? boomTip : hT.set(last.x, 0.15, last.z);
+    const P = hoseCurve.points;
+    const bx = src.x - player.x, bz = src.z - player.z, bl = Math.hypot(bx, bz) || 1;
+    if (day.boom) {
+      P[0].copy(src); P[1].lerpVectors(src, hH, 0.35).y -= 0.4; P[2].lerpVectors(src, hH, 0.7).y -= 0.3;
+    } else {
+      // down to the ground just behind you on the right, the hand side, so it comes up from behind
+      // your hands rather than across the view
+      const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
+      const gx0 = player.x + (bx / bl) * Math.min(1.1, bl) - fx * 0.5 + rx * 0.35, gz0 = player.z + (bz / bl) * Math.min(1.1, bl) - fz * 0.5 + rz * 0.35;
+      P[0].copy(src);
+      P[1].set((src.x + gx0) / 2, 0, (src.z + gz0) / 2); P[1].y = groundY(P[1].x, P[1].z) + 0.06;
+      P[2].set(gx0, groundY(gx0, gz0) + 0.06, gz0);
+    }
+    P[3].set(hH.x - fx * 0.3, hH.y - 0.55, hH.z - fz * 0.3);
+    P[4].copy(hH);
+    P[5].lerpVectors(hH, hoseM, 0.5); P[5].y += 0.08 + kick;
+    P[6].copy(hoseM).addScaledVector(hoseD, -0.22); P[6].y += kick;
+    P[7].copy(hoseM); P[7].y += kick;
+    const { nSeg, pts } = hoseFlex.userData;
+    for (let i = 0; i <= nSeg; i++) hoseCurve.getPoint(i / nSeg, pts[i]);
+    bendTube(hoseFlex, 0.055);
+    hoseFlex.visible = true;
+    hoseMouth.position.copy(P[7]);
+    hoseMouth.quaternion.setFromUnitVectors(Y_UP, hoseD);
+    hoseMouth.visible = true;
+    mouthIn.material = land ? mouthWet : mouthDark;
+    // the glove turned to hold the hose the way it runs through it
+    hoseCurve.getTangent(4 / 7, hT);
+    grip.parent.getWorldQuaternion(hQ).invert();
+    grip.quaternion.setFromUnitVectors(Y_UP, hT.applyQuaternion(hQ).normalize());
+    return P[7];
+  }
+  function hideHose() { hoseFlex.visible = false; hoseMouth.visible = false; }
   const endHose = cyl(0.045, 0.045, 1, 0x1d1f22, 0, 0, 0, scene, 8);
   endHose.visible = false;
   function stretch(m, a, b) {
@@ -3611,7 +4208,10 @@
         [0, 0.45].forEach((d) => { tone(t + d, 'square', 390, 385, 0.1, 0.02, 0.32, dest); tone(t + d, 'square', 494, 490, 0.08, 0.02, 0.32, dest); });
         break;
       case 'reverse': for (let k = 0; k < 4; k++) tone(t + k * 0.5, 'square', 1050, 1050, 0.05, 0.005, 0.26, dest); break;
-      case 'brake': burst(t, 'highpass', 3200, 0.4, 0.35, 0.01, 0.7, dest); break;
+      // the air brake: a clunk, then the hiss
+      case 'brake': tone(t, 'sine', 180, 90, 0.1, 0.003, 0.1, dest); burst(t + 0.05, 'bandpass', 3200, 0.9, 0.5, 0.005, 0.55, dest); burst(t + 0.05, 'highpass', 5000, 0.5, 0.22, 0.005, 0.35, dest); break;
+      case 'beep1': tone(t, 'square', 1100, 1100, 0.05, 0.005, 0.32, dest); break;
+      case 'stone': burst(t, 'highpass', 2600, 1, 0.08, 0.001, 0.03, dest); tone(t, 'triangle', rnd(1500, 2600), rnd(1200, 2000), 0.03, 0.001, 0.05, dest); break;
       case 'bark': [0, 0.22].forEach((d) => { tone(t + d, 'sawtooth', 560, 280, 0.2, 0.01, 0.1, dest); burst(t + d, 'bandpass', 900, 2, 0.25, 0.005, 0.1, dest); }); break;
       case 'voice': voice(t, rnd(110, 210), irnd(4, 8), dest); break;
       case 'thud': tone(t, 'sine', 95, 38, 0.6, 0.005, 0.35, dest); burst(t, 'lowpass', 400, 0.7, 0.4, 0.005, 0.25, dest); break;
@@ -3689,6 +4289,38 @@
       case 'bounce': tone(t, 'sine', 140, 70, 0.35, 0.002, 0.12, dest); burst(t, 'lowpass', 800, 0.8, 0.2, 0.002, 0.06, dest); break;
       case 'drone': for (let k = 0; k < 4; k++) tone(t + k * 0.9, 'sawtooth', 220 + k * 6, 230 + k * 6, 0.05, 0.1, 0.9, dest); break;
       case 'meow': tone(t, 'sawtooth', 520, 820, 0.07, 0.03, 0.18, dest); tone(t + 0.18, 'sawtooth', 820, 440, 0.07, 0.01, 0.35, dest); break;
+      case 'snore': {
+        // in through the nose, out through a rattle
+        const s2 = noiseSrc(), f = filt('bandpass', 500, 2), g2 = ac.createGain();
+        f.frequency.setValueAtTime(350, t); f.frequency.linearRampToValueAtTime(900, t + 1.2);
+        env(g2, t, 0.5, 0.1, 0.8); chain(s2, f, g2, dest); s2.start(t); s2.stop(t + 1.5);
+        const o = ac.createOscillator(), am = ac.createGain(), lf = ac.createOscillator(), ld = ac.createGain(), g3 = ac.createGain();
+        o.type = 'sawtooth'; o.frequency.value = 62; am.gain.value = 0;
+        lf.type = 'square'; lf.frequency.value = 28; ld.gain.value = 0.5; lf.connect(ld); ld.connect(am.gain);
+        env(g3, t + 1.4, 0.15, 0.14, 1.0);
+        chain(o, filt('lowpass', 400, 1), am, g3, dest);
+        o.start(t + 1.4); lf.start(t + 1.4); o.stop(t + 2.7); lf.stop(t + 2.7);
+        break;
+      }
+      case 'gurgle': {
+        // a stomach with opinions: a low growl that wobbles as it goes down
+        const o = ac.createOscillator(), g2 = ac.createGain(), v = ac.createOscillator(), vd = ac.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(52, t + 1.1);
+        v.frequency.value = 11; vd.gain.value = 18; v.connect(vd); vd.connect(o.frequency);
+        env(g2, t, 0.08, 0.16, 1.0);
+        chain(o, filt('lowpass', 260, 4), g2, dest);
+        o.start(t); v.start(t); o.stop(t + 1.3); v.stop(t + 1.3);
+        burst(t + 0.2, 'lowpass', 300, 2, 0.12, 0.05, 0.6, dest);
+        break;
+      }
+      case 'rattle':
+        // the knob pulled against the lock, and the door thumping in its frame
+        for (let k = 0; k < 4; k++) { tone(t + k * 0.09, 'triangle', rnd(900, 1300), rnd(800, 1100), 0.08, 0.001, 0.06, dest); burst(t + k * 0.09, 'bandpass', 2200, 2, 0.12, 0.001, 0.04, dest); }
+        tone(t + 0.4, 'sine', 120, 70, 0.25, 0.003, 0.15, dest);
+        break;
+      case 'flush': burst(t, 'bandpass', 900, 0.6, 0.3, 0.1, 1.4, dest); burst(t + 0.2, 'lowpass', 500, 0.8, 0.25, 0.2, 1.2, dest); tone(t + 0.1, 'sine', 300, 120, 0.05, 0.1, 1.0, dest); break;
+      case 'trickle': for (let k = 0; k < 10; k++) burst(t + k * 0.12, 'bandpass', rnd(2500, 3800), 3, 0.06, 0.01, 0.1, dest); break;
+      case 'squelch': burst(t, 'lowpass', 700, 3, 0.12, 0.01, 0.12, dest); tone(t, 'sine', 240, 90, 0.05, 0.005, 0.1, dest); break;
       case 'bird': {
         const f = rnd(2800, 4200);
         for (let k = 0, n = irnd(2, 5); k < n; k++) tone(t + k * 0.13, 'sine', f * rnd(0.9, 1.1), f * rnd(1.15, 1.4), 0.04, 0.005, 0.07, dest);
@@ -3715,23 +4347,37 @@
       o.connect(d); d.connect(param); o.start();
       return o;
     };
-    // the line pump: a diesel and the thump of the pistons
+    // The line pump: a big diesel working against the hydraulics, and a pump whine that follows
+    // the load. The strokes themselves — the swing tube slamming over, the push down the line —
+    // come one at a time from pumpStroke, while the concrete's going somewhere.
     make('pump', (g) => {
-      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 46;
-      const lp = filt('lowpass', 260, 1);
-      const beat = ac.createGain(); beat.gain.value = 0.55;
-      lfo(1.4, 0.45, beat.gain);
-      chain(o, lp, beat, g); o.start();
-      const n = noiseSrc(true); chain(n, filt('bandpass', 140, 0.8), beat); n.start();
+      loops._pumpEng = diesel(1500, g, 420, 0.55);
+      const w = ac.createOscillator(); w.type = 'triangle'; w.frequency.value = 340;
+      const wg = ac.createGain(); wg.gain.value = 0;
+      lfo(0.6, 6, w.frequency);
+      chain(w, filt('bandpass', 700, 3), wg, g); w.start();
+      loops._pumpWhine = wg;
     });
-    // the mixer drum turning
+    // The mixer: its diesel ticking over, or revved to turn the drum fast while it empties; the drum
+    // itself — tonnes of wet stone lifted by the blades and dropped, over and over — and the slide
+    // of it down the chute into the pump's hopper.
     make('mixer', (g) => {
-      const n = noiseSrc(true); const lp = filt('lowpass', 380, 0.7);
-      const slosh = ac.createGain(); slosh.gain.value = 0.6;
-      lfo(0.45, 0.4, slosh.gain);
-      chain(n, lp, slosh, g); n.start();
-      const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = 58;
-      const og = ac.createGain(); og.gain.value = 0.25; chain(o, og, g); o.start();
+      loops._mixEng = diesel(720, g, 380, 0.5);
+      const drops = ac.createOscillator(); drops.frequency.value = 0.12; drops.start();
+      const n = noiseSrc(true), churn = ac.createGain(); churn.gain.value = 0.25;
+      const d1 = ac.createGain(); d1.gain.value = 0.22; drops.connect(d1); d1.connect(churn.gain);
+      chain(n, filt('bandpass', 620, 0.8), churn, g); n.start();
+      const n2 = noiseSrc(true), slosh = ac.createGain(); slosh.gain.value = 0.3;
+      const d2 = ac.createGain(); d2.gain.value = 0.25; drops.connect(d2); d2.connect(slosh.gain);
+      chain(n2, filt('lowpass', 240, 0.9), slosh, g); n2.start();
+      loops._drum = drops;
+      const wh = ac.createOscillator(); wh.type = 'triangle'; wh.frequency.value = 140;
+      const whg = ac.createGain(); whg.gain.value = 0.025; chain(wh, whg, g); wh.start();
+      loops._drumWhine = wh;
+      const c = noiseSrc(true), cw = ac.createGain(), cg = ac.createGain(); cw.gain.value = 0.7; cg.gain.value = 0;
+      lfo(2.7, 0.3, cw.gain);
+      chain(c, filt('lowpass', 800, 0.7), cw, cg, g); c.start();
+      loops._chute = cg;
     });
     // the power trowel: a small petrol engine and the disc hissing over the paste
     make('trowel', (g) => {
@@ -3808,11 +4454,58 @@
       const n = noiseSrc(true); chain(n, filt('bandpass', 1900, 1.5), g); n.start();
     });
     make('rxTone', (g) => { const o = ac.createOscillator(); o.type = 'square'; o.frequency.value = 2900; chain(o, filt('lowpass', 4000, 0.7), g); o.start(); });
-    make('engine', (g) => {
-      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 38;
-      chain(o, filt('lowpass', 200, 1), g); o.start();
-      const n = noiseSrc(true); chain(n, filt('lowpass', 160, 0.5), g); n.start();
-    });
+    // whatever's driving in: the pump, the mixer
+    make('engine', (g) => { loops._driveEng = diesel(900, g, 380, 0.6); });
+  }
+  // A diesel, as one cycle of a six-cylinder four-stroke: two turns of the crank and six firings.
+  // Loud on the firing harmonics, a little of everything else for cylinders that aren't quite equal
+  // — which is what makes it chug instead of hum.
+  let engWave = null;
+  function engineWave() {
+    if (engWave) return engWave;
+    const n = 48, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) {
+      const a = (k % 6 === 0 ? 1 : k % 3 === 0 ? 0.4 : 0.16) / Math.pow(k, 0.5);
+      const ph = Math.random() * Math.PI * 2;
+      re[k] = a * Math.cos(ph); im[k] = a * Math.sin(ph);
+    }
+    engWave = ac.createPeriodicWave(re, im);
+    return engWave;
+  }
+  /** A diesel into [dest] at [rpm]: the block's note, the exhaust chuffing with it, the tin rattling. Its oscillator sets the revs. */
+  function diesel(rpm, dest, cutoff, level) {
+    const o = ac.createOscillator();
+    o.setPeriodicWave(engineWave());
+    o.frequency.value = rpm / 120;
+    const og = ac.createGain(); og.gain.value = level || 0.6;
+    chain(o, filt('lowpass', cutoff || 420, 0.8), og, dest); o.start();
+    const n = noiseSrc(true), ng = ac.createGain(), am = ac.createGain();
+    ng.gain.value = 0; am.gain.value = 0.28; o.connect(am); am.connect(ng.gain);
+    chain(n, filt('bandpass', 480, 0.7), ng, dest); n.start();
+    const r = noiseSrc(true), rg = ac.createGain(), am2 = ac.createGain();
+    rg.gain.value = 0; am2.gain.value = 0.05; o.connect(am2); am2.connect(rg.gain);
+    chain(r, filt('bandpass', 2400, 1.2), rg, dest); r.start();
+    return o;
+  }
+  /** One stroke of the line pump: the swing tube slamming across, then the next piston's push down the line. */
+  let strokeAt = 0, pumpRpm = 1500, beepAt = 0;
+  function pumpStroke(x, z, level) {
+    const t = ac.currentTime + 0.01;
+    const dest = ac.createGain();
+    dest.gain.value = level;
+    dest.connect(out(x, z));
+    burst(t, 'highpass', 1800, 0.7, 0.45, 0.001, 0.05, dest);
+    [290, 470, 755, 1180, 1690].forEach((f, k) => tone(t, 'triangle', f, f * 0.99, 0.14 / (k + 1) + 0.03, 0.001, 0.3 + (4 - k) * 0.05, dest));
+    burst(t + 0.02, 'bandpass', 2400, 2.5, 0.1, 0.01, 0.18, dest);
+    tone(t + 0.06, 'sine', 72, 36, 0.75, 0.008, 0.34, dest);
+    burst(t + 0.06, 'lowpass', 240, 1.1, 0.5, 0.01, 0.3, dest);
+    burst(t + 0.14, 'lowpass', 420, 0.8, 0.26, 0.12, 0.9, dest, 0.6);
+    // the engine digs in for it, and comes back
+    if (loops._pumpEng) {
+      const f = loops._pumpEng.frequency;
+      f.setTargetAtTime((pumpRpm * 0.92) / 120, t + 0.05, 0.06);
+      f.setTargetAtTime(pumpRpm / 120, t + 0.4, 0.35);
+    }
   }
   function loopTo(name, level, x, z) {
     const l = loops[name];
@@ -3880,8 +4573,25 @@
     const muffle = inVan ? 0.25 : 1;
     const pumpRun = live && pump.visible && gs.pumpHere && gs.phase === 'pour' && !!gs.truck && !gs.truck.waiting && gs.blocked < 0;
     const pumpIdle = live && pump.visible && gs.pumpHere && !pumpRun;
-    loopTo('pump', (pumpRun ? 0.42 : pumpIdle ? 0.1 : 0) * near(pump.position.x, pump.position.z, 60) * muffle, pump.position.x, pump.position.z);
-    loopTo('mixer', live && mixer.visible ? 0.3 * near(mixer.position.x, mixer.position.z, 50) * muffle : 0, mixer.position.x, mixer.position.z);
+    // it strokes while the concrete's going somewhere: your hose open, the pump driver on it, a co-worker pouring
+    const flowing = pumpRun && (streamOn || (gs.tools.hose && gs.tools.hose.in === 'pumpman') || [...net.crew.values()].some((c) => c.act === 'pour'));
+    pumpRpm = flowing ? 1650 : pumpRun ? 1150 : 800;
+    loopTo('pump', (pumpRun ? 0.3 : pumpIdle ? 0.1 : 0) * near(pump.position.x, pump.position.z, 60) * muffle, pump.position.x, pump.position.z);
+    if (loops._pumpEng && !flowing) loops._pumpEng.frequency.setTargetAtTime(pumpRpm / 120, ac.currentTime, 0.8);
+    if (loops._pumpWhine) loops._pumpWhine.gain.setTargetAtTime(flowing ? 0.06 : pumpRun ? 0.02 : 0, ac.currentTime, 0.3);
+    if (flowing && ac.currentTime > strokeAt) {
+      strokeAt = ac.currentTime + (gs.mixState === 'stiff' ? 2.3 : gs.mixState === 'soup' ? 1.6 : 1.9) + rnd(-0.08, 0.08);
+      const lv = near(pump.position.x, pump.position.z, 70) * muffle;
+      if (lv > 0.02 && soundOn) pumpStroke(pump.position.x, pump.position.z, 0.55 * lv);
+    }
+    // the mixer ticks over while it waits; emptying, it revs, the drum turns fast and the chute runs
+    const mixHere = live && mixer.visible, emptying = mixHere && flowing;
+    loopTo('mixer', mixHere ? (emptying ? 0.36 : 0.22) * near(mixer.position.x, mixer.position.z, 50) * muffle : 0, mixer.position.x, mixer.position.z);
+    if (loops._mixEng) loops._mixEng.frequency.setTargetAtTime((emptying ? 1350 : 720) / 120, ac.currentTime, 1.2);
+    if (loops._drum) loops._drum.frequency.setTargetAtTime(emptying ? 0.55 : 0.12, ac.currentTime, 1.5);
+    if (loops._drumWhine) loops._drumWhine.frequency.setTargetAtTime(emptying ? 240 : 140, ac.currentTime, 1.5);
+    if (loops._chute) loops._chute.gain.setTargetAtTime(emptying ? 0.5 : 0, ac.currentTime, 0.4);
+    if (emptying && chance(dt * 6)) sfx('stone', mixer.position.x, mixer.position.z);
     const running = live && mpos.on && input.action && lastCtxKind === 'trowel';
     const ride = gs.tool === 'rideOn', small = gs.tool === 'trowelSmall';
     loopTo('trowel', live && mpos.on && !gs.fitting ? (running ? 0.32 : 0.12) * (ride ? 1.4 : 1) : 0, mpos.x, mpos.z);
@@ -3914,7 +4624,12 @@
       const want = musicOn ? (performance.now() < duckUntil ? 0.18 : 0.55) * musicVol : 0;
       if (want !== musicWant) { musicWant = want; musicGain.gain.setTargetAtTime(want, ac.currentTime, 0.3); }
     }
-    loopTo('engine', live && drives.length ? 0.2 : 0, drives.length ? drives[0].group.position.x : undefined, drives.length ? drives[0].group.position.z : undefined);
+    // something driving in: revving up the road, easing off to park; the mixer comes in backwards,
+    // beeping the whole way
+    const dv = drives[0];
+    loopTo('engine', live && dv ? 0.26 * Math.max(0.15, near(dv.group.position.x, dv.group.position.z, 70)) * muffle : 0, dv ? dv.group.position.x : undefined, dv ? dv.group.position.z : undefined);
+    if (dv && loops._driveEng) loops._driveEng.frequency.setTargetAtTime((dv.t < 0.75 ? 1400 : 700) / 120, ac.currentTime, 0.5);
+    if (live && dv && dv.group === mixer && performance.now() > beepAt) { beepAt = performance.now() + 950; sfx('beep1', dv.group.position.x, dv.group.position.z); }
     if (live && !dark && day.rh < 85 && !inVan && performance.now() > birdAt) {
       birdAt = performance.now() + rnd(4000, 14000);
       const a = rnd(0, Math.PI * 2);
@@ -4226,6 +4941,12 @@
   }
   function phoneNext() {
     if (phoneOn || !phoneQ.length) return;
+    // on the ground: it buzzes down there, and it waits for you to pick it up
+    if (gs.phoneDown) {
+      if (!gs.phoneDown.rang) { gs.phoneDown.rang = true; sfx(phoneQ[0].kind === 'call' ? 'ring' : 'buzz', gs.phoneDown.x, gs.phoneDown.z); }
+      toastOnce('phoneGround', 'Your phone is buzzing on the ground where you dropped it.', 'warn', 45000);
+      return;
+    }
     const m = phoneOn = phoneQ.shift();
     phoneBar();
     const col = avatarCol(m.from), ini = escHtml(initials(m.from)), words = String(m.text).replace(/"/g, '');
@@ -4269,6 +4990,59 @@
       };
       tick();
     }, 1700);
+  }
+  // Out of your pocket and onto the ground — or into the pour — face down, of course. It stays
+  // there, ringing to itself, until you go back and pick it up.
+  const phoneObj = new THREE.Group();
+  box(0.079, 0.012, 0.159, 0xff6b1a, 0, 0, 0, phoneObj);                         // a rugged orange case: site phones have them
+  box(0.066, 0.002, 0.144, 0x0d1822, 0, -0.006, 0, phoneObj);                   // the screen, face down
+  box(0.024, 0.004, 0.03, 0x3a3d42, -0.02, 0.006, -0.05, phoneObj);             // the cameras
+  phoneObj.visible = false;
+  scene.add(phoneObj);
+  const phoneFall = { t: 1, len: 0.6, x: 0, z: 0, y0: 1, y1: 0 };
+  let phoneMarker = null;
+  function dropPhone() {
+    if (gs.phoneDown || inVanNow() || !['prep', 'pipes', 'pour', 'wash', 'cure'].includes(gs.phase)) return false;
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+    const x = player.x + fx * 0.45 + rnd(-0.2, 0.2), z = player.z + fz * 0.45 + rnd(-0.2, 0.2);
+    const c = cellAt(x, z), wet = !!(c && gs.pourStarted && c.fill > 20 && cellH(c) < 25);
+    gs.phoneDown = { x, z, wet, at: gs.t };
+    Object.assign(phoneFall, { t: 0, x, z, y0: EYE - 0.75, y1: groundY(x, z) + (wet ? 0.0 : 0.006), spin: rnd(4, 7) });
+    phoneObj.visible = true;
+    if (phoneMarker) { phoneMarker.x = x; phoneMarker.z = z; phoneMarker.group.position.set(x, 0, z); }
+    if (phoneOn) { clearTimeout(phoneTimer); phoneQ.unshift(phoneOn); phoneEl.classList.remove('up'); phoneOn = null; }
+    setTimeout(() => sfx(wet ? 'wet' : 'hard', x, z), 550);
+    return true;
+  }
+  function updatePhoneDrop(dt) {
+    if (!phoneObj.visible) return;
+    if (!gs.phoneDown) { phoneObj.visible = false; return; }
+    const f = phoneFall;
+    f.t = Math.min(1, f.t + dt / f.len);
+    const u = f.t;
+    phoneObj.position.set(f.x, lerp(f.y0, f.y1, u * u), f.z);
+    // tumbling down, and flat on its face when it lands; in wet concrete it settles in a little
+    phoneObj.rotation.set(u < 1 ? u * f.spin : 0, 0.7, u < 1 ? u * f.spin * 0.6 : 0);
+    if (u >= 1 && gs.phoneDown.wet) phoneObj.position.y = f.y1 - 0.004;
+  }
+  function pickUpPhone() {
+    const d = gs.phoneDown;
+    if (!d) return false;
+    gs.phoneDown = null;
+    phoneObj.visible = false;
+    sfx('pickup');
+    if (d.wet) {
+      gs.phoneCracked = true;
+      toast('You fish your phone out of the pour. Concrete in the charging port, concrete in the speaker, concrete in your future.', 'warn');
+      charge('Phone, rescued from the pour. It still rings. Grey.', 45);
+    } else if (chance(0.55)) {
+      gs.phoneCracked = true;
+      toast('Face down, of course. The screen is a map of the river delta now.', 'warn');
+      charge('New phone screen. It met the site face first', 60);
+    } else toast('Not a scratch on it. You don\'t trust it.', 'good');
+    phoneEl.classList.toggle('cracked', !!gs.phoneCracked);
+    setTimeout(phoneNext, 600);
+    return true;
   }
   function phoneAway() {
     phoneEl.classList.remove('up');
@@ -4336,17 +5110,31 @@
   function inVanNow() { return gs.waitMode === 'van'; }
   const trackPrints = new THREE.Group();
   scene.add(trackPrints);
-  const trackMat = new THREE.MeshLambertMaterial({ color: 0x86898a, transparent: true, opacity: 0.8, depthWrite: false });
-  const trackGeo = new THREE.CircleGeometry(0.5, 10);
+  // a boot's sole, lugs and all, not a grey leaf the size of a shoebox
+  const soleTex = (function () {
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 160;
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff';
+    g.beginPath(); g.ellipse(32, 46, 25, 42, 0, 0, Math.PI * 2); g.fill();     // the forefoot
+    g.beginPath(); g.ellipse(32, 128, 19, 28, 0, 0, Math.PI * 2); g.fill();    // the heel
+    g.fillRect(19, 70, 26, 50);                                                 // the waist between
+    g.globalCompositeOperation = 'destination-out';
+    g.strokeStyle = '#000'; g.lineWidth = 4;
+    for (let y = 10; y < 156; y += 13) { g.beginPath(); g.moveTo(6, y); g.lineTo(32, y + 7); g.lineTo(58, y); g.stroke(); }
+    return new THREE.CanvasTexture(c);
+  })();
+  const trackMat = new THREE.MeshLambertMaterial({ color: 0x7e8182, alphaMap: soleTex, transparent: true, opacity: 0.85, depthWrite: false });
+  const trackGeo = new THREE.PlaneGeometry(0.12, 0.3);
   let trackSide = 1;
   function trackPrint(x, z, yaw) {
     trackSide = -trackSide;
     const p = trackPrints.children.length >= 90 ? trackPrints.children[0] : new THREE.Mesh(trackGeo, trackMat);
     if (p.parent) trackPrints.remove(p);
-    const sx = Math.cos(yaw) * 0.12 * trackSide, sz = -Math.sin(yaw) * 0.12 * trackSide;
+    // where the foot was: a step to the side, a little behind the eyes
+    const sx = Math.cos(yaw) * 0.12 * trackSide + Math.sin(yaw) * 0.12, sz = -Math.sin(yaw) * 0.12 * trackSide + Math.cos(yaw) * 0.12;
     p.position.set(x + sx, groundY(x + sx, z + sz) + 0.012, z + sz);
-    p.rotation.set(-Math.PI / 2, 0, yaw);
-    p.scale.set(0.2, 0.52, 1);
+    p.rotation.set(-Math.PI / 2, 0, yaw + rnd(-0.12, 0.12));
     trackPrints.add(p);
   }
   // your own, at the bottom of the view when you look down: the boots, and what's on them
@@ -4384,6 +5172,9 @@
       f.position.z = -0.1 + (player.moving ? Math.sin(ph) * 0.12 : 0);
       f.position.y = player.moving ? Math.max(0, Math.cos(ph)) * 0.035 : 0;
       if (stuck && k === 0) f.position.y = -0.06;
+      // from foot to foot, when it's that urgent
+      const w = urgePiss();
+      if (w > 0 && !player.moving && !CALM) f.position.y = Math.max(0, Math.sin(performance.now() / 1000 * 5.2 + k * Math.PI)) * 0.045 * w;
     });
     const b = gs.boots || 0;
     bootCrust.forEach((cr) => { cr.visible = b > 0.05; cr.scale.set(1, 0.5 + b, 1); });
@@ -4482,6 +5273,8 @@
     }
     return out;
   }
+  /** What's in the slab that counts: every square up to its thickness, none of the heap above it. */
+  function pouredIn() { return gs.cells.reduce((s2, c) => s2 + Math.min(c.fill, day.thick), 0) / 1000; }
   function filledShare() { return gs.cells.filter((c) => c.fill >= day.thick - 10).length / gs.cells.length; }
   function rms() {
     let s = 0;
@@ -4527,7 +5320,8 @@
 
   // the shape and the colour of the slab
   let cellsDirty = true;
-  const WET = new THREE.Color(0.52, 0.53, 0.55), DRY = new THREE.Color(0.97, 0.97, 0.96);
+  // fresh concrete is dark and wet-looking against the pale stone base, so every pour shows
+  const WET = new THREE.Color(0.34, 0.355, 0.375), DRY = new THREE.Color(0.97, 0.97, 0.96);
   const DEV = { ok: new THREE.Color(0x4fae6a), hi: new THREE.Color(0xe0873a), vhi: new THREE.Color(0xd8392f), lo: new THREE.Color(0x5aa9ff), vlo: new THREE.Color(0x2f6fd0) };
   function paintCells() {
     const laser = gs.laserOn && laserWorks() && !gs.pourDone;
@@ -5383,6 +6177,7 @@
     gs.energy = clamp(gs.energy - 5, 0, 100);
     const c = cellAt(player.x, player.z);
     if (c && gs.phase === 'pour' && c.fill > 20) bootsGet(0.4);
+    if (chance(0.25)) setTimeout(() => { if (dropPhone()) toast('Your phone went flying. It\'s on the ground somewhere near you.', 'warn'); }, 400);
     sfx('thud');
     if (c && (gs.phase === 'pour' || gs.H < 30)) sfx('splash');
     if (c && gs.phase === 'pour') { c.fill = Math.max(0, c.fill - 12); cellsDirty = true; }
@@ -5479,7 +6274,7 @@
     setTimeout(() => me(m.me), 2600);
     if (m.effect === 'energy') gs.energy = clamp(gs.energy - 8, 0, 100);
     else if (m.effect === 'energy+') gs.energy = clamp(gs.energy + 10, 0, 100);
-    else if (m.effect === 'phone') charge('New phone screen. It met the concrete face first', 60);
+    else if (m.effect === 'phone') dropPhone();
     else if (m.effect === 'trousers') charge('Trousers, split. The old ones are a flag now', 35);
     else if (m.effect === 'run') { shake = Math.max(shake, 0.5); gs.energy = clamp(gs.energy - 5, 0, 100); }
   }
@@ -5502,6 +6297,8 @@
     restartAnim($('#hud'), 'intro');
     setTimeout(() => $('#hud').classList.remove('intro'), 1400);
     phoneReset();
+    phoneObj.visible = false;
+    phoneEl.classList.remove('cracked');
     // in case a day was left halfway through throwing the tools in the van
     $('#buttons').style.visibility = '';
     $('#btnFlip').style.visibility = '';
@@ -5663,7 +6460,6 @@
     group.visible = true;
     drives.push({ group, from: group.position.x, to: target, t: 0, seconds, done: () => {
       sfx('brake', group.position.x, group.position.z);
-      setTimeout(() => sfx('reverse', group.position.x, group.position.z), 700);
       if (done) done();
     } });
   }
@@ -5921,11 +6717,18 @@
   }
 
   function buildLateMarkers() {
-    addMarker('wash', POS.ibcFront, 'Wash tools and boots', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05) || (!held() && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.2), () => {
+    addMarker('wash', POS.ibcFront, 'Wash tools and boots', 2.4, () => gs.phase === 'wash' || (held() && dirtOf(held()) > 0.05) || (!held() && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.2) || (!held() && !!gs.accident && gs.accident.kind === 'shit' && !gs.accident.washed), () => {
       // a co-worker's washing: their tool comes clean on its own; the host sees if that's the lot
       if (netRemote) { if (gs.phase === 'wash' && !isGuest() && !dirtyTools().filter((t) => !isMachine(t)).length) enterCure(); return true; }
       const id = held();
-      if (!id && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.05) {
+      if (!id && gs.accident && gs.accident.kind === 'shit' && !gs.accident.washed) {
+        // behind the tank, with the hose, in the cold: the worst five minutes of the day, and the flies leave
+        gs.accident.washed = true;
+        sfx('splash', POS.ibc.x, POS.ibc.z);
+        simulate(5, awayNow());
+        toast('You hose yourself down behind the water tank. Cold water, in front of the road. The tank will never be the same. Now the spare trousers, in the van.', 'warn');
+        if (gs.phase !== 'wash') return true;
+      } else if (!id && (gs.boots || 0) > (gs.bootsFloor || 0) + 0.05) {
         const set = bootsSet();
         // what had set stays on them for the rest of the day, wash them as often as you like
         if (set) gs.bootsFloor = 0.12;
@@ -5947,7 +6750,11 @@
       }
       return true;
     });
-    addMarker('loo', POS.looFront, 'The loo', 1.6, () => gs.phase !== 'end' && gs.phase !== 'morning', () => useLoo(), { tool: 'hands', w: 1.8 });
+    addMarker('loo', POS.looFront, 'The toilet', 1.6, () => gs.phase !== 'end' && gs.phase !== 'morning', () => useLoo(), { tool: 'hands', w: 1.8 });
+    const live = () => ['prep', 'pipes', 'pour', 'wash', 'cure'].includes(gs.phase) && !gs.packing;
+    phoneMarker = addMarker('phone', P(0, 0), 'Your phone', 0.6, () => !!gs.phoneDown && phoneFall.t >= 1, () => pickUpPhone(), { w: 1.8 });
+    addMarker('spares', POS.vanSeat, 'Spare clothes', 2.2, () => live() && (!!gs.accident || (!gs.spareBoots && (gs.boots || 0) > 0.25)), () => changeClothes(), { tool: 'hands', w: 2.2 });
+    addMarker('behindVan', POS.vanCorner, 'Behind the van', 2.5, () => live() && !gs.accident && gs.needs.wee > 60, () => pissBehindVan(), { tool: 'hands', w: 2.2 });
     buildLateMarkers2();
   }
   /** After the washing up, or when the slab won't wait for it: the long wait begins. */
@@ -6021,36 +6828,206 @@
     });
   }
 
-  // ------------------------------------------------------------------ the loo
-  // A wee comes round every few hours, faster with coffee; the other one after lunch, with the
-  // kebab's compliments. Ignore either long enough and it stops asking.
+  // ------------------------------------------------------------------ the toilet, and what you need it for
+  // A piss comes round every few hours, faster with coffee; a shit after lunch, with the kebab's
+  // compliments. Hold on too long and you'll know about it before it happens — hopping from foot to
+  // foot, cramps that fold you in half — and then it happens, and you're cleaning up.
   function needsTick(step) {
     const n = gs.needs;
     n.wee += 0.2 * step;
     n.poo += 0.07 * step;
     const warn = (key, text, kind) => { if (n.warned[key]) return; n.warned[key] = true; if (gs.waitMode) { gs.waitMode = null; showWait(); } toast(text, kind); say(text, 'me'); };
     if (n.wee > 70) warn('wee70', fresh(L.weeSoon), 'warn');
-    if (n.wee > 90) warn('wee90', 'You really need a wee. The loo is the blue box. ' + fresh(L.weeSoon), 'warn');
+    if (n.wee > 90) warn('wee90', 'You really need a piss. The toilet is the blue box. ' + fresh(L.weeSoon), 'warn');
     if (n.poo > 70) warn('poo70', fresh(L.pooSoon), 'warn');
-    if (n.poo > 90) warn('poo90', 'Code brown. The loo, now. ' + fresh(L.pooSoon), 'warn');
-    if (n.wee >= 100) {
-      n.wee = 5; n.warned.wee70 = n.warned.wee90 = false;
-      toast('You couldn\'t wait. Behind the van. A neighbour sees. The pump driver sees. The pump driver films it.', 'warn');
-      remember('You couldn\'t make it to the loo. Behind the van it was.');
-      charge('Weeing behind the van (the neighbour called someone)', 30);
+    if (n.poo > 90) warn('poo90', 'You need a shit, and soon. The toilet, now. ' + fresh(L.pooSoon), 'warn');
+    if (n.wee >= 100) accident('piss');
+    if (n.poo >= 100) accident('shit');
+  }
+  /** It happened. A piss down one leg, or worse: the trousers go, and you have to clean up. */
+  function accident(kind) {
+    const n = gs.needs;
+    if (kind === 'piss') { n.wee = 5; n.warned.wee70 = n.warned.wee90 = false; } else { n.poo = 5; n.warned.poo70 = n.warned.poo90 = false; n.wee = Math.min(n.wee, 25); }
+    if (gs.waitMode) { gs.waitMode = null; showWait(); }
+    const kindNow = (gs.accident && gs.accident.kind === 'shit') || kind === 'shit' ? 'shit' : 'piss';
+    gs.accident = { kind: kindNow, washed: false, at: gs.t };
+    gs.stats.accidents = (gs.stats.accidents || 0) + 1;
+    gs.energy = clamp(gs.energy - (kind === 'shit' ? 15 : 6), 0, 100);
+    if (kind === 'piss' && !inVanNow()) puddleAt(player.x, player.z);
+    if (inVanNow()) { gs.vanSeat = true; charge('The van seat, valeted', 45); }
+    toast(fresh(kind === 'shit' ? L.shatSelf : L.pissedSelf), 'warn');
+    setTimeout(() => me(fresh(kind === 'shit' ? L.meShat : L.mePissed), 'warn'), 2600);
+    remember(kind === 'shit' ? 'You shat yourself on site. The less said the better.' : 'You pissed yourself on site. It was a long pour.');
+    setTimeout(() => toast(kind === 'shit' ? 'Clean up: hose yourself down at the water tank, then the spare trousers in the van.' : 'Clean up: the spare trousers are in the van.', 'warn'), 5200);
+  }
+  const puddleMat = new THREE.MeshLambertMaterial({ color: 0x4d4330, transparent: true, opacity: 0.55, depthWrite: false });
+  function puddleAt(x, z) {
+    const p = mesh(new THREE.CircleGeometry(0.34, 14), puddleMat, x, groundY(x, z) + 0.014, z);
+    p.rotation.x = -Math.PI / 2;
+    p.scale.set(1, rnd(0.6, 0.9), 1);
+    puddles.add(p);
+  }
+  // holding it in, and what everybody else makes of you afterwards
+  const cramp = { t: 0, len: 1.3 };
+  let crampAt = 0, gurgleAt = 0, holdAt = 0, reactAt = 0;
+  const flies = [0, 1, 2].map(() => { const f = box(0.012, 0.006, 0.014, 0x111111, 0, 0, 0); f.visible = false; return f; });
+  function urgePiss() { return gs.accident ? 0 : clamp((gs.needs.wee - 75) / 25, 0, 1); }
+  function updateNeedsAct(dt) {
+    const now = performance.now(), n = gs.needs;
+    cramp.t = Math.max(0, cramp.t - dt);
+    const live = ['prep', 'pipes', 'pour', 'wash', 'cure'].includes(gs.phase) && !gs.packing && !inVanNow();
+    if (live && n.poo > 80 && !gs.accident && now > crampAt) {
+      crampAt = now + rnd(22, 40) * 1000;
+      cramp.t = cramp.len;
+      sfx('gurgle');
+      me(fresh(L.cramp));
+    } else if (live && n.poo > 62 && now > gurgleAt) { gurgleAt = now + rnd(15, 30) * 1000; sfx('gurgle'); }
+    if (live && urgePiss() > 0.3 && now > holdAt) {
+      holdAt = now + rnd(30, 50) * 1000;
+      me(fresh(L.pissHold));
     }
-    if (n.poo >= 100) {
-      n.poo = 5; n.warned.poo70 = n.warned.poo90 = false;
-      gs.energy = clamp(gs.energy - 15, 0, 100);
-      toast('You couldn\'t wait, and you didn\'t make it. The drive home will be long, and with all the windows open.', 'warn');
-      remember('You didn\'t make it to the loo. The less said the better.');
-      charge('New trousers. Don\'t ask', 40);
+    if (live && urgePiss() > 0 && (streamOn || markerAnim() === 'wash')) toastOnce('runningWater', 'Running water. Why does it always have to be running water.', '', 90000);
+    // the flies, when it's the worse of the two, round your head and through your view
+    const a = gs.accident, buzzing = !!(a && a.kind === 'shit' && !a.washed && gs.phase !== 'end');
+    flies.forEach((f, k) => {
+      f.visible = buzzing;
+      if (!buzzing) return;
+      const t = now / 1000 * (1.3 + k * 0.4) + k * 2.1;
+      f.position.set(camera.position.x + Math.sin(t * 1.7) * (0.35 + k * 0.12), camera.position.y - 0.15 + Math.sin(t * 2.3) * 0.25, camera.position.z + Math.cos(t * 1.3) * (0.35 + k * 0.1));
+      f.rotation.y = t * 3;
+    });
+    // whoever's near gets a whiff, or a look at your trousers
+    if (a && live && now > reactAt) {
+      reactAt = now + rnd(18, 32) * 1000;
+      const near2 = [];
+      walkers.forEach((w) => { if (w.kind !== 'dog' && hyp(w.m.position.x, w.m.position.z, player.x, player.z) < 7) near2.push([w.m, w.voice, 'Somebody']); });
+      if (pumpGuy.visible && hyp(pumpGuy.position.x, pumpGuy.position.z, player.x, player.z) < 8) near2.push([pumpGuy, 'pump', 'Pump driver']);
+      if (mixGuy.visible && hyp(mixGuy.position.x, mixGuy.position.z, player.x, player.z) < 8) near2.push([mixGuy, 'truck', 'Truck driver']);
+      if (helper.m && hyp(helper.m.position.x, helper.m.position.z, player.x, player.z) < 8) near2.push([helper.m, helper.voice, helper.name]);
+      if (near2.length) {
+        const [m, v, who] = pick(near2), l = fresh(a.kind === 'shit' && !a.washed ? L.smellReact : L.wetReact);
+        toast(`${who}: ${l}`, 'warn');
+        say(l, v);
+        gesture(m, a.kind === 'shit' ? 'clutch' : 'shout', 1.6, m === pumpGuy);
+      }
     }
   }
+
+  // Who is in the toilet: nobody, or somebody, and then for a while. The window by the knob says
+  // which — red, somebody's in; green, go on — and pulling the knob while it's red gets you an
+  // answer from inside, a different one every time. He comes out when he's done, and walks off.
+  const LOO_WHO = {
+    pump: { name: 'The pump driver', voice: 'pump', look: { shirt: 0x2f3540, vest: 0xff7a1a, hat: 'hard', hatColor: 0xf2f0ea }, mins: [8, 15] },
+    truck: { name: 'The truck driver', voice: 'truck', look: { shirt: 0x3b5b8c, vest: 0xd4f53c, hat: 'cap' }, mins: [4, 8] },
+    kebab: { name: 'The kebab man', voice: { p: 0.92, r: 1.02, key: 'kebab', g: 'm' }, look: { shirt: 0xf2f0ea, hat: 'hair' }, mins: [4, 9] },
+    office: { name: 'The site engineer', voice: { p: 1.04, r: 1.06, key: 'office', g: 'm' }, look: { shirt: 0x5a7fa8, vest: 0xd4f53c, hat: 'hard', hatColor: 0x2c6ad6 }, mins: [3, 7] },
+    stranger: { name: 'Somebody', voice: { p: 0.9, r: 0.98, key: 'looStranger', g: 'm' }, look: {}, mins: [3, 6] },
+  };
+  function looVoice(who) {
+    const v = LOO_WHO[who].voice;
+    return typeof v === 'string' ? v : Object.assign({}, v, { name: LOO_WHO[who].name, at: () => loo.position });
+  }
+  /** The pump driver goes when the pump isn't pumping, the truck driver while his truck waits. */
+  function looCandidates() {
+    const out = [[2, 'kebab'], [1.5, 'office'], [1, 'stranger']];
+    if (isGuest()) return out;
+    const pumping = gs.phase === 'pour' && gs.truck && !gs.truck.waiting;
+    if (pumpGuy.visible && gs.pumpHere && !pumping && !(gs.tools.hose && gs.tools.hose.in === 'pumpman')) out.push([3, 'pump']);
+    if (mixGuy.visible && gs.truck && gs.truck.waiting) out.push([1, 'truck']);
+    return out;
+  }
+  let leaver = null;
+  function updateLoo(dt) {
+    const st = gs.loo || (gs.loo = { occ: null, next: gs.t + rnd(20, 60) });
+    const live = ['prep', 'pipes', 'pour', 'wash', 'cure'].includes(gs.phase);
+    if (st.occ) {
+      if (st.occ.who === 'pump') pumpGuy.visible = false;
+      if (st.occ.who === 'truck') mixGuy.visible = false;
+      if (gs.t >= st.occ.until || !live) looLeaves(st);
+    } else if (live && gs.t >= st.next && !leaver && hyp(player.x, player.z, POS.looFront.x, POS.looFront.z) > 3) {
+      const who = weighted(looCandidates());
+      st.occ = { who, until: gs.t + rnd(...LOO_WHO[who].mins), knocks: 0 };
+      if (hyp(player.x, player.z, POS.loo.x, POS.loo.z) < 25) sfx('door', POS.loo.x, POS.loo.z);
+    }
+    looSignMat.color.setHex(st.occ ? 0xd83a2e : 0x2fbf5a);
+    if (leaver) {
+      const L2 = leaver, u = L2.m.userData;
+      L2.t += dt;
+      const tgt = L2.path[L2.seg];
+      const dx = tgt.x - L2.m.position.x, dz = tgt.z - L2.m.position.z, d = Math.hypot(dx, dz);
+      if (d < 0.4) L2.seg++;
+      else {
+        const step2 = Math.min(d, 1.35 * dt);
+        L2.m.position.x += (dx / d) * step2; L2.m.position.z += (dz / d) * step2;
+        L2.m.rotation.y = Math.atan2(dx, dz);
+        u.phase += step2 * 4.5;
+        u.legL.rotation.x = Math.sin(u.phase) * 0.5; u.legR.rotation.x = -Math.sin(u.phase) * 0.5;
+        u.armL.rotation.x = -Math.sin(u.phase) * 0.35; u.armR.rotation.x = Math.sin(u.phase) * 0.35;
+      }
+      if (L2.seg >= L2.path.length || L2.t > 40) {
+        scene.remove(L2.m);
+        if (L2.who === 'pump') pumpGuy.visible = !!(gs.pumpHere && pump.visible && live);
+        leaver = null;
+      }
+    }
+  }
+  /** Out he comes: the flush, the door, a word if you're near, and off back to where he's from, round the slab. */
+  function looLeaves(st) {
+    const o = st.occ, w = LOO_WHO[o.who];
+    st.occ = null;
+    st.next = gs.t + rnd(35, 90);
+    st.ripe = gs.t + 12;
+    if (!['prep', 'pipes', 'pour', 'wash', 'cure'].includes(gs.phase)) return;
+    const near2 = hyp(player.x, player.z, POS.loo.x, POS.loo.z);
+    if (near2 < 30) { sfx('flush', POS.loo.x, POS.loo.z); setTimeout(() => sfx('door', POS.loo.x, POS.loo.z), 900); }
+    const m = makePerson(Object.assign({ g: 'm' }, w.look));
+    m.traverse((x) => { if (x.isMesh) x.castShadow = true; });
+    m.position.set(POS.looFront.x, 0, POS.looFront.z);
+    scene.add(m);
+    const dest = o.who === 'pump' ? P(pumpGuy.position.x, pumpGuy.position.z) : o.who === 'truck' ? P(mixGuy.position.x, mixGuy.position.z)
+      : o.who === 'kebab' ? POS.kioskFront : o.who === 'office' ? POS.office : P(POS.looFront.x * 1.6, POS.looFront.z * 1.6);
+    leaver = { m, who: o.who, path: routeRound(POS.looFront, dest), seg: 0, t: 0 };
+    if (near2 < 16) {
+      const l = fresh(L.looOut);
+      setTimeout(() => { toast(`${w.name}, coming out: ${l}`); say(l, looVoice(o.who)); }, 1200);
+    }
+  }
+  /** A walk from a to b that goes round the slab (and its boards), not across it. */
+  function routeRound(a, b) {
+    const bx = site.box, pad = 1.6;
+    const x0 = bx.x0 - pad, x1 = bx.x1 + pad, z0 = bx.z0 - pad, z1 = bx.z1 + pad;
+    const hits = (p, q) => {
+      // the segment against the padded box, by sampling: plenty for a walk across a yard
+      for (let k = 1; k < 24; k++) { const t = k / 24, x = lerp(p.x, q.x, t), z = lerp(p.z, q.z, t); if (x > x0 + 0.05 && x < x1 - 0.05 && z > z0 + 0.05 && z < z1 - 0.05) return true; }
+      return false;
+    };
+    if (!hits(a, b)) return [P(b.x, b.z)];
+    const cs = [P(x0, z0), P(x1, z0), P(x1, z1), P(x0, z1)];
+    let best = null, bl = 1e9;
+    cs.forEach((c) => { if (!hits(a, c) && !hits(c, b)) { const l = hyp(a.x, a.z, c.x, c.z) + hyp(c.x, c.z, b.x, b.z); if (l < bl) { bl = l; best = [c, P(b.x, b.z)]; } } });
+    if (best) return best;
+    cs.forEach((c, k) => { const c2 = cs[(k + 1) % 4]; [[c, c2], [c2, c]].forEach(([p, q]) => { if (!hits(a, p) && !hits(q, b)) { const l = hyp(a.x, a.z, p.x, p.z) + hyp(p.x, p.z, q.x, q.z) + hyp(q.x, q.z, b.x, b.z); if (l < bl) { bl = l; best = [p, q, P(b.x, b.z)]; } } }); });
+    return best || [P(b.x, b.z)];
+  }
   function useLoo() {
-    if (!gs.needs.lockedOnce && chance(0.2)) { gs.needs.lockedOnce = true; toast(fresh(L.looLocked), 'warn'); sfx('door', POS.loo.x, POS.loo.z); return false; }
+    const st = gs.loo || (gs.loo = { occ: null, next: gs.t + 30 });
     const n = gs.needs;
+    if (st.occ) {
+      // pull the knob: it rattles, and whoever's in there has something to say about it
+      st.occ.knocks++;
+      sfx('rattle', POS.loo.x, POS.loo.z);
+      const w = LOO_WHO[st.occ.who];
+      let l;
+      if (st.occ.knocks >= 3 && !st.occ.fumed) { st.occ.fumed = true; l = fresh(L.looFume); st.occ.until += 2; }
+      else l = fresh(L.looInside.concat(L.looInsideBy[st.occ.who] || []));
+      toast(`${w.name}, from inside: ${l}`, 'warn');
+      say(l, looVoice(st.occ.who));
+      if (n.wee > 70 && !gs.accident) toastOnce('behindVan', 'Or behind the van. Everybody does. Nobody admits it.', '', 60000);
+      return false;
+    }
     sfx('door', POS.loo.x, POS.loo.z);
+    if (st.ripe && gs.t < st.ripe) toastOnce('ripe', 'You open the door. The air inside has a texture. You go in anyway. You have to.', 'warn', 60000);
+    if (gs.accident) toastOnce('lateLoo', 'Bit late for the toilet now. It\'s the water tank and the spare trousers you want.', 'warn', 60000);
     if (n.poo > 45) {
       simulate(12, awayNow());
       toast(fresh(L.looTwo));
@@ -6064,7 +7041,43 @@
       toast('You don\'t need to. You go in anyway, for four minutes of peace and quiet. It\'s the best four minutes of the day.');
     }
     n.warned = {};
-    setTimeout(() => sfx('door', POS.loo.x, POS.loo.z), 700);
+    setTimeout(() => sfx('flush', POS.loo.x, POS.loo.z), 400);
+    setTimeout(() => sfx('door', POS.loo.x, POS.loo.z), 1100);
+    return true;
+  }
+  /** Round the side of the van where the road can't see. Mostly can't see. */
+  function pissBehindVan() {
+    const n = gs.needs;
+    simulate(2, awayNow());
+    n.wee = rnd(0, 6);
+    n.warned.wee70 = n.warned.wee90 = false;
+    sfx('trickle');
+    if (chance(0.4)) {
+      toast('Behind the van. The neighbour sees. The pump driver sees. The pump driver films it.', 'warn');
+      remember('You pissed behind the van. There is a video.');
+      charge('Pissing behind the van (the neighbour called someone)', 30);
+    } else toast('Behind the van. Nobody saw. You\'re almost sure nobody saw.');
+    return true;
+  }
+  /** The spare clothes behind the driver's seat: trousers for the worst day, boots for a dirty one. */
+  function changeClothes() {
+    const a = gs.accident, did = [];
+    if (a && a.kind === 'shit' && !a.washed) { toast('Not over that. Hose yourself down at the water tank first, or the spares go the same way.', 'warn'); return false; }
+    if (a) {
+      if (!gs.spareTrousers) { gs.spareTrousers = true; did.push('trousers'); } else did.push('binbag');
+      gs.accident = null;
+    }
+    if (!gs.spareBoots && (gs.boots || 0) > 0.2) { gs.spareBoots = true; gs.boots = 0; gs.bootsFloor = 0; gs.bootsAt = gs.t; did.push('boots'); }
+    if (!did.length) { toast('The spares are for when you need them. You don\'t. Yet.'); return false; }
+    sfx('door', POS.vanSeat.x, POS.vanSeat.z);
+    simulate(3, awayNow());
+    const say2 = {
+      trousers: 'You change into the spare trousers behind the van door. They\'re from 2019. They\'re tight. They\'re dry.',
+      binbag: 'No more spare trousers. You wear a bin bag, tied at the waist with rebar wire. It rustles when you walk.',
+      boots: 'You change into the spare boots. Clean, dry, and about a size too small. The old ones go in a bag, rigid.',
+    };
+    toast(did.map((d) => say2[d]).join(' '), 'good');
+    if (did.includes('binbag')) remember('You spent the afternoon in a bin bag.');
     return true;
   }
 
@@ -6251,7 +7264,7 @@
     const late = Math.max(0, gs.arrived - 6 * 60);
     const goodPans = gs.panPasses.filter((p) => p.good).length;
     const goodBlades = gs.bladePasses.filter((p) => p.good).length;
-    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.gaveUp ? 80 : 0) - (site.edges.length - Math.min(gs.edgesDone, site.edges.length)) * 12 - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12
+    let score = 1000 - dev * 22 - defects * 18 - (gs.yelled ? 60 : 0) - (gs.gaveUp ? 80 : 0) - (site.edges.length - Math.min(gs.edgesDone, site.edges.length)) * 12 - (gs.wrongLoad ? L.wrong[gs.wrongLoad].cost : 0) - late * 1.5 - gs.waste * 35 - gs.truckWaitPaid * 0.5 - gs.stats.falls * 10 - gs.edgeNotes.length * 12 - (gs.stats.accidents || 0) * 40
       + Math.min(goodPans, 3) * 40 + Math.min(goodBlades, 3) * 40 + gs.stats.hell * 5;
     score = Math.round(clamp(score, 0, 1200));
     const rank = score >= 950 ? 'Slab wizard' : score >= 800 ? 'Proper concrete person' : score >= 620 ? 'Adequate slab operator' : score >= 420 ? 'Footprint curator' : 'The dog\'s favourite';
@@ -6278,6 +7291,7 @@
       ['Concrete', gs.wrongLoad ? L.wrong[gs.wrongLoad].row : 'as ordered'],
       ['Phone call with the manager', gs.yelled ? `yes, about ${gs.yelled} marks. Loud.` : 'none, thank God'],
       ['Times on your butt', String(gs.stats.falls)],
+      ...(gs.stats.accidents ? [['Accidents', `${gs.stats.accidents} (don't ask)`]] : []),
       ['Boots', bootsRow()],
       ['Fingers given', String(gs.stats.flips)],
       ['Tools', gs.leftBehind.length || gs.dirtyAtEnd.length ? `${gs.leftBehind.length} left on site, ${gs.dirtyAtEnd.length} dirty` : 'all in the van, clean'],
@@ -6608,7 +7622,7 @@
     const ox = x - gx(best.i) - 0.5, oz = z - gz(best.j) - 0.5;
     const di = Math.abs(ox) >= Math.abs(oz) ? Math.sign(ox) : 0, dj = di ? 0 : Math.sign(oz);
     // the stream is as wide as your hand: right on the board, half of it goes each way
-    return { x, z, c: best, di, dj, inside: bd < 0.1 ? 0.5 : 0 };
+    return { x, z, c: best, di, dj, inside: bd < 0.1 ? 0.5 : 0, d: bd };
   }
 
   // ------------------------------------------------------------------ over the formwork
@@ -6904,7 +7918,10 @@
   function gesture(m, kind, sec, back) {
     if (!m || !m.userData.armR) return;
     sec = sec || 1.9;
-    m.userData.gest = { kind, t: sec, len: sec, yaw0: m.rotation.y, cur: m.rotation.y, back: !!back };
+    // where the arms were before, to go back to: a new gesture on top of one keeps the first rest
+    const was = m.userData.gest;
+    m.userData.gest = { kind, t: sec, len: sec, yaw0: was ? was.yaw0 : m.rotation.y, cur: m.rotation.y, back: !!back,
+      r0: was ? was.r0 : m.userData.armR.rotation.x, l0: was ? was.l0 : m.userData.armL.rotation.x };
     gesturing.add(m);
   }
   function updateGestures(dt) {
@@ -6914,6 +7931,8 @@
       if (g.t <= 0 || !m.visible) {
         fR.visible = false; fL.visible = false;
         u.armR.rotation.z = 0; u.armL.rotation.z = 0;
+        // arms back down: nobody else moves a driver's arms, so they stayed up in the air
+        u.armR.rotation.x = g.r0; u.armL.rotation.x = g.l0;
         if (g.back) m.rotation.y = g.yaw0;
         u.gest = null;
         gesturing.delete(m);
@@ -6925,8 +7944,8 @@
       m.rotation.y = g.cur;
       if (u.head) u.head.rotation.y = lerp(u.head.rotation.y, 0, on);
       const [r, l] = GESTURE[g.kind] || [0, 0], shake = Math.sin(toolT * 19) * (g.kind === 'shout' ? 0.22 : 0.06) * on;
-      u.armR.rotation.x = lerp(u.armR.rotation.x, r + shake, on);
-      u.armL.rotation.x = lerp(u.armL.rotation.x, l - shake, on);
+      u.armR.rotation.x = lerp(g.r0, r + shake, on);
+      u.armL.rotation.x = lerp(g.l0, l - shake, on);
       const hug = g.kind === 'clutch' ? 0.55 : g.kind === 'flip2' ? -0.12 : 0;
       u.armR.rotation.z = -hug * on; u.armL.rotation.z = hug * on;
       const up = (g.kind === 'flip1' || g.kind === 'flip2') && on > 0.45;
@@ -7486,7 +8505,7 @@
   function waitMenu() {
     if (isGuest()) { toast(`Only ${net.hostName} can make time fly. Ask nicely. Or shout.`); return; }
     if (gs.waitMode || gs.fastForward) {
-      if (gs.waitMode === 'van') { player.x = POS.vanDoor.x; player.z = POS.vanDoor.z; toast(fresh(L.vanNap)); }
+      if (gs.waitMode === 'van') toast(fresh(L.vanNap));
       gs.waitMode = null; gs.fastForward = null; showWait();
       return;
     }
@@ -7495,7 +8514,11 @@
     if ((gs.phase === 'pipes' || gs.phase === 'pour') && gs.pipes === PIPE_N && !gs.truck && gs.nextTruckAt > gs.t) choices.push({ label: `Wait for the truck (due ${clock(gs.nextTruckAt)})`, primary: true, fn: () => { gs.fastForward = 'truck'; showWait(); } });
     if (gs.phase === 'cure' || gs.phase === 'wash') {
       if (hyp(player.x, player.z, site.mid.x, site.mid.z) < 16) choices.push({ label: 'Stand guard by the slab', primary: true, fn: () => { gs.waitMode = 'guard'; showWait(); } });
-      choices.push({ label: 'Nap in the van (fastest, but nobody guards the slab)', fn: () => { gs.waitMode = 'van'; showWait(); vanFloor(); } });
+      choices.push({ label: 'Nap in the van (fastest, but nobody guards the slab)', fn: () => {
+        gs.waitMode = 'van'; showWait(); vanFloor();
+        // behind the wheel, looking out at the slab you should be guarding
+        player.yaw = van.rotation.y - Math.PI / 2; player.pitch = -0.1;
+      } });
     }
     if (!choices.length) { toast('Nothing to wait for. There is always something to do. That\'s the job.'); return; }
     choices.push({ label: 'Never mind' });
@@ -7516,9 +8539,12 @@
     if (len > 1) { mx /= len; my /= len; }
     const wants = len > 0.08;
     if (wants && (gs.waitMode === 'guard' || gs.fastForward)) { gs.waitMode = null; gs.fastForward = null; showWait(); }
-    if (gs.waitMode === 'van') { player.x = POS.van.x + 0.6; player.z = POS.van.z - 0.2; player.moving = false; return; }
+    // out of the van by the driver's door, whatever it was that got you out
+    if (inVanWas && gs.waitMode !== 'van') { const q = vanPoint(2.3, -2.1); player.x = q.x; player.z = q.z; }
+    inVanWas = gs.waitMode === 'van';
+    if (gs.waitMode === 'van') { const q = vanPoint(1.3, -0.45); player.x = q.x; player.z = q.z; player.moving = false; return; }
     if (gs.packing) { player.moving = false; return; }
-    if (player.fall > 0 || performance.now() < gs.stuckUntil || gs.fitting || retch.t > 0) { player.moving = false; return; }
+    if (player.fall > 0 || performance.now() < gs.stuckUntil || gs.fitting || retch.t > 0 || cramp.t > 0) { player.moving = false; return; }
     const c = cellAt(player.x, player.z);
     const wet = gs.phase === 'pour' && c && c.fill > 20;
     const tool = gs.tool, running = input.action && lastCtxKind === 'trowel';
@@ -7528,7 +8554,7 @@
     if (gs.carrying) speed *= 0.7;
     if (gs.needs.poo > 85) speed *= 0.75;
     // thumb all the way over: a run, while there's energy for one and nothing heavy in your hands
-    const canRun = len > 0.92 && !wet && !isMachine(tool) && !gs.carrying && gs.energy > 12 && gs.needs.poo <= 85;
+    const canRun = len > 0.92 && !wet && !isMachine(tool) && !gs.carrying && gs.energy > 12 && gs.needs.poo <= 85 && !(gs.accident && gs.accident.kind === 'shit');
     player.run = canRun ? Math.min(1, (player.run || 0) + dt * 2.5) : Math.max(0, (player.run || 0) - dt * 4);
     if (player.run > 0) {
       speed *= 1 + 0.6 * player.run;
@@ -7538,6 +8564,8 @@
     if (gs.energy < 20) speed *= 0.8;
     // a kilo of concrete on each boot slows anybody down
     speed *= 1 - 0.22 * (gs.boots || 0);
+    // walking carefully, in the state you're in
+    if (gs.accident && gs.accident.kind === 'shit' && !gs.accident.washed) speed *= 0.8;
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     let vx = (fx * -my + rx * mx) * speed, vz = (fz * -my + rz * mx) * speed;
@@ -7583,6 +8611,7 @@
       stepSnd = 0;
       // off the slab with concrete on your boots: grey prints across the gravel, and some of it stays there
       if (!now && gs.boots > 0.12 && !inVanNow()) { trackPrint(player.x, player.z, player.yaw); gs.boots = Math.max(gs.bootsFloor || 0, gs.boots - 0.008); }
+      if (gs.accident && gs.accident.kind === 'shit' && !gs.accident.washed) sfx('squelch');
       if (!now || (!gs.pourStarted && now.fill < 3)) sfx('gravel');
       else if (gs.phase === 'pour' && now.fill > 20) sfx('wet');
       else if (gs.poured && gs.H < 55) sfx('soft');
@@ -7630,7 +8659,16 @@
       if (onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH) { target = cellAt(x, z); target._hx = x; target._hz = z; }
       // with the hose, past the boards is somewhere too: into the gravel, and onto the waste line
       // (only off the slab: a spot on it just out of reach is out of reach, not over the boards)
-      else if (gs.tool === 'hose' && gs.phase === 'pour' && !onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH + 0.6) pourOut = pastTheBoards(x, z);
+      else if (gs.tool === 'hose' && gs.phase === 'pour' && !onSlab(x, z) && hyp(x, z, player.x, player.z) < REACH + 0.6) {
+        pourOut = pastTheBoards(x, z);
+        // a hand's breadth past the boards is the edge square, not the gravel: nobody means that.
+        // Pour clearly out into the gravel and that's where it goes.
+        if (pourOut && pourOut.d < 0.4) {
+          const c = pourOut.c;
+          target = c; target._hx = clamp(x, gx(c.i) + 0.2, gx(c.i) + 0.8); target._hz = clamp(z, gz(c.j) + 0.2, gz(c.j) + 0.8);
+          pourOut = null;
+        }
+      }
     }
     nearMarker = null;
     let best = 2.0;
@@ -7709,16 +8747,16 @@
       if (input.actionTapped && ctx && ctx.kind === 'none' && ctx.label !== '—') toastOnce('idle' + ctx.label, ctx.label + '.', '', 12000);
     }
     streamOn = !!(ctx && ctx.kind === 'pour' && input.action && (target || pourOut) && gs.truck && gs.truck.left > 0);
-    if (streamOn) {
-      const nozzle = new THREE.Vector3();
-      viewTools.hose.updateMatrixWorld(true);
-      viewTools.hose.userData.tip.getWorldPosition(nozzle);
-      drawStream(nozzle, target ? new THREE.Vector3(target._hx, surfY(target.fill), target._hz) : new THREE.Vector3(pourOut.x, pourOut.inside ? (day.thick + FORM_UP) / 1000 : 0.03, pourOut.z), dt);
-    } else hideStream();
+    const land = streamOn ? (target ? new THREE.Vector3(target._hx, surfY(target.fill), target._hz) : new THREE.Vector3(pourOut.x, pourOut.inside ? (day.thick + FORM_UP) / 1000 : 0.03, pourOut.z)) : null;
+    const mine = gs.tools.hose && gs.tools.hose.in === 'hand' && (!gs.tools.hose.by || gs.tools.hose.by === net.me);
+    if (mine && viewTools.hose.visible) {
+      const mouth = updateHose(land, dt);
+      if (land) drawStream(mouth, land, dt); else hideStream();
+    } else { hideHose(); hideStream(); }
     input.actionTapped = false;
     // the end hose, from the last pipe to your hand, or to wherever you left it
     const hose = gs.tools.hose;
-    if (hose && (hose.in === 'hand' || hose.in === 'ground' || hose.in === 'pumpman')) {
+    if (hose && !(mine && hoseFlex.visible) && (hose.in === 'hand' || hose.in === 'ground' || hose.in === 'pumpman')) {
       const end = new THREE.Vector3();
       const holder = hose.in === 'hand' && hose.by && hose.by !== net.me ? net.crew.get(hose.by) : null;
       if (holder && holder.m) end.set(holder.x - Math.sin(holder.yaw) * 0.45, 1.0, holder.z - Math.cos(holder.yaw) * 0.45);
@@ -8004,6 +9042,10 @@
     }
     if (!isGuest()) updateWalkers(dt);
     updateGestures(dt);
+    updateLoo(dt);
+    updateNeedsAct(dt);
+    updateVanCab();
+    updatePhoneDrop(dt);
     // the drum turns about its own axis: slowly one way to keep the load mixed, faster the other
     // way to bring it up and out while it pours
     if (mixer.visible) drumSpin.rotation.x += dt * (streamOn ? -2.4 : 0.7);
@@ -8134,6 +9176,7 @@
     beamMat.opacity = dark ? 0.07 : 0;
     const lit = clamp(1 - dayness * 2.5, 0, 1);
     townMats.forEach((mt) => { mt.emissiveIntensity = lit * 0.9; });
+    updateClouds(dayness);
   }
 
   let shake = 0;
@@ -8177,7 +9220,13 @@
       lookDown += 0.75 * f;
       y -= 0.25 * f;
     }
-    if (gs.waitMode === 'van') y = 1.55;
+    // needing it: from foot to foot when you stand, a sway when you walk; a cramp folds you over
+    if (!CALM && gs.needs && gs.phase !== 'title' && gs.phase !== 'end') {
+      const tn = performance.now() / 1000, w = urgePiss();
+      if (w > 0) { if (!player.moving) y += Math.abs(Math.sin(tn * 5.2)) * 0.035 * w; roll += Math.sin(tn * 2.6) * 0.018 * w; }
+      if (cramp.t > 0) { const f = Math.sin(Math.PI * clamp(1 - cramp.t / cramp.len, 0, 1)); lookDown += 0.42 * f; y -= 0.2 * f; }
+    }
+    if (gs.waitMode === 'van') y = 1.72;
     const bob = CALM ? 0 : Math.sin(player.bob) * 0.035;
     // something just went bang: the view shakes, then settles
     const sh = CALM ? 0 : shake;
@@ -8306,6 +9355,7 @@
     // running pumps the arms, a hangover makes them wander
     const runBob = player.run > 0.3 && player.moving && !CALM ? Math.sin(player.bob * 1.6) * 0.03 * player.run : 0;
     hands.position.set(hx + sway, hy + Math.abs(sway) * 0.6 + lift + runBob, -0.62);
+    hands.visible = !inVanNow();
     viewTools.pipe.visible = gs.carrying === 'pipe';
     viewTools.pipe.rotation.z = sway * 2;
     viewTools.laser.visible = gs.carrying === 'laser';
@@ -8355,7 +9405,7 @@
     // the hose kicks with every stroke of the pump
     if (viewTools.hose.visible) {
       const kick = streamOn && !CALM ? Math.sin(toolT * 50) * 0.008 + Math.max(0, Math.sin(toolT * 7.5)) * 0.025 : 0;
-      viewTools.hose.position.set(kick * 0.4, kick, 0);
+      viewTools.hose.position.set(kick * 0.2, kick * 0.5, 0);
     }
     if (viewTools.washHose.visible) {
       const jet = CALM ? 0 : Math.sin(toolT * 40) * 0.004;
@@ -8554,12 +9604,12 @@
         if (gs.blocked >= 0) return 'The line is blocked. Find the orange marker and hit the pipe!';
         if (gs.blowout) return `The formwork burst on the ${gs.blowout.name}. Fix it before you lose more!`;
         if (!laserWorks() && gs.prep.laser) return 'Laser batteries are dead. Spares are in the van.';
-        const f = Math.round(filledShare() * 100);
+        const need = volumeNeeded(), inn = Math.min(need, pouredIn());
         const sub = gs.tool !== 'hose' && gs.tools.hose && gs.tools.hose.in === 'ground' && gs.truck && !gs.truck.waiting ? 'Pick up the hose at the end of the line.' : gs.truck && !gs.truck.waiting ? `Hose: pour · Float (van): level · Laser shows the height`
           : gs.truck ? `Truck ${gs.truck.no} is here. Float what you have while it backs up.`
           // the last truck gone and nothing ordered: no time that has already been and gone
           : gs.nextTruckAt >= gs.t ? `Next truck due ${clock(gs.nextTruckAt)}. Float what you have.` : 'No more concrete coming. Float what\'s there, then finish the pour.';
-        return `Pour to ${day.thick} mm: ${f}% filled, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
+        return `Pour to ${day.thick} mm: ${inn.toFixed(1)} of ${need.toFixed(1)} m³ in, ±${rms().toFixed(1)} mm.<small>${sub}</small>`;
       }
       case 'wash': if (!gs.gaveUp) { const d = dirtyTools().filter((t) => !isMachine(t)); return `Wash ${d.length ? theList(d) : 'your tools'} at the water tank before the concrete sets on ${d.length > 1 ? 'them' : 'it'}.<small>Carry each one there and hold Wash. The float and the hand trowel still work on the slab meanwhile.</small>`; }
         if (gs.gaveUp) return gs.packing ? 'Throwing the tools in the van.' : 'It\'s gone off, tools unwashed. Walk to the van and go home.<small>They\'ll be concrete tools now. Very sturdy.</small>'; return 'Wash your tools at the water tank before they set.<small>The pump driver does his own pipes. The laser can be packed up any time now.</small>';
@@ -8610,7 +9660,7 @@
         return done / total;
       }
       case 'pipes': return gs.pipes / PIPE_N;
-      case 'pour': return filledShare();
+      case 'pour': return pouredIn() / volumeNeeded();
       case 'wash': case 'cure': return gs.H / 95;
       default: return 0;
     }
@@ -8647,7 +9697,9 @@
     hud.wWindIco.style.setProperty('--ws', `${(3.2 / Math.max(1, day.wind)).toFixed(2)}s`);
     hud.wSlab.textContent = `${day.thick} mm`;
     hud.wIndoor.hidden = !day.indoor;
-    const need = gs.needs.poo > 60 ? ['poo', 'Needs the loo, badly'] : gs.needs.wee > 60 ? ['wee', 'Needs a wee'] : null;
+    const ac = gs.accident;
+    const need = ac ? (ac.kind === 'shit' ? ['poo', ac.washed ? 'Cold and wet: spares in the van' : 'Shat yourself: tank, then van'] : ['wee', 'Pissed yourself: spares in the van'])
+      : gs.needs.poo > 60 ? ['poo', 'Needs a shit, badly'] : gs.needs.wee > 60 ? ['wee', 'Needs a piss'] : null;
     hud.wNeed.hidden = !need;
     if (need && hud.wNeed.textContent !== need[1]) { hud.wNeed.className = need[0]; hud.wNeed.textContent = need[1]; }
     hud.energyFill.style.width = `${gs.energy}%`;
@@ -8809,7 +9861,29 @@
   let last = performance.now();
   let titleSpin = 0;
   let fpsNow = 0, fpsN = 0, fpsT = 0;
+  // A frame that goes wrong must not take the game with it. The next frame is asked for first,
+  // the day moves on in one guarded part and the picture is drawn in another: one bad frame is a
+  // hiccup, not a black screen with the numbers frozen on it. What went wrong is kept, to be read
+  // out of the pause menu.
   function frame(now) {
+    requestAnimationFrame(frame);
+    try { step(now); } catch (e) { hiccup(e); }
+    try { renderer.render(scene, camera); } catch (e) { hiccup(e); }
+  }
+  let hiccups = 0, lastHiccup = '';
+  function hiccup(e) {
+    hiccups++;
+    const where = String((e && e.stack) || '').split('\n').slice(1, 3).map((l) => l.trim().replace(/^at /, '').replace(/https?:\/\/[^\s)]*\//g, '')).join(' < ');
+    const text = `${(e && e.message) || e}${where ? ` (${where})` : ''}`;
+    if (text === lastHiccup) return;
+    lastHiccup = text;
+    let v = ''; try { v = appVersion(); } catch (e2) { /* before it's there */ }
+    store('pourday.hiccup', `${new Date().toISOString().slice(0, 16)} ${v} ${text}`.slice(0, 400));
+    if (DEBUG) console.error('hiccup', e);
+  }
+  window.addEventListener('error', (ev) => hiccup(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => hiccup(ev.reason));
+  function step(now) {
     // Up to a tenth of a second a frame: an older phone at 12 frames a second still plays in real
     // time, and a long stall (the app in the background) doesn't jump the day forward.
     const dt = Math.min(0.1, (now - last) / 1000);
@@ -8859,8 +9933,6 @@
       placeCamera(dt);
       updateHUD(dt);
     }
-    renderer.render(scene, camera);
-    requestAnimationFrame(frame);
   }
 
   // ------------------------------------------------------------------ dirt
@@ -9063,6 +10135,8 @@
     const vp = (lx, lz) => vanPoint(lx, lz);
     Object.assign(POS.vanDoor, vp(-6.4, 0));
     Object.assign(POS.vanSide, vp(-4.3, 1.75));
+    Object.assign(POS.vanSeat, vp(1.4, -1.9));      // the driver's door: the spare clothes are behind the seat
+    Object.assign(POS.vanCorner, vp(3.9, 1.6));     // the front corner, away from the road. Mostly.
     const home = {
       handTrowel: [-3.35, -0.35, 0.2], hammer: [-3.85, 0.3, -0.3], pliers: [-4.35, -0.3, 0.5], cutter: [-4.85, 0.3, 0.1],
       float: [-4.6, 1.45, 0], shovel: [-4.7, -1.45, 0.1],
@@ -9091,6 +10165,11 @@
     const ky = facing(kq);
     put(kiosk, kq, ky, 1.7, 1.4, '#2f6f6a', 3);
     Object.assign(POS.kiosk, kq); Object.assign(POS.kioskFront, P(kq.x + Math.sin(ky) * 2.6, kq.z + Math.cos(ky) * 2.6));
+    // the clutter, round the edges of the yard, out of the way of everything that moves
+    props.forEach(([g, r, hx, hz, col]) => {
+      const q = find(() => (chance(0.5) ? P(rnd(-40, 36), pick([-1, 1]) * rnd(22, 30)) : P(pick([-1, 1]) * rnd(30, 40), rnd(-28, 28))), r);
+      put(g, q, rnd(0, Math.PI * 2), hx, hz, col, r);
+    });
     // the pump parks east of the slab, either side of the gate; its pipes find their own way in
     const ez = gz(ENTRY.j) + 0.5;
     const pz = pick([-1, 1]) * rnd(1.5, 6.5);
@@ -9491,7 +10570,7 @@
     if (isGuest() && (net.pourM3 > 0 || net.wasteM3 > 0)) { netSend({ t: 'pour', m3: r4(net.pourM3), w: r4(net.wasteM3) }); net.pourM3 = 0; net.wasteM3 = 0; }
   }
   /** A co-worker's job, done on this phone too: the same flags, none of their hands. */
-  const NO_SYNC = new Set(['loo', 'lunch', 'pile', 'home']);
+  const NO_SYNC = new Set(['loo', 'lunch', 'pile', 'home', 'spares', 'behindVan', 'phone']);
   function netMarker(id) {
     if (!inTeam() || NO_SYNC.has(id)) return;
     netSend(isHost() ? { t: 'mk', id, from: 'H' } : { t: 'mk', id });
@@ -9768,6 +10847,7 @@
     Object.values(lying).forEach((g) => { g.visible = false; });
     Object.values(machines).forEach((m) => { m.group.visible = false; m.spin = 0; });
     floatTool.visible = floatPole.visible = endHose.visible = stream.visible = false;
+    hideHose(); hideStream();
     streamOn = false;
     hideStream();
     workTrowel.visible = workArm.visible = false;
@@ -9837,9 +10917,12 @@
   function closeSettings() {
     settingsOpen = false;
     $('#settings').hidden = true;
+    $('#howtoScreen').hidden = true;
   }
   $('#btnSettings').addEventListener('click', openSettings);
   $('#btnSetDone').addEventListener('click', closeSettings);
+  $('#btnHowDone').addEventListener('click', closeSettings);
+  $('#btnHowTo').addEventListener('click', () => howToPlay());
   $('#setSound').addEventListener('click', () => { setSound(!soundOn); settingsShow(); sfx('chime'); });
   $('#setMusic').addEventListener('click', () => { setMusic(!musicOn); settingsShow(); });
   $('#setVoices').addEventListener('click', () => { setVoices(!voicesOn); settingsShow(); if (voicesOn) say('"Voices on. God help us."', 'foreman'); });
@@ -9905,13 +10988,32 @@
   $('#btnQuitEnd').addEventListener('click', quit);
 
   const PHASE_NAMES = { morning: 'the morning', prep: 'prep', pipes: 'the pipes', pour: 'the pour', wash: 'washing up', cure: 'curing' };
+  // ------------------------------------------------------------------ how to play
+  // The whole game on one page, a section at a time. It is kept up to date with the game: whatever
+  // changes how a day plays changes this page too, in the same commit (CLAUDE.md says so).
+  const HOWTO = [
+    ['The day', 'Get to the site, get it ready, lay the line, pour the slab, wash up, wait for it to harden, trowel it, pack up and go home. It\'s one day, from the alarm to the pay slip, and the clock only runs while you play.'],
+    ['Your thumbs', '<b>Left thumb</b> walks; push it all the way to run (not in wet concrete, not carrying anything, not with your energy gone, and not when you badly need a shit). <b>Right thumb</b> looks around.\n<b>Hold the big button</b> to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what\'s in your hands. Slide your thumb on it while you hold and you look round as you work — that\'s how you steer the float and the trowels.\nThe button above <b>Wait</b> picks up, puts down and swaps tools. The one next to it switches the <b>laser</b> view, or fits <b>blades</b> and <b>pans</b> to a trowel machine. <b>Coffee</b> gives you energy (three cups; the kebab stand refills the thermos). The <b>finger</b> is for when words fail. <b>II</b> or the back gesture pauses.'],
+    ['Getting it ready', 'Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door. Walk up, look at one and press Pick up.\nThe jobs glow orange: check the formwork with the hammer, tie loose mesh with the pliers and wire, cut the bar sticking up with the rebar cutter. The laser: set up the tripod, level the head (hold, and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, and check the boards at the corners — knock any that are out.'],
+    ['The pump and the line', 'The pump arrives (Wait brings it sooner). Carry the pipes from the pile to the numbered markers, one at a time; the rubber end hose goes on the last one. On a boom pump day there are no pipes: the boom swings over the slab and the pump driver follows your hose with his remote. Mostly.'],
+    ['Pouring', 'Pick up the hose at the end of the line. Look at a square and hold the big button: the concrete falls out of the hose\'s mouth onto the spot you\'re looking at, up to about five metres away. Keep it moving — held on one spot it builds a heap, and against the boards it goes over the top into the gravel.\nJust past the boards still counts as the slab; clearly out in the gravel is where it goes, onto the waste line, and the manager rings. Fresh concrete is dark and wet; the task card shows how many cubic metres are in and how many the slab needs.\nThe <b>laser</b> button shows the heights on the slab: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. The <b>float</b> (from the van) levels it while it\'s wet; the <b>shovel</b> moves a heap to where it\'s low, and digs spilled concrete back out of the gravel. Walk in it and it\'s on your boots. When it\'s full, finish the pour.'],
+    ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.'],
+    ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. Orange squares are the ones this pass hasn\'t been over. The small edge trowel does the straight edges; corners and pipe collars are hand-trowel work, down on one knee at the orange rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
+    ['Washing up', 'After the pour, carry every tool to the water tank and hold Wash before the concrete sets on it — two and a half hours and it\'s part of the tool, and chipping it off costs. Your boots too: empty hands at the tank. Every tool goes back to the van, washed, before you go home. The manager checks.'],
+    ['Your body', 'Energy goes down all day. Coffee helps; so does the kebab stand, which has its own way of getting back at you.\nYou\'ll need a piss every few hours (sooner with coffee), and a shit after the kebab; the weather panel says when. The <b>toilet</b> is the blue box. The little window over the knob is red when somebody\'s in: pull the knob and they\'ll tell you about it, and they come out when they\'re done. Desperate for a piss? Behind the van — there\'s a ring for it, and sometimes a witness.\nHold on too long and you\'ll know: hopping from foot to foot, cramps that fold you in half. Then it happens. The <b>spare clothes</b> are behind the driver\'s seat in the van — and if it was a shit, hose yourself down at the water tank first. There\'s one pair of spare trousers and one pair of spare boots a day; after that it\'s a bin bag.'],
+    ['Your phone', 'Texts and calls come up on the phone in your hand. It can slip out of your pocket, or go flying when you fall: it lands face down (orange case, on the ground, or in the pour) and rings to itself until you go back, look at it and hold the button. Face down on a building site means a cracked screen, often.'],
+    ['People, dogs and cats', 'Passers-by, dogs and cats head for your slab: look at them and tap the big button to shout. The finger works on anything you look at, and some of them answer back. The pump and truck drivers are on the clock: stand about doing nothing for eight or ten seconds and they let you know. On a big slab the manager sends a helper. The manager rings anyway. Your family texts.'],
+    ['Waiting', '<b>Wait</b> makes time fly: for the pump, for the next truck, standing guard over the slab (you\'re up if something happens), or napping in the van behind the wheel — fastest, and nobody guards the slab. Tap Wait again to get out.'],
+    ['Going home', 'Home at 95% hard, with a pan pass and a blade pass done, every edge, corner and collar trowelled, the laser packed and every tool back in the van, washed. Then the report: flatness, marks, waste, the people you told where to go, how long you played, and the pay slip. Every mistake is on it.'],
+    ['Playing together', '"Play together" on the title, with the phones close by and Bluetooth on (location too, on older phones). One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.'],
+    ['Upright or sideways', 'Pour Day plays both ways. Turn the phone sideways for more slab and less thumb; upright gives your thumbs more room.'],
+  ];
   function howToPlay() {
-    modal({
-      personal: true,
-      who: 'How to play', title: 'The short version.',
-      text: 'Left thumb walks, right thumb looks around.\n\nHold the big button to work: on whatever glows orange nearby (the ring fills as you hold), or on the slab with what is in your hands. Slide your thumb on the button while you hold it and you look round — that is how you steer the float and the trowels.\n\nPush the left thumb all the way to run.\n\nNothing is in your pocket. Open the van: the tools wait on its ramp, the trowels at the bottom of it, the laser just inside the door; walk up, look at one and press Pick up (the button above Wait; it lights up orange). The same button puts it down where you stand. A job that needs a tool says which.\n\nThe trowels come with pans on. Fit blades (the button next to Put down) for the blade pass, and back again if it needs more flattening. Orange squares are the ones this pass has not been over. Pans from 25% — earlier and they dig in — blades from 55%. The small trowel does straight edges; corners and pipe collars are hand-trowel work.\n\nLaser: set up the tripod, level the head (hold the button and slide your thumb until the bubble sits in the ring), take a height off the benchmark peg, then check the boards at the corners and knock any that are out. On the slab: green on height, red high, blue low; the receiver beeps fast high, slow low, steady on height. Pack it into the van after the pour.\n\nEvery truck is a new mix and starts setting when it lands, at its own pace: the end the first truck filled is ready sooner than the last. The thumb test and the square you aim at tell you how hard that bit is.\n\nLook at somebody heading for your slab and tap to shout. Dogs too. The finger button is for when words fail.\n\nTools get dirty: wash each one at the water tank before the concrete sets on it. Too much concrete in one spot? The shovel is on the van. The loo is the blue box: go when you need to.\n\nHome at 95%, with every tool back at the van and washed.\n\nIt plays upright or sideways: turn the phone to landscape for a wider view of the slab.\n\nWith co-workers: "Play together" on the title, phones close by with Bluetooth on. One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.',
-      choices: [{ label: 'Back to work', primary: true }],
-    });
+    $('#htBody').innerHTML = HOWTO.map(([h, p]) => `<h3>${h}</h3>${p.split('\n').map((x) => `<p>${x}</p>`).join('')}`).join('');
+    settingsOpen = true;
+    input.action = false;
+    $('#howtoScreen').hidden = false;
+    $('#howtoScreen').scrollTop = 0;
   }
   function pauseMenu() {
     if (modalOpen || gs.phase === 'title' || gs.phase === 'end') return;
@@ -9934,7 +11036,10 @@
       text: `${clock(gs.t)}, ${PHASE_NAMES[gs.phase] || 'on site'}.` + (gs.poured ? ` Hardness ${Math.floor(gs.H)}%.` : '')
         + (isGuest() ? ` The clock is ${net.hostName}'s and it doesn't stop for you. The crew is still working.`
           : isHost() && net.started ? ' The clock stops for the whole crew until you\'re back. They can see that.'
-          : ' Time stops while you\'re here. The concrete will pretend it did too.'),
+          : ' Time stops while you\'re here. The concrete will pretend it did too.')
+        + '\n\n↻ It plays upright or sideways: turn the phone sideways for more slab and less thumb.'
+        // something threw and the game carried on: what it was, for whoever fixes it
+        + (hiccups ? `\n\nThe game hiccuped ${hiccups === 1 ? 'once' : `${hiccups} times`} and carried on. For the developer: ${lastHiccup}` : ''),
       choices,
     });
   }
@@ -9985,13 +11090,13 @@
       },
       pickUp: (id) => pickUp(id), putDown: () => putDown(true), get tool() { return gs.tool; }, get nearTool() { return nearTool; }, site,
       get holdT() { return holdT; }, get info() { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, meshes: (() => { let n = 0; scene.traverseVisible((o) => { if (o.isMesh) n++; }); return n; })() }; }, get lastCtx() { return lastCtxKind; },
-      walkers, mixer, swapFit: () => swapFit(), discs: () => discs(), machines,
+      walkers, mixer, pump, swapFit: () => swapFit(), discs: () => discs(), machines,
       spawnCross() { const side = 'w'; return spawnWalker('person', wander([farPoint(side), edgePoint(side)], 0.8), 1.4, { who: L.cross[0], from: side, onArrive: askToCross }); },
       spawnDog() { const side = 'w'; return spawnWalker('dog', [farPoint(side), edgePoint(side)], 3.2, { from: side, state: 'approach', onArrive: (w) => { w.state = 'eyeing'; w.pause = 30; } }); },
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      viewTools, walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; },
+      viewTools, walkerInSight: (all) => { const w = walkerInSight(all); return w && (w.kind + (w.cat ? ':cat' : '') + (w.who ? ':' + w.who : '')); }, thingInSight: () => thingInSight(), sayTest: (t, w) => { duckUntil = 0; talking = false; sayQ.length = 0; return say(t, w); }, sayQueued: (t, w, p) => say(t, w, p), get sayQ() { return sayQ; }, voiceDone: () => voiceDone(), get saidNow() { return saidLog.slice(-5); }, spillInReach: () => spillInReach(), unspill: (dt) => { const b = spillBlobs.children[0]; if (b) unspillTick(b, dt); return b ? [b.userData.v, b.userData.back || 0] : null; }, get dirt() { return gs.dirt; }, bootsGet: (a) => bootsGet(a), get boots() { return gs.boots || 0; }, trackPrints, myBoots, get vanFloor() { return !!gs.vanFloor; }, playedFor: () => playedFor(), endDay: () => endDay(), showDirt: () => showDirt(), phoneText: (f, t, v) => phoneText(f, t, v), phoneCall: (f, t, v) => phoneCall(f, t, v), get phoneOn() { return phoneOn; }, dropPhone: () => dropPhone(), audioState: () => [ac && ac.state, +strokeAt.toFixed(1), loops._pumpEng ? +(loops._pumpEng.frequency.value * 120).toFixed(0) : 0], pickUpPhone: () => pickUpPhone(), get phoneDown() { return gs.phoneDown; }, accident: (k) => accident(k), updateLoo: (dt) => updateLoo(dt), get loo() { return gs.loo; }, get leaver() { return leaver; }, looSignMat, get cramp() { return cramp.t; }, changeClothes: () => changeClothes(), pissBehindVan: () => pissBehindVan(),
       speakerTest: () => { pumpGuy.visible = true; pumpGuy.position.set(player.x + 5, 0, player.z + 3); duckUntil = 0; say('"Oi! Over here! The hose, not the view!"', 'pump'); },
       toastTest: () => { toast('The formwork on the north side is 4 mm low.', 'warn'); toast('Laser on. It beeps. You beep back.', 'good'); }, idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },

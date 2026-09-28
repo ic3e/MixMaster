@@ -62,6 +62,21 @@
     touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
   }
   canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  /* napping in the van: heavy eyelids, slowly closing, snapping open */
+  #lids { position: fixed; inset: 0; pointer-events: none; z-index: 0; display: none; }
+  body.napping #lids { display: block; }
+  #lids i { position: absolute; left: 0; right: 0; height: 52%; background: #07090c; }
+  #lids i:first-child { top: 0; transform: translateY(-100%); border-radius: 0 0 50% 50% / 0 0 18% 18%; }
+  #lids i:last-child { bottom: 0; transform: translateY(100%); border-radius: 50% 50% 0 0 / 18% 18% 0 0; }
+  body.napping #lids i:first-child { animation: lidTop 7s ease-in-out infinite; }
+  body.napping #lids i:last-child { animation: lidBot 7s ease-in-out infinite; }
+  @keyframes lidTop { 0%, 8% { transform: translateY(-100%); } 45% { transform: translateY(-62%); } 58% { transform: translateY(-50%); } 62% { transform: translateY(-100%); } 70% { transform: translateY(-80%); } 76%, 100% { transform: translateY(-100%); } }
+  @keyframes lidBot { 0%, 8% { transform: translateY(100%); } 45% { transform: translateY(66%); } 58% { transform: translateY(54%); } 62% { transform: translateY(100%); } 70% { transform: translateY(82%); } 76%, 100% { transform: translateY(100%); } }
+  #lids b { position: absolute; left: 58%; top: 34%; font: 800 22px Manrope, Roboto, sans-serif; color: rgba(255,255,255,0.55); animation: zzz 3.5s ease-out infinite; }
+  @keyframes zzz { 0% { opacity: 0; transform: translate(0, 0) scale(0.7); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(40px, -70px) scale(1.3); } }
+  @media (prefers-reduced-motion: reduce) { body.napping #lids i, #lids b { animation: none; } }
+  /* the phone took the graphics away for a moment (a screenshot, the app switcher): say so */
+  body.glLost::before { content: 'The picture is coming back…'; position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; color: #aeb2b8; font: 700 15px Manrope, Roboto, sans-serif; background: #111418; }
   #touch { position: fixed; inset: 0; }
   button { font-family: var(--font); color: var(--chalk); -webkit-tap-highlight-color: transparent; }
 
@@ -229,6 +244,9 @@
   @keyframes buzz { 50% { transform: translateX(2.5px) rotate(0.9deg); } }
   #phone .scr { position: relative; height: 100%; border-radius: 16px; overflow: hidden; background: linear-gradient(180deg, #1b2230, #0e131b); }
   #phone .scr::after { content: ""; position: absolute; inset: 0; background: linear-gradient(125deg, rgba(255,255,255,0.1), transparent 38%); pointer-events: none; }
+  /* dropped face down on site: the screen's cracked for the rest of the day */
+  #phone.cracked .scr::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.75;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 126 256'%3E%3Cg fill='none' stroke='white' stroke-width='0.9' stroke-linecap='round'%3E%3Cpath d='M86 70 L60 20 L52 0 M86 70 L112 40 L126 34 M86 70 L96 118 L90 170 L104 256 M86 70 L40 96 L0 104 M86 70 L58 128 L30 180 L20 256 M60 20 L30 30 M96 118 L126 130 M40 96 L34 140'/%3E%3Ccircle cx='86' cy='70' r='5'/%3E%3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat; }
   #phone .finger { position: absolute; left: 3px; width: 24px; height: 15px; border-radius: 8px; background: linear-gradient(90deg, #c68a66, #e8b590); box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
   #phone .f1 { top: 150px; } #phone .f2 { top: 173px; } #phone .f3 { top: 196px; width: 22px; }
   #phone .thumb { position: absolute; right: 0; top: 190px; width: 28px; height: 64px; border-radius: 15px; background: linear-gradient(90deg, #d9a07c, #efc09c); transform: rotate(-30deg); box-shadow: -2px 3px 7px rgba(0,0,0,0.35); }
@@ -359,8 +377,14 @@
   #levelFill { height: 100%; width: 0; background: #3ec16a; }
   #level span { font-size: 11.5px; line-height: 1.35; color: #d7dadf; }
   .joke { margin-top: 10px; font-size: 13.5px; line-height: 1.4; font-style: italic; font-weight: 700; color: #ffd9bf; }
-  .land { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 12.5px; line-height: 1.4; color: var(--muted); }
-  @media (orientation: portrait) { .land { display: block; } }
+  .land { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+  .land .ll { display: none; }
+  @media (orientation: landscape) { .land .lp { display: none; } .land .ll { display: inline; } }
+  /* how to play: the whole game, a section at a time */
+  .ht h3 { margin: 16px 0 5px; font-size: 13.5px; letter-spacing: 0.02em; color: var(--accent, #ff6b1a); }
+  .ht h3:first-child { margin-top: 4px; }
+  .ht p { margin: 0 0 7px; font-size: 13px; line-height: 1.5; color: var(--text, #e8e6e1); }
+  .ht b { color: #fff; }
   .upd { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 10px 10px 12px; border: 1px solid var(--hivis); border-radius: 14px; background: var(--hivis-dim); text-align: left; }
   .upd span { flex: 1; font-size: 13px; line-height: 1.4; color: #ffe0cc; }
   .upd b { color: #fff; }
@@ -432,6 +456,7 @@
 </head>
 <body>
 <canvas id="gl"></canvas>
+<div id="lids"><i></i><i></i><b>z Z z</b></div>
 <div id="touch"></div>
 
 <div id="hud" hidden>
@@ -491,7 +516,7 @@
     <div class="brand">Pour<br><em>Day</em></div>
     <div class="tag">One slab, one day. Get there before everyone, lay the pipes, pour it, float it, wait for it — and keep the dog off it.</div>
     <div class="joke" id="titleJoke"></div>
-    <div class="land">↻ Turn the phone sideways: Pour Day plays in landscape too, with more slab and less thumb.</div>
+    <div class="land"><span class="lp">↻ Turn the phone sideways: Pour Day plays in landscape too, with more slab and less thumb.</span><span class="ll">↻ Sideways is the way: more slab, less thumb. It plays upright too.</span></div>
     <div class="upd" id="updBar" hidden><span id="updText"></span><button id="btnUpd" hidden></button></div>
     <div class="memo"><b>Memo from the office</b>This game drains your phone's battery faster than a pump drinks diesel. Play it at work and the phone will die right when the truck driver calls to ask where your site is. Charge it in the van. You, sadly, can't be recharged.<i>— The management (who also play it)</i></div>
     <div class="daycard" id="dayCard"></div>
@@ -503,6 +528,7 @@
     </div>
     <button class="big" id="btnStart">Clock in</button>
     <button class="ghost" id="btnReroll">Different day</button>
+    <button class="ghost" id="btnHowTo">How to play</button>
     <button class="ghost" id="btnTogether" hidden>Play together (phones nearby)</button>
     <div class="lobby" id="lobby" hidden>
       <div class="lrow"><input id="lobbyName" maxlength="16" placeholder="Your name" autocomplete="off" spellcheck="false"></div>
@@ -519,6 +545,14 @@
 
 <div id="level" hidden><div class="vial"><div class="ring"></div><div id="bubble"></div></div><div class="lvlbar"><div id="levelFill"></div></div><span>Slide your thumb on the button to bring the bubble to the middle, and hold it there</span></div>
 
+<div id="howtoScreen" class="screen" hidden>
+  <div class="sheet">
+    <div class="who">How to play</div>
+    <h2 class="sethead">One slab, one day, start to finish.</h2>
+    <div class="ht" id="htBody"></div>
+    <button class="big" id="btnHowDone">Back to it</button>
+  </div>
+</div>
 <div id="settings" class="screen" hidden>
   <div class="sheet">
     <div class="who">Settings</div>

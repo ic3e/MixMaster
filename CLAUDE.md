@@ -19,6 +19,10 @@ together when they carry the same game — the check is a hash of the `:game` mo
 MixMaster carries the Pour Day APK in its assets (packed at build time by `embedPourDay`) for
 "Send to a friend" under Break time.
 
+Pour Day has a **How to play** page (the `HOWTO` list in `game.js`, opened from the title and the
+pause menu). It describes the whole game, section by section, and must stay true: any change to
+how a day plays — a new job, tool, rule, button or mishap — updates `HOWTO` in the same commit.
+
 ## Building
 
 There is **no Android SDK in this sandbox** — never try to run Gradle. The build happens in CI:
