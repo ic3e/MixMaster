@@ -1,8 +1,8 @@
 {
-  "versionCode": 221,
-  "versionName": "1.0.221",
-  "apk": "MixMaster_1.0.221.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.221.apk",
-  "sizeBytes": 24868812,
-  "notes": "Pour Day updates itself, and MixMaster can send it to a friend"
+  "versionCode": 222,
+  "versionName": "1.0.222",
+  "apk": "MixMaster_1.0.222.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.222.apk",
+  "sizeBytes": 24918948,
+  "notes": "Pour Day: your own voice, fewer pop-ups, hangovers, spills and an angrier manager"
 }
