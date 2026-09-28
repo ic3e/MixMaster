@@ -23,6 +23,9 @@
   const appBridge = window.PourDayApp && typeof window.PourDayApp.quit === 'function' ? window.PourDayApp : null;
   const appName = (() => { try { return appBridge && appBridge.appName ? String(appBridge.appName()) : ''; } catch (e) { return ''; } })();
   // Pour Day on its own just closes; inside MixMaster the way out goes back to it.
+  // The company's logo is on the backs of people playing in MixMaster, the company's app; Pour Day
+  // on its own is for people outside it, and nobody there wears it.
+  const inMixMaster = appName === 'MixMaster';
   const QUIT_LABEL = appName && appName !== 'Pour Day' ? `Back to ${appName}` : 'Quit';
   const CALM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -437,6 +440,45 @@
       'You shovel the hill into the hole. Somewhere, a physiotherapist gets a new car.',
       'Shovel, shovel, shovel. Your back writes a strongly worded letter.',
     ],
+    idle: {
+      pump: [
+        '"Oi! Are you working or modelling? The pump costs the same either way."',
+        '"You\'ve stood there so long I took you for a survey peg."',
+        '"Move! I\'m paid by the hour, and so, apparently, are you."',
+        '"Is this a sit-in? What are we protesting? Tell me and I\'ll bring a chair."',
+        '"Standing still is for statues and concrete. You\'re neither. Yet."',
+        '"Every second you stand there, a bag of cement somewhere loses the will to live."',
+        '"If you\'re waiting for inspiration, it went home at seven."',
+        '"Hello? Earth to the man in the boots! It won\'t level itself!"',
+        '"I\'ve had pipes blocked that moved more than you."',
+      ],
+      truck: [
+        '"Mate! My drum is turning and you\'re not. One of us is working."',
+        '"Standing still costs eighty euros an hour. In front of my truck it costs more."',
+        '"I\'ve got three more sites today and a wife with a stopwatch. Move!"',
+        '"You look like a man waiting for a bus. The bus is me. Get on with it."',
+        '"Oi, sleeping beauty! This load goes off in an hour, with or without you."',
+        '"Stand there much longer and I\'m charging you rent."',
+        '"Forgotten what you came for? It\'s concrete. It\'s grey. It\'s in my truck."',
+        '"My grandmother moves faster, and she\'s been dead six years."',
+      ],
+      again: [
+        '"STILL? I\'ve seen more life in a cured slab!"',
+        '"Right, I\'m filming you now. Your manager gets the video."',
+        '"Do you need a hand, a coffee or a doctor? Pick one and MOVE."',
+        '"I\'m starting to think you\'re part of the formwork."',
+        '"That\'s twice. Three times and I pour it on you."',
+        '"Your manager just rang to ask if you\'re alive. I said I couldn\'t tell."',
+        '"I\'ll put it on your gravestone: he stood there. For ages."',
+        '"Are you stuck? Blink twice if the rebar has you."',
+      ],
+      hose: [
+        '"Move the hose! You\'re building a pyramid, not a floor!"',
+        '"Ten seconds on one spot? That\'s not a slab, that\'s a monument."',
+        '"Spread it about! The corners want some too!"',
+        '"You\'re pouring a mountain. The client ordered a floor."',
+      ],
+    },
     myVoiceTry: [
       'Right. Concrete. Let\'s get it over with.',
       'Morning. Where\'s the coffee. Where\'s the pump.',
@@ -3776,7 +3818,7 @@
   // spoken — the narration stays on the screen. Each character has a pitch and a pace.
   let voicesOn = store('pourday.voices') !== 'off';
   const VOICES = {
-    manager: [0.8, 1.2], foreman: [0.9, 1.1], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
+    manager: [0.8, 1.22], foreman: [0.95, 0.9], pump: [0.75, 0.95], truck: [0.85, 1.0], alien: [1.9, 0.75], kid: [1.6, 1.1], plant: [1.1, 1.05],
     me: [0.84, 0.96], son: [1.5, 1.14], daughter: [1.62, 1.08], mum: [1.15, 0.95], partner: [1.05, 1.05], bank: [0.7, 0.92], hr: [1.1, 1.15], client: [1.0, 1.1], radio: [1.0, 1.15], neighbour: [0.9, 1.0],
     dentist: [1.05, 1.0], physio: [0.95, 1.0], gym: [1.2, 1.25], spam: [0.75, 1.2],
   };
@@ -3798,8 +3840,13 @@
   // who gets first pick of the voices: the ones heard all day long. When there aren't enough to go
   // round, a newcomer shares with somebody who isn't one of them if a voice of the right kind
   // allows, and with one of them only after that — always at a different pitch, never the player's.
-  const LEADS = ['me', 'manager', 'pump', 'truck', 'foreman', 'helper', 'plant', 'mum', 'partner', 'son', 'daughter', 'radio'];
-  const SHIFTS = [0, -0.14, 0.14, -0.25, 0.25, -0.34, 0.34, -0.1, 0.1];
+  // They are cast in this order as soon as the phone's voices are known, not in the order they
+  // happen to speak: whoever talks first in the morning can't walk off with the manager's voice.
+  const LEADS = ['me', 'manager', 'foreman', 'pump', 'truck', 'partner', 'mum', 'plant', 'helper', 'radio', 'son', 'daughter'];
+  const SHIFTS = [0, -0.17, 0.17, -0.3, 0.3, -0.4, 0.4, -0.12, 0.12];
+  let leadsCast = false;
+  // and these few are nobody else's at all while any other voice of the right kind is left to share
+  const OWN = ['me', 'manager', 'foreman', 'partner'];
   let voiceBook = null, voiceBookAt = 0; // the voices on offer: [{ n: name, l: language, g: 'f' | 'm' | '' }]
   let cast = {};                   // who speaks with which today
   let castShift = {};              // how far off the voice's own pitch, for somebody sharing it
@@ -3827,21 +3874,32 @@
   }
   function castFor(key, g, p) {
     if (cast[key]) return cast[key];
-    p = p || 1;
     const book = voicesOnOffer();
     if (!book.length) return '';   // the engine isn't up yet: cast them on their next line
+    if (!leadsCast) {
+      leadsCast = true;
+      LEADS.forEach((k) => { if (!cast[k]) castOne(k, genderOf(k), (VOICES[k] || [1])[0], book); });
+      if (cast[key]) return cast[key];
+    }
+    return castOne(key, g, p, book);
+  }
+  function castOne(key, g, p, book) {
+    p = p || 1;
     const mine = store('pourday.myVoice');
     if (key === 'me' && mine && book.some((v) => v.n === mine)) return settle('me', mine, p);
     const taken = new Set(Object.values(cast));
     if (key !== 'me' && mine) taken.add(mine);      // nobody else gets to sound like you
     const leads = new Set(LEADS.map((k) => cast[k]).filter(Boolean));
     if (mine) leads.add(mine);
+    const own = new Set(OWN.filter((k) => k !== key).map((k) => cast[k]).filter(Boolean));
+    if (mine && key !== 'me') own.add(mine);
     const fits = (v) => !g || v.g === g, notMine = (v) => key === 'me' || v.n !== mine;
     // A man's voice for a man and a woman's for a woman, always: sharing one (at another pitch)
     // comes before borrowing the other kind, which only happens on a phone that has none.
     const pools = [
       book.filter((v) => fits(v) && !taken.has(v.n)),
       book.filter((v) => fits(v) && !leads.has(v.n)),
+      book.filter((v) => fits(v) && !own.has(v.n)),
       book.filter((v) => fits(v) && notMine(v)),
       book.filter((v) => !v.g && !taken.has(v.n)),
       book.filter((v) => !v.g && notMine(v)),
@@ -3864,14 +3922,14 @@
   let castPitch = {};
   function settle(key, name, p) {
     const others = Object.keys(cast).filter((k) => k !== key && cast[k] === name).map((k) => castPitch[k]);
-    const apart = (x) => others.every((o) => Math.abs(clamp(p + x, 0.55, 1.9) - o) >= 0.12);
+    const apart = (x) => others.every((o) => Math.abs(clamp(p + x, 0.55, 1.9) - o) >= 0.15);
     const free = SHIFTS.find(apart);
     castShift[key] = free === undefined ? rnd(-0.35, 0.35) : free;
     castPitch[key] = clamp(p + castShift[key], 0.55, 1.9);
     cast[key] = name;
     return name;
   }
-  function newCast() { cast = {}; castShift = {}; castPitch = {}; dayGender = {}; kidVoices = {}; voiceBook = null; }
+  function newCast() { cast = {}; castShift = {}; castPitch = {}; dayGender = {}; kidVoices = {}; voiceBook = null; leadsCast = false; }
   /** A line from a list, not one used lately: the list is gone through before anything comes round again. */
   const usedLines = new Set();
   function fresh(list) {
@@ -6348,7 +6406,7 @@
   // Flip somebody off and they answer with their hands: a finger, both fingers, hands clutched to
   // the chest. They turn to face you while they do it, so you can see it.
   const gesturing = new Set();
-  const GESTURE = { flip1: [-1.75, 0.1], flip2: [-1.75, -1.75], clutch: [-1.25, -1.25] };
+  const GESTURE = { flip1: [-1.75, 0.1], flip2: [-1.75, -1.75], clutch: [-1.25, -1.25], shout: [-2.75, -2.6] };
   function gesture(m, kind, sec, back) {
     if (!m || !m.userData.armR) return;
     sec = sec || 1.9;
@@ -6372,15 +6430,46 @@
       g.cur = turnTo(g.cur, g.t > 0.4 ? face : g.yaw0, 1 - Math.exp(-dt * 9));
       m.rotation.y = g.cur;
       if (u.head) u.head.rotation.y = lerp(u.head.rotation.y, 0, on);
-      const [r, l] = GESTURE[g.kind] || [0, 0], shake = Math.sin(toolT * 19) * 0.06 * on;
+      const [r, l] = GESTURE[g.kind] || [0, 0], shake = Math.sin(toolT * 19) * (g.kind === 'shout' ? 0.22 : 0.06) * on;
       u.armR.rotation.x = lerp(u.armR.rotation.x, r + shake, on);
       u.armL.rotation.x = lerp(u.armL.rotation.x, l - shake, on);
       const hug = g.kind === 'clutch' ? 0.55 : g.kind === 'flip2' ? -0.12 : 0;
       u.armR.rotation.z = -hug * on; u.armL.rotation.z = hug * on;
-      const up = g.kind !== 'clutch' && on > 0.45;
+      const up = (g.kind === 'flip1' || g.kind === 'flip2') && on > 0.45;
       fR.visible = up; fL.visible = up && g.kind === 'flip2';
       fR.rotation.x = -u.armR.rotation.x; fL.rotation.x = -u.armL.rotation.x;
     });
+  }
+
+  // ------------------------------------------------------------------ standing about
+  // Stand in one spot for eight or ten seconds while the pump driver or the truck driver is on the
+  // clock and one of them lets you know, arms in the air — and again every eight or ten seconds
+  // after, angrier, until you move. Pouring into one spot counts: that's how towers start.
+  const idle = { x: 0, z: 0, t: 0, next: 9, n: 0 };
+  function updateIdle(dt) {
+    const who = [];
+    if (pumpGuy.visible) who.push('pump');
+    if (mixGuy.visible) who.push('truck');
+    const busy = gs.waitMode || player.fall > 0 || gs.packing || (input.action && lastCtxKind === 'marker');
+    if (!who.length || busy || hyp(player.x, player.z, idle.x, idle.z) > 0.7) {
+      idle.x = player.x; idle.z = player.z; idle.t = 0; idle.n = 0; idle.next = rnd(8, 10);
+      return;
+    }
+    idle.t += dt;
+    if (idle.t < idle.next) return;
+    idle.t = 0;
+    idle.next = rnd(8, 10);
+    // the one pumping it has something to say about a hose held in one place
+    const hose = streamOn && who.includes('pump');
+    const w = hose ? 'pump' : pick(who), m = w === 'pump' ? pumpGuy : mixGuy;
+    const line = fresh(idle.n === 0 ? (hose ? L.idle.hose : L.idle[w]) : L.idle.again);
+    idle.n++;
+    gesture(m, 'shout', 1.8, w === 'pump');
+    sfx('shout', m.position.x, m.position.z);
+    toast(`${w === 'pump' ? 'Pump driver' : 'Truck driver'}: ${line}`, 'warn');
+    say(line, w);
+    gs.stats.yelled = (gs.stats.yelled || 0) + 1;
+    if (idle.n === 3) remember(`You stood in one spot long enough for the ${w === 'pump' ? 'pump' : 'truck'} driver to yell at you three times running.`);
   }
 
   // ------------------------------------------------------------------ the helper
@@ -6395,7 +6484,7 @@
       who: 'The manager, on the phone', title: 'Reinforcements.', voice: 'manager', sound: 'ring', text: l,
       choices: [{ label: 'Great.', primary: true }, { label: 'I work better alone.', fn: () => toast('"Nobody works better alone. You work WORSE alone. He\'s coming."', 'warn') }],
     });
-    const m = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', logo: true });
+    const m = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', logo: inMixMaster });
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     m.position.set(44, 0, 0);
     scene.add(m);
@@ -7364,6 +7453,7 @@
     updateBoom(dt);
     updateVanBack(dt);
     updateFlip(dt);
+    updateIdle(dt);
     updateChatter();
     if (!isGuest()) {
       updateHelper(dt);
@@ -8500,7 +8590,7 @@
   function closeAllModals() { modalQueue.length = 0; if (modalOpen) { $('#modal').hidden = true; modalOpen = null; } }
   function sendLobby() {
     if (!isHost()) return;
-    netSend({ t: 'lobby', seed: net.seed, host: net.name, crew: [...net.crew.values()].map((c) => [c.id, c.name]) });
+    netSend({ t: 'lobby', seed: net.seed, host: net.name, hostMm: inMixMaster ? 1 : 0, crew: [...net.crew.values()].map((c) => [c.id, c.name, c.mm ? 1 : 0]) });
     lobbyList();
   }
   /** Clock in: the same for everybody, the day from the seed and its jobs from the next one. */
@@ -8536,7 +8626,7 @@
         else {
           net.role = 'guest'; net.hostId = e.id; net.hostName = e.name;
           net.peers.set(e.id, { name: e.name });
-          netSendTo(e.id, { t: 'hello', name: net.name, ver: NET_VER, app: appVersion() });
+          netSendTo(e.id, { t: 'hello', name: net.name, ver: NET_VER, app: appVersion(), mm: inMixMaster ? 1 : 0 });
           lobbyStatus(`On ${e.name}'s site. Waiting for ${e.name} to clock in.`);
           lobbyList();
         }
@@ -8557,6 +8647,7 @@
         if (m.ver !== NET_VER || m.app !== appVersion()) { netSendTo(from, { t: 'nope', why: `a different version of the game on the two phones. Update both to the newest.` }); return; }
         if (net.started) { netSendTo(from, { t: 'nope', why: `${net.name} has already clocked in. Join the next day.` }); return; }
         const c = crewMember(from, m.name);
+        c.mm = !!m.mm;
         c.colour = CREW_COLOURS[++net.joined % CREW_COLOURS.length];
         netSendTo(from, { t: 'welcome', you: from });
         sendLobby();
@@ -8591,9 +8682,10 @@
       case 'nope': leaveCrew(`Can't join: ${m.why}`); break;
       case 'lobby':
         net.hostName = m.host;
+        net.hostMm = !!m.hostMm;
         net.crew.clear();
-        m.crew.forEach(([id, name]) => { if (id !== net.me) crewMember(id, name); });
-        crewMember('H', m.host);
+        m.crew.forEach(([id, name, mm]) => { if (id !== net.me) crewMember(id, name).mm = !!mm; });
+        crewMember('H', m.host).mm = net.hostMm;
         if (gs.phase !== 'title') { closeAllModals(); resetWorld(); }
         net.started = false;
         showTitle(m.seed);
@@ -8626,7 +8718,7 @@
     if (!c.m) { c.x = s.x; c.z = s.z; }
   }
   function crewMesh(c) {
-    const m = makePerson({ vest: c.colour, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', shirt: 0x3b3f45, logo: true });
+    const m = makePerson({ vest: c.colour, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', shirt: 0x3b3f45, logo: !!c.mm });
     m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     const tag = textSprite(c.name, { w: 1.5, color: '#fff3e6' });
     tag.position.y = 2.3;
@@ -8901,7 +8993,8 @@
     });
     net.remoteWalkers.forEach((w, uid) => { if (!seen.has(uid)) { scene.remove(w.m); net.remoteWalkers.delete(uid); } });
     if (s.hp) {
-      if (!net.remoteHelper) { net.remoteHelper = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm' }); scene.add(net.remoteHelper); }
+      // the host's helper: from the host's company, so in its colours only if the host plays in MixMaster
+      if (!net.remoteHelper) { net.remoteHelper = makePerson({ vest: 0xd4f53c, hat: 'hard', hatColor: 0xf2f0ea, g: 'm', logo: !!net.hostMm }); scene.add(net.remoteHelper); }
       net.remoteHelper.userData.goal = s.hp;
     } else if (net.remoteHelper) { scene.remove(net.remoteHelper); net.remoteHelper = null; }
     ufo.g.visible = !!s.uf;
@@ -9060,6 +9153,10 @@
     $('#lookVal').textContent = lookSens.toFixed(1) + '×';
     const mine = myVoices(), at = mine.findIndex((v) => v.n === castFor('me', 'm', VOICES.me[0]));
     $('#myVoiceVal').textContent = at >= 0 ? `${at + 1} of ${mine.length} · ${accentOf(mine[at].l)}` : '';
+    const book = voicesOnOffer(), men = book.filter((v) => v.g === 'm').length, women = book.filter((v) => v.g === 'f').length;
+    $('#voiceInfo').textContent = book.length
+      ? `This phone has ${book.length} English voice${book.length > 1 ? 's' : ''}: ${men} men's, ${women} women's${book.length - men - women ? `, ${book.length - men - women} it won't say` : ''}. Fewer than the cast, and some share one at another pitch.`
+      : 'No English voices on this phone yet. Google\'s speech engine, from the Play Store, has a good few.';
   }
   /** The voices a working man could have on this phone: the men's, or all of them if it won't say. */
   function myVoices() {
@@ -9246,7 +9343,7 @@
       reroll() { showTitle(); return day.area; },
       setDay(o) { Object.assign(day, o); }, get boomTip() { return boomTip.toArray().map((v) => +v.toFixed(2)); },
       rms: () => rms(), stamp: (k, x, z) => stamp(k, x, z, 0), marks: () => gs.cells.reduce((n, c) => n + c.marks.length, 0),
-      sayTest: (t, w) => say(t, w), get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
+      sayTest: (t, w) => say(t, w), idle, updateIdle: (dt) => updateIdle(dt), get inMixMaster() { return inMixMaster; }, get castShift() { return castShift; }, castFor: (k) => castFor(k, genderOf(k), (VOICES[k] || [1])[0]), newCast: () => newCast(), nextMyVoice: () => nextMyVoice(), personVoice: (g, k) => personVoice(g, k), kidVoice: (k, g) => kidVoice(k, g), net, pourAt: (x, z, dt) => { target = cellAt(x, z); if (target) { target._hx = x; target._hz = z; pourOut = null; } else pourOut = pastTheBoards(x, z); pourTick(dt); return target ? 'in' : pourOut ? (pourOut.inside ? 'board' : 'out') : 'nowhere'; }, flowTick: (dt) => flowTick(dt), get pourOut() { return pourOut; }, spillBlobs, pourCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; target = c; pourTick(dt); }, crewPoke: (to, kind) => netSend({ t: 'poke', to, kind }), shovelCell: (k, dt) => { const c = gs.cells[k]; c._hx = gx(c.i) + 0.5; c._hz = gz(c.j) + 0.5; shovelTick(c, dt); },
       packVan: () => { if (held()) putDown(true); TOOL_IDS.forEach((id) => { const t = gs.tools[id]; if (t && t.in !== 'gone' && id !== 'hose' && TOOL_HOME[id]) { const [x, z, yaw] = TOOL_HOME[id]; gs.tools[id] = { in: 'ground', x, z, yaw }; } }); gs.dirt = {}; },
       toolsOut: () => toolsOut(), dirtyTools: () => dirtyTools(), addDirt: (id, a) => addDirt(id, a), helper, helpPour, flip: () => flip(), gesture: (who, kind) => gesture(who === 'pump' ? pumpGuy : who === 'mixer' ? mixGuy : walkers[0] && walkers[0].m, kind, 3, who === 'pump'), pumpGuy, mixGuy, useLoo: () => useLoo(), needs: () => gs.needs, rebarUp: () => rebarUp(), startPumpHelp: () => startPumpHelp(), shovelTick: (dt) => shovelTick(target, dt), sendHelper: () => sendHelper(), breakMachine: (id) => breakMachine(id), leaveTheMess: (o, d) => leaveTheMess(o, d), van, vanPoint, layoutObs, POS, PIPE_ROUTE, ENTRY, hall, chatterNow: () => { chatterAt = 1; duckUntil = 0; updateChatter(); }, L, get cast() { return cast; },
       packUp: () => packUp(), get packing() { return gs.packing; }, tooLate: () => tooLate(),
