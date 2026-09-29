@@ -2,6 +2,7 @@ package com.conwic.mixmaster.ui.projects
 
 import android.content.Intent
 import android.net.Uri
+import com.conwic.mixmaster.data.company.FileSync
 import com.conwic.mixmaster.data.db.entity.BlueprintEntity
 import com.conwic.mixmaster.domain.canonicalName
 import android.content.Context
@@ -416,22 +417,42 @@ class ProjectDetailViewModel(
 
     fun addPhoto(uri: String, roomId: Long?, caption: String) {
         viewModelScope.launch {
-            projectRepository.addPhoto(PhotoEntity(projectId = projectId, roomId = roomId, uri = uri, caption = caption, takenAt = Instant.now()))
+            projectRepository.addPhoto(
+                PhotoEntity(
+                    projectId = projectId,
+                    roomId = roomId,
+                    uri = uri,
+                    caption = caption,
+                    takenAt = Instant.now(),
+                    fileKey = FileSync.newKey(),
+                ),
+            )
         }
     }
 
     fun addBlueprint(uri: String, name: String, mimeType: String) {
         viewModelScope.launch {
             projectRepository.addBlueprint(
-                BlueprintEntity(projectId = projectId, uri = uri, name = name, mimeType = mimeType, addedAt = Instant.now()),
+                BlueprintEntity(
+                    projectId = projectId,
+                    uri = uri,
+                    name = name,
+                    mimeType = mimeType,
+                    addedAt = Instant.now(),
+                    fileKey = FileSync.newKey(),
+                ),
             )
         }
     }
 
-    /** Takes it off the job, and lets go of the phone's leave to read the file. */
+    /**
+     * Takes it off the job, and lets go of the phone's leave to read the file — or, for one that
+     * came from the company, the copy that came with it.
+     */
     fun removeBlueprint(blueprint: BlueprintEntity) {
         viewModelScope.launch {
             projectRepository.removeBlueprint(blueprint)
+            FileSync.forgetLocal(appContext, blueprint.uri)
             runCatching {
                 appContext.contentResolver.releasePersistableUriPermission(
                     Uri.parse(blueprint.uri),

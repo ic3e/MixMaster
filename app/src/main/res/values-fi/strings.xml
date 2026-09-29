@@ -385,6 +385,9 @@
     <string name="prj_blueprint_n">Pohjapiirros %1$d</string>
     <string name="prj_blueprint_picture">Kuva · napauta katsoaksesi tarkemmin</string>
     <string name="prj_blueprint_pdf">PDF · avautuu PDF-katseluohjelmassa</string>
+    <string name="prj_blueprint_fetching">Haetaan yritykseltä…</string>
+    <string name="prj_blueprint_not_yet">Ei saatu vielä · yritä hetken päästä uudelleen</string>
+    <string name="prj_blueprint_tap_fetch">Tulossa yritykseltä · napauta hakeaksesi heti</string>
     <string name="prj_remove_blueprint">Poista pohjapiirros</string>
     <string name="prj_remove_blueprint_confirm">Poistetaanko tämä pohjapiirros?</string>
     <string name="prj_remove_blueprint_confirm_body">Se poistuu tästä projektista. Tiedosto itse jää puhelimeen.</string>
@@ -491,7 +494,7 @@
     <string name="guide_tasks_1">Uusi tehtävä: mitä pitää tehdä, milloin se erääntyy, kuinka kiireellinen se on ja mille kohteelle.</string>
     <string name="guide_tasks_2">Kalenteri näyttää kunkin kohteen päivät ja mitä kunakin päivänä erääntyy. Myöhässä oleva tehtävä pysyy ylimpänä, kunnes se on tehty.</string>
     <string name="guide_tasks_3">Muistiinpanot ja kuvat kohteessa pitävät koko porukan ajan tasalla — kuka kirjoitti mitä ja milloin.</string>
-    <string name="guide_company_1">Yrityksessä jokainen puhelin jakaa samat tuotteet, kohteet ja varaston. Minkä yksi muuttaa, näkyy muille sekunneissa, kun kenttää on.</string>
+    <string name="guide_company_1">Yrityksessä jokainen puhelin jakaa samat tuotteet, kohteet ja varaston, myös kohteen kuvat ja pohjapiirrokset. Minkä yksi muuttaa, näkyy muille sekunneissa, kun kenttää on.</string>
     <string name="guide_company_2">Omistaja lisää ihmisiä kohdassa Asetukset → Yritys ja valitsee, mitä kukin saa muuttaa: tuotteet, projektit, varasto, työmaa.</string>
     <string name="guide_company_3">”Jaa” lähettää henkilölle hänen pääsykoodinsa. Hänen puhelimessaan se syötetään kohtaan ”Minulla on pääsykoodi”, ja hän on mukana.</string>
     <string name="guide_company_4">Poista joku, ja seuraavalla yhteydellä MixMaster tyhjennetään hänen puhelimestaan — jäljelle jää vain Pour Day.</string>
@@ -558,6 +561,8 @@
     <string name="addon_rate_label">%1$s %2$s jokaista %3$s kiloa kohti</string>
 
     <string name="image_cant_open">Ei voi avata</string>
+
+    <string name="image_on_its_way">Tulossa yritykseltä</string>
     <string name="home_quick_calculate_sub">Saat tarkan massajaon sekunneissa</string>
 
     <string name="batch_none">—</string>
@@ -914,6 +919,14 @@
     <string name="co_status_sending">Lähetetään %1$d muutosta…</string>
     <string name="co_status_waiting">Ei yhteyttä · %1$d muutosta odottaa lähetystä</string>
     <string name="co_kept_website">Tiedot säilytetään: %1$s</string>
+    <string name="co_files_title">Kuvat ja pohjapiirrokset jäävät kuhunkin puhelimeen</string>
+    <string name="co_files_body">Tämän yrityksen palvelin otettiin käyttöön ennen kuin se osasi säilyttää kuvia ja pohjapiirroksia. Päivitä se (palvelinohjeessa, kohdassa Palvelimen päivittäminen), niin ne jaetaan kuten kaikki muukin, myös puhelimissa jo olevat.</string>
+    <string name="co_files_how">Näin päivität</string>
+    <string name="co_files_check">Päivitin sen</string>
+    <plurals name="co_files_waiting">
+        <item quantity="one">%d kuva tai pohjapiirros vielä matkalla</item>
+        <item quantity="other">%d kuvaa tai pohjapiirrosta vielä matkalla</item>
+    </plurals>
     <string name="co_kept_google">Tiedot säilytetään yrityksen Google-tilillä</string>
     <string name="co_sync_now">Synkronoi nyt</string>
     <string name="co_my_perms">Mitä voit muuttaa</string>
@@ -1029,7 +1042,7 @@
     <string name="co_g6b">Kaksi tärkeää asetusta — tarkista molemmat ennen kuin napsautat Deploy: Execute as: Me ja Who has access: Anyone (pelkkä ”Anyone”, ei ”Anyone with a Google account”). Jos tämä unohtuu, sovellus ei tavoita palvelinta. Sen voi korjata myöhemmin ilman uutta osoitetta: Deploy → Manage deployments → kynä.</string>
     <string name="co_g7">Kopioi Web app URL — se päättyy /exec — ja lähetä se puhelimeesi (sähköposti tai viesti itsellesi).</string>
     <string name="co_g8">Liitä osoite MixMasterissa kohtaan, jossa kysytään palvelimen osoitetta.</string>
-    <string name="co_g_note">Tiedot säilytetään tilin Drivessa Google-taulukossa ”MixMaster data” — katsoa saa, mutta älä muokkaa. Jos skriptiä joskus muutetaan, julkaise se Deploy → Manage deployments → kynä → New version kautta, jotta osoite pysyy samana.</string>
+    <string name="co_g_note">Tiedot säilytetään tilin Drivessa Google-taulukossa ”MixMaster data” ja kuvat ja pohjapiirrokset kansiossa ”MixMaster files” — katsoa saa, mutta älä muokkaa. Jos skriptiä joskus muutetaan, julkaise se Deploy → Manage deployments → kynä → New version kautta, jotta osoite pysyy samana.</string>
     <string name="co_w1">Paina tässä puhelimessa alla olevaa painiketta ja lähetä verkkosivun tiedostot omaan sähköpostiisi.</string>
     <string name="co_w2">Tallenna tietokoneella zip-tiedosto sähköpostista ja pura se. Sisällä on kansio nimeltä ”mixmaster”.</string>
     <string name="co_w3">Kirjaudu verkkosivun ylläpidon hallintapaneeliin (jossa sivusta ja verkkotunnuksesta maksetaan) ja avaa tiedostonhallinta (File Manager).</string>
@@ -1037,6 +1050,24 @@
     <string name="co_w5">Avaa selaimessa oma-sivusi/mixmaster/api.php. Siinä pitäisi lukea ”The server is running and waiting to be set up.”</string>
     <string name="co_w6">Syötä MixMasterissa palvelimen osoitteeksi oma-sivusi/mixmaster.</string>
     <string name="co_w_note">Tarvitaan ylläpito, joka ajaa PHP:tä — lähes kaikki ajavat; sivunrakentajat kuten Wix tai Squarespace eivät. Osoitteen on alettava https:// (riippulukko); jos ei, ota hallintapaneelista käyttöön ilmainen varmenne (Let’s Encrypt).</string>
+    <string name="co_update_title">Palvelimen päivittäminen</string>
+    <string name="co_update_intro">Uusi MixMaster voi tarvita uudemman palvelimen: tämä säilyttää yrityksen kuvat ja pohjapiirrokset. Yrityksen tiedot pysyvät ennallaan, eikä puhelimissa tarvitse tehdä mitään.</string>
+    <string name="co_gu1">Lähetä palvelintiedosto itsellesi alla olevalla painikkeella. Se on uusi, tästä sovelluksen versiosta.</string>
+    <string name="co_gu2">Avaa tietokoneella yrityksen Google-tilillä script.google.com ja avaa MixMaster-projekti.</string>
+    <string name="co_gu3">Valitse Code.gs:ssä kaikki (Ctrl+A) ja poista, liitä uusi tiedosto tilalle (Ctrl+V) ja tallenna levyke-painikkeella.</string>
+    <string name="co_gu4">Valitse Run-painikkeen vierestä ”prepare” ja paina Run. Google pyytää lupaa uudelleen, koska palvelin säilyttää nyt kuvat ja pohjapiirrokset tilin Drivessa. Salli se samalla tavalla kuin ensimmäisellä kerralla.</string>
+    <string name="co_gu5">Deploy → Manage deployments → kynä → Version: New version → Deploy. Osoite pysyy samana.</string>
+    <string name="co_wu1">Lähetä verkkosivun tiedostot itsellesi alla olevalla painikkeella ja pura ne tietokoneella.</string>
+    <string name="co_wu2">Avaa ylläpidon tiedostonhallinnassa (File Manager) mixmaster-kansio ja lataa uusi api.php sinne vanhan tilalle. Älä koske data-kansioon: yrityksen tiedot ovat siinä.</string>
+    <string name="co_wu3">Avaa selaimessa oma-sivusi/mixmaster/api.php. Siinä pitäisi lukea, että palvelin toimii ja on otettu käyttöön yrityksellesi.</string>
+    <string name="co_lost_title">Jos omistajan puhelin katoaa</string>
+    <string name="co_lost_intro">Yrityksen tiedot ovat palvelimella, eivät puhelimessa, joten mitään ei menetetä. Uuden omistajan koodi tehdään palvelimella itsessään, joten sen voi tehdä vain se, joka pääsee yrityksen Google-tilille tai verkkosivun ylläpitoon.</string>
+    <string name="co_gl1">Avaa tietokoneella yrityksen Google-tilillä script.google.com ja avaa MixMaster-projekti.</string>
+    <string name="co_gl2">Valitse Run-painikkeen vierestä ”newOwnerCode” ja paina Run. Uuden omistajan koodi näkyy alla olevassa lokissa: kahdeksan merkkiä, @ ja palvelimen osoite.</string>
+    <string name="co_wl1">Avaa ylläpidon tiedostonhallinnassa (File Manager) mixmaster-kansio ja tee sinne uusi tiedosto nimeltä new-owner-code.txt. Se saa olla tyhjä.</string>
+    <string name="co_wl2">Avaa selaimessa oma-sivusi/mixmaster/api.php. Sivu näyttää uuden omistajan koodin, vain tämän kerran, ja poistaa tiedoston.</string>
+    <string name="co_lost_join">Asenna uuteen puhelimeen MixMaster, avaa Asetukset → Yritys → Minulla on pääsykoodi ja liitä koodi. Yrityksen tiedot tulevat puhelimeen.</string>
+    <string name="co_lost_remove">Napauta sitten kohdassa Henkilöt kadonneen puhelimen nimeä ja poista se. Jos se puhelin joskus vielä yhdistää, MixMaster tyhjennetään siitä.</string>
     <string name="co_err_page_said">Vastannut sivu: ”%1$s”</string>
     <string name="co_err_google_dev">Tämä on testiosoite (päättyy /dev). Käytä Web app URL -osoitetta, joka päättyy /exec: Deploy → Manage deployments.</string>
     <string name="co_err_google_editor">Tämä on skriptieditorin osoite. Käytä Web app URL -osoitetta kohdasta Deploy → Manage deployments — se päättyy /exec.</string>

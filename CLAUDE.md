@@ -146,7 +146,12 @@ into `sync_outbox`, whatever screen made it; `SyncEngine` sends it to the compan
 asks for what changed since the last change number it saw. Row ids are made unique across phones
 by `GlobalIds`, and a stock row's id is its product's. A new table that should be shared goes in
 `SyncEngine.Tables` (parents before children) and in both servers' permission lists. The servers
-(`server/`) speak one protocol; `node server/test/run.mjs` holds them to it.
+(`server/`) speak one protocol; `node server/test/run.mjs` holds them to it. Photos and blueprints
+are shared too, but their files travel apart from the rows (`FileSync`, in 1.5 MB parts): a row
+names its file by `fileKey`, its `uri` is this phone's own and never sent, and a row whose file
+hasn't come down yet has a blank `uri` — anything showing one must cope with that. Changes to
+them wait in the outbox until the server's `hello` says `files: true`, since an older server
+refuses a worker's photo and the phone would take that as a delete.
 
 **Permissions on screen** follow the server's groups (`rememberAccess()`): catalogue = products
 and recipes, projects = projects/floors/rooms/coats, warehouse = stock and deliveries, site =

@@ -6,6 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +41,17 @@ import com.conwic.mixmaster.R
  */
 @Composable
 fun ContentImage(uri: String, modifier: Modifier = Modifier, targetSize: Dp = 96.dp) {
+    // Shared by another phone and not come down yet: on its way, not broken.
+    if (uri.isBlank()) {
+        Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = Icons.Outlined.CloudDownload,
+                contentDescription = stringResource(R.string.image_on_its_way),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        return
+    }
     val context = LocalContext.current
     val targetPx = with(LocalDensity.current) { targetSize.roundToPx() }
     var bitmap by remember(uri) { mutableStateOf<Bitmap?>(null) }

@@ -114,6 +114,9 @@ import com.conwic.mixmaster.ui.theme.Ok
 import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 import kotlinx.coroutines.launch
+import androidx.core.content.FileProvider
+import com.conwic.mixmaster.data.company.FileSync
+import java.io.File
 import com.conwic.mixmaster.domain.toNumberOrNull
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -876,6 +879,11 @@ private fun BlueprintSection(
     val pictures = blueprints.filter { kinds[it.id]?.second.orEmpty().startsWith("image/") }
     var viewerAt by remember { mutableStateOf<Int?>(null) }
     var removing by remember { mutableStateOf<BlueprintEntity?>(null) }
+    // Plans shared from another phone whose file hasn't come down yet, being fetched on a tap —
+    // and those that couldn't be had just now.
+    var fetching by remember { mutableStateOf(emptySet<Long>()) }
+    var notYet by remember { mutableStateOf(emptySet<Long>()) }
+    val scope = rememberCoroutineScope()
 
     Column {
         Row(
@@ -907,8 +915,22 @@ private fun BlueprintSection(
                         .fillMaxWidth()
                         .clip(CardShape)
                         .clickable {
-                            if (isPicture) {
-                                viewerAt = pictures.indexOfFirst { it.id == blueprint.id }.coerceAtLeast(0)
+                            val at = pictures.indexOfFirst { it.id == blueprint.id }.coerceAtLeast(0)
+                            if (blueprint.uri.isBlank()) {
+                                // It comes down on its own too; a tap is somebody wanting it now.
+                                if (blueprint.id !in fetching) {
+                                    fetching = fetching + blueprint.id
+                                    scope.launch {
+                                        val got = FileSync.fetchNow(context, "blueprints", blueprint.fileKey, blueprint.name, blueprint.mimeType)
+                                        fetching = fetching - blueprint.id
+                                        notYet = if (got == null) notYet + blueprint.id else notYet - blueprint.id
+                                        if (got != null) {
+                                            if (isPicture) viewerAt = at else openExternally(context, got, type)
+                                        }
+                                    }
+                                }
+                            } else if (isPicture) {
+                                viewerAt = at
                             } else {
                                 openExternally(context, blueprint.uri, type)
                             }
@@ -944,10 +966,18 @@ private fun BlueprintSection(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        val waiting = blueprint.uri.isBlank()
                         Text(
-                            text = stringResource(if (isPicture) R.string.prj_blueprint_picture else R.string.prj_blueprint_pdf),
+                            text = stringResource(
+                                when {
+                                    !waiting -> if (isPicture) R.string.prj_blueprint_picture else R.string.prj_blueprint_pdf
+                                    blueprint.id in fetching -> R.string.prj_blueprint_fetching
+                                    blueprint.id in notYet -> R.string.prj_blueprint_not_yet
+                                    else -> R.string.prj_blueprint_tap_fetch
+                                },
+                            ),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (waiting && blueprint.id in notYet) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     if (canChange) {
@@ -1003,8 +1033,17 @@ private fun displayName(context: Context, uri: Uri): String? = runCatching {
 
 /** Hands a file to whatever on the phone opens it — a PDF viewer, for a PDF. */
 private fun openExternally(context: Context, uri: String, type: String) {
+    val parsed = Uri.parse(uri)
+    // A plan that came from the company is the app's own file, and Android won't let a file://
+    // link out of the app: it goes through the app's provider instead.
+    val shared = if (parsed.scheme == "file") {
+        val path = parsed.path ?: return
+        runCatching { FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", File(path)) }.getOrNull() ?: return
+    } else {
+        parsed
+    }
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(Uri.parse(uri), type.ifBlank { "*/*" })
+        setDataAndType(shared, type.ifBlank { "*/*" })
         // NEW_TASK because the context here is the locale wrapper, not the activity, and
         // startActivity throws without it.
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)

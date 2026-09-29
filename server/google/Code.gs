@@ -23,6 +23,9 @@ const MM_CHUNK = 45000;
 const MM_CHUNKS = 8;
 const MM_ROW_WIDTH = 3 + MM_CHUNKS;
 const MM_PEOPLE_WIDTH = 6;
+// Photos and plans travel in parts this big, and are kept in Drive the same way, a file a part.
+const MM_FILE_PART = 1536 * 1024;
+const MM_FILE_MAX = 40 * 1024 * 1024;
 
 /**
  * Who may change what. A table the app adds later that is not on this list is the owner's to
@@ -42,6 +45,9 @@ const MM_GROUPS = {
   notes: 'site',
   material_uses: 'site',
   usage_logs: 'site',
+  // a site photo is site work; a plan belongs with the rooms it draws
+  photos: 'site',
+  blueprints: 'projects',
   // the crew list is the owner's to keep: a worker can't add or drop people
   team_members: 'owner',
 };
@@ -325,6 +331,15 @@ function mmRowOut(row) {
 
 function mmHello() {
   const company = mmCompany();
+  // Photos and plans can be kept here once Drive has been allowed (the prepare step): until
+  // then the app keeps them on the phones, as it did before.
+  let files = false;
+  try {
+    mmFilesFolder();
+    files = true;
+  } catch (e) {
+    files = false;
+  }
   return {
     ok: true,
     app: 'mixmaster',
@@ -333,6 +348,7 @@ function mmHello() {
     claimed: company !== null,
     company: company,
     moved_to: mmMetaGet('moved_to', null),
+    files: files,
   };
 }
 
@@ -424,6 +440,11 @@ function mmJoin(req) {
 function mmPull(req) {
   return mmLocked(function () {
     const person = mmAuth(req);
+    // The web app's own address, as the phones reach it: a new owner's code is written with it.
+    const address = String(req.address || '');
+    if (/^https:\/\/script\.google\.com\/\S+\/exec$/.test(address) && address !== mmMetaGet('address', '')) {
+      mmMetaSet('address', address);
+    }
     const since = Number(req.since || 0);
     const top = Number(mmMetaGet('seq', '0'));
     let rows = [];
@@ -479,6 +500,7 @@ function mmPush(req) {
     block.forEach(function (cells, index) { if (cells[0] !== '') where[String(cells[0])] = index; });
     const refused = [];
     const changed = {};
+    const gone = [];
     let seq = Number(mmMetaGet('seq', '0'));
     const now = Date.now();
     rows.forEach(function (row) {
@@ -499,6 +521,12 @@ function mmPush(req) {
         return;
       }
       seq += 1;
+      // A photo or plan taken off the job takes its file with it.
+      if (deleted && at !== undefined) {
+        const before = mmRowFromCells(block[at]);
+        const key = before.x ? null : mmFileKeyOf(table, before.d);
+        if (key) gone.push(key);
+      }
       const cells = mmCellsFromRow({ t: table, id: id, d: data, x: deleted, dev: device, p: person.id, at: now, seq: seq });
       if (at === undefined) {
         where[key] = block.length;
@@ -526,6 +554,7 @@ function mmPush(req) {
       range.setValues(added);
     }
     mmMetaSet('seq', seq);
+    gone.forEach(function (key) { mmFileDrop(key); });
     return { ok: true, company: mmCompany(), me: mmMe(person), refused: refused };
   });
 }
@@ -621,6 +650,203 @@ function mmLeave(req) {
     mmPersonWrite(me);
     return { ok: true };
   });
+}
+
+// ---- Photos and plans --------------------------------------------------------------------------
+
+/*
+ * The files behind the photos and plans on a job, kept in a "MixMaster files" folder in the
+ * account's Drive. A file arrives a part at a time and is kept as those parts (<key>.0, <key>.1…),
+ * with <key>.meta written once the last one is in; it is fetched a part at a time too. Nothing ever
+ * has to hold a whole big PDF at once.
+ */
+
+function mmFilesFolder() {
+  const id = mmMetaGet('files_folder', null);
+  if (id) {
+    try {
+      const folder = DriveApp.getFolderById(id);
+      if (!folder.isTrashed()) return folder;
+    } catch (e) {
+      // Deleted by hand: a new one is made, and the phones send again what they hold.
+    }
+  }
+  const folder = DriveApp.createFolder('MixMaster files');
+  mmMetaSet('files_folder', folder.getId());
+  return folder;
+}
+
+function mmFileNamed(folder, name) {
+  const found = folder.getFilesByName(name);
+  while (found.hasNext()) {
+    const file = found.next();
+    if (!file.isTrashed()) return file;
+  }
+  return null;
+}
+
+function mmCleanKey(key) {
+  const clean = String(key || '');
+  if (!/^[0-9a-f]{32}$/.test(clean)) mmFail('bad_request');
+  return clean;
+}
+
+/** The file a photo or plan row names, or null. */
+function mmFileKeyOf(table, data) {
+  if (table !== 'photos' && table !== 'blueprints') return null;
+  try {
+    const row = JSON.parse(String(data));
+    return row && typeof row.fileKey === 'string' && /^[0-9a-f]{32}$/.test(row.fileKey) ? row.fileKey : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** What is known about a whole file: how many parts, its type and size. Null until it has all come. */
+function mmFileMeta(folder, key) {
+  const file = mmFileNamed(folder, key + '.meta');
+  if (!file) return null;
+  try {
+    return JSON.parse(file.getBlob().getDataAsString());
+  } catch (e) {
+    return null;
+  }
+}
+
+function mmFileDrop(key) {
+  try {
+    const found = mmFilesFolder().searchFiles("title contains '" + key + "'");
+    while (found.hasNext()) found.next().setTrashed(true);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+/** Whoever may add photos (site work) or plans (projects) may send the files behind them. */
+function mmMayUpload(person) {
+  if (person.owner) return true;
+  const perms = mmPermsOf(person);
+  return Boolean(perms.site) || Boolean(perms.projects);
+}
+
+function mmPartSize(part, parts, size) {
+  return part < parts - 1 ? MM_FILE_PART : size - MM_FILE_PART * (parts - 1);
+}
+
+function mmFilePut(req) {
+  return mmLocked(function () {
+    const person = mmAuth(req);
+    mmRefuseIfMoved();
+    mmRefuseWhileArriving(person);
+    if (!mmMayUpload(person)) mmFail('not_allowed');
+    const key = mmCleanKey(req.key);
+    const part = Number(req.part);
+    const parts = Number(req.parts);
+    const size = Number(req.size);
+    const mime = String(req.mime || '').replace(/[^A-Za-z0-9.+\/-]/g, '').toLowerCase();
+    if (!(size >= 1 && size <= MM_FILE_MAX) || parts !== Math.ceil(size / MM_FILE_PART) ||
+        !(Number.isInteger(part) && part >= 0 && part < parts)) mmFail('bad_request');
+    let bytes;
+    try {
+      bytes = Utilities.base64Decode(String(req.data || ''));
+    } catch (e) {
+      mmFail('bad_request');
+    }
+    if (bytes.length !== mmPartSize(part, parts, size)) mmFail('bad_request');
+    const folder = mmFilesFolder();
+    // Already whole: the answer to an earlier try was lost on the way back.
+    if (mmFileMeta(folder, key) !== null) return { ok: true, done: true };
+    const name = key + '.' + part;
+    const old = mmFileNamed(folder, name);
+    if (old) old.setTrashed(true);
+    folder.createFile(Utilities.newBlob(bytes, 'application/octet-stream', name));
+    if (part < parts - 1) return { ok: true, done: false };
+    // The last part: whole if every part before it is here, in full.
+    for (let i = 0; i < parts; i++) {
+      const file = mmFileNamed(folder, key + '.' + i);
+      if (!file || file.getSize() !== mmPartSize(i, parts, size)) return { ok: true, done: false };
+    }
+    folder.createFile(Utilities.newBlob(
+      JSON.stringify({ parts: parts, mime: mime, size: size, at: Date.now() }), 'application/json', key + '.meta'));
+    return { ok: true, done: true };
+  });
+}
+
+function mmFileGet(req) {
+  mmLocked(function () { mmAuth(req); });
+  const key = mmCleanKey(req.key);
+  const part = Number(req.part || 0);
+  const folder = mmFilesFolder();
+  const meta = mmFileMeta(folder, key);
+  if (meta === null) mmFail('not_found');
+  if (!(Number.isInteger(part) && part >= 0 && part < meta.parts)) mmFail('bad_request');
+  const file = mmFileNamed(folder, key + '.' + part);
+  if (!file) mmFail('not_found');
+  return {
+    ok: true,
+    parts: meta.parts,
+    mime: String(meta.mime || ''),
+    size: meta.size,
+    data: Utilities.base64Encode(file.getBlob().getBytes()),
+  };
+}
+
+/** Which of these the server has not got whole: after a move, the phones send what they hold. */
+function mmFileHas(req) {
+  mmLocked(function () { mmAuth(req); });
+  const keys = Array.isArray(req.keys) ? req.keys : [];
+  if (keys.length > 1000) mmFail('bad_request');
+  const whole = {};
+  const found = mmFilesFolder().searchFiles("title contains '.meta'");
+  while (found.hasNext()) {
+    const file = found.next();
+    if (!file.isTrashed()) whole[file.getName().replace(/\.meta$/, '')] = true;
+  }
+  return {
+    ok: true,
+    missing: keys.filter(function (key) { return typeof key === 'string' && /^[0-9a-f]{32}$/.test(key) && !whole[key]; }),
+  };
+}
+
+// ---- A new owner's code, for an owner whose phone is gone -----------------------------------------
+
+/**
+ * Run this from the editor (pick newOwnerCode next to Run, press Run) when the owner's phone is lost
+ * or broken: it makes a fresh access code with the owner's rights and writes it in the log below.
+ * Only someone who can open this project — the company's Google account — can do it; nothing a
+ * phone can ask for.
+ */
+function newOwnerCode() {
+  const code = mmLocked(function () {
+    if (mmCompany() === null) mmFail('not_claimed');
+    const people = mmPeopleAll();
+    const first = people.filter(function (p) { return p.owner; }).sort(function (a, b) { return a.id - b.id; })[0];
+    const all = {};
+    MM_PERMS.forEach(function (p) { all[p] = true; });
+    const person = {
+      id: mmNextPersonId(people),
+      name: mmCleanName((first ? first.name : 'Owner') + ' (new phone)'),
+      owner: true,
+      perms: all,
+      status: 'pending',
+      code: mmNewCode(),
+      token_hash: null,
+      device: null,
+      created: Date.now(),
+      joined: null,
+      seen: null,
+    };
+    mmPersonWrite(person);
+    return person.code;
+  });
+  const address = String(mmMetaGet('address', '')).replace(/^https:\/\//, '');
+  const shown = code.slice(0, 4) + '-' + code.slice(4) + (address ? '@' + address : '');
+  console.log('A new owner\'s access code: ' + shown);
+  console.log(address
+    ? 'On the new phone, install MixMaster, open Settings → Company → I have an access code, and paste it in.'
+    : 'Add @ and the web app address (Deploy → Manage deployments, ending in /exec) after it, then paste it in the app.');
+  console.log('Then, in People, take the lost phone off: tap its name and remove it.');
+  return shown;
 }
 
 // ---- Moving the company to another server ------------------------------------------------------
@@ -752,6 +978,9 @@ function mmHandle(req) {
     case 'adopt': return mmAdopt(req);
     case 'move_out': return mmMoveOut(req);
     case 'move_done': return mmMoveDone(req);
+    case 'file_put': return mmFilePut(req);
+    case 'file_get': return mmFileGet(req);
+    case 'file_has': return mmFileHas(req);
   }
   return mmFail('bad_request');
 }
@@ -796,10 +1025,14 @@ function doGet() {
 
 /**
  * Run this once from the editor (select it, press Run) before deploying: it asks Google for the
- * permission to keep the company's sheet, and makes the sheet, so the first phone is not the one
- * left waiting for either.
+ * permission to keep the company's sheet and its photos and plans, and makes them, so the first
+ * phone is not the one left waiting for either. Run it again after pasting in a newer version of
+ * this file, then publish a new version (Deploy → Manage deployments → pencil → New version).
  */
 function prepare() {
   mmBook();
+  // Asks for Drive too, for the photos and plans: run it again after updating this file.
+  const folder = mmFilesFolder();
   console.log('Ready. The data will be kept in: ' + mmBook().getUrl());
+  console.log('Photos and plans will be kept in: ' + folder.getUrl());
 }

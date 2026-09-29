@@ -9,6 +9,7 @@ import androidx.room.InvalidationTracker
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.conwic.mixmaster.MixMasterApp
 import com.conwic.mixmaster.data.db.AppDatabase
+import com.conwic.mixmaster.data.db.newIdExpression
 import com.conwic.mixmaster.data.model.Role
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +69,8 @@ object SyncEngine {
 
     /**
      * Parents before children: the order a fresh phone has to fill its tables in, since a room
-     * cannot be written before its floor. Photos stay out until their files travel with them.
+     * cannot be written before its floor. Photos and plans ([FileSync.Tables]) come after these,
+     * once the company's server can keep their files.
      */
     val Tables = listOf(
         "products", "solutions", "solution_lines", "usage_logs",
@@ -84,12 +86,21 @@ object SyncEngine {
     private const val PULL_EVERY = 30_000L
     private const val MARKS = "mixmaster_sync"
     private const val REQUEUE = "requeue"
+    /** The server keeps photos' and plans' files, and this phone shares them. */
+    private const val FILES = "files"
+    /** How often a server that doesn't keep files yet is asked again: the employer may update it any day. */
+    private const val FILES_CHECK_EVERY = 10 * 60_000L
+    /** Below this, an id was numbered 1, 2, 3 on this phone before ids were made unique to it. */
+    private const val SMALL_ID = 1_000_000_000_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val wake = Channel<Unit>(Channel.CONFLATED)
     /** One conversation with the server at a time, whoever started it. */
     private val talking = Mutex()
     private var loop: Job? = null
+    /** Files go up and come down beside the rows, so a big plan doesn't hold up everything else. */
+    private var files: Job? = null
+    @Volatile private var filesCheckedAt = 0L
     private var observer: InvalidationTracker.Observer? = null
     @Volatile private var foreground = false
     @Volatile private var pullWanted = true
@@ -99,10 +110,30 @@ object SyncEngine {
     private val _status = MutableStateFlow(SyncStatus())
     val status: StateFlow<SyncStatus> = _status.asStateFlow()
 
+    private val _filesShared = MutableStateFlow(false)
+    /** Photos and plans travel with the rest: the server keeps their files. */
+    val filesShared: StateFlow<Boolean> = _filesShared.asStateFlow()
+
     private lateinit var app: Context
 
     private fun database(): AppDatabase = AppDatabase.getInstance(app)
     private fun sql(): SupportSQLiteDatabase = database().openHelper.writableDatabase
+
+    /** For [FileSync], which may be asked for a plan before anything here has run. */
+    internal fun sqlFor(context: Context): SupportSQLiteDatabase {
+        app = context.applicationContext
+        return sql()
+    }
+
+    private fun filesOn(): Boolean = marks().getBoolean(FILES, false)
+
+    /**
+     * Changes to photos and plans are noted from the start, and wait in the outbox until the
+     * server keeps files: an older one would lose the files, and refuses a worker's photo in a
+     * way the phone takes as the company deleting it.
+     */
+    private fun heldBack(): String =
+        if (filesOn()) "" else "tbl NOT IN (${FileSync.Tables.joinToString { "'$it'" }})"
 
     /** A new name for this phone in the company, made each time it joins. */
     fun newDevice(): String = UUID.randomUUID().toString().replace("-", "")
@@ -126,8 +157,9 @@ object SyncEngine {
         installTriggers()
         if (marks().getBoolean(REQUEUE, false)) queueEverything(app)
         observer?.let { runCatching { database().invalidationTracker.removeObserver(it) } }
+        _filesShared.value = filesOn()
         // Woken by any change to the shared tables, so a change goes up within a second or two.
-        val watch = object : InvalidationTracker.Observer(Tables.toTypedArray()) {
+        val watch = object : InvalidationTracker.Observer((Tables + FileSync.Tables).toTypedArray()) {
             override fun onInvalidated(tables: Set<String>) {
                 wake.trySend(Unit)
             }
@@ -142,6 +174,8 @@ object SyncEngine {
     fun stop() {
         loop?.cancel()
         loop = null
+        files?.cancel()
+        files = null
         observer?.let { runCatching { database().invalidationTracker.removeObserver(it) } }
         observer = null
         _status.value = SyncStatus()
@@ -179,8 +213,10 @@ object SyncEngine {
                         follow(p.to)
                     }
                     keepPeopleCopy()
+                    checkFiles()
                 }
                 _status.update { it.copy(working = false, offline = false, problem = null) }
+                if (filesOn() && files?.isActive != true) files = scope.launch { FileSync.transfer(app, sql()) }
             } catch (p: CompanyProblem) {
                 _status.update { it.copy(working = false) }
                 when (p.code) {
@@ -217,7 +253,8 @@ object SyncEngine {
         val db = sql()
         db.execSQL("DELETE FROM $OUTBOX")
         db.execSQL("DELETE FROM $INBOX")
-        Tables.forEach { table ->
+        // Photos and plans wait there until the server is seen to keep their files (checkFiles).
+        (Tables + FileSync.Tables).forEach { table ->
             db.execSQL("INSERT INTO $OUTBOX (tbl, rid, op) SELECT '$table', id, 'u' FROM `$table`")
         }
     }
@@ -246,6 +283,7 @@ object SyncEngine {
             db.execSQL("DELETE FROM $OUTBOX")
             db.execSQL("DELETE FROM $INBOX")
         }
+        FileSync.clearFiles(app)
     }
 
     /**
@@ -257,13 +295,15 @@ object SyncEngine {
         stop()
         runCatching {
             val db = sql()
-            Tables.forEach { table ->
+            (Tables + FileSync.Tables).forEach { table ->
                 listOf("i", "u", "d").forEach { op -> db.execSQL("DROP TRIGGER IF EXISTS sync_${table}_$op") }
             }
             db.execSQL("DROP TABLE IF EXISTS $OUTBOX")
             db.execSQL("DROP TABLE IF EXISTS $INBOX")
+            db.execSQL("DROP TABLE IF EXISTS ${FileSync.STATE}")
         }
         clearMarks()
+        FileSync.reset()
     }
 
     /**
@@ -301,6 +341,8 @@ object SyncEngine {
         // The new server numbers its changes from the start: everything is asked for again.
         // What this phone has not sent yet stays in the outbox and goes there instead.
         marks().edit().remove("since").commit()
+        // Nor has it got any files yet but the ones the owner's phone brought: this one offers its own.
+        FileSync.forgetServer(sql())
         lastPullAt = 0L
         pullWanted = true
     }
@@ -414,6 +456,68 @@ object SyncEngine {
         runCatching { CompanyStore.savePeopleExport(app, CompanyApi.exportPeople(link)) }
     }
 
+    // ---- Photos and plans --------------------------------------------------------------------
+
+    /**
+     * Whether the company's server keeps the files behind photos and plans — asked of it, since a
+     * server set up before it could only learns how when the employer updates it. From then on
+     * the photos and plans on this phone are shared like everything else.
+     */
+    private suspend fun checkFiles() {
+        if (filesOn()) return
+        val now = System.currentTimeMillis()
+        if (now - filesCheckedAt < FILES_CHECK_EVERY) return
+        filesCheckedAt = now
+        val link = CompanyStore.current(app) ?: return
+        val hello = try {
+            CompanyApi.hello(link.server)
+        } catch (p: CompanyProblem) {
+            return
+        }
+        if (!hello.files) return
+        adoptFiles()
+        marks().edit().putBoolean(FILES, true).commit()
+        _filesShared.value = true
+        // What waited in the outbox goes up now.
+        wake.trySend(Unit)
+    }
+
+    /** The employer has just updated the server: asked again now rather than in ten minutes. */
+    fun checkFilesNow() {
+        filesCheckedAt = 0L
+        syncNow()
+    }
+
+    /**
+     * Photos and plans added before this version, which no trigger ever noted: they are the ones
+     * without a key. An id another phone may have used as well gets a new one, each gets the key
+     * its file will be kept under, and they are queued to go up.
+     */
+    private fun adoptFiles() {
+        applying {
+            val db = sql()
+            FileSync.Tables.forEach { table ->
+                val small = mutableListOf<Long>()
+                db.query("SELECT id FROM `$table` WHERE id < $SMALL_ID AND fileKey = ''").use { c ->
+                    while (c.moveToNext()) small += c.getLong(0)
+                }
+                small.forEach { id ->
+                    // One statement a row, so each draws its own random bits; a clash is drawn again.
+                    repeat(5) {
+                        try {
+                            db.execSQL("UPDATE `$table` SET id = ${newIdExpression(table)} WHERE id = ?", arrayOf<Any>(id))
+                            return@forEach
+                        } catch (e: SQLiteConstraintException) {
+                            // drawn again
+                        }
+                    }
+                }
+                db.execSQL("INSERT INTO $OUTBOX (tbl, rid, op) SELECT '$table', id, 'u' FROM `$table` WHERE fileKey = ''")
+                db.execSQL("UPDATE `$table` SET fileKey = lower(hex(randomblob(16))) WHERE fileKey = ''")
+            }
+        }
+    }
+
     // ---- Out: triggers and the outbox --------------------------------------------------------
 
     /**
@@ -431,11 +535,12 @@ object SyncEngine {
                 "deleted INTEGER NOT NULL, PRIMARY KEY (tbl, rid))",
         )
         db.execSQL("CREATE TABLE IF NOT EXISTS sync_state (k TEXT PRIMARY KEY NOT NULL, v INTEGER NOT NULL)")
+        FileSync.installState(db)
         db.execSQL("INSERT OR IGNORE INTO sync_state (k, v) VALUES ('applying', 0)")
         // A crash half way through applying would otherwise leave every later change unrecorded.
         db.execSQL("UPDATE sync_state SET v = 0 WHERE k = 'applying'")
         val quiet = "WHEN (SELECT v FROM sync_state WHERE k = 'applying') = 0"
-        Tables.forEach { t ->
+        (Tables + FileSync.Tables).forEach { t ->
             db.execSQL(
                 "CREATE TRIGGER IF NOT EXISTS sync_${t}_i AFTER INSERT ON `$t` $quiet " +
                     "BEGIN INSERT INTO $OUTBOX (tbl, rid, op) VALUES ('$t', NEW.id, 'u'); END",
@@ -462,19 +567,21 @@ object SyncEngine {
         val link = CompanyStore.current(app) ?: return false
         val db = sql()
         val pending = mutableListOf<Pending>()
-        db.query("SELECT seq, tbl, rid, op FROM $OUTBOX ORDER BY seq LIMIT $PUSH_BATCH").use { c ->
+        val held = heldBack()
+        val only = if (held.isEmpty()) "" else "WHERE $held"
+        db.query("SELECT seq, tbl, rid, op FROM $OUTBOX $only ORDER BY seq LIMIT $PUSH_BATCH").use { c ->
             while (c.moveToNext()) pending += Pending(c.getLong(0), c.getString(1), c.getLong(2), c.getString(3))
         }
         if (pending.isEmpty()) return false
         // The last word on each row is the one that counts; the row is read as it stands now.
         val rows = pending.groupBy { it.table to it.id }.mapNotNull { (key, changes) ->
             val (table, id) = key
-            if (table !in Tables) return@mapNotNull null
+            if (table !in Tables && table !in FileSync.Tables) return@mapNotNull null
             val data = if (changes.last().op == "d") null else readRow(db, table, id)
             RemoteRow(table = table, id = id, data = data, deleted = data == null)
         }
         val answer = if (rows.isEmpty()) null else CompanyApi.push(link, rows)
-        db.execSQL("DELETE FROM $OUTBOX WHERE seq <= ?", arrayOf<Any>(pending.last().seq))
+        db.execSQL("DELETE FROM $OUTBOX WHERE seq <= ?" + if (held.isEmpty()) "" else " AND $held", arrayOf<Any>(pending.last().seq))
         if (answer != null) {
             noteAnswer(answer.me, answer.companyName)
             // Not this phone's to change: the company's version goes back where it was.
@@ -486,18 +593,25 @@ object SyncEngine {
 
     private fun refreshWaiting() {
         val waiting = runCatching {
-            sql().query("SELECT count(DISTINCT tbl || '/' || rid) FROM $OUTBOX").use { if (it.moveToFirst()) it.getInt(0) else 0 }
+            val held = heldBack()
+            sql().query("SELECT count(DISTINCT tbl || '/' || rid) FROM $OUTBOX" + if (held.isEmpty()) "" else " WHERE $held")
+                .use { if (it.moveToFirst()) it.getInt(0) else 0 }
         }.getOrDefault(0)
         _status.update { it.copy(waiting = waiting) }
     }
 
-    /** A row as JSON of its columns. A file on this phone means nothing on another one, so it stays. */
+    /**
+     * A row as JSON of its columns. A file on this phone means nothing on another one, so it
+     * stays; a photo's or plan's travels on its own, by its key (see [FileSync]).
+     */
     private fun readRow(db: SupportSQLiteDatabase, table: String, id: Long): String? =
         db.query("SELECT * FROM `$table` WHERE id = ?", arrayOf<Any>(id)).use { c ->
             if (!c.moveToFirst()) return null
             val json = JSONObject()
+            val withFile = table in FileSync.Tables
             for (i in 0 until c.columnCount) {
                 val name = c.getColumnName(i)
+                if (withFile && name == "uri") continue
                 when (c.getType(i)) {
                     Cursor.FIELD_TYPE_INTEGER -> json.put(name, c.getLong(i))
                     Cursor.FIELD_TYPE_FLOAT -> c.getDouble(i).takeIf { it.isFinite() }?.let { json.put(name, it) }
@@ -520,6 +634,8 @@ object SyncEngine {
             val link = CompanyStore.current(app) ?: return
             val page = CompanyApi.pull(link, since)
             if (page.movedTo != null && !takingLeave) throw CompanyProblem("moved", page.movedTo)
+            // Another phone is sharing photos: the server keeps files now, and this one should too.
+            if (!filesOn() && page.rows.any { it.table in FileSync.Tables }) filesCheckedAt = 0L
             noteAnswer(page.me, page.companyName)
             // What this phone sent comes back numbered like everybody else's; it already has it.
             apply(page.rows.filter { it.device == null || it.device != link.device })
@@ -554,7 +670,9 @@ object SyncEngine {
      * arrived yet (a room before its floor) waits in the inbox and is tried again next time.
      */
     private fun apply(incoming: List<RemoteRow>) {
-        val order = Tables.withIndex().associate { it.value to it.index }
+        // Photos and plans are taken in even before this phone shares its own: a server that sent
+        // them keeps their files, and a row passed over now would never be sent again.
+        val order = (Tables + FileSync.Tables).withIndex().associate { it.value to it.index }
         val waiting = unsentKeys()
         applying {
             val db = sql()
@@ -591,7 +709,14 @@ object SyncEngine {
 
     /** Update if the row is here, insert if not — never replace, which would take its children with it. */
     private fun applyOne(db: SupportSQLiteDatabase, row: RemoteRow): Boolean = try {
+        val withFile = row.table in FileSync.Tables
         if (row.deleted) {
+            // A photo taken off the job on another phone takes this phone's copy of it too.
+            if (withFile) {
+                db.query("SELECT uri FROM `${row.table}` WHERE id = ?", arrayOf<Any>(row.id)).use { c ->
+                    if (c.moveToFirst()) FileSync.forgetLocal(app, c.getString(0))
+                }
+            }
             db.delete("`${row.table}`", "id = ?", arrayOf<Any>(row.id))
         } else {
             val known = columnsOf(db, row.table)
@@ -599,6 +724,8 @@ object SyncEngine {
             val values = ContentValues()
             json.keys().forEach { name ->
                 if (name !in known || name == "id") return@forEach
+                // Where the file is on this phone is this phone's own business.
+                if (withFile && name == "uri") return@forEach
                 when (val value = json.opt(name)) {
                     null, JSONObject.NULL -> values.putNull(name)
                     is Int -> values.put(name, value.toLong())
@@ -614,6 +741,8 @@ object SyncEngine {
             val updated = if (values.size() == 0) 0 else db.update("`${row.table}`", SQLiteDatabase.CONFLICT_ABORT, values, "id = ?", arrayOf<Any>(row.id))
             if (updated == 0) {
                 values.put("id", row.id)
+                // Not here yet: FileSync fetches it and fills this in.
+                if (withFile) values.put("uri", "")
                 db.insert("`${row.table}`", SQLiteDatabase.CONFLICT_ABORT, values)
             }
         }
@@ -638,7 +767,7 @@ object SyncEngine {
      * Runs [block] in one transaction with the triggers told to look away, so rows written for
      * the company's sake are not recorded as this phone's own changes.
      */
-    private fun applying(block: () -> Unit) {
+    internal fun applying(block: () -> Unit) {
         database().runInTransaction(
             Runnable {
                 val db = sql()
@@ -660,8 +789,12 @@ object SyncEngine {
         marks().edit().putLong("since", since).commit()
     }
 
+    /** Also forgets whether the server keeps files: the next server is asked afresh. */
     private fun clearMarks() {
         marks().edit().clear().commit()
         lastPullAt = 0L
+        filesCheckedAt = 0L
+        _filesShared.value = false
+        runCatching { FileSync.forgetServer(sql()) }
     }
 }

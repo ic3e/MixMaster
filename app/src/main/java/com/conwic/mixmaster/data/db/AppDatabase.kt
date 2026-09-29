@@ -65,7 +65,7 @@ const val DATABASE_NAME = "mixmaster.db"
         MaterialUseEntity::class,
         BlueprintEntity::class,
     ],
-    version = 19,
+    version = 20,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -649,6 +649,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Photos and plans travel between the company's phones now, and each names the file
+         * behind it by a key the server keeps it under. Blank until the phone first shares it.
+         */
+        private val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE photos ADD COLUMN fileKey TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE blueprints ADD COLUMN fileKey TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 // Ids no other phone hands out, for when phones share a company — see GlobalIds.
@@ -671,6 +682,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_16_17,
                     MIGRATION_17_18,
                     MIGRATION_18_19,
+                    MIGRATION_19_20,
                 )
                 // Last resort only: with a migration in place this shouldn't fire, but it keeps
                 // the app openable rather than stuck if a future version misses a path.

@@ -21,6 +21,11 @@ define('MM_MAX_BODY', 8 * 1024 * 1024);
 define('MM_MAX_PUSH', 1000);
 define('MM_CODE_ALPHABET', '23456789ABCDEFGHJKLMNPQRSTUVWXYZ');
 define('MM_JOIN_TRIES_PER_HOUR', 30);
+// Photos and plans travel in parts this big, so no request comes near a host's upload limit.
+define('MM_FILE_PART', 1536 * 1024);
+define('MM_FILE_MAX', 40 * 1024 * 1024);
+// Made in this folder from the hosting's file manager, it gets whoever made it a new owner's code.
+define('MM_RECOVER_FILE', 'new-owner-code.txt');
 
 /**
  * Who may change what. A table the app adds later that is not on this list is the owner's to
@@ -42,6 +47,9 @@ function mm_group($table)
         'notes' => 'site',
         'material_uses' => 'site',
         'usage_logs' => 'site',
+        // a site photo is site work; a plan belongs with the rooms it draws
+        'photos' => 'site',
+        'blueprints' => 'projects',
         // the crew list is the owner's to keep: a worker can't add or drop people
         'team_members' => 'owner',
     );
@@ -392,6 +400,8 @@ function mm_hello($req)
         'claimed' => $company !== null,
         'company' => $company,
         'moved_to' => mm_meta_get('moved_to'),
+        // photos and plans can be kept here: an older server says nothing, and the app keeps them on the phone
+        'files' => mm_files_ready(),
     );
 }
 
@@ -541,7 +551,8 @@ function mm_push($req)
         mm_fail('bad_request');
     }
     $device = mm_clean_device(isset($req['device']) ? $req['device'] : '');
-    $refused = mm_write(function ($db) use ($rows, $person, $device) {
+    $gone = array();
+    $refused = mm_write(function ($db) use ($rows, $person, $device, &$gone) {
         $refused = array();
         $seq = (int) mm_meta_get('seq', '0');
         $find = $db->prepare('SELECT * FROM mm_rows WHERE tbl = ? AND rid = ?');
@@ -571,6 +582,13 @@ function mm_push($req)
                 continue;
             }
             $seq++;
+            // A photo or plan taken off the job takes its file with it.
+            if ($deleted && $current && !((int) $current['deleted'])) {
+                $key = mm_file_key_of($table, $current['data']);
+                if ($key !== null) {
+                    $gone[] = $key;
+                }
+            }
             if ($current) {
                 $update->execute(array($data, $deleted ? 1 : 0, $seq, $device, (int) $person['id'], $now, $table, $id));
             } else {
@@ -580,6 +598,9 @@ function mm_push($req)
         mm_meta_set('seq', $seq);
         return $refused;
     });
+    foreach ($gone as $key) {
+        mm_file_drop($key);
+    }
     return array('ok' => true, 'company' => mm_company(), 'me' => mm_me($person), 'refused' => $refused);
 }
 
@@ -669,6 +690,209 @@ function mm_leave($req)
             ->execute(array($me['id']));
     });
     return array('ok' => true);
+}
+
+// ---- Photos and plans --------------------------------------------------------------------------
+
+/*
+ * The files behind the photos and plans on a job. The rows travel like any other; the file each
+ * one names by its key is kept here, in data/files/<key>/, as the parts it arrived in. A phone
+ * uploads a file a part at a time and fetches it the same way, so neither end ever holds more
+ * than one part of a big PDF in a request.
+ */
+
+function mm_files_dir()
+{
+    $data = __DIR__ . '/data';
+    if (!is_dir($data)) {
+        @mkdir($data, 0700, true);
+    }
+    mm_protect_folder($data);
+    $dir = $data . '/files';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    return $dir;
+}
+
+function mm_files_ready()
+{
+    $dir = mm_files_dir();
+    return is_dir($dir) && is_writable($dir);
+}
+
+function mm_clean_key($key)
+{
+    $key = (string) $key;
+    if (!preg_match('/^[0-9a-f]{32}$/', $key)) {
+        mm_fail('bad_request');
+    }
+    return $key;
+}
+
+/** The file a photo or plan row names, or null. */
+function mm_file_key_of($table, $data)
+{
+    if ($table !== 'photos' && $table !== 'blueprints') {
+        return null;
+    }
+    $row = json_decode((string) $data, true);
+    if (!is_array($row) || !isset($row['fileKey']) || !is_string($row['fileKey'])) {
+        return null;
+    }
+    return preg_match('/^[0-9a-f]{32}$/', $row['fileKey']) ? $row['fileKey'] : null;
+}
+
+/** What is known about a whole file: how many parts, its type and size. Null until it has all come. */
+function mm_file_meta($key)
+{
+    $file = mm_files_dir() . '/' . $key . '/meta.json';
+    if (!is_file($file)) {
+        return null;
+    }
+    $meta = json_decode((string) @file_get_contents($file), true);
+    return is_array($meta) ? $meta : null;
+}
+
+function mm_file_drop($key)
+{
+    $dir = mm_files_dir() . '/' . $key;
+    if (!is_dir($dir)) {
+        return;
+    }
+    foreach (glob($dir . '/*') ?: array() as $file) {
+        @unlink($file);
+    }
+    @rmdir($dir);
+}
+
+/** Whoever may add photos (site work) or plans (projects) may send the files behind them. */
+function mm_may_upload($person)
+{
+    if (!empty($person['owner'])) {
+        return true;
+    }
+    $perms = mm_perms_of($person);
+    return !empty($perms['site']) || !empty($perms['projects']);
+}
+
+function mm_file_put($req)
+{
+    $person = mm_auth($req);
+    mm_refuse_if_moved();
+    mm_refuse_while_arriving($person);
+    if (!mm_may_upload($person)) {
+        mm_fail('not_allowed');
+    }
+    $key = mm_clean_key(isset($req['key']) ? $req['key'] : '');
+    $part = isset($req['part']) ? (int) $req['part'] : -1;
+    $parts = isset($req['parts']) ? (int) $req['parts'] : 0;
+    $size = isset($req['size']) ? (int) $req['size'] : 0;
+    $mime = strtolower(preg_replace('#[^A-Za-z0-9.+/-]#', '', isset($req['mime']) ? (string) $req['mime'] : ''));
+    if ($size < 1 || $size > MM_FILE_MAX || $parts < 1 || $parts !== (int) ceil($size / MM_FILE_PART) || $part < 0 || $part >= $parts) {
+        mm_fail('bad_request');
+    }
+    $data = base64_decode(isset($req['data']) ? (string) $req['data'] : '', true);
+    $expected = $part < $parts - 1 ? MM_FILE_PART : $size - MM_FILE_PART * ($parts - 1);
+    if ($data === false || strlen($data) !== $expected) {
+        mm_fail('bad_request');
+    }
+    // Already whole: the answer to an earlier try was lost on the way back.
+    if (mm_file_meta($key) !== null) {
+        return array('ok' => true, 'done' => true);
+    }
+    $dir = mm_files_dir() . '/' . $key;
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700);
+    }
+    if (@file_put_contents($dir . '/' . $part . '.part', $data) === false) {
+        mm_fail('server');
+    }
+    if ($part < $parts - 1) {
+        return array('ok' => true, 'done' => false);
+    }
+    // The last part: whole if every part before it is here, in full.
+    clearstatcache();
+    for ($i = 0; $i < $parts; $i++) {
+        $file = $dir . '/' . $i . '.part';
+        $want = $i < $parts - 1 ? MM_FILE_PART : $size - MM_FILE_PART * ($parts - 1);
+        if (!is_file($file) || filesize($file) !== $want) {
+            return array('ok' => true, 'done' => false);
+        }
+    }
+    @file_put_contents($dir . '/meta.json', json_encode(array('parts' => $parts, 'mime' => $mime, 'size' => $size, 'at' => mm_now())));
+    return array('ok' => true, 'done' => true);
+}
+
+function mm_file_get($req)
+{
+    mm_auth($req);
+    $key = mm_clean_key(isset($req['key']) ? $req['key'] : '');
+    $part = isset($req['part']) ? (int) $req['part'] : 0;
+    $meta = mm_file_meta($key);
+    if ($meta === null) {
+        mm_fail('not_found');
+    }
+    if ($part < 0 || $part >= (int) $meta['parts']) {
+        mm_fail('bad_request');
+    }
+    $data = @file_get_contents(mm_files_dir() . '/' . $key . '/' . $part . '.part');
+    if ($data === false) {
+        mm_fail('not_found');
+    }
+    return array(
+        'ok' => true,
+        'parts' => (int) $meta['parts'],
+        'mime' => (string) $meta['mime'],
+        'size' => (int) $meta['size'],
+        'data' => base64_encode($data),
+    );
+}
+
+/** Which of these the server has not got whole: after a move, the phones send what they hold. */
+function mm_file_has($req)
+{
+    mm_auth($req);
+    $keys = isset($req['keys']) && is_array($req['keys']) ? $req['keys'] : array();
+    if (count($keys) > 1000) {
+        mm_fail('bad_request');
+    }
+    $missing = array();
+    foreach ($keys as $key) {
+        if (is_string($key) && preg_match('/^[0-9a-f]{32}$/', $key) && mm_file_meta($key) === null) {
+            $missing[] = $key;
+        }
+    }
+    return array('ok' => true, 'missing' => $missing);
+}
+
+// ---- A new owner's code, for an owner whose phone is gone -----------------------------------------
+
+/**
+ * A fresh access code with the owner's rights, for somebody who can prove the company is theirs by
+ * getting into the server itself — the hosting's file manager here, the Google account for the
+ * other one. Nothing a phone can ask for: an owner's lost phone must not leave the company with
+ * nobody to run it, and a worker must not be able to make themselves one.
+ */
+function mm_new_owner_code()
+{
+    return mm_write(function ($db) {
+        if (mm_company() === null) {
+            mm_fail('not_claimed');
+        }
+        $first = $db->query('SELECT name FROM mm_people WHERE owner = 1 ORDER BY id LIMIT 1')->fetch();
+        $name = mm_clean_name(($first ? $first['name'] : 'Owner') . ' (new phone)');
+        $all = array();
+        foreach (mm_perm_names() as $perm) {
+            $all[$perm] = true;
+        }
+        $code = mm_new_code();
+        $db->prepare(
+            'INSERT INTO mm_people (name, owner, perms, status, code, token_hash, device, created, joined, seen) ' .
+            "VALUES (?, 1, ?, 'pending', ?, NULL, NULL, ?, NULL, NULL)"
+        )->execute(array($name, json_encode($all), $code, mm_now()));
+        return $code;
+    });
 }
 
 // ---- Moving the company to another server ------------------------------------------------------
@@ -830,6 +1054,12 @@ function mm_handle($req)
             return mm_move_out($req);
         case 'move_done':
             return mm_move_done($req);
+        case 'file_put':
+            return mm_file_put($req);
+        case 'file_get':
+            return mm_file_get($req);
+        case 'file_has':
+            return mm_file_has($req);
     }
     mm_fail('bad_request');
 }
@@ -839,18 +1069,45 @@ function mm_handle($req)
 function mm_status_page()
 {
     header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: no-store');
     $state = 'The server is running, but it cannot open its database: ask the host whether PHP has SQLite (pdo_sqlite).';
     try {
         $company = mm_company();
         $state = $company === null
             ? 'The server is running and waiting to be set up. Open MixMaster on the employer\'s phone: Settings → Company → Set up.'
             : 'The server is running and set up for ' . htmlspecialchars($company['name'], ENT_QUOTES, 'UTF-8') . '.';
+        $state .= mm_recovery_note($company);
     } catch (Exception $e) {
         error_log('MixMaster: ' . $e->getMessage());
     }
     echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' .
         '<title>MixMaster server</title><body style="font-family:sans-serif;max-width:32em;margin:3em auto;padding:0 1em">' .
         '<h1>MixMaster</h1><p>' . $state . '</p></body>';
+}
+
+/**
+ * The file new-owner-code.txt, put in this folder with the hosting's file manager, is the owner
+ * asking for a new code: it is taken away first — so a code is made once per file, never on every
+ * visit — and the code is shown on this page, once.
+ */
+function mm_recovery_note($company)
+{
+    $trigger = __DIR__ . '/' . MM_RECOVER_FILE;
+    if ($company === null || !is_file($trigger)) {
+        return '';
+    }
+    if (!@unlink($trigger)) {
+        return '<p><b>' . MM_RECOVER_FILE . ' is here but could not be deleted.</b> Delete it in the file manager and add it again.</p>';
+    }
+    $code = mm_new_owner_code();
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+    $path = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '/mixmaster/api.php';
+    $shown = substr($code, 0, 4) . '-' . substr($code, 4) . '@' . $host . $path;
+    return '<p><b>A new owner\'s access code:</b></p>' .
+        '<p style="font-size:1.4em;font-family:monospace;word-break:break-all">' . htmlspecialchars($shown, ENT_QUOTES, 'UTF-8') . '</p>' .
+        '<p>Copy it now: it is shown only this once. On the new phone, install MixMaster and open ' .
+        'Settings → Company → I have an access code, and paste it in. Then, in People, take the lost phone ' .
+        'off: tap its name and remove it.</p>';
 }
 
 function mm_main()

@@ -33,7 +33,7 @@ object PhoneWipe {
         runCatching { NotificationManagerCompat.from(app).cancelAll() }
         runCatching { AppDatabase.closeAndReset() }
         app.databaseList().forEach { app.deleteDatabase(it) }
-        listOf("photos", "demo", "sheets").forEach { File(app.filesDir, it).deleteRecursively() }
+        listOf("photos", "blueprints", "demo", "sheets").forEach { File(app.filesDir, it).deleteRecursively() }
         // the reports and pick-up lists go to the app's own folder on the phone's storage
         (listOf(app.cacheDir) + app.externalCacheDirs.filterNotNull() + app.getExternalFilesDirs(null).filterNotNull())
             .forEach(::empty)

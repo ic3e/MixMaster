@@ -280,7 +280,7 @@ private fun ZoomablePicture(uri: String, onSwipe: (Int) -> Unit) {
                     },
             )
             failed -> Text(
-                text = stringResource(R.string.image_cant_open),
+                text = stringResource(if (uri.isBlank()) R.string.image_on_its_way else R.string.image_cant_open),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White,
                 textAlign = TextAlign.Center,

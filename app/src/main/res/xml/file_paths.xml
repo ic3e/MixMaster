@@ -3,6 +3,8 @@
     <external-files-path name="reports" path="reports/" />
     <!-- Safety and technical sheets copied into the app, handed to whatever opens a PDF. -->
     <files-path name="sheets" path="sheets/" />
+    <!-- Plans that came from the company, handed to whatever opens a PDF. -->
+    <files-path name="blueprints" path="blueprints/" />
     <!-- The downloaded APK, handed to Android's installer. -->
     <cache-path name="updates" path="updates/" />
     <!-- The company server's files, sent from the setup guide to whoever sets it up. -->

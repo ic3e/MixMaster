@@ -385,6 +385,9 @@
     <string name="prj_blueprint_n">Joonis %1$d</string>
     <string name="prj_blueprint_picture">Pilt · puuduta, et lähemalt vaadata</string>
     <string name="prj_blueprint_pdf">PDF · avaneb PDF-i vaatajas</string>
+    <string name="prj_blueprint_fetching">Tuuakse ettevõttest…</string>
+    <string name="prj_blueprint_not_yet">Veel ei saanud kätte · proovi mõne aja pärast uuesti</string>
+    <string name="prj_blueprint_tap_fetch">Tuleb ettevõttest · puuduta, et kohe tuua</string>
     <string name="prj_remove_blueprint">Eemalda joonis</string>
     <string name="prj_remove_blueprint_confirm">Kas eemaldada see joonis?</string>
     <string name="prj_remove_blueprint_confirm_body">See kaob sellelt projektilt. Fail ise jääb telefonis alles.</string>
@@ -491,7 +494,7 @@
     <string name="guide_tasks_1">Uus ülesanne: mida teha, millal on tähtaeg, kui kiire see on ja mis objekti jaoks.</string>
     <string name="guide_tasks_2">Kalender näitab iga objekti kuupäevi ja mis mis päeval tähtaeg on. Hilinenud ülesanne jääb üles, kuni see on tehtud.</string>
     <string name="guide_tasks_3">Märkmed ja fotod objekti juures hoiavad kogu meeskonna kursis — kes mida ja millal kirjutas.</string>
-    <string name="guide_company_1">Ettevõttes jagab iga telefon samu tooteid, objekte ja ladu. Mida üks muudab, jõuab levi olemasolul sekunditega teisteni.</string>
+    <string name="guide_company_1">Ettevõttes jagab iga telefon samu tooteid, objekte ja ladu, ka objekti fotosid ja jooniseid. Mida üks muudab, jõuab levi olemasolul sekunditega teisteni.</string>
     <string name="guide_company_2">Omanik lisab inimesi menüüs Seaded → Ettevõte ja valib, mida keegi muuta tohib: tooted, projektid, ladu, objekt.</string>
     <string name="guide_company_3">„Jaga“ saadab inimesele tema ligipääsukoodi. Tema telefonis läheb see alla „Mul on ligipääsukood“, ja ta on sees.</string>
     <string name="guide_company_4">Eemalda keegi ja järgmisel ühendusel tühjendatakse MixMaster tema telefonis — alles jääb ainult Pour Day.</string>
@@ -558,6 +561,8 @@
     <string name="addon_rate_label">%1$s %2$s iga %3$s kg kohta</string>
 
     <string name="image_cant_open">Ei saa avada</string>
+
+    <string name="image_on_its_way">Tuleb ettevõttest</string>
     <string name="home_quick_calculate_sub">Saa täpne segu jaotus sekunditega</string>
 
     <string name="batch_none">—</string>
@@ -914,6 +919,14 @@
     <string name="co_status_sending">Saadan %1$d muudatust…</string>
     <string name="co_status_waiting">Ühendus puudub · %1$d muudatust ootab saatmist</string>
     <string name="co_kept_website">Andmeid hoitakse: %1$s</string>
+    <string name="co_files_title">Fotod ja joonised jäävad igasse telefoni eraldi</string>
+    <string name="co_files_body">Selle ettevõtte server seati üles enne, kui see oskas fotosid ja jooniseid hoida. Uuenda seda (serveri juhendis, jaotises „Serveri uuendamine”) ja neid jagatakse nagu kõike muud, ka neid, mis on telefonides juba olemas.</string>
+    <string name="co_files_how">Kuidas uuendada</string>
+    <string name="co_files_check">Uuendasin ära</string>
+    <plurals name="co_files_waiting">
+        <item quantity="one">%d foto või joonis on veel teel</item>
+        <item quantity="other">%d fotot või joonist on veel teel</item>
+    </plurals>
     <string name="co_kept_google">Andmeid hoitakse ettevõtte Google’i kontol</string>
     <string name="co_sync_now">Sünkrooni kohe</string>
     <string name="co_my_perms">Mida saad muuta</string>
@@ -1029,7 +1042,7 @@
     <string name="co_g6b">Kaks olulist seadet — kontrolli mõlemat enne Deploy vajutamist: Execute as: Me ja Who has access: Anyone (lihtsalt „Anyone”, mitte „Anyone with a Google account”). Kui see jääb tegemata, ei jõua rakendus serverini. Hiljem saab seda parandada ilma aadressi muutmata: Deploy → Manage deployments → pliiats.</string>
     <string name="co_g7">Kopeeri Web app URL — see lõpeb /exec — ja saada see oma telefoni (e-kiri või sõnum iseendale).</string>
     <string name="co_g8">Kleebi see aadress MixMasteris sinna, kus küsitakse serveri aadressi.</string>
-    <string name="co_g_note">Andmeid hoitakse selle konto Drive’is Google’i tabelis „MixMaster data” — vaadata võib, muuta ei tasu. Kui skripti kunagi muudetakse, avalda see Deploy → Manage deployments → pliiats → New version kaudu, et aadress jääks samaks.</string>
+    <string name="co_g_note">Andmeid hoitakse selle konto Drive’is Google’i tabelis „MixMaster data” ning fotosid ja jooniseid kaustas „MixMaster files” — vaadata võib, muuta ei tasu. Kui skripti kunagi muudetakse, avalda see Deploy → Manage deployments → pliiats → New version kaudu, et aadress jääks samaks.</string>
     <string name="co_w1">Vajuta selles telefonis allolevat nuppu ja saada veebilehe failid oma e-postile.</string>
     <string name="co_w2">Salvesta arvutis e-kirjast zip-fail ja paki see lahti. Sees on kaust nimega „mixmaster”.</string>
     <string name="co_w3">Logi sisse veebilehe majutuse juhtpaneeli (kus veebilehe ja domeeni eest makstakse) ja ava failihaldur (File Manager).</string>
@@ -1037,6 +1050,24 @@
     <string name="co_w5">Ava brauseris sinu-veebileht/mixmaster/api.php. Seal peaks olema kirjas „The server is running and waiting to be set up.”</string>
     <string name="co_w6">Sisesta MixMasteris serveri aadressiks sinu-veebileht/mixmaster.</string>
     <string name="co_w_note">Vaja on majutust, mis käitab PHP-d — peaaegu kõik käitavad; veebilehe koostajad nagu Wix või Squarespace mitte. Aadress peab algama https:// (tabalukk); kui mitte, lülita juhtpaneelis sisse tasuta sertifikaat (Let’s Encrypt).</string>
+    <string name="co_update_title">Serveri uuendamine</string>
+    <string name="co_update_intro">Uus MixMaster võib vajada uuemat serverit: see hoiab ettevõtte fotosid ja jooniseid. Ettevõtte andmed jäävad samaks ja telefonides ei pea midagi tegema.</string>
+    <string name="co_gu1">Saada serveri fail allpool oleva nupuga endale. See on uus fail, rakenduse sellest versioonist.</string>
+    <string name="co_gu2">Ava arvutis ettevõtte Google’i kontos script.google.com ja ava MixMasteri projekt.</string>
+    <string name="co_gu3">Vali Code.gs-is kõik (Ctrl+A) ja kustuta, kleebi uus fail selle asemele (Ctrl+V) ja salvesta ketta nupuga.</string>
+    <string name="co_gu4">Vali Run nupu kõrvalt „prepare” ja vajuta Run. Google küsib uuesti luba, sest server hoiab nüüd fotosid ja jooniseid konto Drive’is. Luba see samamoodi nagu esimesel korral.</string>
+    <string name="co_gu5">Deploy → Manage deployments → pliiats → Version: New version → Deploy. Aadress jääb samaks.</string>
+    <string name="co_wu1">Saada veebilehe failid allpool oleva nupuga endale ja paki need arvutis lahti.</string>
+    <string name="co_wu2">Ava majutuse failihalduris (File Manager) kaust mixmaster ja laadi uus api.php sinna üles, vana asemele. Kausta data ära puutu: seal on ettevõtte andmed.</string>
+    <string name="co_wu3">Ava brauseris sinu-veebileht/mixmaster/api.php. Seal peaks olema kirjas, et server töötab ja on sinu ettevõttele üles seatud.</string>
+    <string name="co_lost_title">Kui omaniku telefon kaob</string>
+    <string name="co_lost_intro">Ettevõtte andmed on serveris, mitte telefonis, nii et midagi ei kao. Uue omaniku koodi saab teha ainult serveris endas, nii et seda saab teha ainult see, kes pääseb ettevõtte Google’i kontole või veebilehe majutusse.</string>
+    <string name="co_gl1">Ava arvutis ettevõtte Google’i kontos script.google.com ja ava MixMasteri projekt.</string>
+    <string name="co_gl2">Vali Run nupu kõrvalt „newOwnerCode” ja vajuta Run. Uue omaniku kood ilmub all olevasse logisse: kaheksa tähte, @ ja serveri aadress.</string>
+    <string name="co_wl1">Ava majutuse failihalduris (File Manager) kaust mixmaster ja tee sinna uus fail nimega new-owner-code.txt. See võib olla tühi.</string>
+    <string name="co_wl2">Ava brauseris sinu-veebileht/mixmaster/api.php. Leht näitab uue omaniku koodi, ainult seekord, ja kustutab faili.</string>
+    <string name="co_lost_join">Paigalda uude telefoni MixMaster, ava Seaded → Ettevõte → Mul on ligipääsukood ja kleebi kood sinna. Ettevõtte andmed tulevad telefoni.</string>
+    <string name="co_lost_remove">Seejärel puuduta jaotises Inimesed kadunud telefoni nime ja eemalda see. Kui see telefon kunagi uuesti ühendub, tühjendatakse MixMaster selles.</string>
     <string name="co_err_page_said">Vastanud leht: „%1$s”</string>
     <string name="co_err_google_dev">See on testaadress (lõpeb /dev). Kasuta Web app URL-i, mis lõpeb /exec: Deploy → Manage deployments.</string>
     <string name="co_err_google_editor">See on skriptiredaktori aadress. Kasutada tuleb Web app URL-i kohast Deploy → Manage deployments — see lõpeb /exec.</string>

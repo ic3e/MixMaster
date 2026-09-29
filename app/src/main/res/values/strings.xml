@@ -406,6 +406,9 @@
     <string name="prj_blueprint_n">Blueprint %1$d</string>
     <string name="prj_blueprint_picture">Picture · tap to look closer</string>
     <string name="prj_blueprint_pdf">PDF · opens in your PDF viewer</string>
+    <string name="prj_blueprint_fetching">Fetching from the company…</string>
+    <string name="prj_blueprint_not_yet">Couldn’t fetch it yet · try again in a while</string>
+    <string name="prj_blueprint_tap_fetch">On its way from the company · tap to fetch now</string>
     <string name="prj_remove_blueprint">Remove blueprint</string>
     <string name="prj_remove_blueprint_confirm">Remove this blueprint?</string>
     <string name="prj_remove_blueprint_confirm_body">It comes off this project. The file itself stays where it is on the phone.</string>
@@ -514,7 +517,7 @@
     <string name="guide_tasks_1">A new task: what needs doing, when it’s due, how urgent it is and which job it’s for.</string>
     <string name="guide_tasks_2">The calendar shows each job’s dates and what’s due on each day. A late task stays on top until it’s done.</string>
     <string name="guide_tasks_3">Notes and photos on a job keep the whole crew up to date, with who wrote what and when.</string>
-    <string name="guide_company_1">In a company, every phone shares the same products, jobs and shelf. What one changes reaches the others in seconds while there’s signal.</string>
+    <string name="guide_company_1">In a company, every phone shares the same products, jobs and shelf, and the photos and blueprints on a job too. What one changes reaches the others in seconds while there’s signal.</string>
     <string name="guide_company_2">The owner adds people under Settings → Company and chooses what each may change: products, projects, the warehouse, the site.</string>
     <string name="guide_company_3">Share sends a person their access code. On their phone it goes in under I have an access code, and they’re in.</string>
     <string name="guide_company_4">Remove someone and, the next time their phone connects, MixMaster on it is emptied — only Pour Day is left.</string>
@@ -586,6 +589,8 @@
     <string name="addon_rate_label">%1$s %2$s per kg of %3$s</string>
 
     <string name="image_cant_open">Can\'t open</string>
+
+    <string name="image_on_its_way">On its way from the company</string>
     <string name="home_quick_calculate_sub">Get an exact mix split in seconds</string>
 
     <!-- Batching -->
@@ -944,6 +949,14 @@
     <string name="co_status_sending">Sending %1$d changes…</string>
     <string name="co_status_waiting">No connection · %1$d changes waiting to go</string>
     <string name="co_kept_website">Data kept on %1$s</string>
+    <string name="co_files_title">Photos and blueprints stay on each phone</string>
+    <string name="co_files_body">This company’s server was set up before it could keep photos and blueprints. Update it (the server guide shows how, under Updating the server) and they are shared like everything else, the ones already on the phones too.</string>
+    <string name="co_files_how">How to update</string>
+    <string name="co_files_check">I’ve updated it</string>
+    <plurals name="co_files_waiting">
+        <item quantity="one">%d photo or blueprint still on its way</item>
+        <item quantity="other">%d photos or blueprints still on their way</item>
+    </plurals>
     <string name="co_kept_google">Data kept in the company’s Google account</string>
     <string name="co_sync_now">Sync now</string>
     <string name="co_my_perms">What you can change</string>
@@ -1059,7 +1072,7 @@
     <string name="co_g6b">The two settings that matter — check them both before you click Deploy: Execute as: Me, and Who has access: Anyone (plain “Anyone”, not “Anyone with a Google account”). If this is missed, the app can’t reach the server. It can be fixed later without a new address: Deploy → Manage deployments → pencil.</string>
     <string name="co_g7">Copy the Web app URL — it ends in /exec — and send it to your phone (email or a message to yourself).</string>
     <string name="co_g8">Back in MixMaster, paste that address where it asks for the server address.</string>
-    <string name="co_g_note">The data is kept in a Google Sheet called “MixMaster data” in that account’s Drive — look, but don’t edit it. If the script is ever changed, publish it with Deploy → Manage deployments → pencil → New version, so its address stays the same.</string>
+    <string name="co_g_note">The data is kept in a Google Sheet called “MixMaster data”, and the photos and blueprints in a folder called “MixMaster files”, in that account’s Drive: look, but don’t edit them. If the script is ever changed, publish it with Deploy → Manage deployments → pencil → New version, so its address stays the same.</string>
     <string name="co_w1">On this phone, tap the button below and send the website files to your own email.</string>
     <string name="co_w2">On a computer, save the zip file from the email and unzip it. Inside is a folder called “mixmaster”.</string>
     <string name="co_w3">Log in to the website’s hosting control panel (where the website and domain are paid for) and open the File Manager.</string>
@@ -1067,6 +1080,24 @@
     <string name="co_w5">Open your-website/mixmaster/api.php in a browser. It should say “The server is running and waiting to be set up.”</string>
     <string name="co_w6">Back in MixMaster, enter your-website/mixmaster as the server address.</string>
     <string name="co_w_note">It needs hosting that runs PHP — nearly all do; website builders like Wix or Squarespace don’t. The address must start with https:// (the padlock); if it doesn’t, switch on the free certificate (Let’s Encrypt) in the control panel.</string>
+    <string name="co_update_title">Updating the server</string>
+    <string name="co_update_intro">A new MixMaster can need a newer server: this one keeps the company’s photos and blueprints. The company’s data stays as it is, and nothing needs doing on the phones.</string>
+    <string name="co_gu1">Send the server file to yourself with the button below. It is the new one, from this version of the app.</string>
+    <string name="co_gu2">On a computer, open script.google.com in the company’s Google account and open the MixMaster project.</string>
+    <string name="co_gu3">Select everything in Code.gs (Ctrl+A) and delete it, paste the new file in its place (Ctrl+V) and save with the disk button.</string>
+    <string name="co_gu4">Next to Run, pick “prepare” and press Run. Google asks for permission again, because the server now keeps photos and blueprints in the account’s Drive. Allow it the same way as the first time.</string>
+    <string name="co_gu5">Deploy → Manage deployments → pencil → Version: New version → Deploy. The address stays the same.</string>
+    <string name="co_wu1">Send the website files to yourself with the button below and unzip them on a computer.</string>
+    <string name="co_wu2">In the hosting’s File Manager, open the mixmaster folder and upload the new api.php into it, replacing the old one. Leave the data folder alone: the company’s data is in it.</string>
+    <string name="co_wu3">Open your-website/mixmaster/api.php in a browser. It should say the server is running and set up for your company.</string>
+    <string name="co_lost_title">If the owner’s phone is lost</string>
+    <string name="co_lost_intro">The company’s data is on the server, not on the phone, so nothing is lost. A new owner’s code is made in the server itself, so only someone who can get into the company’s Google account or website can make one.</string>
+    <string name="co_gl1">On a computer, open script.google.com in the company’s Google account and open the MixMaster project.</string>
+    <string name="co_gl2">Next to Run, pick “newOwnerCode” and press Run. The new owner’s code appears in the log at the bottom: eight letters, @ and the server’s address.</string>
+    <string name="co_wl1">In the hosting’s File Manager, open the mixmaster folder and make a new file there called new-owner-code.txt. It can be empty.</string>
+    <string name="co_wl2">Open your-website/mixmaster/api.php in a browser. The page shows a new owner’s code, only this once, and deletes the file.</string>
+    <string name="co_lost_join">On the new phone, install MixMaster, open Settings → Company → I have an access code and paste the code in. The company’s data comes down to it.</string>
+    <string name="co_lost_remove">Then, under People, tap the lost phone’s name and remove it. If that phone ever connects again, MixMaster on it is emptied.</string>
     <string name="co_err_page_said">The page that answered: “%1$s”</string>
     <string name="co_err_google_dev">That is the test address (it ends in /dev). Use the Web app URL that ends in /exec: Deploy → Manage deployments.</string>
     <string name="co_err_google_editor">That is the address of the script editor. The one to use is the Web app URL from Deploy → Manage deployments — it ends in /exec.</string>

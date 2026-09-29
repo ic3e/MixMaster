@@ -11,7 +11,7 @@
 
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +54,13 @@ async function websiteServer() {
     },
     async page() {
       return (await fetch(`http://127.0.0.1:${port}/api.php`)).text();
+    },
+    // The owner asking for a new code the way the guide says: a file put in the folder by hand.
+    askForOwnerCode() {
+      writeFileSync(join(dir, 'new-owner-code.txt'), '');
+    },
+    ownerCodeFileGone() {
+      return !existsSync(join(dir, 'new-owner-code.txt'));
     },
     stop() {
       php.kill();
@@ -180,8 +187,46 @@ function fakeGoogle() {
     insertSheet(name) { const s = new Sheet(name); this.sheets.push(s); return s; }
   }
 
+  // Drive, as far as the photos and plans use it: folders of files found by name.
+  const folders = new Map();
+  const toSigned = (buf) => Array.from(buf).map((b) => (b > 127 ? b - 256 : b));
+  const toUnsigned = (bytes) => Buffer.from(bytes.map((b) => (b + 256) % 256));
+  class Blob {
+    constructor(bytes, type, name) { Object.assign(this, { bytes, type, name }); }
+    getBytes() { return this.bytes.slice(); }
+    getDataAsString() { return toUnsigned(this.bytes).toString('utf8'); }
+  }
+  const walk = (list) => { let i = 0; return { hasNext: () => i < list.length, next: () => list[i++] }; };
+  class DriveFile {
+    constructor(blob) { Object.assign(this, { id: randomUUID(), name: blob.name, blob, trashed: false }); }
+    getId() { return this.id; }
+    getName() { return this.name; }
+    getSize() { return this.blob.bytes.length; }
+    getBlob() { return this.blob; }
+    setTrashed(t) { this.trashed = t; return this; }
+    isTrashed() { return this.trashed; }
+  }
+  class Folder {
+    constructor(name) { Object.assign(this, { id: randomUUID(), name, files: [] }); }
+    getId() { return this.id; }
+    getUrl() { return `https://drive.google.com/drive/folders/${this.id}`; }
+    isTrashed() { return false; }
+    createFile(blob) { const f = new DriveFile(blob); this.files.push(f); return f; }
+    getFilesByName(name) { return walk(this.files.filter((f) => f.name === name)); }
+    searchFiles(query) {
+      const m = /^title contains '([^']*)'$/.exec(query);
+      if (!m) throw new Error(`query not understood: ${query}`);
+      return walk(this.files.filter((f) => f.name.includes(m[1])));
+    }
+  }
+
   return {
     books,
+    folders,
+    DriveApp: {
+      createFolder(name) { const f = new Folder(name); folders.set(f.id, f); return f; },
+      getFolderById(id) { const f = folders.get(id); if (!f) throw new Error('not found'); return f; },
+    },
     SpreadsheetApp: {
       create(name) { const b = new Book(name); books.set(b.id, b); return b; },
       openById(id) { const b = books.get(id); if (!b) throw new Error('not found'); return b; },
@@ -217,6 +262,11 @@ function fakeGoogle() {
       DigestAlgorithm: { SHA_256: 'sha256' },
       Charset: { UTF_8: 'utf8' },
       getUuid: () => randomUUID(),
+      newBlob(data, type, name) {
+        return new Blob(typeof data === 'string' ? toSigned(Buffer.from(data, 'utf8')) : data.slice(), type, name);
+      },
+      base64Encode: (bytes) => toUnsigned(bytes).toString('base64'),
+      base64Decode: (text) => toSigned(Buffer.from(text, 'base64')),
       computeDigest(alg, text) {
         return Array.from(createHash('sha256').update(String(text), 'utf8').digest()).map((b) => (b > 127 ? b - 256 : b));
       },
@@ -238,6 +288,10 @@ function googleServer() {
     },
     async page() {
       return context.doGet().getContent();
+    },
+    // What the owner runs from the script editor.
+    newOwnerCode() {
+      return context.newOwnerCode();
     },
     stop() {},
   };
@@ -545,6 +599,138 @@ async function moving(oldServer, newServer, spareServer) {
   check('move: bad company id', r.error === 'bad_request', r);
 }
 
+// ---- Photos and plans --------------------------------------------------------------------------
+
+const PART = 1536 * 1024;
+
+async function files(server) {
+  const call = server.call.bind(server);
+  let r = await call({ a: 'hello' });
+  check('files: hello says files', r.files === true, r);
+  r = await call({ a: 'setup', company_name: 'ConWiC Oy', name: 'Tanel', device: 'devA' });
+  const owner = r.token;
+  const company = r.company.id;
+  const o = (body) => call({ token: owner, company, device: 'devA', ...body });
+  r = await o({ a: 'person_save', person: { name: 'Mari' } });
+  r = await call({ a: 'join', code: r.person.code, device: 'devW' });
+  const worker = r.token;
+  const w = (body) => call({ token: worker, company, device: 'devW', ...body });
+  r = await o({ a: 'person_save', person: { name: 'Guest', perms: { catalogue: false, projects: false, warehouse: true, site: false } } });
+  r = await call({ a: 'join', code: r.person.code, device: 'devG' });
+  const guest = r.token;
+  const g = (body) => call({ token: guest, company, device: 'devG', ...body });
+
+  // A plan of three and a half megabytes: two full parts and a short one.
+  const size = PART * 2 + 512 * 1024 + 7;
+  const bytes = Buffer.alloc(size);
+  for (let i = 0; i < size; i++) bytes[i] = (i * 31 + 7) % 256;
+  const key = 'a'.repeat(31) + '1';
+  const parts = Math.ceil(size / PART);
+  const piece = (i) => bytes.subarray(i * PART, Math.min(size, (i + 1) * PART)).toString('base64');
+  const put = (who, i, extra = {}) => who({ a: 'file_put', key, part: i, parts, size, mime: 'application/pdf', data: piece(i), ...extra });
+
+  r = await g({ a: 'file_put', key, part: 0, parts, size, mime: 'application/pdf', data: piece(0) });
+  check('files: no site or project rights, no upload', r.error === 'not_allowed', r);
+  r = await o({ a: 'file_put', key: 'NOTAKEY', part: 0, parts, size, mime: 'application/pdf', data: piece(0) });
+  check('files: bad key', r.error === 'bad_request', r);
+  r = await o({ a: 'file_put', key, part: 0, parts: 9, size, mime: 'application/pdf', data: piece(0) });
+  check('files: parts must fit the size', r.error === 'bad_request', r);
+  r = await o({ a: 'file_put', key, part: 1, parts, size, mime: 'application/pdf', data: piece(2) });
+  check('files: a part of the wrong length', r.error === 'bad_request', r);
+
+  r = await o({ a: 'file_has', keys: [key] });
+  check('files: missing before', r.ok && r.missing.length === 1 && r.missing[0] === key, r);
+  r = await put(o, 0);
+  check('files: first part', r.ok && r.done === false, r);
+  r = await put(o, 2);
+  check('files: last part with one missing is not whole', r.ok && r.done === false, r);
+  r = await o({ a: 'file_get', key, part: 0 });
+  check('files: not there until whole', r.error === 'not_found', r);
+  r = await put(o, 1);
+  r = await put(o, 2);
+  check('files: whole', r.ok && r.done === true, r);
+  r = await put(o, 2);
+  check('files: again is fine', r.ok && r.done === true, r);
+  r = await w({ a: 'file_has', keys: [key, 'b'.repeat(32), 'junk'] });
+  check('files: has', r.ok && r.missing.length === 1 && r.missing[0] === 'b'.repeat(32), r);
+
+  const back = [];
+  for (let i = 0; i < parts; i++) {
+    r = await w({ a: 'file_get', key, part: i });
+    if (!r.ok) { check('files: get part', false, r); break; }
+    check('files: what it is', r.parts === parts && r.size === size && r.mime === 'application/pdf', r);
+    back.push(Buffer.from(r.data, 'base64'));
+  }
+  check('files: the same bytes back', Buffer.concat(back).equals(bytes), Buffer.concat(back).length);
+  r = await g({ a: 'file_get', key, part: 0 });
+  check('files: everybody may look', r.ok, r.error);
+  r = await w({ a: 'file_get', key, part: parts });
+  check('files: no such part', r.error === 'bad_request', r);
+  r = await call({ a: 'file_get', token: 'nope', company, key, part: 0 });
+  check('files: strangers get nothing', r.error === 'revoked', r);
+
+  // The rows: a worker's photo is site work, a plan is the office's.
+  const photoKey = 'c'.repeat(32);
+  r = await w({ a: 'file_put', key: photoKey, part: 0, parts: 1, size: 5, mime: 'image/jpeg', data: Buffer.from('hello').toString('base64') });
+  check('files: worker photo file', r.ok && r.done === true, r);
+  r = await w({ a: 'push', rows: [
+    { t: 'photos', id: '41', d: JSON.stringify({ id: 41, projectId: 9, fileKey: photoKey, caption: 'Primer' }) },
+    { t: 'blueprints', id: '42', d: JSON.stringify({ id: 42, projectId: 9, fileKey: key, name: 'Plan.pdf' }) },
+  ] });
+  check('files: worker adds a photo, not a plan', r.ok && r.refused.length === 1 && r.refused[0].t === 'blueprints', r);
+  r = await o({ a: 'push', rows: [{ t: 'blueprints', id: '42', d: JSON.stringify({ id: 42, projectId: 9, fileKey: key, name: 'Plan.pdf' }) }] });
+  check('files: owner adds the plan', r.ok && r.refused.length === 0, r);
+
+  r = await w({ a: 'push', rows: [{ t: 'photos', id: '41', x: true }] });
+  check('files: photo taken off', r.ok && r.refused.length === 0, r);
+  r = await o({ a: 'file_has', keys: [photoKey, key] });
+  check('files: its file goes with it, the plan stays', r.ok && r.missing.length === 1 && r.missing[0] === photoKey, r);
+  r = await w({ a: 'push', rows: [{ t: 'blueprints', id: '42', x: true }] });
+  r = await o({ a: 'file_has', keys: [key] });
+  check('files: a refused delete keeps the file', r.ok && r.missing.length === 0, r);
+  r = await o({ a: 'push', rows: [{ t: 'blueprints', id: '42', x: true }] });
+  r = await o({ a: 'file_has', keys: [key] });
+  check('files: plan taken off by the owner', r.ok && r.missing.length === 1, r);
+}
+
+// ---- A new owner's code, for an owner whose phone is gone ---------------------------------------
+
+async function recovery(server) {
+  const call = server.call.bind(server);
+  let r = await call({ a: 'setup', company_name: 'ConWiC Oy', name: 'Tanel', device: 'devA' });
+  const lost = r.token;
+  const company = r.company.id;
+  const address = 'https://script.google.com/macros/s/AKfycbTEST/exec';
+  await call({ a: 'pull', token: lost, company, device: 'devA', since: 0, address });
+
+  let shown;
+  if (server.name === 'website') {
+    check('recovery: no code without the file', !/new owner/i.test(await server.page()));
+    server.askForOwnerCode();
+    const page = await server.page();
+    shown = /([2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}@[^<\s]+)/.exec(page)?.[1];
+    check('recovery: code on the page', Boolean(shown) && shown.endsWith('/api.php'), page.slice(0, 600));
+    check('recovery: the file is taken away', server.ownerCodeFileGone());
+    const again = await server.page();
+    check('recovery: shown once', !again.includes(shown || 'none'), again.slice(0, 300));
+  } else {
+    shown = server.newOwnerCode();
+    check('recovery: code with the address', /^[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}@script\.google\.com\/macros\/s\/AKfycbTEST\/exec$/.test(shown), shown);
+  }
+  const code = (shown || '').split('@')[0];
+  r = await call({ a: 'join', code, device: 'devNew' });
+  check('recovery: joins as an owner', r.ok && r.me.owner === true && r.me.name === 'Tanel (new phone)', r);
+  const fresh = r.token;
+  const n = (body) => call({ token: fresh, company, device: 'devNew', ...body });
+  r = await n({ a: 'people' });
+  const old = r.people?.find((p) => p.name === 'Tanel');
+  check('recovery: runs the company again', r.ok && r.people.length === 2 && old, r);
+  r = await n({ a: 'person_remove', id: old?.id });
+  check('recovery: the lost phone taken off', r.ok && r.people.length === 1, r);
+  r = await call({ a: 'pull', token: lost, company, since: 0 });
+  check('recovery: the lost phone is out', r.error === 'revoked', r);
+}
+
 const which = process.argv[2];
 const servers = [];
 if (!which || which === 'website') servers.push(websiteServer);
@@ -562,6 +748,22 @@ for (const make of servers) {
     server.stop();
   }
   console.log(`${server.name}: ${failures === before ? 'all good' : `${failures - before} failed`}`);
+}
+for (const make of servers) {
+  for (const test of [files, recovery]) {
+    const server = await make();
+    const before = failures;
+    try {
+      await test(server);
+    } catch (e) {
+      failures++;
+      console.log(`  CRASH ${e.stack}`);
+      if (server.log) console.log(server.log.slice(-3000));
+    } finally {
+      server.stop();
+    }
+    console.log(`${server.name} ${test.name}: ${failures === before ? 'all good' : `${failures - before} failed`}`);
+  }
 }
 for (const make of servers) {
   const trio = [await make(), await make(), await make()];

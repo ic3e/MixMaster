@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.room.withTransaction
 import com.conwic.mixmaster.MainActivity
+import com.conwic.mixmaster.data.company.FileSync
 import com.conwic.mixmaster.data.db.AppDatabase
 import com.conwic.mixmaster.data.db.entity.BlueprintEntity
 import com.conwic.mixmaster.data.db.entity.DeliveryEntity
@@ -726,7 +727,7 @@ object DemoData {
         withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(app)
             // The files behind the photos, the plans and the sheets go with their rows.
-            listOf("photos", DemoDir, "sheets").forEach { File(app.filesDir, it).deleteRecursively() }
+            listOf("photos", FileSync.PLANS_DIR, DemoDir, "sheets").forEach { File(app.filesDir, it).deleteRecursively() }
             val sheets = mutableMapOf<String, String>()
             db.withTransaction {
                 val sql = db.openHelper.writableDatabase
@@ -799,7 +800,14 @@ object DemoData {
             }
             job.plans.forEach { (asset, name) ->
                 db.blueprintDao().insert(
-                    BlueprintEntity(projectId = projectId, uri = keep(app, asset, DemoDir), name = name, mimeType = "image/png", addedAt = daysAgo(10, 9)),
+                    BlueprintEntity(
+                        projectId = projectId,
+                        uri = keep(app, asset, DemoDir),
+                        name = name,
+                        mimeType = "image/png",
+                        addedAt = daysAgo(10, 9),
+                        fileKey = FileSync.newKey(),
+                    ),
                 )
             }
             job.photos.forEach { photo ->
@@ -810,6 +818,7 @@ object DemoData {
                         uri = keep(app, photo.asset, "photos"),
                         caption = photo.caption,
                         takenAt = daysAgo(photo.daysAgo, 14),
+                        fileKey = FileSync.newKey(),
                     ),
                 )
             }

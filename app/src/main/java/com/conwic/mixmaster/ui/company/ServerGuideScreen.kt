@@ -26,10 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.conwic.mixmaster.R
+import com.conwic.mixmaster.data.company.CompanyStore
 import com.conwic.mixmaster.data.company.ServerFiles
+import com.conwic.mixmaster.data.company.ServerKind
 import com.conwic.mixmaster.ui.components.CardFlat
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
+import com.conwic.mixmaster.ui.components.SectionLabel
 import com.conwic.mixmaster.ui.components.SegmentedTabs
 import com.conwic.mixmaster.ui.components.pagePadding
 
@@ -44,7 +47,11 @@ import com.conwic.mixmaster.ui.components.pagePadding
 @Composable
 fun ServerGuideScreen(navController: NavHostController) {
     val context = LocalContext.current
-    var tab by rememberSaveable { mutableStateOf(0) }
+    // Open on the kind of server the company already has: someone here to update it, or to get
+    // back in after losing the owner's phone, has no use for the other one.
+    var tab by rememberSaveable {
+        mutableStateOf(if (CompanyStore.current(context.applicationContext)?.kind == ServerKind.WEBSITE) 1 else 0)
+    }
     val subject = stringResource(R.string.co_guide_send_subject)
     val chooser = stringResource(R.string.co_guide_chooser)
 
@@ -57,6 +64,19 @@ fun ServerGuideScreen(navController: NavHostController) {
     val websiteSteps = listOf(
         R.string.co_w1, R.string.co_w2, R.string.co_w3, R.string.co_w4, R.string.co_w5, R.string.co_w6,
     )
+    val googleUpdate = listOf(R.string.co_gu1, R.string.co_gu2, R.string.co_gu3, R.string.co_gu4, R.string.co_gu5)
+    val websiteUpdate = listOf(R.string.co_wu1, R.string.co_wu2, R.string.co_wu3)
+    // Proof that the company is theirs is getting into the server itself: the Google account, or
+    // the website's hosting. Nothing a phone can ask for.
+    val googleLost = listOf(R.string.co_gl1, R.string.co_gl2, R.string.co_lost_join, R.string.co_lost_remove)
+    val websiteLost = listOf(R.string.co_wl1, R.string.co_wl2, R.string.co_lost_join, R.string.co_lost_remove)
+    val send = {
+        if (tab == 0) {
+            ServerFiles.share(context, ServerFiles.googleScript(context), "text/plain", subject, chooser)
+        } else {
+            ServerFiles.share(context, ServerFiles.websiteZip(context), "application/zip", subject, chooser)
+        }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -87,13 +107,7 @@ fun ServerGuideScreen(navController: NavHostController) {
                     if (index == 0) {
                         PrimaryButton(
                             text = stringResource(if (tab == 0) R.string.co_guide_send_google else R.string.co_guide_send_website),
-                            onClick = {
-                                if (tab == 0) {
-                                    ServerFiles.share(context, ServerFiles.googleScript(context), "text/plain", subject, chooser)
-                                } else {
-                                    ServerFiles.share(context, ServerFiles.websiteZip(context), "application/zip", subject, chooser)
-                                }
-                            },
+                            onClick = send,
                             modifier = Modifier.fillMaxWidth().padding(start = 36.dp, top = 4.dp, bottom = 10.dp),
                         )
                     }
@@ -106,6 +120,47 @@ fun ServerGuideScreen(navController: NavHostController) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        item {
+            StepsCard(
+                title = stringResource(R.string.co_update_title),
+                intro = stringResource(R.string.co_update_intro),
+                steps = if (tab == 0) googleUpdate else websiteUpdate,
+            ) {
+                PrimaryButton(
+                    text = stringResource(if (tab == 0) R.string.co_guide_send_google else R.string.co_guide_send_website),
+                    onClick = send,
+                    modifier = Modifier.fillMaxWidth().padding(start = 36.dp, top = 4.dp, bottom = 10.dp),
+                )
+            }
+        }
+        item {
+            StepsCard(
+                title = stringResource(R.string.co_lost_title),
+                intro = stringResource(R.string.co_lost_intro),
+                steps = if (tab == 0) googleLost else websiteLost,
+                afterFirst = null,
+            )
+        }
+    }
+}
+
+/** A task on the server done now and then, step by step: [afterFirst] goes under the first step. */
+@Composable
+private fun StepsCard(title: String, intro: String, steps: List<Int>, afterFirst: (@Composable () -> Unit)?) {
+    Column {
+        SectionLabel(text = title)
+        Text(
+            text = intro,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+        )
+        CardFlat {
+            steps.forEachIndexed { index, step ->
+                StepRow(number = index + 1, text = stringResource(step))
+                if (index == 0 && afterFirst != null) afterFirst()
+            }
         }
     }
 }

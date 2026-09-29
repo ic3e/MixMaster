@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
@@ -46,9 +47,11 @@ import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.company.AccessCode
 import com.conwic.mixmaster.data.company.CompanyLink
+import com.conwic.mixmaster.data.company.FileSync
 import com.conwic.mixmaster.data.company.Perms
 import com.conwic.mixmaster.data.company.Person
 import com.conwic.mixmaster.data.company.ServerKind
+import com.conwic.mixmaster.data.company.SyncEngine
 import com.conwic.mixmaster.data.company.SyncStatus
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.components.ActionLink
@@ -85,6 +88,8 @@ fun CompanyScreen(navController: NavHostController) {
     val link by viewModel.link.collectAsState()
     val status by viewModel.status.collectAsState()
     val ui by viewModel.ui.collectAsState()
+    val filesShared by SyncEngine.filesShared.collectAsState()
+    val filesWaiting by FileSync.waiting.collectAsState()
 
     // The person whose sheet is open; a blank one while adding somebody new.
     var editing by remember { mutableStateOf<Person?>(null) }
@@ -167,7 +172,18 @@ fun CompanyScreen(navController: NavHostController) {
                 )
             }
         } else {
-            item { CompanyCard(link = current, status = status, onSync = viewModel::syncNow) }
+            item {
+                CompanyCard(
+                    link = current,
+                    status = status,
+                    filesWaiting = if (filesShared) filesWaiting else 0,
+                    onSync = viewModel::syncNow,
+                )
+            }
+            // The one thing only the owner can do for photos and plans to be shared: update the server.
+            if (current.owner && !filesShared) {
+                item { FilesCard(onGuide = { navController.navigate(Routes.SERVER_GUIDE) }, onCheck = SyncEngine::checkFilesNow) }
+            }
             if (current.owner) {
                 val fresh = ui.fresh
                 if (fresh != null && fresh.code != null) {
@@ -498,7 +514,7 @@ private fun StartChoice(text: String, selected: Boolean, onClick: () -> Unit, mo
 // ---- In a company ---------------------------------------------------------------------------------
 
 @Composable
-private fun CompanyCard(link: CompanyLink, status: SyncStatus, onSync: () -> Unit) {
+private fun CompanyCard(link: CompanyLink, status: SyncStatus, filesWaiting: Int, onSync: () -> Unit) {
     val trouble = status.problem != null
     CardFlat(edge = if (trouble) MaterialTheme.colorScheme.error else Ok) {
         Text(text = link.companyName, style = MaterialTheme.typography.titleLarge)
@@ -519,6 +535,14 @@ private fun CompanyCard(link: CompanyLink, status: SyncStatus, onSync: () -> Uni
             color = if (trouble) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 8.dp),
         )
+        if (filesWaiting > 0) {
+            Text(
+                text = pluralStringResource(R.plurals.co_files_waiting, filesWaiting, filesWaiting),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
         Text(
             text = if (link.kind == ServerKind.GOOGLE) {
                 stringResource(R.string.co_kept_google)
@@ -537,6 +561,28 @@ private fun CompanyCard(link: CompanyLink, status: SyncStatus, onSync: () -> Uni
             enabled = !status.working,
             modifier = Modifier.padding(top = 8.dp),
         )
+    }
+}
+
+/**
+ * A server set up before it could keep files: photos and plans stay on the phone they were added
+ * on until the owner updates it. The app asks it again every few minutes; the button is for
+ * straight after the update.
+ */
+@Composable
+private fun FilesCard(onGuide: () -> Unit, onCheck: () -> Unit) {
+    CardFlat {
+        Text(text = stringResource(R.string.co_files_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = stringResource(R.string.co_files_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            ActionLink(text = stringResource(R.string.co_files_how), onClick = onGuide)
+            ActionLink(text = stringResource(R.string.co_files_check), onClick = onCheck)
+        }
     }
 }
 

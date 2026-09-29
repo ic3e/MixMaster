@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.data.company
 
+import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -30,6 +31,8 @@ data class Hello(
     val companyName: String?,
     /** Where the company went, when this server has handed it on. */
     val movedTo: String?,
+    /** The server keeps the files behind photos and plans: an older one says nothing and doesn't. */
+    val files: Boolean = false,
 )
 
 data class Joined(val token: String, val companyId: String, val companyName: String, val me: Me)
@@ -60,6 +63,9 @@ data class Pulled(
 )
 
 data class Pushed(val me: Me, val companyName: String, val refused: List<RemoteRow>)
+
+/** One part of a file from the server, and what the whole of it is. */
+class FilePart(val parts: Int, val mime: String, val size: Long, val bytes: ByteArray)
 
 /**
  * The code a worker is given: eight letters and digits, and where the company's server is.
@@ -229,6 +235,7 @@ object CompanyApi {
             companyId = json.optJSONObject("company")?.text("id"),
             companyName = json.optJSONObject("company")?.text("name"),
             movedTo = json.text("moved_to"),
+            files = json.optBoolean("files", false),
         )
     }
 
@@ -256,7 +263,9 @@ object CompanyApi {
     // ---- Keeping in step ---------------------------------------------------------------------
 
     suspend fun pull(link: CompanyLink, since: Long): Pulled {
-        val json = call(link.server, signed(link, "pull").put("since", since))
+        // The address it is reached at, which a Google server can't find out for itself and
+        // needs for the owner's code it makes when the owner's phone is lost.
+        val json = call(link.server, signed(link, "pull").put("since", since).put("address", link.server))
         val rows = json.optJSONArray("rows") ?: JSONArray()
         return Pulled(
             me = readMe(json.getJSONObject("me")),
@@ -286,6 +295,38 @@ object CompanyApi {
 
     suspend fun leave(link: CompanyLink) {
         call(link.server, signed(link, "leave"))
+    }
+
+    // ---- The files behind photos and plans ---------------------------------------------------
+
+    /** One part of a file up. True once the server has the whole of it. */
+    suspend fun filePut(link: CompanyLink, key: String, part: Int, parts: Int, size: Long, mime: String, bytes: ByteArray): Boolean {
+        val body = signed(link, "file_put")
+            .put("key", key)
+            .put("part", part)
+            .put("parts", parts)
+            .put("size", size)
+            .put("mime", mime)
+            .put("data", Base64.encodeToString(bytes, Base64.NO_WRAP))
+        return call(link.server, body).optBoolean("done", false)
+    }
+
+    /** One part of a file down; "not_found" while nobody has sent the whole of it yet. */
+    suspend fun fileGet(link: CompanyLink, key: String, part: Int): FilePart {
+        val json = call(link.server, signed(link, "file_get").put("key", key).put("part", part))
+        return FilePart(
+            parts = json.optInt("parts", 1),
+            mime = json.optString("mime"),
+            size = json.optLong("size"),
+            bytes = Base64.decode(json.optString("data"), Base64.DEFAULT),
+        )
+    }
+
+    /** Which of [keys] the server has not got whole. */
+    suspend fun fileHas(link: CompanyLink, keys: List<String>): Set<String> {
+        val json = call(link.server, signed(link, "file_has").put("keys", JSONArray(keys)))
+        val missing = json.optJSONArray("missing") ?: JSONArray()
+        return (0 until missing.length()).map { missing.getString(it) }.toSet()
     }
 
     // ---- Moving the company to another server -----------------------------------------------

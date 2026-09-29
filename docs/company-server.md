@@ -42,6 +42,39 @@ They install MixMaster, tap **Got an access code?** on the Home screen, paste th
 A worker's phone that hasn't reached the server for **14 days** locks the company's data until it
 does. This is in case a phone is lost or kept away on purpose.
 
+### Photos and blueprints
+
+Photos and blueprints on a job travel to every phone, like everything else. A photo is made
+smaller on the phone that takes it (2048 pixels on the long side, about half a megabyte), which
+is still enough to zoom in on a crack. A blueprint goes as it is, up to 40 MB.
+
+A photo or blueprint that hasn't come down yet shows a cloud. A blueprint can be tapped to fetch
+it there and then.
+
+A server set up before version 1.0.247 can't keep them yet. Until it is updated, the Company
+screen on the owner's phone says **Photos and blueprints stay on each phone**, and they do. Update
+the server (Part 2, *Updating the server*); the photos and blueprints already on the phones then
+go up by themselves.
+
+### If the owner's phone is lost or broken
+
+Nothing is lost: the company's data is on the server, not on the phone. What is needed is a new
+owner's code, and it is made **in the server itself**, so only someone who can get into the
+company's Google account or website hosting can make one. Nobody can ask for one from a phone.
+
+- **Google account:** on a computer, open script.google.com in the company's Google account and
+  open the MixMaster project. Next to **Run**, pick **newOwnerCode** and press **Run**. The code
+  appears in the log at the bottom.
+- **Company website:** in the hosting's File Manager, open the `mixmaster` folder and make a new,
+  empty file there called `new-owner-code.txt`. Then open `your-website/mixmaster/api.php` in a
+  browser. The page shows the code once and deletes the file.
+
+On the new phone, install MixMaster and enter the code under Settings → Company → **I have an
+access code**. All of the company's data comes down to it. Then, under People, tap the lost
+phone's entry and remove it: if that phone ever connects again, MixMaster on it is emptied.
+
+The app carries these steps too: Settings → Company → *How to set up a server*, at the bottom.
+
 ### Moving to another server
 
 If the company's data ever has to live somewhere else (a new website, another Google account):
@@ -96,9 +129,10 @@ Choose one:
 7. Copy the **Web app URL** (it ends in `/exec`) and send it to your phone.
 8. In the app: Settings → Company → *I'm the employer* (or *Move to another server*) → paste it.
 
-The data is kept in a Google Sheet called *MixMaster data*. You can look at it, but don't edit it.
-If the script is ever changed, publish it with **Deploy → Manage deployments → pencil → New
-version**, so its address stays the same.
+The data is kept in a Google Sheet called *MixMaster data*, and the photos and blueprints in a
+Drive folder called *MixMaster files*. You can look at them, but don't edit them. If the script
+is ever changed, publish it with **Deploy → Manage deployments → pencil → New version**, so its
+address stays the same.
 
 ## B. Company website
 
@@ -120,6 +154,32 @@ version**, so its address stays the same.
 | A security warning | Switch on the free certificate (Let's Encrypt) in the control panel. |
 
 Backups: the data is the file `mixmaster/data/mixmaster-….sqlite`. Download it now and then.
+
+## Updating the server
+
+Now and then a new MixMaster needs a newer server. Version 1.0.247 is the first: it keeps the
+company's photos and blueprints. The company's data stays as it is, and nothing is done on the
+phones. The app's own guide sends the new files (Settings → Company → *How to set up a server*).
+
+**Google account**
+
+1. On a computer, open script.google.com in the company's Google account and open the MixMaster
+   project.
+2. Select everything in `Code.gs` and delete it, paste the new file in its place and save.
+3. Next to **Run**, pick **prepare** and press **Run**. Google asks for permission again, because
+   the server now keeps files in the account's Drive. Allow it as the first time.
+4. **Deploy → Manage deployments → pencil → Version: New version → Deploy.** The address stays
+   the same.
+
+**Company website**
+
+1. In the hosting's File Manager, open the `mixmaster` folder and upload the new `api.php` over
+   the old one. Leave the `data` folder alone: the company's data is in it.
+2. Open `your-website/mixmaster/api.php` in a browser. It should still say the server is running
+   and set up for the company.
+
+On the website the files are kept in `mixmaster/data/files`, which is locked like the rest of
+`data`. They count towards the hosting's disk space.
 
 ## Starting the company
 
@@ -167,10 +227,14 @@ When the app is handed over, nothing may depend on the developer. Check each of 
 | The company has moved to a new server | Enter the new address under *Company moved to a new server?*. |
 | The new server doesn't know this phone | Someone added just before a move with the old server gone. Give them a new code. |
 | Connect to the internet (whole screen) | A worker's phone hasn't reached the server for 14 days. It opens as soon as it does, or when the new address is entered. |
+| Photos and blueprints stay on each phone | The server was set up before 1.0.247. Update it (Part 2, *Updating the server*). On Google, don't forget to run *prepare* and publish a **New version**. |
+| A photo shows a cloud for a long time | The phone that added it hasn't sent it yet: it goes when that phone has signal and MixMaster open. |
 
 ---
 
 For developers: the protocol is one address, JSON in and out (`hello`, `setup`, `join`, `pull`,
-`push`, `people`, `person_save`, `person_code`, `person_remove`, `leave`, and for moving:
-`export`, `adopt`, `move_out`, `move_done`). Both servers are held to the same conversation by
+`push`, `people`, `person_save`, `person_code`, `person_remove`, `leave`; for moving: `export`,
+`adopt`, `move_out`, `move_done`; and for the files behind photos and blueprints, in 1.5 MB parts:
+`file_put`, `file_get`, `file_has`). `hello` answers `files: true` on a server that keeps files,
+and the app shares photos and blueprints only then. Both servers are held to the same conversation by
 `node server/test/run.mjs`.
