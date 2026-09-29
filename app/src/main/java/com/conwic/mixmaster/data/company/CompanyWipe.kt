@@ -1,25 +1,25 @@
 package com.conwic.mixmaster.data.company
 
 import android.content.Context
-import android.content.Intent
-import com.conwic.mixmaster.MainActivity
-import com.conwic.mixmaster.data.db.AppDatabase
-import com.conwic.mixmaster.data.db.DATABASE_NAME
-import java.io.File
+import com.conwic.mixmaster.data.wipe.PhoneWipe
 
 /**
- * Takes a company's data off this phone: the database, the photos, a count or a mix left half
- * done — everything but the phone's own settings (language, theme, the alarm sound).
+ * Takes a company's data off this phone.
  *
  * Done when the server says this phone has no place in the company any more (the employer took
  * the person off, or gave them a new code for another phone), and when a worker leaves. The app
- * then starts again from scratch, as on the day it was installed, with a note to say why.
+ * then starts again from scratch, as on the day it was installed.
+ *
+ * Taken off by the employer, the phone keeps nothing at all — not the settings, not the sheets
+ * or the reports written out of the company's jobs — only a note to say why, and the offer to
+ * uninstall the app. A worker who leaves of their own accord keeps the phone's own settings
+ * (language, theme, the alarm sound): the work goes, the app is still theirs.
  */
 object CompanyWipe {
 
     enum class Reason { Revoked, Left }
 
-    /** What goes with the company. The language, theme and alarm-sound files stay. */
+    /** What goes with the company when a worker leaves. The language, theme and alarm-sound files stay. */
     private val CompanyPrefs = listOf("mixmaster_stock_count", "mixmaster_mix_run", "mixmaster_sync")
 
     fun run(context: Context, reason: Reason) {
@@ -30,28 +30,16 @@ object CompanyWipe {
         // holding the key, and the person should be told why their data is gone.
         if (reason == Reason.Revoked) CompanyStore.setEnded(app, name)
         CompanyStore.clear(app)
-        runCatching { AppDatabase.closeAndReset() }
-        app.deleteDatabase(DATABASE_NAME)
-        File(app.filesDir, "photos").deleteRecursively()
-        // the demo's plans, if it was ever loaded
-        File(app.filesDir, "demo").deleteRecursively()
-        CompanyPrefs.forEach { file ->
-            app.getSharedPreferences(file, Context.MODE_PRIVATE).edit().clear().commit()
-        }
-        restart(app)
-    }
-
-    /**
-     * Everything in memory still holds the old data — every screen, every view model — so the
-     * process goes, and the app comes back up on the new, empty database.
-     */
-    private fun restart(app: Context) {
-        runCatching {
-            val intent = Intent(app, MainActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        when (reason) {
+            // the company file now holds nothing but the note
+            Reason.Revoked -> PhoneWipe.everything(app, keepPrefs = setOf(CompanyStore.FILE))
+            Reason.Left -> {
+                PhoneWipe.data(app)
+                CompanyPrefs.forEach { file ->
+                    app.getSharedPreferences(file, Context.MODE_PRIVATE).edit().clear().commit()
+                }
             }
-            app.startActivity(intent)
         }
-        Runtime.getRuntime().exit(0)
+        PhoneWipe.restart(app)
     }
 }

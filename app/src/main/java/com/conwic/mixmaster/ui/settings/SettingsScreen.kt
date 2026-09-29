@@ -225,7 +225,10 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
-        item {
+        // Only on a phone of its own. In a company the employer's list of people says who may change
+        // what, and a switch that could not be moved was a card of nothing between the game and
+        // the lock.
+        if (company == null) item {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_using_as))
                 CardFlat {
@@ -237,13 +240,12 @@ fun SettingsScreen(navController: NavHostController) {
                             ChipOption(
                                 label = stringResource(labelRes),
                                 selected = option == state.role,
-                                // In a company the employer's list says who runs things, not this switch.
-                                onClick = { if (company == null) viewModel.setRole(option) },
+                                onClick = { viewModel.setRole(option) },
                             )
                         },
                     )
                     Text(
-                        text = if (company != null) stringResource(R.string.co_role_locked) else stringResource(
+                        text = stringResource(
                             if (state.role == Role.EMPLOYER) R.string.role_employer_note else R.string.role_worker_note,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -343,6 +345,9 @@ fun SettingsScreen(navController: NavHostController) {
                 }
             }
         }
+
+        // last on the page, as far from a stray thumb as it can be
+        item { EmptyAllSection(modifier = Modifier.fillMaxWidth()) }
 
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {

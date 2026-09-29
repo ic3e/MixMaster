@@ -55,6 +55,17 @@ object StockCountReminder {
         runCatching { manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pending) }
     }
 
+    /**
+     * Nothing left to count: the phone is being emptied. The booking goes as well as the
+     * notification — an alarm outlives the data it was booked from, and would go off on an empty
+     * shelf.
+     */
+    fun cancel(context: Context) {
+        val manager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+        runCatching { manager?.cancel(alarmIntent(context)) }
+        dismiss(context)
+    }
+
     /** Takes the reminder off the shade — a count has just been finished. */
     fun dismiss(context: Context) {
         runCatching { NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID) }

@@ -872,10 +872,10 @@
     <string name="co_show_code">Näita ligipääsukoodi</string>
     <string name="co_new_code">Uus ligipääsukood</string>
     <string name="co_new_code_title">Uus kood inimesele %1$s?</string>
-    <string name="co_new_code_body">Praegune telefon lõigatakse välja ja selle ettevõtte andmed kustutatakse järgmisel ühendusel. Uue koodiga saab tagasi — ka uues telefonis.</string>
+    <string name="co_new_code_body">Praegune telefon lõigatakse välja ja järgmisel ühendusel tühjendatakse MixMaster seal täielikult. Uue koodiga saab tagasi — ka uues telefonis.</string>
     <string name="co_remove">Eemalda ettevõttest</string>
     <string name="co_remove_title">Eemaldad inimese %1$s?</string>
-    <string name="co_remove_body">Tema telefon ei saa enam ettevõtte andmeid ja seal olev kustutatakse järgmisel ühendusel.</string>
+    <string name="co_remove_body">Tema telefon ei saa enam ettevõtte andmeid. Järgmisel ühendusel tühjendatakse MixMaster seal täielikult — andmed, fotod, tehnilised kaardid, aruanded ja seaded — ning see pakub end eemaldada.</string>
     <string name="co_ok">OK</string>
     <string name="co_ago_never">mitte kunagi</string>
     <string name="co_ago_now">just praegu</string>
@@ -899,12 +899,11 @@
     <string name="co_lock_body">MixMaster pole %2$d päeva jõudnud ettevõtte %1$s serverini, seega on ettevõtte andmed lukus, kuni see õnnestub.</string>
     <string name="co_try_again">Proovi uuesti</string>
     <string name="co_ended_title">Ligipääs lõppes</string>
-    <string name="co_ended_body">Sinu ligipääs ettevõttele %1$s on lõppenud ja ettevõtte andmed on sellest telefonist eemaldatud.</string>
+    <string name="co_ended_body">Sinu ligipääs ettevõttele %1$s on lõppenud, seega on kõik, mida MixMaster selles telefonis hoidis, kustutatud: ettevõtte andmed, fotod, tehnilised kaardid ja aruanded ning seaded. Kui MixMasterit selles telefonis enam vaja pole, saab selle ka eemaldada.</string>
     <string name="co_settings_on">Jagatud: %1$s</string>
     <string name="co_settings_off">Selle telefoni andmed on tema omad.</string>
     <string name="co_settings_open">Ava</string>
     <string name="co_settings_set_up">Seadista</string>
-    <string name="co_role_locked">Määrab ettevõtte inimeste nimekiri.</string>
     <string name="co_backup_worker">Varukoopiad teeb tööandja: ettevõtte andmeid töötaja telefonist välja ei kopeerita.</string>
     <string name="co_home_title">Said ligipääsukoodi?</string>
     <string name="co_home_body">Ühenda telefon oma ettevõttega ja see saab ettevõtte tooted, retseptid, projektid ja laoseisu.</string>
@@ -1058,4 +1057,16 @@
     <string name="settings_demo_confirm_company">See telefon jagab andmeid ettevõttega %1$s: demo saavad ka kõik teised ettevõttes.</string>
     <string name="settings_demo_confirm">Laadi demo</string>
     <string name="settings_demo_loading">Demo laadimine…</string>
+    <!-- Empty all: the app as on the day it was installed. -->
+    <string name="co_ended_uninstall">Eemalda MixMaster</string>
+    <string name="confirm_type_word">Jätkamiseks kirjuta %1$s</string>
+    <string name="settings_empty">Rakenduse tühjendamine</string>
+    <string name="settings_empty_note">Kustutab kõik, mida MixMaster selles telefonis hoiab — tooted, retseptid, projektid, ülesanded, märkmed, fotod, plaanid, laoseisu ja tellimused, salvestatud tehnilised kaardid ja aruanded ning seaded — ja alustab uuesti nagu paigaldamise päeval. Telefoni failidesse eksporditud varukoopia jääb sinna, kuhu see salvestati.</string>
+    <string name="settings_empty_action">Tühjenda kõik</string>
+    <string name="settings_empty_company">See telefon jagab andmeid ettevõttega %1$s, seega siit seda ei tühjendata. Töötaja lahkub ettevõttest menüüs Ettevõte ja ettevõtte andmed lähevad temaga kaasa; omaniku telefonis katkesta enne seal ühendus.</string>
+    <string name="settings_empty_confirm_title">Tühjendada kogu rakendus?</string>
+    <string name="settings_empty_confirm_text">Kõik selles telefonis kaob ja midagi saab tagasi tuua ainult varem eksporditud varukoopiast. Seejärel alustab MixMaster uuesti, nagu oleks see just paigaldatud.</string>
+    <string name="settings_empty_word">TÜHJENDA</string>
+    <string name="settings_empty_confirm">Tühjenda kõik</string>
+    <string name="settings_empty_working">Rakendust tühjendatakse…</string>
 </resources>

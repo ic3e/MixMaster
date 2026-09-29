@@ -59,7 +59,8 @@ data class CompanyLink(
  */
 object CompanyStore {
 
-    private const val FILE = "mixmaster_company"
+    /** The settings file this lives in: the one a revoked phone keeps, for the note. */
+    const val FILE = "mixmaster_company"
     private const val K_SERVER = "server"
     private const val K_KIND = "kind"
     private const val K_COMPANY_ID = "companyId"

@@ -1,5 +1,7 @@
 package com.conwic.mixmaster.ui.company
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -130,7 +132,11 @@ private fun OfflineLock(link: CompanyLink) {
     }
 }
 
-/** Said once, after the phone has been emptied because the company cut it off. */
+/**
+ * Said once, after the phone has been emptied because the company cut it off — with the offer to
+ * take the app off as well. Android lets an app empty itself but not uninstall itself: the most
+ * it can do is put the phone's own "Uninstall?" question in front of whoever holds it.
+ */
 @Composable
 private fun EndedNotice() {
     val context = LocalContext.current
@@ -142,6 +148,19 @@ private fun EndedNotice() {
         text = { Text(text = stringResource(R.string.co_ended_body, company)) },
         confirmButton = {
             TextButton(onClick = { CompanyStore.dismissEnded(context) }) { Text(text = stringResource(R.string.co_ok)) }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    CompanyStore.dismissEnded(context)
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_DELETE, Uri.parse("package:" + context.packageName))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                },
+            ) { Text(text = stringResource(R.string.co_ended_uninstall), color = MaterialTheme.colorScheme.error) }
         },
     )
 }

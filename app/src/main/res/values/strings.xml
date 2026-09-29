@@ -902,10 +902,10 @@
     <string name="co_show_code">Show access code</string>
     <string name="co_new_code">New access code</string>
     <string name="co_new_code_title">New code for %1$s?</string>
-    <string name="co_new_code_body">The phone they have now is cut off, and its company data is erased the next time it connects. They get back in with the new code — on a new phone, too.</string>
+    <string name="co_new_code_body">The phone they have now is cut off, and the next time it connects MixMaster on it is emptied completely. They get back in with the new code — on a new phone, too.</string>
     <string name="co_remove">Remove from company</string>
     <string name="co_remove_title">Remove %1$s?</string>
-    <string name="co_remove_body">Their phone stops getting the company’s data, and what it holds is erased the next time it connects.</string>
+    <string name="co_remove_body">Their phone stops getting the company’s data. The next time it connects, MixMaster on it is emptied completely — the data, photos, sheets, reports and settings — and offers to uninstall itself.</string>
     <string name="co_ok">OK</string>
     <string name="co_ago_never">never</string>
     <string name="co_ago_now">just now</string>
@@ -929,12 +929,11 @@
     <string name="co_lock_body">MixMaster hasn’t reached %1$s for %2$d days, so the company’s data is locked until it does.</string>
     <string name="co_try_again">Try again</string>
     <string name="co_ended_title">Access ended</string>
-    <string name="co_ended_body">Your access to %1$s has ended, and the company’s data has been removed from this phone.</string>
+    <string name="co_ended_body">Your access to %1$s has ended, so everything MixMaster kept on this phone has been deleted: the company’s data, the photos, sheets and reports, and the settings. If the phone has no more use for MixMaster, it can be uninstalled too.</string>
     <string name="co_settings_on">Shared with %1$s</string>
     <string name="co_settings_off">This phone’s data is its own.</string>
     <string name="co_settings_open">Open</string>
     <string name="co_settings_set_up">Set up</string>
-    <string name="co_role_locked">Set by the company’s list of people.</string>
     <string name="co_backup_worker">Backups are the employer’s: the company’s data is not copied off a worker’s phone.</string>
     <string name="co_home_title">Got an access code?</string>
     <string name="co_home_body">Connect to your company and this phone gets its products, recipes, projects and stock.</string>
@@ -1088,4 +1087,16 @@
     <string name="settings_demo_confirm_company">This phone shares with %1$s: everyone in the company gets the demo too.</string>
     <string name="settings_demo_confirm">Load the demo</string>
     <string name="settings_demo_loading">Loading the demo…</string>
+    <!-- Empty all: the app as on the day it was installed. -->
+    <string name="co_ended_uninstall">Uninstall MixMaster</string>
+    <string name="confirm_type_word">Type %1$s to go ahead</string>
+    <string name="settings_empty">Empty the app</string>
+    <string name="settings_empty_note">Deletes everything MixMaster keeps on this phone — products, recipes, projects, tasks, notes, photos, plans, stock and orders, stored sheets and reports, and the settings — and starts it again as on the day it was installed. A backup exported to the phone’s files stays where it was saved.</string>
+    <string name="settings_empty_action">Empty all</string>
+    <string name="settings_empty_company">This phone shares with %1$s, so it is not emptied from here. A worker leaves the company under Company, and the company’s data goes with them; on the owner’s phone, disconnect it there first.</string>
+    <string name="settings_empty_confirm_title">Empty the whole app?</string>
+    <string name="settings_empty_confirm_text">Everything on this phone goes, and only a backup exported earlier can bring any of it back. MixMaster then starts again as if it had just been installed.</string>
+    <string name="settings_empty_word">EMPTY</string>
+    <string name="settings_empty_confirm">Empty all</string>
+    <string name="settings_empty_working">Emptying the app…</string>
 </resources>
