@@ -872,10 +872,10 @@
     <string name="co_show_code">Näytä pääsykoodi</string>
     <string name="co_new_code">Uusi pääsykoodi</string>
     <string name="co_new_code_title">Uusi koodi henkilölle %1$s?</string>
-    <string name="co_new_code_body">Nykyinen puhelin katkaistaan, ja seuraavalla yhteydellä MixMaster tyhjennetään siinä kokonaan. Uudella koodilla pääsee takaisin — myös uudella puhelimella.</string>
+    <string name="co_new_code_body">Nykyinen puhelin katkaistaan: seuraavalla yhteydellä MixMaster tyhjennetään siinä ja jäljelle jää vain Pour Day. Uusi koodi tuo MixMasterin takaisin — samaan tai uuteen puhelimeen.</string>
     <string name="co_remove">Poista yrityksestä</string>
     <string name="co_remove_title">Poistetaanko %1$s?</string>
-    <string name="co_remove_body">Hänen puhelimensa ei enää saa yrityksen tietoja. Seuraavalla yhteydellä MixMaster tyhjennetään siinä kokonaan — tiedot, kuvat, tekniset tiedotteet, raportit ja asetukset — ja se tarjoutuu poistamaan itsensä.</string>
+    <string name="co_remove_body">Hänen puhelimensa ei enää saa yrityksen tietoja. Seuraavalla yhteydellä MixMaster tyhjennetään siinä kokonaan ja jäljelle jää vain Pour Day sekä tarjous poistaa sovellus. Uusi pääsykoodi tuo sen takaisin.</string>
     <string name="co_ok">OK</string>
     <string name="co_ago_never">ei koskaan</string>
     <string name="co_ago_now">juuri nyt</string>
@@ -899,7 +899,7 @@
     <string name="co_lock_body">MixMaster ei ole tavoittanut yrityksen %1$s palvelinta %2$d päivään, joten yrityksen tiedot ovat lukossa, kunnes yhteys onnistuu.</string>
     <string name="co_try_again">Yritä uudelleen</string>
     <string name="co_ended_title">Pääsy päättyi</string>
-    <string name="co_ended_body">Pääsysi yritykseen %1$s on päättynyt, joten kaikki, mitä MixMaster säilytti tässä puhelimessa, on poistettu: yrityksen tiedot, kuvat, tekniset tiedotteet ja raportit sekä asetukset. Jos MixMasteria ei enää tarvita tässä puhelimessa, sen voi myös poistaa.</string>
+    <string name="co_ended_body">Pääsysi yritykseen %1$s on päättynyt, joten kaikki, mitä MixMaster säilytti tässä puhelimessa, on poistettu, ja siitä on jäljellä vain Pour Day. Jos puhelimessa ei enää tarvita sitä, MixMasterin voi poistaa.</string>
     <string name="co_settings_on">Jaettu: %1$s</string>
     <string name="co_settings_off">Tämän puhelimen tiedot ovat sen omia.</string>
     <string name="co_settings_open">Avaa</string>
@@ -1059,6 +1059,7 @@
     <string name="settings_demo_loading">Demoa ladataan…</string>
     <!-- Empty all: the app as on the day it was installed. -->
     <string name="co_ended_uninstall">Poista MixMaster</string>
+    <string name="game_only_body">Pääsysi yritykseen %1$s on päättynyt, ja MixMaster on tyhjennetty tästä puhelimesta: siitä on jäljellä vain Pour Day. Jos työnantajasi antaa sinulle uuden pääsykoodin, se tuo MixMasterin takaisin.</string>
     <string name="confirm_type_word">Jatka kirjoittamalla %1$s</string>
     <string name="settings_empty">Sovelluksen tyhjennys</string>
     <string name="settings_empty_note">Poistaa kaiken, mitä MixMaster säilyttää tässä puhelimessa — tuotteet, reseptit, projektit, tehtävät, muistiinpanot, kuvat, piirustukset, varastosaldot ja tilaukset, tallennetut tekniset tiedotteet ja raportit sekä asetukset — ja aloittaa alusta kuin asennuspäivänä. Puhelimen tiedostoihin viety varmuuskopio jää sinne, minne se tallennettiin.</string>

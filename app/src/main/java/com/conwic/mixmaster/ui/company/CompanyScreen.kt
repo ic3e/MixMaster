@@ -284,8 +284,12 @@ internal fun agoText(at: Long?): String {
 
 // ---- Not in a company yet -----------------------------------------------------------------------
 
+/**
+ * [offerBackup] is off on a phone its company took off: there is nothing left on it to keep, or
+ * to be replaced.
+ */
 @Composable
-private fun JoinCard(busy: Boolean, onJoin: (String) -> Unit) {
+internal fun JoinCard(busy: Boolean, onJoin: (String) -> Unit, offerBackup: Boolean = true) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     var code by rememberSaveable { mutableStateOf("") }
@@ -326,17 +330,19 @@ private fun JoinCard(busy: Boolean, onJoin: (String) -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
             }
-            Text(
-                text = stringResource(R.string.co_join_replaces),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 10.dp),
-            )
-            ActionLink(
-                text = stringResource(R.string.co_backup_first),
-                onClick = { backupLauncher.launch("mixmaster-backup.mmbackup") },
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            if (offerBackup) {
+                Text(
+                    text = stringResource(R.string.co_join_replaces),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
+                ActionLink(
+                    text = stringResource(R.string.co_backup_first),
+                    onClick = { backupLauncher.launch("mixmaster-backup.mmbackup") },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
         }
     }
 

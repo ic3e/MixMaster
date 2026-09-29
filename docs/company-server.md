@@ -35,8 +35,8 @@ They install MixMaster, tap **Got an access code?** on the Home screen, paste th
 | You want to… | Do this |
 |---|---|
 | Let someone change more, or less | People → tap their name → change the switches → Save. Their phone gets it within a minute. |
-| Help someone with a new or lost phone | People → their name → **New access code**. The old phone is cut off, and the next time it connects MixMaster on it is emptied completely. The new code works on the new phone. |
-| Remove someone who has left | People → their name → **Remove from company**. The next time their phone connects, MixMaster on it deletes everything it holds — the company's data, photos, sheets, reports and settings — and offers to uninstall itself. Android does not let an app uninstall itself without a tap on the phone, so that last step is theirs. |
+| Help someone with a new or lost phone | People → their name → **New access code**. The old phone is cut off: the next time it connects, MixMaster on it is emptied and only Pour Day is left. The new code brings MixMaster back, on that phone or a new one. The new code works on the new phone. |
+| Remove someone who has left | People → their name → **Remove from company**. The next time their phone connects, MixMaster on it deletes everything it holds — the company's data, photos, sheets, reports and settings — and from then on opens as Pour Day and nothing else. It offers to uninstall itself (Android does not let an app go without a tap on the phone, so that step is theirs), and a new access code from you brings MixMaster back. |
 | See whether a phone is keeping up | People shows when each phone was last in touch. |
 
 A worker's phone that hasn't reached the server for **14 days** locks the company's data until it

@@ -902,10 +902,10 @@
     <string name="co_show_code">Show access code</string>
     <string name="co_new_code">New access code</string>
     <string name="co_new_code_title">New code for %1$s?</string>
-    <string name="co_new_code_body">The phone they have now is cut off, and the next time it connects MixMaster on it is emptied completely. They get back in with the new code — on a new phone, too.</string>
+    <string name="co_new_code_body">The phone they have now is cut off: the next time it connects, MixMaster on it is emptied and only Pour Day is left. The new code brings MixMaster back — on that phone or a new one.</string>
     <string name="co_remove">Remove from company</string>
     <string name="co_remove_title">Remove %1$s?</string>
-    <string name="co_remove_body">Their phone stops getting the company’s data. The next time it connects, MixMaster on it is emptied completely — the data, photos, sheets, reports and settings — and offers to uninstall itself.</string>
+    <string name="co_remove_body">Their phone stops getting the company’s data. The next time it connects, MixMaster on it is emptied completely and only Pour Day is left, with the offer to uninstall. A new access code brings it back.</string>
     <string name="co_ok">OK</string>
     <string name="co_ago_never">never</string>
     <string name="co_ago_now">just now</string>
@@ -929,7 +929,7 @@
     <string name="co_lock_body">MixMaster hasn’t reached %1$s for %2$d days, so the company’s data is locked until it does.</string>
     <string name="co_try_again">Try again</string>
     <string name="co_ended_title">Access ended</string>
-    <string name="co_ended_body">Your access to %1$s has ended, so everything MixMaster kept on this phone has been deleted: the company’s data, the photos, sheets and reports, and the settings. If the phone has no more use for MixMaster, it can be uninstalled too.</string>
+    <string name="co_ended_body">Your access to %1$s has ended, so everything MixMaster kept on this phone has been deleted, and only Pour Day is left of it. If the phone has no more use for it, MixMaster can be uninstalled.</string>
     <string name="co_settings_on">Shared with %1$s</string>
     <string name="co_settings_off">This phone’s data is its own.</string>
     <string name="co_settings_open">Open</string>
@@ -1089,6 +1089,7 @@
     <string name="settings_demo_loading">Loading the demo…</string>
     <!-- Empty all: the app as on the day it was installed. -->
     <string name="co_ended_uninstall">Uninstall MixMaster</string>
+    <string name="game_only_body">Your access to %1$s has ended, and MixMaster has been emptied on this phone: Pour Day is all that is left of it. If your employer gives you a new access code, it brings MixMaster back.</string>
     <string name="confirm_type_word">Type %1$s to go ahead</string>
     <string name="settings_empty">Empty the app</string>
     <string name="settings_empty_note">Deletes everything MixMaster keeps on this phone — products, recipes, projects, tasks, notes, photos, plans, stock and orders, stored sheets and reports, and the settings — and starts it again as on the day it was installed. A backup exported to the phone’s files stays where it was saved.</string>

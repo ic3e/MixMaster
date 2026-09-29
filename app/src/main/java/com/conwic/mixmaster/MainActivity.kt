@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
+import com.conwic.mixmaster.data.company.CompanyStore
 import com.conwic.mixmaster.data.company.SyncEngine
 import com.conwic.mixmaster.data.update.AppUpdates
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +28,7 @@ import com.conwic.mixmaster.ui.calculator.MixingHost
 import com.conwic.mixmaster.ui.LocalAppActivity
 import com.conwic.mixmaster.ui.LocalAppContainer
 import com.conwic.mixmaster.ui.company.CompanyGate
+import com.conwic.mixmaster.ui.company.GameOnlyApp
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.security.AppLockGate
 import com.conwic.mixmaster.ui.theme.MixMasterTheme
@@ -123,12 +125,17 @@ class MainActivity : FragmentActivity() {
         wakeForAlarm(intent)
         StockCountReminder.takeOpenRequest(intent)
         val container = (application as MixMasterApp).container
-        // Booked afresh on every start: cheap, and it is the one moment it is certain to happen.
-        StockCountReminder.schedule(this)
+        // A phone its company took off is Pour Day and nothing else: no reminders, no updates to
+        // offer, no lock, no pages — see GameOnlyApp.
+        val gameOnly = CompanyStore.gameOnly(this) != null
+        if (!gameOnly) {
+            // Booked afresh on every start: cheap, and it is the one moment it is certain to happen.
+            StockCountReminder.schedule(this)
 
-        // Looks once per app start, and stays quiet unless there's something newer — a failed
-        // check on a site with no signal isn't news.
-        AppUpdates.checkOnStart(this)
+            // Looks once per app start, and stays quiet unless there's something newer — a failed
+            // check on a site with no signal isn't news.
+            AppUpdates.checkOnStart(this)
+        }
 
         setContent {
             // The theme setting used to be saved and then ignored — the app always followed the
@@ -171,6 +178,10 @@ class MainActivity : FragmentActivity() {
                         LocalAppContainer provides container,
                         LocalAppActivity provides this@MainActivity,
                     ) {
+                        if (gameOnly) {
+                            GameOnlyApp()
+                            return@CompositionLocalProvider
+                        }
                         val appLockEnabled by container.userPrefs.appLockEnabled.collectAsState(initial = null)
                         // Onboarding hasn't been seen yet on a fresh install -> start at Sign in;
                         // otherwise jump straight to Home. Resolved once before the NavHost mounts.

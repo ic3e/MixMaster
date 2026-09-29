@@ -76,6 +76,7 @@ object CompanyStore {
     private const val K_P_SITE = "pSite"
     private const val K_CONTACT = "lastContactAt"
     private const val K_ENDED = "endedCompany"
+    private const val K_GAME_ONLY = "gameOnlyAfter"
     private const val K_PEOPLE = "peopleExport"
     private const val K_PEOPLE_AT = "peopleExportAt"
 
@@ -163,7 +164,11 @@ object CompanyStore {
     fun clear(context: Context) {
         ensureLoaded(context)
         val keepEnded = prefs(context).getString(K_ENDED, null)
-        prefs(context).edit().clear().apply { if (keepEnded != null) putString(K_ENDED, keepEnded) }.commit()
+        val keepGameOnly = prefs(context).getString(K_GAME_ONLY, null)
+        prefs(context).edit().clear().apply {
+            if (keepEnded != null) putString(K_ENDED, keepEnded)
+            if (keepGameOnly != null) putString(K_GAME_ONLY, keepGameOnly)
+        }.commit()
         flow.value = null
     }
 
@@ -195,5 +200,20 @@ object CompanyStore {
         ensureLoaded(context)
         prefs(context).edit().remove(K_ENDED).apply()
         ended.value = null
+    }
+
+    // ---- A phone its company took off: what is left of the app is Pour Day ----------------------
+
+    /**
+     * The company that took this phone off, for as long as MixMaster on it is only the game —
+     * until a new access code brings it back. Null on every other phone.
+     */
+    fun gameOnly(context: Context): String? = prefs(context).getString(K_GAME_ONLY, null)
+
+    /** Committed, not applied: the process is ended straight after either change. */
+    fun setGameOnly(context: Context, companyName: String?) {
+        prefs(context).edit().apply {
+            if (companyName == null) remove(K_GAME_ONLY) else putString(K_GAME_ONLY, companyName)
+        }.commit()
     }
 }

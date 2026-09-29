@@ -872,10 +872,10 @@
     <string name="co_show_code">Näita ligipääsukoodi</string>
     <string name="co_new_code">Uus ligipääsukood</string>
     <string name="co_new_code_title">Uus kood inimesele %1$s?</string>
-    <string name="co_new_code_body">Praegune telefon lõigatakse välja ja järgmisel ühendusel tühjendatakse MixMaster seal täielikult. Uue koodiga saab tagasi — ka uues telefonis.</string>
+    <string name="co_new_code_body">Praegune telefon lõigatakse välja: järgmisel ühendusel tühjendatakse MixMaster seal ja alles jääb ainult Pour Day. Uus kood toob MixMasteri tagasi — samas või uues telefonis.</string>
     <string name="co_remove">Eemalda ettevõttest</string>
     <string name="co_remove_title">Eemaldad inimese %1$s?</string>
-    <string name="co_remove_body">Tema telefon ei saa enam ettevõtte andmeid. Järgmisel ühendusel tühjendatakse MixMaster seal täielikult — andmed, fotod, tehnilised kaardid, aruanded ja seaded — ning see pakub end eemaldada.</string>
+    <string name="co_remove_body">Tema telefon ei saa enam ettevõtte andmeid. Järgmisel ühendusel tühjendatakse MixMaster seal täielikult ja alles jääb ainult Pour Day koos eemaldamise pakkumisega. Uus ligipääsukood toob selle tagasi.</string>
     <string name="co_ok">OK</string>
     <string name="co_ago_never">mitte kunagi</string>
     <string name="co_ago_now">just praegu</string>
@@ -899,7 +899,7 @@
     <string name="co_lock_body">MixMaster pole %2$d päeva jõudnud ettevõtte %1$s serverini, seega on ettevõtte andmed lukus, kuni see õnnestub.</string>
     <string name="co_try_again">Proovi uuesti</string>
     <string name="co_ended_title">Ligipääs lõppes</string>
-    <string name="co_ended_body">Sinu ligipääs ettevõttele %1$s on lõppenud, seega on kõik, mida MixMaster selles telefonis hoidis, kustutatud: ettevõtte andmed, fotod, tehnilised kaardid ja aruanded ning seaded. Kui MixMasterit selles telefonis enam vaja pole, saab selle ka eemaldada.</string>
+    <string name="co_ended_body">Sinu ligipääs ettevõttele %1$s on lõppenud, seega on kõik, mida MixMaster selles telefonis hoidis, kustutatud ja sellest on alles ainult Pour Day. Kui telefonis seda enam vaja pole, saab MixMasteri eemaldada.</string>
     <string name="co_settings_on">Jagatud: %1$s</string>
     <string name="co_settings_off">Selle telefoni andmed on tema omad.</string>
     <string name="co_settings_open">Ava</string>
@@ -1059,6 +1059,7 @@
     <string name="settings_demo_loading">Demo laadimine…</string>
     <!-- Empty all: the app as on the day it was installed. -->
     <string name="co_ended_uninstall">Eemalda MixMaster</string>
+    <string name="game_only_body">Sinu ligipääs ettevõttele %1$s on lõppenud ja MixMaster on selles telefonis tühjendatud: sellest on alles ainult Pour Day. Kui tööandja annab sulle uue ligipääsukoodi, toob see MixMasteri tagasi.</string>
     <string name="confirm_type_word">Jätkamiseks kirjuta %1$s</string>
     <string name="settings_empty">Rakenduse tühjendamine</string>
     <string name="settings_empty_note">Kustutab kõik, mida MixMaster selles telefonis hoiab — tooted, retseptid, projektid, ülesanded, märkmed, fotod, plaanid, laoseisu ja tellimused, salvestatud tehnilised kaardid ja aruanded ning seaded — ja alustab uuesti nagu paigaldamise päeval. Telefoni failidesse eksporditud varukoopia jääb sinna, kuhu see salvestati.</string>

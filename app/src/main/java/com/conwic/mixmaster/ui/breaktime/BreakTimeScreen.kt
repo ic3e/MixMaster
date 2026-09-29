@@ -29,9 +29,13 @@ import com.conwic.pourday.game.GameScreen
  * Full screen: the status and navigation bars are hidden while it is open and come back with a
  * swipe from the edge. The way out is inside the game — its pause menu has "Back to MixMaster" —
  * and the phone's back gesture pauses rather than leaves.
+ *
+ * [appName] is who the game thinks it is running in. On a phone its company took off, MixMaster is
+ * only the game, and it runs as Pour Day: "Quit" rather than "Back to MixMaster", and no company
+ * sign on the van.
  */
 @Composable
-fun BreakTimeScreen(onExit: () -> Unit) {
+fun BreakTimeScreen(onExit: () -> Unit, appName: String = "MixMaster") {
     val exit by rememberUpdatedState(onExit)
     val context = LocalContext.current
     // the answer to a permission question goes to whoever asked it
@@ -44,7 +48,7 @@ fun BreakTimeScreen(onExit: () -> Unit) {
     val game = remember {
         GameScreen(
             context = context,
-            appName = "MixMaster",
+            appName = appName,
             onQuit = { exit() },
             askPermissions = { permissions, then ->
                 permissionAnswer[0] = then

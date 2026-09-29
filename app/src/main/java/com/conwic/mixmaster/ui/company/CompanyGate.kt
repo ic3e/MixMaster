@@ -1,5 +1,6 @@
 package com.conwic.mixmaster.ui.company
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
@@ -138,7 +139,7 @@ private fun OfflineLock(link: CompanyLink) {
  * it can do is put the phone's own "Uninstall?" question in front of whoever holds it.
  */
 @Composable
-private fun EndedNotice() {
+internal fun EndedNotice() {
     val context = LocalContext.current
     val ended by remember { CompanyStore.endedNotice(context.applicationContext) }.collectAsState()
     val company = ended ?: return
@@ -153,16 +154,20 @@ private fun EndedNotice() {
             TextButton(
                 onClick = {
                     CompanyStore.dismissEnded(context)
-                    runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_DELETE, Uri.parse("package:" + context.packageName))
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                        )
-                    }
+                    askToUninstall(context)
                 },
             ) { Text(text = stringResource(R.string.co_ended_uninstall), color = MaterialTheme.colorScheme.error) }
         },
     )
+}
+
+/** The phone's own "Uninstall MixMaster?" — as far as Android lets an app go towards removing itself. */
+internal fun askToUninstall(context: Context) {
+    runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_DELETE, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
 }
 
 /** On Home, for a worker whose phone is not in the company yet: where the access code goes. */
