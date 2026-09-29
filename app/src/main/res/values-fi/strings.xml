@@ -354,7 +354,7 @@
     <string name="prj_remove_note_confirm">Poistetaanko tämä muistiinpano?</string>
     <string name="prj_remove_note_confirm_body">Se poistuu työltä lopullisesti.</string>
     <string name="prj_remove_photo_confirm">Poistetaanko tämä kuva?</string>
-    <string name="prj_remove_photo_confirm_body">Kuva poistuu työltä ja puhelimesta.</string>
+    <string name="prj_remove_photo_confirm_body">Kuva poistuu työltä ja jokaisesta puhelimesta, jossa se on.</string>
     <string name="projects_archived_show">Arkistoidut · %1$d</string>
     <string name="projects_archived_hide">Piilota arkistoidut · %1$d</string>
     <string name="projects_restore">Palauta</string>
@@ -390,7 +390,7 @@
     <string name="prj_blueprint_tap_fetch">Tulossa yritykseltä · napauta hakeaksesi heti</string>
     <string name="prj_remove_blueprint">Poista pohjapiirros</string>
     <string name="prj_remove_blueprint_confirm">Poistetaanko tämä pohjapiirros?</string>
-    <string name="prj_remove_blueprint_confirm_body">Se poistuu tästä projektista. Tiedosto itse jää puhelimeen.</string>
+    <string name="prj_remove_blueprint_confirm_body">Se poistuu tästä projektista jokaisessa puhelimessa, jossa se on. Tästä puhelimesta valittu tiedosto jää puhelimen omiin tiedostoihin.</string>
     <string name="viewer_count">%1$d / %2$d</string>
     <string name="viewer_next">Seuraava</string>
     <string name="viewer_previous">Edellinen</string>
@@ -417,7 +417,8 @@
     <string name="signin_worker_b1">Käytä laskuria toimiston tuotelistalla</string>
     <string name="signin_worker_b2">Kuittaa tehtävät tehdyiksi</string>
     <string name="signin_worker_b3">Lisää työmaakuvia ja muistiinpanoja — asetustietoja ei voi muokata</string>
-    <string name="signin_continue">Jatka roolissa %1$s</string>
+    <string name="signin_continue_employer">Jatka työnantajana</string>
+    <string name="signin_continue_worker">Jatka työntekijänä</string>
 
     <string name="onboarding_welcome">Tervetuloa MixMasteriin</string>
     <string name="onboarding_start">Aloitetaan</string>
@@ -932,9 +933,9 @@
     <string name="co_my_perms">Mitä voit muuttaa</string>
     <string name="co_my_perms_note">Työnantaja päättää. Näet kaiken muun, mutta et voi muuttaa sitä.</string>
     <string name="co_perm_catalogue">Tuotteet ja reseptit</string>
-    <string name="co_perm_projects">Projektit, kerrokset ja huoneet</string>
+    <string name="co_perm_projects">Projektit, kerrokset, huoneet ja pohjapiirrokset</string>
     <string name="co_perm_warehouse">Inventaariot, toimitukset ja tilaukset</string>
-    <string name="co_perm_site">Sekoitukset, muistiinpanot ja tehtävät</string>
+    <string name="co_perm_site">Sekoitukset, muistiinpanot, kuvat ja tehtävät</string>
     <string name="co_people">Henkilöt · %1$d</string>
     <string name="co_add_person">Lisää henkilö</string>
     <string name="co_people_loading">Ladataan listaa…</string>
@@ -954,7 +955,7 @@
     <string name="co_leave_body">Yrityksen tiedot poistetaan tästä puhelimesta. Palataksesi tarvitset työnantajalta uuden koodin.</string>
     <string name="co_disconnect">Katkaise tämän puhelimen yhteys</string>
     <string name="co_disconnect_title">Katkaistaanko yhteys yritykseen %1$s?</string>
-    <string name="co_disconnect_body">Tämä puhelin lopettaa jakamisen. Sen tiedot jäävät puhelimeen ja yrityksen tiedot palvelimelle. Yhdistääksesi uudelleen toisen omistajan on annettava sinulle uusi koodi — jos olet ainoa omistaja, lisää ensin toinen.</string>
+    <string name="co_disconnect_body">Tämä puhelin lopettaa jakamisen. Sen tiedot jäävät puhelimeen ja yrityksen tiedot palvelimelle. Yhdistääksesi uudelleen tarvitset uuden koodin: toinen omistaja voi tehdä sen, tai teet sen itse palvelimella, kuten kadonneen puhelimen kohdalla (palvelinohje näyttää miten).</string>
     <string name="co_leaving">Katkaistaan yhteyttä…</string>
     <string name="co_person_name">Nimi</string>
     <string name="co_person_role">Rooli</string>

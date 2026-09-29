@@ -115,6 +115,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import com.conwic.mixmaster.ui.tasks.toDraft
 import kotlinx.coroutines.launch
 import androidx.core.content.FileProvider
+import com.conwic.mixmaster.data.company.CompanyStore
 import com.conwic.mixmaster.data.company.FileSync
 import java.io.File
 import com.conwic.mixmaster.domain.toNumberOrNull
@@ -751,10 +752,13 @@ fun NotesTab(
                 // Resolved above the callback — onClick is never composable.
                 val employerName = stringResource(R.string.prj_you_employer)
                 val workerName = stringResource(R.string.prj_you_worker)
+                // In a company the note reaches everybody's phone, where "You (Worker)" would be
+                // somebody else: it is signed with the name the owner gave this person.
+                val myName = remember { CompanyStore.current(context.applicationContext)?.name?.takeIf { it.isNotBlank() } }
                 PrimaryButton(
                     text = stringResource(R.string.prj_post),
                     onClick = {
-                        val authorName = if (role == Role.EMPLOYER) employerName else workerName
+                        val authorName = myName ?: if (role == Role.EMPLOYER) employerName else workerName
                         onAddNote(noteText, authorName, role)
                         noteText = ""
                     },

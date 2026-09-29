@@ -20,9 +20,9 @@ Everything is in the app: **Settings → Company**.
 2. Type their name. Choose **Worker**, or **Owner** for someone who runs the company with you.
 3. For a worker, switch on what they may **change**:
    - Products and recipes
-   - Projects, floors and rooms
+   - Projects, floors, rooms and blueprints
    - Stock counts, deliveries and orders
-   - Mixes, notes and tasks
+   - Mixes, notes, photos and tasks
 
    Everybody can **see** everything. The switches only decide what they can change.
 4. **Save and make access code** → **Share**, and send it by WhatsApp, SMS or email.
@@ -103,7 +103,7 @@ Choose one:
 | | **A. Google account** (easiest) | **B. Company website** |
 |---|---|---|
 | Needs | Any Google account, a plain Gmail is enough | Web hosting that runs PHP (almost all do) |
-| Data kept in | A Google Sheet in that account's Drive | A database file on the website |
+| Data kept in | A Google Sheet in that account's Drive, and the photos and blueprints in a Drive folder | A database file on the website, and the photos and blueprints beside it |
 | Costs | Nothing | Nothing extra |
 | Doesn't work on | — | Wix, Squarespace, Webflow, Shopify, free WordPress.com |
 

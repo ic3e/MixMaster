@@ -354,7 +354,7 @@
     <string name="prj_remove_note_confirm">Kas eemaldada see märkus?</string>
     <string name="prj_remove_note_confirm_body">See kaob töölt lõplikult.</string>
     <string name="prj_remove_photo_confirm">Kas eemaldada see foto?</string>
-    <string name="prj_remove_photo_confirm_body">Foto kaob töölt ja ka telefonist.</string>
+    <string name="prj_remove_photo_confirm_body">Foto kaob töölt ja igast telefonist, kus see on.</string>
     <string name="projects_archived_show">Arhiveeritud · %1$d</string>
     <string name="projects_archived_hide">Peida arhiveeritud · %1$d</string>
     <string name="projects_restore">Taasta</string>
@@ -390,7 +390,7 @@
     <string name="prj_blueprint_tap_fetch">Tuleb ettevõttest · puuduta, et kohe tuua</string>
     <string name="prj_remove_blueprint">Eemalda joonis</string>
     <string name="prj_remove_blueprint_confirm">Kas eemaldada see joonis?</string>
-    <string name="prj_remove_blueprint_confirm_body">See kaob sellelt projektilt. Fail ise jääb telefonis alles.</string>
+    <string name="prj_remove_blueprint_confirm_body">See kaob sellelt projektilt igas telefonis, kus see on. Sellest telefonist valitud fail jääb telefoni enda failide hulka alles.</string>
     <string name="viewer_count">%1$d / %2$d</string>
     <string name="viewer_next">Järgmine</string>
     <string name="viewer_previous">Eelmine</string>
@@ -417,7 +417,8 @@
     <string name="signin_worker_b1">Kasuta kalkulaatorit kontori tootenimekirjaga</string>
     <string name="signin_worker_b2">Märgi ülesanded tehtuks</string>
     <string name="signin_worker_b3">Lisa objektifotosid ja märkmeid — seadistusandmeid muuta ei saa</string>
-    <string name="signin_continue">Jätka kui %1$s</string>
+    <string name="signin_continue_employer">Jätka tööandjana</string>
+    <string name="signin_continue_worker">Jätka töötajana</string>
 
     <string name="onboarding_welcome">Tere tulemast MixMasterisse</string>
     <string name="onboarding_start">Alustame</string>
@@ -932,9 +933,9 @@
     <string name="co_my_perms">Mida saad muuta</string>
     <string name="co_my_perms_note">Määrab tööandja. Kõike muud näed, aga muuta ei saa.</string>
     <string name="co_perm_catalogue">Tooted ja retseptid</string>
-    <string name="co_perm_projects">Projektid, korrused ja ruumid</string>
+    <string name="co_perm_projects">Projektid, korrused, ruumid ja joonised</string>
     <string name="co_perm_warehouse">Inventuurid, tarned ja tellimused</string>
-    <string name="co_perm_site">Segud, märkmed ja ülesanded</string>
+    <string name="co_perm_site">Segud, märkmed, fotod ja ülesanded</string>
     <string name="co_people">Inimesed · %1$d</string>
     <string name="co_add_person">Lisa inimene</string>
     <string name="co_people_loading">Laadin nimekirja…</string>
@@ -954,7 +955,7 @@
     <string name="co_leave_body">Ettevõtte andmed eemaldatakse sellest telefonist. Tagasi tulemiseks vajad tööandjalt uut koodi.</string>
     <string name="co_disconnect">Katkesta selle telefoni ühendus</string>
     <string name="co_disconnect_title">Katkestad ühenduse ettevõttega %1$s?</string>
-    <string name="co_disconnect_body">See telefon lõpetab jagamise. Selle andmed jäävad telefoni ja ettevõtte omad serverisse. Uuesti ühendamiseks peab teine omanik andma sulle uue koodi — kui oled ainus omanik, lisa enne teine.</string>
+    <string name="co_disconnect_body">See telefon lõpetab jagamise. Selle andmed jäävad telefoni ja ettevõtte omad serverisse. Uuesti ühendamiseks on vaja uut koodi: selle saab teha teine omanik või sina ise serveris, nagu kadunud telefoni puhul (serveri juhendis on näidatud, kuidas).</string>
     <string name="co_leaving">Katkestan ühendust…</string>
     <string name="co_person_name">Nimi</string>
     <string name="co_person_role">Roll</string>

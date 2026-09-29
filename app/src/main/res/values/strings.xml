@@ -375,7 +375,7 @@
     <string name="prj_remove_note_confirm">Remove this note?</string>
     <string name="prj_remove_note_confirm_body">It comes off the job for good.</string>
     <string name="prj_remove_photo_confirm">Remove this photo?</string>
-    <string name="prj_remove_photo_confirm_body">It comes off the job and off this phone.</string>
+    <string name="prj_remove_photo_confirm_body">It comes off the job, and off every phone that has it.</string>
     <string name="projects_archived_show">Archived · %1$d</string>
     <string name="projects_archived_hide">Hide archived · %1$d</string>
     <string name="projects_restore">Put back</string>
@@ -411,7 +411,7 @@
     <string name="prj_blueprint_tap_fetch">On its way from the company · tap to fetch now</string>
     <string name="prj_remove_blueprint">Remove blueprint</string>
     <string name="prj_remove_blueprint_confirm">Remove this blueprint?</string>
-    <string name="prj_remove_blueprint_confirm_body">It comes off this project. The file itself stays where it is on the phone.</string>
+    <string name="prj_remove_blueprint_confirm_body">It comes off this project, on every phone that has it. A file picked from this phone stays where it is in the phone’s own files.</string>
     <string name="viewer_count">%1$d / %2$d</string>
     <string name="viewer_next">Next</string>
     <string name="viewer_previous">Previous</string>
@@ -439,7 +439,8 @@
     <string name="signin_worker_b1">Run the calculator with the office\'s product list</string>
     <string name="signin_worker_b2">Check off tasks as they\'re done</string>
     <string name="signin_worker_b3">Add site photos and notes — can\'t edit setup data</string>
-    <string name="signin_continue">Continue as %1$s</string>
+    <string name="signin_continue_employer">Continue as the employer</string>
+    <string name="signin_continue_worker">Continue as a worker</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome">Welcome to MixMaster</string>
@@ -962,9 +963,9 @@
     <string name="co_my_perms">What you can change</string>
     <string name="co_my_perms_note">Set by your employer. You can see everything else, but not change it.</string>
     <string name="co_perm_catalogue">Products and recipes</string>
-    <string name="co_perm_projects">Projects, floors and rooms</string>
+    <string name="co_perm_projects">Projects, floors, rooms and blueprints</string>
     <string name="co_perm_warehouse">Stock counts, deliveries and orders</string>
-    <string name="co_perm_site">Mixes, notes and tasks</string>
+    <string name="co_perm_site">Mixes, notes, photos and tasks</string>
     <string name="co_people">People · %1$d</string>
     <string name="co_add_person">Add person</string>
     <string name="co_people_loading">Loading the list…</string>
@@ -984,7 +985,7 @@
     <string name="co_leave_body">The company’s data is removed from this phone. To come back you will need a new code from your employer.</string>
     <string name="co_disconnect">Disconnect this phone</string>
     <string name="co_disconnect_title">Disconnect from %1$s?</string>
-    <string name="co_disconnect_body">This phone stops sharing. Its data stays on it, and the company’s stays on the server. To connect again, another owner has to give you a new code — so if you are the only owner, add another one first.</string>
+    <string name="co_disconnect_body">This phone stops sharing. Its data stays on it, and the company’s stays on the server. To connect again you need a new code: another owner can make one, or you make one in the server itself, as for a lost phone (the server guide shows how).</string>
     <string name="co_leaving">Disconnecting…</string>
     <string name="co_person_name">Name</string>
     <string name="co_person_role">Role</string>

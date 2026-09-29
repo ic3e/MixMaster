@@ -86,7 +86,9 @@ fun SignInScreen(onContinue: () -> Unit) {
         }
         item {
             PrimaryButton(
-                text = stringResource(R.string.signin_continue, stringResource(if (selectedRole == Role.EMPLOYER) R.string.role_employer else R.string.role_worker).lowercase()),
+                // Its own words: the Settings labels ("Set up work") dropped into "Continue as %s"
+                // read "Continue as set up work".
+                text = stringResource(if (selectedRole == Role.EMPLOYER) R.string.signin_continue_employer else R.string.signin_continue_worker),
                 onClick = {
                     scope.launch {
                         container.userPrefs.setRole(selectedRole)

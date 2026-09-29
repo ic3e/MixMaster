@@ -9,19 +9,25 @@ crew's.
 - **Calculator and mixing:** batches that fit the mixer, a timer and an alarm per batch, and
   every mix recorded against the room it went into.
 - **Projects:** floors, rooms and the coats laid on each, materials worked out from them, tasks,
-  notes, photos and a PDF report.
+  notes, photos, blueprints and a PDF report.
 - **Warehouse:** what is on the shelf, what the booked jobs need, orders and deliveries, and a
   stock count with reminders.
-- **Company:** one set of data on every phone, kept on a server of the company's own (see below).
+- **Company:** one set of data on every phone, photos and blueprints included, kept on a server
+  of the company's own (see below).
+- **Guide:** the app played through like a video, chapter by chapter, read out by the phone's voice.
+- **Pour Day:** the break-time game (module `:game`), also built on its own as the Pour Day app
+  (`:pourday`). Phones nearby play on the same site.
 - English, Estonian and Finnish, an app lock, backup and restore, and an in-app updater.
 
-Kotlin · Jetpack Compose (Material 3) · Navigation · Room · DataStore · Biometric. Nothing else:
-no networking, image or DI library. minSdk 26, targetSdk 34.
+Kotlin · Jetpack Compose (Material 3) · Navigation · Room · DataStore · Biometric, and Google's
+Nearby Connections for Pour Day's co-op. No networking, image or DI library. minSdk 26,
+targetSdk 34.
 
 ## Getting the app
 
-Every push to `main` is built by GitHub Actions, which commits the APK to
-`dist/MixMaster_1.0.<build>.apk` along with `dist/latest.json`. The app's own updater reads
+Every push to `main` is built by GitHub Actions, which commits the APKs to
+`dist/MixMaster_1.0.<build>.apk` and `dist/PourDay_1.0.<build>.apk` along with
+`dist/latest.json`. The app's own updater reads
 that file to offer the new version. A failed build commits `.ci-logs/last-failure.log`
 instead, and every build leaves the compiler's warnings in `.ci-logs/warnings.log`.
 
@@ -32,8 +38,10 @@ project in Android Studio.
 
 The shared data lives on the company's own hosting. There are two interchangeable servers:
 
-- `server/website/mixmaster/`: one PHP file for the company website (SQLite, or MySQL)
-- `server/google/Code.gs`: an Apps Script web app for a Google account, keeping a Google Sheet
+- `server/website/mixmaster/`: one PHP file for the company website (SQLite, or MySQL), with the
+  photos and blueprints in `data/files`
+- `server/google/Code.gs`: an Apps Script web app for a Google account, keeping a Google Sheet,
+  and the photos and blueprints in a Drive folder
 
 `docs/company-server.md` is the step-by-step setup guide for either. `node server/test/run.mjs`
 runs the same conversation against both.
