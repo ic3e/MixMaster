@@ -1,8 +1,8 @@
 {
-  "versionCode": 243,
-  "versionName": "1.0.243",
-  "apk": "MixMaster_1.0.243.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.243.apk",
-  "sizeBytes": 29818821,
-  "notes": "The tour, for the app as it is now"
+  "versionCode": 245,
+  "versionName": "1.0.245",
+  "apk": "MixMaster_1.0.245.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.245.apk",
+  "sizeBytes": 30076452,
+  "notes": "Guide: the side column's width taken outside the row"
 }
