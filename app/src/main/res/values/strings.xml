@@ -1056,6 +1056,13 @@
     <string name="calc_by_the_bottle">By the bottle</string>
     <string name="calc_by_the_drum">By the drum</string>
     <string name="calc_by_the_tub">By the tub</string>
+    <string name="pack_roll">roll</string>
+    <string name="pack_rolls">rolls</string>
+    <plurals name="pack_roll_count">
+        <item quantity="one">%1$s roll</item>
+        <item quantity="other">%1$s rolls</item>
+    </plurals>
+    <string name="calc_by_the_roll">By the roll</string>
     <string name="calc_by_the_pack">By the pack</string>
     <string name="pack_generic">pack</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
@@ -1073,4 +1080,12 @@
     <string name="wh_order_late">Late — expected %1$s</string>
     <string name="wh_order_no_number">No order number — check it was really ordered</string>
     <string name="tab_notes">Notes</string>
+    <string name="settings_demo">Demo</string>
+    <string name="settings_demo_note">Empties the products, recipes, projects, calendar and warehouse on this phone and fills them with a demo: the Ideal Work and Mapei systems ConWiC lays with Ideal Work\'s technical sheets, five jobs in Finland with plans and photos, a fortnight of tasks and a stocked shelf.</string>
+    <string name="settings_demo_load">Load the demo</string>
+    <string name="settings_demo_confirm_title">Replace everything with the demo?</string>
+    <string name="settings_demo_confirm_text">Every product, recipe, project, task, note, photo and plan goes, and so does what is on the shelf and on order. The demo takes their place. This can\'t be undone — export a backup first if any of it matters.</string>
+    <string name="settings_demo_confirm_company">This phone shares with %1$s: everyone in the company gets the demo too.</string>
+    <string name="settings_demo_confirm">Load the demo</string>
+    <string name="settings_demo_loading">Loading the demo…</string>
 </resources>

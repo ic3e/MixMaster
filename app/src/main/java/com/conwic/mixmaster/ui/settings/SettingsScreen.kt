@@ -327,6 +327,8 @@ fun SettingsScreen(navController: NavHostController) {
             }
         }
 
+        item { DemoSection(modifier = Modifier.fillMaxWidth()) }
+
         item { UpdateSection(modifier = Modifier.fillMaxWidth()) }
 
         item {

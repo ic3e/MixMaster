@@ -142,10 +142,10 @@ fun FieldLabel(text: String, modifier: Modifier = Modifier, error: Boolean = fal
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,
-        // A shade over the small end of the scale: this is read in a van, in daylight, by
-        // somebody who is not looking for it.
+        // A shade over the small end of the scale, and in the text colour rather than a muted
+        // one: this is read in a van, in daylight, by somebody who is not looking for it.
         fontSize = 11.5.sp,
-        color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         // Off the very edge, so it stands over the field's own text rather than over its corner.
         modifier = modifier.padding(start = 4.dp, bottom = 5.dp),
     )

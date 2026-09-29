@@ -28,7 +28,7 @@ import com.conwic.mixmaster.data.db.entity.technicalSheet
 val PackUnits = listOf("kg", "L")
 
 /** What it comes in. Free text would give four spellings of "bucket" inside a week. */
-val PackTypes = listOf("bag", "bucket", "canister", "bottle", "drum", "tub")
+val PackTypes = listOf("bag", "bucket", "canister", "bottle", "drum", "tub", "roll")
 
 data class ProductFormState(
     val productId: Long = 0L,

@@ -1026,6 +1026,13 @@
     <string name="calc_by_the_bottle">Pudeli kaupa</string>
     <string name="calc_by_the_drum">Vaadi kaupa</string>
     <string name="calc_by_the_tub">Purgi kaupa</string>
+    <string name="pack_roll">rull</string>
+    <string name="pack_rolls">rullid</string>
+    <plurals name="pack_roll_count">
+        <item quantity="one">%1$s rull</item>
+        <item quantity="other">%1$s rulli</item>
+    </plurals>
+    <string name="calc_by_the_roll">Rulli kaupa</string>
     <string name="calc_by_the_pack">Pakendi kaupa</string>
     <string name="pack_generic">pakend</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
@@ -1043,4 +1050,12 @@
     <string name="wh_order_late">Hilineb — oodati %1$s</string>
     <string name="wh_order_no_number">Tellimuse numbrit pole — kontrolli, kas see on päriselt tellitud</string>
     <string name="tab_notes">Märkmed</string>
+    <string name="settings_demo">Demo</string>
+    <string name="settings_demo_note">Tühjendab selles telefonis tooted, retseptid, projektid, kalendri ja lao ning täidab need demoga: Ideal Worki ja Mapei süsteemid, mida ConWiC paigaldab, koos Ideal Worki tehniliste kaartidega, viis objekti Soomes koos plaanide ja fotodega, kahe nädala ülesanded ja täis ladu.</string>
+    <string name="settings_demo_load">Laadi demo</string>
+    <string name="settings_demo_confirm_title">Asendada kõik demoga?</string>
+    <string name="settings_demo_confirm_text">Kõik tooted, retseptid, projektid, ülesanded, märkmed, fotod ja plaanid kustutatakse, samuti laoseis ja tellimused. Nende asemele tuleb demo. Seda ei saa tagasi võtta — kui midagi sellest on oluline, tee enne varukoopia.</string>
+    <string name="settings_demo_confirm_company">See telefon jagab andmeid ettevõttega %1$s: demo saavad ka kõik teised ettevõttes.</string>
+    <string name="settings_demo_confirm">Laadi demo</string>
+    <string name="settings_demo_loading">Demo laadimine…</string>
 </resources>

@@ -37,6 +37,8 @@ private val Words = mapOf(
     "bottle" to PackWords(R.string.pack_bottle, R.string.pack_bottles, R.plurals.pack_bottle_count, R.string.calc_by_the_bottle),
     "drum" to PackWords(R.string.pack_drum, R.string.pack_drums, R.plurals.pack_drum_count, R.string.calc_by_the_drum),
     "tub" to PackWords(R.string.pack_tub, R.string.pack_tubs, R.plurals.pack_tub_count, R.string.calc_by_the_tub),
+    // mesh comes on a roll, weighed by what a square metre of it weighs
+    "roll" to PackWords(R.string.pack_roll, R.string.pack_rolls, R.plurals.pack_roll_count, R.string.calc_by_the_roll),
 )
 
 private fun wordsFor(type: String): PackWords? = Words[type.trim().lowercase()]

@@ -1026,6 +1026,13 @@
     <string name="calc_by_the_bottle">Pulloittain</string>
     <string name="calc_by_the_drum">Tynnyreittäin</string>
     <string name="calc_by_the_tub">Purkeittain</string>
+    <string name="pack_roll">rulla</string>
+    <string name="pack_rolls">rullat</string>
+    <plurals name="pack_roll_count">
+        <item quantity="one">%1$s rulla</item>
+        <item quantity="other">%1$s rullaa</item>
+    </plurals>
+    <string name="calc_by_the_roll">Rullittain</string>
     <string name="calc_by_the_pack">Pakkauksittain</string>
     <string name="pack_generic">pakkaus</string>
     <string name="calendar_project_line">%1$s · %2$s</string>
@@ -1043,4 +1050,12 @@
     <string name="wh_order_late">Myöhässä — odotettiin %1$s</string>
     <string name="wh_order_no_number">Ei tilausnumeroa — tarkista, että tilaus on oikeasti tehty</string>
     <string name="tab_notes">Muistiot</string>
+    <string name="settings_demo">Demo</string>
+    <string name="settings_demo_note">Tyhjentää tämän puhelimen tuotteet, reseptit, projektit, kalenterin ja varaston ja täyttää ne demolla: ConWiCin asentamat Ideal Work- ja Mapei-järjestelmät Ideal Workin teknisine tiedotteineen, viisi kohdetta Suomessa pohjapiirustuksineen ja kuvineen, kahden viikon tehtävät ja täysi varasto.</string>
+    <string name="settings_demo_load">Lataa demo</string>
+    <string name="settings_demo_confirm_title">Korvataanko kaikki demolla?</string>
+    <string name="settings_demo_confirm_text">Kaikki tuotteet, reseptit, projektit, tehtävät, muistiinpanot, kuvat ja piirustukset poistetaan, samoin varastosaldot ja tilaukset. Demo tulee niiden tilalle. Tätä ei voi perua — ota ensin varmuuskopio, jos jokin niistä on tärkeää.</string>
+    <string name="settings_demo_confirm_company">Tämä puhelin jakaa tiedot yrityksen %1$s kanssa: demo menee myös kaikille muille yrityksessä.</string>
+    <string name="settings_demo_confirm">Lataa demo</string>
+    <string name="settings_demo_loading">Demoa ladataan…</string>
 </resources>

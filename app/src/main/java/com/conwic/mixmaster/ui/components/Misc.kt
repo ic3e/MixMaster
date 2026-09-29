@@ -9,10 +9,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.conwic.mixmaster.ui.theme.TextFaint
 
+/**
+ * The heading over a group — TODAY, ON ORDER, LANGUAGE.
+ *
+ * In the text colour, not a faded grey: the client reads these on site in daylight, and a pale
+ * grey heading on the cream page all but disappeared.
+ */
 @Composable
-fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = TextFaint) {
+fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.onSurface) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelLarge,

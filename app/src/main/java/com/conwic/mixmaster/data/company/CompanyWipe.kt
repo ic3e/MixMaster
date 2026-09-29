@@ -33,6 +33,8 @@ object CompanyWipe {
         runCatching { AppDatabase.closeAndReset() }
         app.deleteDatabase(DATABASE_NAME)
         File(app.filesDir, "photos").deleteRecursively()
+        // the demo's plans, if it was ever loaded
+        File(app.filesDir, "demo").deleteRecursively()
         CompanyPrefs.forEach { file ->
             app.getSharedPreferences(file, Context.MODE_PRIVATE).edit().clear().commit()
         }
