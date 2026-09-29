@@ -1,9 +1,95 @@
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
-> Task :app:preBuild UP-TO-DATE
-> Task :app:preDebugBuild UP-TO-DATE
-> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :pourday:preBuild UP-TO-DATE
+> Task :pourday:preDebugBuild UP-TO-DATE
+> Task :pourday:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :game:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :game:writeGameStamp
+> Task :game:preBuild
+> Task :game:preDebugBuild
+> Task :game:generateDebugBuildConfig
+> Task :game:generateDebugResValues
+> Task :game:generateDebugResources
+> Task :game:packageDebugResources
+> Task :pourday:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :pourday:generateDebugBuildConfig
+> Task :game:javaPreCompileDebug
+> Task :game:compileDebugLibraryResources
+> Task :game:parseDebugLocalResources
+> Task :pourday:generateDebugResValues
+> Task :game:writeDebugAarMetadata
+> Task :game:generateDebugRFile
+> Task :pourday:mapDebugSourceSetPaths
+> Task :pourday:checkDebugAarMetadata
+> Task :pourday:generateDebugResources
+> Task :pourday:packageDebugResources
+> Task :pourday:createDebugCompatibleScreenManifests
+> Task :game:extractDeepLinksDebug
+> Task :pourday:parseDebugLocalResources
+> Task :pourday:extractDeepLinksDebug
+> Task :pourday:javaPreCompileDebug
+> Task :game:mergeDebugShaders
+> Task :game:compileDebugShaders NO-SOURCE
+> Task :game:generateDebugAssets UP-TO-DATE
+> Task :pourday:mergeDebugResources
+> Task :game:processDebugManifest
+> Task :game:packageDebugAssets
+> Task :pourday:processDebugMainManifest
+> Task :pourday:processDebugManifest
+> Task :pourday:mergeDebugShaders
+> Task :pourday:compileDebugShaders NO-SOURCE
+> Task :pourday:generateDebugAssets UP-TO-DATE
+> Task :pourday:mergeDebugAssets
+> Task :pourday:desugarDebugFileDependencies
+> Task :pourday:compressDebugAssets
+> Task :pourday:mergeDebugStartupProfile
+> Task :pourday:processDebugManifestForPackage
+> Task :pourday:checkDebugDuplicateClasses
+> Task :game:mergeDebugJniLibFolders
+> Task :game:mergeDebugNativeLibs NO-SOURCE
+> Task :game:copyDebugJniLibsProjectOnly
+> Task :pourday:processDebugResources
+> Task :pourday:mergeDebugJniLibFolders
+> Task :pourday:mergeDebugNativeLibs NO-SOURCE
+> Task :pourday:stripDebugDebugSymbols NO-SOURCE
+> Task :pourday:validateSigningDebug
+> Task :pourday:writeDebugAppMetadata
+> Task :pourday:writeDebugSigningConfigVersions
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :game:stripDebugDebugSymbols NO-SOURCE
+> Task :game:copyDebugJniLibsProjectAndLocalJars
+> Task :game:extractDeepLinksForAarDebug
+> Task :game:prepareDebugArtProfile
+> Task :game:prepareLintJarForPublish
+> Task :pourday:mergeExtDexDebug
+> Task :game:compileDebugKotlin
+> Task :game:compileDebugJavaWithJavac
+> Task :game:bundleLibRuntimeToJarDebug
+> Task :game:bundleLibCompileToJarDebug
+> Task :game:processDebugJavaRes
+> Task :game:bundleLibRuntimeToDirDebug
+> Task :game:extractDebugAnnotations
+> Task :game:mergeDebugGeneratedProguardFiles
+> Task :game:mergeDebugConsumerProguardFiles
+> Task :pourday:mergeLibDexDebug
+> Task :game:mergeDebugJavaResource
+> Task :game:syncDebugLibJars
+> Task :game:bundleDebugAar
+> Task :game:assembleDebug
+> Task :pourday:compileDebugKotlin
+> Task :pourday:compileDebugJavaWithJavac
+> Task :pourday:dexBuilderDebug
+> Task :pourday:mergeDebugGlobalSynthetics
+> Task :pourday:processDebugJavaRes
+> Task :pourday:mergeProjectDexDebug
+> Task :pourday:mergeDebugJavaResource
+> Task :pourday:packageDebug
+> Task :pourday:createDebugApkListingFileRedirect
+> Task :pourday:assembleDebug
+> Task :app:embedPourDay
+> Task :app:preBuild
+> Task :app:preDebugBuild
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
 > Task :app:generateDebugBuildConfig
 > Task :app:generateDebugResValues
 > Task :app:checkDebugAarMetadata
@@ -12,10 +98,10 @@ Daemon will be stopped at the end of the build
 > Task :app:packageDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
-> Task :app:mergeDebugResources
 > Task :app:parseDebugLocalResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
+> Task :app:mergeDebugResources
 > Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
@@ -23,10 +109,10 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:desugarDebugFileDependencies
-> Task :app:compressDebugAssets
 > Task :app:mergeDebugStartupProfile
 > Task :app:mergeDebugJniLibFolders
 > Task :app:checkDebugDuplicateClasses
+> Task :app:compressDebugAssets
 > Task :app:mergeDebugNativeLibs
 > Task :app:mergeLibDexDebug
 
@@ -41,8 +127,8 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:kspDebugKotlin
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/warehouse/OrderDialogs.kt:69:28 Unresolved reference 'Modifier'.
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1790445409210.json
+e: file:///home/runner/work/MixMaster/MixMaster/app/src/main/java/com/conwic/mixmaster/ui/guide/GuidePlayer.kt:218:51 'val maxWidth: Dp' cannot be called in this context with an implicit receiver. Use an explicit receiver if necessary.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1790664633187.json
 
 FAILURE: Build failed with an exception.
 
@@ -251,5 +337,5 @@ Caused by: org.jetbrains.kotlin.gradle.tasks.CompilationErrorException: Compilat
 	... 2 more
 
 
-BUILD FAILED in 49s
-31 actionable tasks: 31 executed
+BUILD FAILED in 43s
+100 actionable tasks: 100 executed
