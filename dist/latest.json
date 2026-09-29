@@ -1,8 +1,8 @@
 {
-  "versionCode": 242,
-  "versionName": "1.0.242",
-  "apk": "MixMaster_1.0.242.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.242.apk",
-  "sizeBytes": 29809417,
-  "notes": "Back in with a new code: straight to Home, not \"Who are you?\""
+  "versionCode": 243,
+  "versionName": "1.0.243",
+  "apk": "MixMaster_1.0.243.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.243.apk",
+  "sizeBytes": 29818821,
+  "notes": "The tour, for the app as it is now"
 }
