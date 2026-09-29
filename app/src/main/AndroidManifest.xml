@@ -7,6 +7,8 @@
 
     <!-- Checking for and fetching a new build of this app. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The guide's narrator picks an online voice only when there is a connection to fetch it over. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- A phone its company has taken off offers to uninstall the app: Android shows its own
