@@ -203,6 +203,8 @@ fun GuideScreen(startChapter: Int, firstRun: Boolean, onDone: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(CharcoalDeep)) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(12.dp)) {
             val wide = maxWidth > maxHeight
+            // taken here: inside the Row below, the box's own size is out of reach
+            val sideWidth = maxWidth * 0.42f
             when {
                 finished -> EndCard(
                     firstRun = firstRun,
@@ -215,7 +217,7 @@ fun GuideScreen(startChapter: Int, firstRun: Boolean, onDone: () -> Unit) {
                 wide -> Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Stage(chapter, scene, beat, onTap = { playing = !playing }, modifier = Modifier.weight(1f).fillMaxHeight())
                     Column(
-                        modifier = Modifier.width(maxWidth * 0.42f).fillMaxHeight(),
+                        modifier = Modifier.width(sideWidth).fillMaxHeight(),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Header(chapter, firstRun, onDone)
