@@ -26,6 +26,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
@@ -42,6 +44,7 @@ import com.conwic.mixmaster.ui.company.ServerGuideScreen
 import com.conwic.mixmaster.ui.components.BottomNavBar
 import com.conwic.mixmaster.ui.components.rememberMotionOff
 import com.conwic.mixmaster.ui.onboarding.OnboardingScreen
+import com.conwic.mixmaster.ui.guide.GuideScreen
 import com.conwic.mixmaster.ui.products.AddEditProductScreen
 import com.conwic.mixmaster.ui.products.ProductDetailScreen
 import com.conwic.mixmaster.ui.projects.ProjectDetailScreen
@@ -134,8 +137,9 @@ fun MixMasterNavGraph(startDestination: String) {
             composable(Routes.SIGN_IN) {
                 Inset(insets) {
                     SignInScreen(
+                        // A new phone sees the guide first; "Skip" is there for whoever doesn't need it.
                         onContinue = {
-                            navController.navigate(Routes.ONBOARDING) {
+                            navController.navigate(Routes.guide(firstRun = true)) {
                                 popUpTo(Routes.SIGN_IN) { inclusive = true }
                             }
                         },
@@ -150,8 +154,43 @@ fun MixMasterNavGraph(startDestination: String) {
                                 popUpTo(Routes.ONBOARDING) { inclusive = true }
                             }
                         },
+                        onWatch = { chapter -> navController.navigate(Routes.guide(chapter)) },
                     )
                 }
+            }
+            // Full screen and dark, like a video: no inset, it pads itself inside its own background.
+            composable(
+                route = Routes.GUIDE,
+                arguments = listOf(
+                    navArgument(Routes.GUIDE_CHAPTER) {
+                        type = NavType.IntType
+                        defaultValue = 0
+                    },
+                    navArgument(Routes.GUIDE_FIRST) {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    },
+                ),
+            ) { entry ->
+                val firstRun = entry.arguments?.getBoolean(Routes.GUIDE_FIRST) ?: false
+                val scope = rememberCoroutineScope()
+                GuideScreen(
+                    startChapter = entry.arguments?.getInt(Routes.GUIDE_CHAPTER) ?: 0,
+                    firstRun = firstRun,
+                    onDone = {
+                        if (firstRun) {
+                            // Watched or skipped, it has been seen: the next start goes straight to Home.
+                            scope.launch {
+                                container.userPrefs.setOnboardingSeen(true)
+                                navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.GUIDE) { inclusive = true }
+                                }
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
+                )
             }
             // All five bottom-nav pages live in this one destination — see TabHost for why.
             composable(Routes.HOME) { entry -> UnderBar(insets) { TabHost(entry, navController, calm) } }
@@ -261,7 +300,7 @@ fun MixMasterNavGraph(startDestination: String) {
 /** Anywhere but the first-run screens, where a link or a reminder would pull the rug out. */
 private fun pastSignIn(entry: NavBackStackEntry?): Boolean {
     val route = entry?.destination?.route
-    return route != null && route != Routes.SIGN_IN && route != Routes.ONBOARDING
+    return route != null && route != Routes.SIGN_IN && route != Routes.ONBOARDING && route != Routes.GUIDE
 }
 
 /** Applies the bottom-bar inset inside a destination, so the NavHost itself never changes size. */

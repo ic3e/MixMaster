@@ -23,6 +23,13 @@ Pour Day has a **How to play** page (the `HOWTO` list in `game.js`, opened from 
 pause menu). It describes the whole game, section by section, and must stay true: any change to
 how a day plays — a new job, tool, rule, button or mishap — updates `HOWTO` in the same commit.
 
+MixMaster has a **guide** (`ui/guide`): the app played through like a video, chapter by chapter,
+with its screens drawn from the app's own components and strings and the captions read out by the
+phone's voice. A new phone sees it after sign-in; Settings → Help and the tour's cards open it
+again. It has to stay true the same way: a change to a screen the guide shows — a button renamed
+or moved, a step added — updates that scene (`GuideScript.kt`, `GuideScreens.kt`) and its caption
+in all three languages in the same commit.
+
 ## Building
 
 There is **no Android SDK in this sandbox** — never try to run Gradle. The build happens in CI:

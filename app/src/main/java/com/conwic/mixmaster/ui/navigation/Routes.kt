@@ -38,6 +38,12 @@ object Routes {
     const val COMPANY = "company"
     const val SERVER_GUIDE = "server_guide"
     const val BREAK_TIME = "break_time"
+    /** The guide, from a chapter; [GUIDE_FIRST] when it is the new phone's first sight of the app. */
+    const val GUIDE = "guide?chapter={chapter}&first={first}"
+    const val GUIDE_CHAPTER = "chapter"
+    const val GUIDE_FIRST = "first"
+
+    fun guide(chapter: Int = 0, firstRun: Boolean = false): String = "guide?chapter=$chapter&first=$firstRun"
 
     fun calculator(solutionId: Long = 0L): String =
         if (solutionId > 0L) "calculator?solutionId=$solutionId" else "calculator"

@@ -1,6 +1,14 @@
 package com.conwic.mixmaster.ui.onboarding
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.PlayCircleFilled
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import com.conwic.mixmaster.ui.components.ActionLink
+import com.conwic.mixmaster.ui.theme.CardShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,26 +51,30 @@ private data class OnboardingStep(
     val icon: ImageVector,
     @StringRes val title: Int,
     @StringRes val body: Int,
+    /** The guide's chapter that shows it being done. */
+    val chapter: Int,
 )
 
 /** The work, in the order a job goes: the mix, what it is made of, the job, the shed, the site. */
 private val work = listOf(
-    OnboardingStep(Icons.Filled.Science, R.string.onboarding_1_title, R.string.onboarding_1_body),
-    OnboardingStep(Icons.Filled.Inventory2, R.string.onboarding_2_title, R.string.onboarding_2_body),
-    OnboardingStep(Icons.Filled.CalendarMonth, R.string.onboarding_3_title, R.string.onboarding_3_body),
-    OnboardingStep(Icons.Filled.Warehouse, R.string.onboarding_4_title, R.string.onboarding_4_body),
-    OnboardingStep(Icons.Filled.PhotoCamera, R.string.onboarding_5_title, R.string.onboarding_5_body),
+    OnboardingStep(Icons.Filled.Science, R.string.onboarding_1_title, R.string.onboarding_1_body, chapter = 1),
+    OnboardingStep(Icons.Filled.Inventory2, R.string.onboarding_2_title, R.string.onboarding_2_body, chapter = 2),
+    OnboardingStep(Icons.Filled.CalendarMonth, R.string.onboarding_3_title, R.string.onboarding_3_body, chapter = 3),
+    OnboardingStep(Icons.Filled.Warehouse, R.string.onboarding_4_title, R.string.onboarding_4_body, chapter = 4),
+    OnboardingStep(Icons.Filled.PhotoCamera, R.string.onboarding_5_title, R.string.onboarding_5_body, chapter = 5),
 )
 
 /**
- * What MixMaster does, a card a thing — after sign-in, and again from Settings → Help.
+ * What MixMaster does, a card a thing — from Settings → Help, and on a phone that joined a company
+ * before it had seen anything. The guide shows the same things being done: the whole of it from
+ * the card at the top, a chapter from each card's "Watch how".
  *
  * The company card is the one that changes with the phone: on its own, it says how to share with a
  * crew; on the owner's, how people are added and taken off; on a worker's, whose figures these
  * are and who decides what they may change.
  */
 @Composable
-fun OnboardingScreen(onDone: () -> Unit) {
+fun OnboardingScreen(onDone: () -> Unit, onWatch: (chapter: Int) -> Unit) {
     val context = LocalContext.current
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
@@ -90,8 +102,28 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 }
             }
         }
+        item {
+            CardFlat(modifier = Modifier.clip(CardShape).clickable { onWatch(0) }, edge = MaterialTheme.colorScheme.primary) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.PlayCircleFilled,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp),
+                    )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(text = stringResource(R.string.guide_watch), style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            text = stringResource(R.string.guide_watch_note),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
         items(work) { step ->
-            StepCard(icon = step.icon, title = stringResource(step.title), body = stringResource(step.body))
+            StepCard(icon = step.icon, title = stringResource(step.title), body = stringResource(step.body), onWatch = { onWatch(step.chapter) })
         }
         item {
             StepCard(
@@ -102,6 +134,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                     access.owner -> stringResource(R.string.onboarding_6_owner, company)
                     else -> stringResource(R.string.onboarding_6_worker, company)
                 },
+                onWatch = { onWatch(6) },
             )
         }
         item {
@@ -109,6 +142,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 icon = Icons.Rounded.SportsEsports,
                 title = stringResource(R.string.onboarding_7_title),
                 body = stringResource(R.string.onboarding_7_body),
+                onWatch = { onWatch(7) },
             )
         }
         item {
@@ -127,7 +161,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
 }
 
 @Composable
-private fun StepCard(icon: ImageVector, title: String, body: String) {
+private fun StepCard(icon: ImageVector, title: String, body: String, onWatch: () -> Unit) {
     CardFlat {
         Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Text(
@@ -136,5 +170,6 @@ private fun StepCard(icon: ImageVector, title: String, body: String) {
             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
         )
         Text(text = body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ActionLink(text = stringResource(R.string.guide_watch_part), onClick = onWatch, modifier = Modifier.padding(top = 8.dp))
     }
 }

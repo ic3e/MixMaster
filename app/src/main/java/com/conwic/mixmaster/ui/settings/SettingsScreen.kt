@@ -337,10 +337,17 @@ fun SettingsScreen(navController: NavHostController) {
             Column {
                 SectionLabel(text = stringResource(R.string.settings_help))
                 CardFlat {
+                    // The guide plays the whole app through like a video; the tour is the same on a
+                    // page, a card a thing, with each card's own chapter to watch.
+                    ActionLink(
+                        text = stringResource(R.string.guide_watch),
+                        onClick = { navController.navigate(Routes.guide()) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     ActionLink(
                         text = stringResource(R.string.settings_replay_tour),
                         onClick = { navController.navigate(com.conwic.mixmaster.ui.navigation.Routes.ONBOARDING) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     )
                 }
             }
