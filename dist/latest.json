@@ -1,8 +1,8 @@
 {
-  "versionCode": 239,
-  "versionName": "1.0.239",
-  "apk": "MixMaster_1.0.239.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.239.apk",
-  "sizeBytes": 29767945,
-  "notes": "Demo: three things to order, not twenty"
+  "versionCode": 240,
+  "versionName": "1.0.240",
+  "apk": "MixMaster_1.0.240.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.240.apk",
+  "sizeBytes": 29792057,
+  "notes": "Empty all behind a typed word, and a removed phone keeps nothing"
 }
