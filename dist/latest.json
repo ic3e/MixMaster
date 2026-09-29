@@ -1,8 +1,8 @@
 {
-  "versionCode": 238,
-  "versionName": "1.0.238",
-  "apk": "MixMaster_1.0.238.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.238.apk",
-  "sizeBytes": 29767973,
-  "notes": "Labels in black, and a demo built from what ConWiC really lays"
+  "versionCode": 239,
+  "versionName": "1.0.239",
+  "apk": "MixMaster_1.0.239.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.239.apk",
+  "sizeBytes": 29767945,
+  "notes": "Demo: three things to order, not twenty"
 }
