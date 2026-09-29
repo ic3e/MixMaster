@@ -682,25 +682,27 @@ object DemoData {
     private class StockLine(val item: String, val packs: Int, val open: Double = 0.0)
     private class Order(val item: String, val packs: Int, val inDays: Long, val orderedDaysAgo: Long, val note: String, val by: String)
 
+    // Enough on the shelf for every booked job but one: Saimaa's Lixio Plus — the Nero Ebano in
+    // both sizes and the Colour-Mix Antracite — which is on the list to order tomorrow. Three
+    // lines on the home screen's warehouse card, not twenty.
     private val shelf = listOf(
-        StockLine("mtBc", 6), StockLine("mtFc", 3, 8.0), StockLine("mtPoly", 4, 12.5),
-        StockLine("hardener", 4), StockLine("catalyst", 1, 11.0), StockLine("archiGo", 1),
-        StockLine("lixioBlend", 8), StockLine("lixioPowder", 8), StockLine("lixioFluid", 6, 2.5),
+        StockLine("mtBc", 11), StockLine("mtFc", 3, 8.0), StockLine("mtPoly", 5, 12.5),
+        StockLine("hardener", 30), StockLine("catalyst", 7, 11.0), StockLine("archiGo", 2),
+        StockLine("lixioBlend", 28), StockLine("lixioPowder", 28), StockLine("lixioFluid", 28, 2.5),
         StockLine("mixNeutro", 2), StockLine("mixAntracite", 3), StockLine("botticino58", 4), StockLine("botticino812", 5),
-        StockLine("ebano58", 2), StockLine("ebano812", 2), StockLine("liquidPlus", 5), StockLine("cement", 12),
-        StockLine("epoxyCoat", 3), StockLine("quartz0105", 3), StockLine("quartz0712", 9), StockLine("quartz1020", 4),
-        StockLine("snA", 3), StockLine("snB", 3), StockLine("quarzo05", 10), StockLine("mesh", 2),
-        StockLine("wbPrimer", 2), StockLine("wbPrimerMax", 1), StockLine("wbEasyA", 4), StockLine("wbEasyB", 4),
-        StockLine("booster", 2), StockLine("opacizzante", 1), StockLine("pu78A", 1), StockLine("pu78B", 1), StockLine("fxEco", 1),
-        StockLine("cAsh", 6), StockLine("cSilver", 2), StockLine("cBeige", 3), StockLine("cTortora", 1),
+        StockLine("ebano58", 2), StockLine("ebano812", 2), StockLine("liquidPlus", 9), StockLine("cement", 18),
+        StockLine("epoxyCoat", 6), StockLine("quartz0105", 2), StockLine("quartz0712", 28), StockLine("quartz1020", 4),
+        StockLine("snA", 2), StockLine("snB", 2), StockLine("quarzo05", 6), StockLine("mesh", 2),
+        StockLine("wbPrimer", 3), StockLine("wbPrimerMax", 3), StockLine("wbEasyA", 7), StockLine("wbEasyB", 7),
+        StockLine("booster", 4), StockLine("opacizzante", 1), StockLine("pu78A", 1), StockLine("pu78B", 1), StockLine("fxEco", 1),
+        StockLine("cAsh", 13), StockLine("cSilver", 2), StockLine("cBeige", 8), StockLine("cTortora", 5),
         StockLine("cSmoke", 2), StockLine("cOlive", 1), StockLine("cBlack", 1),
     )
 
+    // Topping up what the next jobs will run down, not covering a shortage.
     private val orders = listOf(
         Order("lixioFluid", 6, 2, 3, "Ideal Work Finland, order IW-26-0412", "Tanel"),
-        Order("ebano58", 26, 6, 1, "Ideal Work Finland, order IW-26-0419 (Nero Ebano, both sizes)", "Tanel"),
-        Order("ebano812", 26, 6, 1, "Ideal Work Finland, order IW-26-0419", "Tanel"),
-        Order("mixAntracite", 6, 6, 1, "Ideal Work Finland, order IW-26-0419", "Tanel"),
+        Order("quartz0712", 20, 4, 2, "Quartz sand, order 5518", "Tanel"),
         Order("cTortora", 4, 5, 1, "Ideal Work Finland, order IW-26-0421", "Tanel"),
     )
 
