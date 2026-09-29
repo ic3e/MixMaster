@@ -442,11 +442,22 @@
     <string name="onboarding_welcome">Welcome to MixMaster</string>
     <string name="onboarding_start">Get started</string>
     <string name="onboarding_1_title">Never guess a mix again</string>
-    <string name="onboarding_1_body">Pick a product, enter the m² (or thickness), and MixMaster works out exactly how much of each part you need — no more eyeballing bag-to-bucket ratios on site.</string>
-    <string name="onboarding_2_title">Your whole product library, in one place</string>
-    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex and anything else you add — with real ratios and coverage from the datasheets, searchable by brand and category.</string>
-    <string name="onboarding_3_title">Projects, rooms, tasks &amp; the calendar</string>
-    <string name="onboarding_3_body">Break a project into floors and rooms, build each room up coat by coat, track tasks against a due date, and everything shows up on one shared calendar.</string>
+    <string name="onboarding_1_body">Pick a recipe and the m² or the thickness, and MixMaster splits every part to the gram — in whole bags and batches that fit the drum, with the colour dosed in. The timer runs each batch and buzzes when it’s done, even with the phone in your pocket.</string>
+    <string name="onboarding_2_title">The systems you lay, with their sheets</string>
+    <string name="onboarding_2_body">Ideal Work and Mapei — Architop, Lixio, Lixio Plus, Microtopping, the primers, quartz, mesh and sealers — with the ratios and coverage from the technical sheets, coat by coat. A product’s sheet opens from its card, and once it’s kept in the app it opens with no signal too.</string>
+    <string name="onboarding_3_title">Every job, room by room</string>
+    <string name="onboarding_3_body">Break a job into floors and rooms and build each room up coat by coat — primer, sand, topping, sealer — each with its colour. MixMaster works out what the job needs and books it on the shelf, and every job shows on the calendar.</string>
+    <string name="onboarding_4_title">The shed, counted</string>
+    <string name="onboarding_4_body">What’s on the shelf, what the jobs have booked, what’s short and what’s on its way. Home tells you what needs ordering, and a reminder asks for a stock count now and then.</string>
+    <string name="onboarding_5_title">On site: tasks, notes and photos</string>
+    <string name="onboarding_5_body">Tasks with a due date, notes and photos on the job, and every mix you run written down. When the job is done, its report comes out as a PDF for the client.</string>
+    <string name="onboarding_6_title">One crew, one set of figures</string>
+    <string name="onboarding_6_solo">Working with others? Set up a company under Settings → Company: every phone in it shares the same products, jobs and shelf, and you choose what each person may change. They join with the access code you give them.</string>
+    <string name="onboarding_6_owner">This phone runs %1$s. Add people under Settings → Company, choose what each may change, and give them their access code. Take someone off and MixMaster on their phone is emptied.</string>
+    <string name="onboarding_6_worker">This phone shares with %1$s: what you record reaches the whole crew, and the owner decides what you may change. Everything stays in step whenever there’s signal.</string>
+    <string name="onboarding_7_title">Break time</string>
+    <string name="onboarding_7_body">Pour Day, a first-person concrete shift for while the slab hardens — under Settings, and on the same site as your mates if they have it too.</string>
+    <string name="onboarding_demo">Want to see it all in use first? Settings → Demo fills the app with five example jobs.</string>
 
     <!-- App lock -->
     <string name="lock_unlock_title">Unlock MixMaster</string>

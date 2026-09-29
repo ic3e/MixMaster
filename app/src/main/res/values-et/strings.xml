@@ -418,12 +418,23 @@
 
     <string name="onboarding_welcome">Tere tulemast MixMasterisse</string>
     <string name="onboarding_start">Alustame</string>
-    <string name="onboarding_1_title">Enam ei pea segu pakkuma</string>
-    <string name="onboarding_1_body">Vali toode, sisesta ruutmeetrid (või paksus) ja MixMaster arvutab täpselt, kui palju iga osa vaja läheb — ei mingit silma järgi koti ja ämbri suhte hindamist objektil.</string>
-    <string name="onboarding_2_title">Kogu tootekataloog ühes kohas</string>
-    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex ja kõik muu, mille ise lisad — päris suhtarvude ja kuluga tehnilistelt lehtedelt, otsitav brändi ja tüübi järgi.</string>
-    <string name="onboarding_3_title">Projektid, ruumid, ülesanded ja kalender</string>
-    <string name="onboarding_3_body">Jaga projekt korrusteks ja ruumideks, ehita iga ruum kiht kihi haaval üles, jälgi ülesandeid tähtaja järgi — kõik ilmub ühte ühisesse kalendrisse.</string>
+    <string name="onboarding_1_title">Segu ei pea enam arvama</string>
+    <string name="onboarding_1_body">Vali retsept ning m² või paksus ja MixMaster jagab iga osa grammi täpsusega — täiskottides ja kogustes, mis mahuvad nõusse, koos pigmendiga. Taimer loeb iga koguse aega ja annab märku, kui see on valmis, ka siis, kui telefon on taskus.</string>
+    <string name="onboarding_2_title">Süsteemid, mida paigaldad, koos tehniliste kaartidega</string>
+    <string name="onboarding_2_body">Ideal Work ja Mapei — Architop, Lixio, Lixio Plus, Microtopping, kruntvärvid, kvartsliiv, võrk ja lakid — tehniliste kaartide vahekordade ja kuluga, kiht kihi haaval. Toote kaart avaneb selle kaardilt ja rakendusse salvestatuna ka ilma levita.</string>
+    <string name="onboarding_3_title">Iga objekt ruumhaaval</string>
+    <string name="onboarding_3_body">Jaga objekt korrusteks ja ruumideks ning ehita iga ruum üles kiht kihi haaval — krunt, liiv, pinnakate, lakk — igaüks oma värviga. MixMaster arvutab, mida objekt vajab, ja broneerib selle laos; kõik objektid on kalendris.</string>
+    <string name="onboarding_4_title">Ladu loetud</string>
+    <string name="onboarding_4_body">Mis on riiulis, mida objektid on broneerinud, mida on puudu ja mis on teel. Avaleht ütleb, mida tellida, ja meeldetuletus palub aeg-ajalt inventuuri teha.</string>
+    <string name="onboarding_5_title">Objektil: ülesanded, märkmed ja fotod</string>
+    <string name="onboarding_5_body">Tähtajaga ülesanded, märkmed ja fotod objekti juures ning iga tehtud segu kirja pandud. Kui töö on valmis, tuleb selle aruanne kliendile PDF-ina.</string>
+    <string name="onboarding_6_title">Üks meeskond, ühed numbrid</string>
+    <string name="onboarding_6_solo">Töötad koos teistega? Loo ettevõte menüüs Seaded → Ettevõte: iga selle telefon jagab samu tooteid, objekte ja ladu ning sina valid, mida keegi muuta tohib. Nad liituvad sinu antud ligipääsukoodiga.</string>
+    <string name="onboarding_6_owner">See telefon juhib ettevõtet %1$s. Lisa inimesi menüüs Seaded → Ettevõte, vali, mida igaüks muuta tohib, ja anna neile ligipääsukood. Kui kellegi eemaldad, tühjendatakse MixMaster tema telefonis.</string>
+    <string name="onboarding_6_worker">See telefon jagab andmeid ettevõttega %1$s: mida sa kirja paned, jõuab kogu meeskonnani, ja omanik otsustab, mida sa muuta tohid. Kõik on kooskõlas alati, kui levi on.</string>
+    <string name="onboarding_7_title">Paus</string>
+    <string name="onboarding_7_body">Pour Day — betoonivahetus esimeses isikus, ajaks, mil plaat kõveneb. Seadete all ja samal objektil koos kaaslastega, kui neil see ka on.</string>
+    <string name="onboarding_demo">Tahad enne kõike kasutuses näha? Seaded → Demo täidab rakenduse viie näidisobjektiga.</string>
 
     <string name="lock_unlock_title">Ava MixMaster</string>
     <string name="lock_unlock_subtitle">Sinu segud, tööd ja klientide andmed on telefoni luku taga.</string>

@@ -418,12 +418,23 @@
 
     <string name="onboarding_welcome">Tervetuloa MixMasteriin</string>
     <string name="onboarding_start">Aloitetaan</string>
-    <string name="onboarding_1_title">Massaa ei tarvitse enää arvailla</string>
-    <string name="onboarding_1_body">Valitse tuote, syötä neliöt (tai paksuus), ja MixMaster laskee tarkalleen, paljonko kutakin osaa tarvitaan — ei enää säkin ja ämpärin suhteen silmämääräistä arviointia työmaalla.</string>
-    <string name="onboarding_2_title">Koko tuotekirjasto yhdessä paikassa</string>
-    <string name="onboarding_2_body">Ideal Work, Mapei, Sika, Ardex ja kaikki muu, minkä itse lisäät — oikeilla suhteilla ja menekeillä tuotetiedoista, haettavissa merkin ja tyypin mukaan.</string>
-    <string name="onboarding_3_title">Projektit, tilat, tehtävät ja kalenteri</string>
-    <string name="onboarding_3_body">Jaa projekti kerroksiin ja tiloihin, rakenna jokainen tila kerros kerrokselta, seuraa tehtäviä eräpäivän mukaan — kaikki näkyy yhdessä yhteisessä kalenterissa.</string>
+    <string name="onboarding_1_title">Seosta ei tarvitse enää arvata</string>
+    <string name="onboarding_1_body">Valitse resepti ja m² tai paksuus, niin MixMaster jakaa jokaisen osan grammalleen — kokonaisina säkkeinä ja erinä, jotka mahtuvat astiaan, sävytys mukana. Ajastin laskee jokaisen erän ja hälyttää, kun se on valmis, vaikka puhelin olisi taskussa.</string>
+    <string name="onboarding_2_title">Asentamasi järjestelmät tiedotteineen</string>
+    <string name="onboarding_2_body">Ideal Work ja Mapei — Architop, Lixio, Lixio Plus, Microtopping, pohjusteet, kvartsihiekka, verkko ja lakat — teknisten tiedotteiden sekoitussuhteilla ja menekeillä, kerros kerrokselta. Tuotteen tiedote aukeaa sen kortista, ja sovellukseen tallennettuna myös ilman kenttää.</string>
+    <string name="onboarding_3_title">Jokainen kohde huone kerrallaan</string>
+    <string name="onboarding_3_body">Jaa kohde kerroksiin ja huoneisiin ja rakenna jokainen huone kerros kerrokselta — pohjuste, hiekka, pintamassa, lakka — kukin omalla sävyllään. MixMaster laskee, mitä kohde tarvitsee, ja varaa sen varastosta; kaikki kohteet näkyvät kalenterissa.</string>
+    <string name="onboarding_4_title">Varasto laskettuna</string>
+    <string name="onboarding_4_body">Mitä hyllyssä on, mitä kohteet ovat varanneet, mitä puuttuu ja mitä on tulossa. Etusivu kertoo, mitä pitää tilata, ja muistutus pyytää inventaariota aina välillä.</string>
+    <string name="onboarding_5_title">Työmaalla: tehtävät, muistiinpanot ja kuvat</string>
+    <string name="onboarding_5_body">Tehtävät määräpäivineen, muistiinpanot ja kuvat kohteessa ja jokainen tehty erä kirjattuna. Kun työ on valmis, sen raportti syntyy asiakkaalle PDF:nä.</string>
+    <string name="onboarding_6_title">Yksi porukka, samat luvut</string>
+    <string name="onboarding_6_solo">Teetkö töitä muiden kanssa? Perusta yritys kohdassa Asetukset → Yritys: jokainen sen puhelin jakaa samat tuotteet, kohteet ja varaston, ja sinä valitset, mitä kukin saa muuttaa. He liittyvät antamallasi pääsykoodilla.</string>
+    <string name="onboarding_6_owner">Tämä puhelin johtaa yritystä %1$s. Lisää ihmisiä kohdassa Asetukset → Yritys, valitse, mitä kukin saa muuttaa, ja anna heille pääsykoodi. Kun poistat jonkun, MixMaster tyhjennetään hänen puhelimestaan.</string>
+    <string name="onboarding_6_worker">Tämä puhelin jakaa tiedot yrityksen %1$s kanssa: mitä kirjaat, näkyy koko porukalle, ja omistaja päättää, mitä saat muuttaa. Kaikki pysyy ajan tasalla aina, kun kenttää on.</string>
+    <string name="onboarding_7_title">Tauko</string>
+    <string name="onboarding_7_body">Pour Day — betonivuoro ensimmäisestä persoonasta sillä aikaa, kun laatta kovettuu. Asetuksissa, ja samalla työmaalla kavereiden kanssa, jos heilläkin on se.</string>
+    <string name="onboarding_demo">Haluatko nähdä kaiken käytössä ensin? Asetukset → Demo täyttää sovelluksen viidellä esimerkkikohteella.</string>
 
     <string name="lock_unlock_title">Avaa MixMaster</string>
     <string name="lock_unlock_subtitle">Massat, työt ja asiakastiedot ovat puhelimen lukituksen takana.</string>
