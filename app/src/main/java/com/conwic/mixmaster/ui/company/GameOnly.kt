@@ -70,11 +70,13 @@ private fun GameOnlyPage(onPlay: () -> Unit) {
     val ui by viewModel.ui.collectAsState()
     val company = remember { CompanyStore.gameOnly(app).orEmpty() }
 
-    // In again: the code worked and the company's data is on the phone. MixMaster comes back,
-    // from the start, as on a phone that has just joined.
+    // In again: the code worked and the company's data is on the phone. MixMaster comes back
+    // on Home. Not on "Who are you?": the company's list has just said, and whatever was tapped
+    // there would be written over it. Not through the tour either — they have used the app.
     val joined = link != null && ui.busy == null
     LaunchedEffect(joined) {
         if (joined) {
+            container.userPrefs.setOnboardingSeen(true)
             CompanyStore.setGameOnly(app, null)
             CompanyStore.dismissEnded(app)
             PhoneWipe.restart(app)

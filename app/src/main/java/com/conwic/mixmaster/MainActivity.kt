@@ -191,7 +191,14 @@ class MainActivity : FragmentActivity() {
                         // a frame and then locking it would defeat the lock.
                         if (themeSetting != null && onboardingSeen != null && appLockEnabled != null) {
                             AppLockGate(enabled = appLockEnabled == true) {
-                                val start = if (onboardingSeen == true) Routes.HOME else Routes.SIGN_IN
+                                // A phone already in a company is never asked whether it sets up
+                                // the work or does it: the company's list of people says, and the
+                                // answer on the sign-in page would be written over it.
+                                val start = when {
+                                    onboardingSeen == true -> Routes.HOME
+                                    CompanyStore.current(this@MainActivity) != null -> Routes.ONBOARDING
+                                    else -> Routes.SIGN_IN
+                                }
                                 CompanyGate {
                                     com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
                                 }
