@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The copy passed round as a file. Google Play allows neither of these to MixMaster, so the
+         Play build has neither: it is updated by Play, and its worker allows alarms to the second
+         once, from the mixing screen. -->
+
+    <!-- Fetching a new build of this app and handing it to Android's installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- The mixing alarm to the second without asking: Android 14 no longer gives SCHEDULE_EXACT_ALARM
+         unasked, and a batch ringing minutes late is a batch gone off in the drum. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+</manifest>

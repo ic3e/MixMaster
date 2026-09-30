@@ -33,7 +33,9 @@ comes from you. It is never put in the repository.
    - `PLAY_UPLOAD_KEYSTORE_BASE64`: the text from step 3
    - `PLAY_UPLOAD_PASSWORD`: the password
 5. From the next build on, CI puts the signed bundle in the repository as
-   `dist/play/PourDay_1.0.<build>.aab`. That is the file to upload. Without the secrets the bundle
+   `dist/play/PourDay_1.0.<build>.aab`. That is the file to upload. The same key signs
+   MixMaster's Play bundle too (`dist/play/MixMaster_1.0.<build>.aab`, see
+   `docs/mixmaster-google-play.md`). Without the secrets the bundle
    is still built (to show it builds), but not signed and not kept.
 
 ## 2. The Play Console account

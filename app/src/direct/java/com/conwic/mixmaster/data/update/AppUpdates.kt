@@ -22,26 +22,6 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** What CI published, as read from dist/latest.json. */
-data class UpdateInfo(
-    val versionCode: Int,
-    val versionName: String,
-    val url: String,
-    val notes: String,
-    val sizeBytes: Long,
-)
-
-sealed interface UpdateState {
-    /** Nothing asked for yet. */
-    data object Idle : UpdateState
-    data object Checking : UpdateState
-    data object UpToDate : UpdateState
-    data class Available(val info: UpdateInfo) : UpdateState
-    data class Downloading(val info: UpdateInfo, val percent: Int) : UpdateState
-    data class ReadyToInstall(val info: UpdateInfo, val file: File) : UpdateState
-    data class Failed(@StringRes val reasonRes: Int) : UpdateState
-}
-
 /**
  * Checks whether CI has published a newer build than the one running, fetches it, and hands it
  * to Android's installer.
@@ -55,6 +35,9 @@ sealed interface UpdateState {
  * ([canInstall]). What it removes is hunting for the file in Downloads and opening it by hand.
  */
 object AppUpdates {
+
+    /** This copy looks for its own updates: Settings shows where it has got to. */
+    val offered = true
 
     /** CI writes this next to the APK on every successful build. */
     private const val MANIFEST_URL =

@@ -5,11 +5,12 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
-    <!-- Checking for and fetching a new build of this app. -->
+    <!-- The company's server, and the files behind its photos and blueprints. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- The guide's narrator picks an online voice only when there is a connection to fetch it over. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- The copy passed round as a file installs its own updates (src/direct); Google Play's copy
+         is updated by Play and may not ask for that. -->
 
     <!-- A phone its company has taken off offers to uninstall the app: Android shows its own
          "Uninstall?" for it, and only to an app that asks for this. -->
@@ -22,7 +23,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- USE_EXACT_ALARM, which needs no asking, only in the copy passed round as a file (src/direct):
+         Google Play allows it to alarm clocks and calendars alone. -->
     <!-- A restart cancels every alarm the app had booked. A batch that is still due gets booked
          again, so a phone that reboots mid-mix does not lose the mix. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

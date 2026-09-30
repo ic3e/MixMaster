@@ -130,6 +130,7 @@
     <string name="break_time_send_chooser">Send Pour Day</string>
     <string name="break_time_send_subject">Pour Day, a concrete-pouring game</string>
     <string name="break_time_send_text">Pour Day: a day on a concrete site, on your phone. Open the attached file on an Android phone to install it, and allow installing from this app when the phone asks. The game is in English.</string>
+    <string name="break_time_send_link">Pour Day: a day on a concrete site, on your phone. Get it on Google Play: https://play.google.com/store/apps/details?id=com.conwic.pourday. The game is in English.</string>
     <string name="settings_mixing_reminders">Mixing reminders</string>
     <string name="settings_mixing_reminders_note">The nudge about leaving the drum room to turn over.</string>
     <string name="settings_alert_sound">Alert sound</string>
@@ -810,6 +811,7 @@
     <string name="mix_alert_off">Notifications are off, so the alarm only rings while this screen is open.</string>
     <string name="mix_alert_shade_only">The alert can only reach the notification shade, not the locked screen.</string>
     <string name="mix_alert_inexact">With the app off screen the alarm can land a few minutes late.</string>
+    <string name="mix_alert_fix">Allow it in the phone’s settings</string>
     <string name="mix_stop_early">Mixed — next</string>
     <string name="mix_ready">Ready to pour</string>
     <string name="mix_next_batch">Next batch</string>

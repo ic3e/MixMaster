@@ -6,8 +6,13 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
@@ -120,6 +125,14 @@ class MainActivity : FragmentActivity() {
         super.onDestroy()
     }
 
+    /**
+     * Drawn under the system bars and the keyboard: Android 15 does it to every app that targets it,
+     * which the Google Play copy does. See where it is read, in [onCreate].
+     */
+    private val drawnEdgeToEdge: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM &&
+            applicationInfo.targetSdkVersion >= Build.VERSION_CODES.VANILLA_ICE_CREAM
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         wakeForAlarm(intent)
@@ -172,40 +185,48 @@ class MainActivity : FragmentActivity() {
             }
 
             MixMasterTheme(darkTheme = dark) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if (language == null) return@Surface
-                    CompositionLocalProvider(
-                        LocalAppContainer provides container,
-                        LocalAppActivity provides this@MainActivity,
-                    ) {
-                        if (gameOnly) {
-                            GameOnlyApp()
-                            return@CompositionLocalProvider
-                        }
-                        val appLockEnabled by container.userPrefs.appLockEnabled.collectAsState(initial = null)
-                        // Onboarding hasn't been seen yet on a fresh install -> start at Sign in;
-                        // otherwise jump straight to Home. Resolved once before the NavHost mounts.
-                        val onboardingSeen by container.userPrefs.onboardingSeen.collectAsState(initial = null)
+                // From Android 15 an app that targets it is drawn edge to edge: under the status bar,
+                // the navigation bar and the keyboard. The Google Play copy targets it (Play asks for
+                // a recent Android); every screen was laid out between the bars, with the keyboard
+                // pushing the page up (adjustResize), so that is kept, with the page's colour behind
+                // the bars. The copy passed round as a file targets 34 and is not drawn that way.
+                val keepClear = if (drawnEdgeToEdge) Modifier.windowInsetsPadding(WindowInsets.safeDrawing) else Modifier
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).then(keepClear)) {
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        if (language == null) return@Surface
+                        CompositionLocalProvider(
+                            LocalAppContainer provides container,
+                            LocalAppActivity provides this@MainActivity,
+                        ) {
+                            if (gameOnly) {
+                                GameOnlyApp()
+                                return@CompositionLocalProvider
+                            }
+                            val appLockEnabled by container.userPrefs.appLockEnabled.collectAsState(initial = null)
+                            // Onboarding hasn't been seen yet on a fresh install -> start at Sign in;
+                            // otherwise jump straight to Home. Resolved once before the NavHost mounts.
+                            val onboardingSeen by container.userPrefs.onboardingSeen.collectAsState(initial = null)
 
-                        // Both preferences are read before anything is drawn: showing the app for
-                        // a frame and then locking it would defeat the lock.
-                        if (themeSetting != null && onboardingSeen != null && appLockEnabled != null) {
-                            AppLockGate(enabled = appLockEnabled == true) {
-                                // A phone already in a company is never asked whether it sets up
-                                // the work or does it: the company's list of people says, and the
-                                // answer on the sign-in page would be written over it.
-                                val start = when {
-                                    onboardingSeen == true -> Routes.HOME
-                                    CompanyStore.current(this@MainActivity) != null -> Routes.ONBOARDING
-                                    else -> Routes.SIGN_IN
+                            // Both preferences are read before anything is drawn: showing the app for
+                            // a frame and then locking it would defeat the lock.
+                            if (themeSetting != null && onboardingSeen != null && appLockEnabled != null) {
+                                AppLockGate(enabled = appLockEnabled == true) {
+                                    // A phone already in a company is never asked whether it sets up
+                                    // the work or does it: the company's list of people says, and the
+                                    // answer on the sign-in page would be written over it.
+                                    val start = when {
+                                        onboardingSeen == true -> Routes.HOME
+                                        CompanyStore.current(this@MainActivity) != null -> Routes.ONBOARDING
+                                        else -> Routes.SIGN_IN
+                                    }
+                                    CompanyGate {
+                                        com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
+                                    }
+                                    // Above the whole app, not inside the calculator: a mix in the
+                                    // mixer is the most important thing on the phone, and it has to
+                                    // still be there when the app is opened again by its own alarm.
+                                    MixingHost()
                                 }
-                                CompanyGate {
-                                    com.conwic.mixmaster.ui.navigation.MixMasterNavGraph(startDestination = start)
-                                }
-                                // Above the whole app, not inside the calculator: a mix in the
-                                // mixer is the most important thing on the phone, and it has to
-                                // still be there when the app is opened again by its own alarm.
-                                MixingHost()
                             }
                         }
                     }

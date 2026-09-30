@@ -7,7 +7,17 @@ lands as an installed APK within minutes, so shipping something broken costs a s
 CI run.
 
 Kotlin · Jetpack Compose (Material 3) · Room · DataStore · single activity · hand-rolled DI
-(`di/AppContainer.kt`). minSdk 26, targetSdk 34 (Pour Day: 36, for Google Play).
+(`di/AppContainer.kt`). minSdk 26, targetSdk 34 (the Google Play builds and Pour Day: 36).
+
+Both apps come in two builds (product flavors): **direct**, the APK passed round as a file and used
+every day, and **play**, for Google Play in case the company ever publishes there. What Play turns
+away lives in `src/direct` only — the self-updater (`data/update/AppUpdates.kt`, with a do-nothing
+stand-in in `src/play`), the Pour Day APK packed for "Send to a friend" (`PourDayShare`, which in the
+Play build sends a Play link), `REQUEST_INSTALL_PACKAGES`, `USE_EXACT_ALARM` and the manufacturers'
+PDFs for the demo. Never add a way to download or install code outside `src/direct`. MixMaster's
+Play build targets 36 and so is drawn edge to edge on Android 15+; `MainActivity` pads the whole app
+by `WindowInsets.safeDrawing` there (the direct build targets 34 and never is). CI builds only
+`assembleDirectDebug` for the daily APKs; the Play bundles come from a step of their own.
 
 **Pour Day**, the break-time game, lives in its own module, `:game` (the page in
 `game/src/main/assets/pourday`, plus the phone's voices, Nearby for co-workers and `GameScreen`,
@@ -28,7 +38,9 @@ builds the Play bundle in a step of its own that may fail without holding MixMas
 into `dist/play/` when the upload key is in the repository's secrets, its permissions listed in
 `.ci-logs/play-permissions.txt`, and its log in `.ci-logs/play-failure.log` when it fails.
 `docs/pourday-google-play.md` is the publishing guide, `docs/pourday-privacy.md` the policy the
-store links to — both must stay true to the play build.
+store links to — both must stay true to the play build. MixMaster's are
+`docs/mixmaster-google-play.md` and `docs/mixmaster-privacy.md`: a change to what MixMaster sends to
+the company's server, or to its permissions, updates the policy in the same commit.
 
 Pour Day has a **How to play** page (the `HOWTO` list in `game.js`, opened from the title and the
 pause menu). It describes the whole game, section by section, and must stay true: any change to

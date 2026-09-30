@@ -53,7 +53,8 @@ jobs:
           MIXMASTER_BUILD_NUMBER: ${{ github.run_number }}
         run: |
           set +e
-          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log
+          # The copies passed round as files; the Google Play builds come in their own step below.
+          gradle assembleDirectDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log
           exit "${PIPESTATUS[0]}"
 
       - name: Upload APK
@@ -62,15 +63,15 @@ jobs:
         with:
           name: MixMaster_1.0.${{ github.run_number }}
           path: |
-            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/direct/debug/*.apk
             pourday/build/outputs/apk/direct/debug/*.apk
 
-      # Pour Day for Google Play: an app bundle, not debuggable, with no self-update and no internet
-      # (the "play" build in pourday/build.gradle.kts). Signed with the upload key once the repository
-      # has it as secrets — PLAY_UPLOAD_KEYSTORE_BASE64 and PLAY_UPLOAD_PASSWORD, see
-      # docs/pourday-google-play.md; without them it is still built, unsigned, to show that it
-      # builds, and not kept. A step of its own that may fail: it never holds back MixMaster.
-      - name: Build Pour Day for Google Play
+      # Pour Day and MixMaster for Google Play: app bundles, not debuggable, with no self-update (the
+      # "play" builds in pourday/ and app/build.gradle.kts). Signed with the upload key once the
+      # repository has it as secrets — PLAY_UPLOAD_KEYSTORE_BASE64 and PLAY_UPLOAD_PASSWORD, see
+      # docs/pourday-google-play.md; without them they are still built, unsigned, to show that they
+      # build, and not kept. A step of its own that may fail: it never holds back the daily build.
+      - name: Build for Google Play
         id: play
         if: success()
         continue-on-error: true
@@ -87,13 +88,22 @@ jobs:
             echo "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$PLAY_UPLOAD_KEYSTORE"
             SIGNED=yes
           fi
-          gradle :pourday:bundlePlayRelease --no-daemon --stacktrace 2>&1 | tee /tmp/play.log
+          # --continue: one app's bundle failing doesn't stop the other's, and whatever did build is
+          # still listed and kept below before the step reports the failure
+          set +e
+          gradle :pourday:bundlePlayRelease :app:bundlePlayRelease --continue --no-daemon --stacktrace 2>&1 | tee /tmp/play.log
+          STATUS=${PIPESTATUS[0]}
+          set -e
           rm -f "$RUNNER_TEMP/pourday-upload.jks"
-          # The permissions the Play build asks for, as its merged manifest has them — libraries'
+          # The permissions each Play build asks for, as its merged manifest has them — libraries'
           # included: what the store listing, the privacy policy and the Data safety form must match.
-          MANIFEST=$(find pourday/build/intermediates -path '*playRelease*' -name AndroidManifest.xml | head -n 1)
           mkdir -p .ci-logs
-          python3 - "$MANIFEST" > .ci-logs/play-permissions.txt <<'PY'
+          : > .ci-logs/play-permissions.txt
+          for module in pourday app; do
+            MANIFEST=$(find $module/build/intermediates -path '*playRelease*' -name AndroidManifest.xml | head -n 1)
+            [ -n "$MANIFEST" ] || continue
+            echo "[$module]" >> .ci-logs/play-permissions.txt
+            python3 - "$MANIFEST" >> .ci-logs/play-permissions.txt <<'PY'
           import sys, xml.etree.ElementTree as ET
           A = '{http://schemas.android.com/apk/res/android}'
           for e in ET.parse(sys.argv[1]).getroot():
@@ -101,15 +111,21 @@ jobs:
                   top = e.get(A + 'maxSdkVersion')
                   print(e.get(A + 'name') + (' (up to API ' + top + ')' if top else ''))
           PY
+          done
           cat .ci-logs/play-permissions.txt
           if [ -n "$SIGNED" ]; then
-            # Only the newest bundle is kept: Play wants each upload's number higher than the last.
+            # Only the newest bundles are kept: Play wants each upload's number higher than the last.
             mkdir -p dist/play
             rm -f dist/play/*.aab
-            cp pourday/build/outputs/bundle/playRelease/*.aab "dist/play/PourDay_1.0.${{ github.run_number }}.aab"
+            for pair in "pourday PourDay" "app MixMaster"; do
+              set -- $pair
+              BUNDLE=$(ls $1/build/outputs/bundle/playRelease/*.aab 2>/dev/null | head -n 1)
+              if [ -n "$BUNDLE" ]; then cp "$BUNDLE" "dist/play/$2_1.0.${{ github.run_number }}.aab"; fi
+            done
           else
-            echo "No upload key in the repository's secrets: the Play bundle was built unsigned and not kept."
+            echo "No upload key in the repository's secrets: the Play bundles were built unsigned and not kept."
           fi
+          exit $STATUS
 
       # This session's network access to GitHub Actions' own artifact
       # storage (Azure blob storage) is blocked, so also commit the APK
@@ -128,7 +144,7 @@ jobs:
           for app in MixMaster PourDay; do
             ls -1 dist/${app}_1.0.*.apk 2>/dev/null | sort -t. -k3 -n | head -n -1 | xargs -r rm -f
           done
-          cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
+          cp app/build/outputs/apk/direct/debug/*.apk "dist/MixMaster_$VERSION.apk"
           # Pour Day on its own, for people outside the company: built from the same run, so it
           # carries the same game as the MixMaster beside it.
           cp pourday/build/outputs/apk/direct/debug/*.apk "dist/PourDay_$VERSION.apk"
@@ -155,7 +171,8 @@ jobs:
           # something deprecated) — the only compiler the code ever meets is this one, so what
           # it says is kept where the next change can read it.
           mkdir -p .ci-logs
-          grep -E '^w: ' /tmp/gradle.log | sed -E 's#file:///home/runner/work/[^/]+/[^/]+/##' > .ci-logs/warnings.log || true
+          # the Play builds' own code (src/play) is compiled only in their step: its warnings count too
+          cat /tmp/gradle.log /tmp/play.log 2>/dev/null | grep -E '^w: ' | sed -E 's#file:///home/runner/work/[^/]+/[^/]+/##' | sort -u > .ci-logs/warnings.log || true
           echo "$(wc -l < .ci-logs/warnings.log) compiler warnings"
 
           git config user.email "ci-bot@users.noreply.github.com"

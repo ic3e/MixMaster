@@ -8,9 +8,16 @@ plugins {
 // where the Pour Day APK is put for packing (see embedPourDay)
 val pourDayShare: File = layout.buildDirectory.dir("generated/pourdayShare").get().asFile
 
+// Two builds, from the same code, the way Pour Day has them (see pourday/build.gradle.kts):
+//  - "direct", the APK passed round as a file and used every day: it updates itself from GitHub,
+//    carries the Pour Day APK for "Send to a friend", and targets Android 14 as it always has.
+//  - "play", for Google Play, in case the company ever puts MixMaster there. Play takes off apps that
+//    update themselves outside Play and allows no APK inside another app's files, so it has neither;
+//    no USE_EXACT_ALARM either, which Play keeps for alarm clocks and calendars; no manufacturers'
+//    PDFs, which are not ours to hand out; and it targets the Android Play asks for.
 android {
     namespace = "com.conwic.mixmaster"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.conwic.mixmaster"
@@ -20,6 +27,19 @@ android {
         // build shipped as version 1 and nothing told one APK apart from the next.
         versionCode = (System.getenv("MIXMASTER_BUILD_NUMBER") ?: "1").toInt()
         versionName = "1.0.${System.getenv("MIXMASTER_BUILD_NUMBER") ?: "0"}"
+    }
+
+    flavorDimensions += "store"
+    productFlavors {
+        create("direct") { dimension = "store" }
+        create("play") {
+            dimension = "store"
+            // Google Play takes new apps and updates only when they target a recent Android: API 36
+            // since 31 August 2026. Android 15 then draws the app edge to edge; MainActivity keeps
+            // the screens between the bars. The copy passed round as a file stays on 34 until the
+            // whole app has been tried that way on a phone.
+            targetSdk = 36
+        }
     }
 
     // Fixed debug keystore committed at keystore/debug.keystore so every build — CI or
@@ -33,12 +53,24 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        // The upload key for Google Play, the same one as Pour Day's: never in the repository, CI
+        // gets it from the repository's secrets (see docs/pourday-google-play.md).
+        System.getenv("PLAY_UPLOAD_KEYSTORE")?.let { keystore ->
+            create("upload") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("PLAY_UPLOAD_PASSWORD")
+                keyAlias = System.getenv("PLAY_UPLOAD_ALIAS") ?: "upload"
+                keyPassword = System.getenv("PLAY_UPLOAD_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // what goes to Google Play: signed with the upload key when CI has it, unsigned otherwise
+            signingConfig = signingConfigs.findByName("upload")
         }
         debug {
             signingConfig = signingConfigs.getByName("debug")
@@ -60,6 +92,9 @@ android {
     sourceSets {
         getByName("main") {
             assets.srcDir(rootProject.file("server"))
+        }
+        // Pour Day's APK rides only in the copy passed round as a file (see embedPourDay).
+        getByName("direct") {
             assets.srcDir(pourDayShare)
         }
     }
@@ -89,10 +124,12 @@ val embedPourDay by tasks.registering(Copy::class) {
     }
     into(pourDayShare.resolve("share"))
 }
-tasks.named("preBuild") { dependsOn(embedPourDay) }
-// and said outright to the tasks that read the assets, rather than trusting it to arrive through preBuild
+// Before the direct builds, and said outright to the tasks that read their assets too, rather than
+// trusting it to arrive through the pre-build step alone. The Google Play build has none of it.
 tasks.configureEach {
-    if (name.startsWith("merge") && name.endsWith("Assets")) dependsOn(embedPourDay)
+    val direct = name.contains("Direct")
+    if (direct && name.startsWith("pre") && name.endsWith("Build")) dependsOn(embedPourDay)
+    if (direct && name.startsWith("merge") && name.endsWith("Assets")) dependsOn(embedPourDay)
 }
 
 // Writes the schema Room expects for each database version to app/schemas.

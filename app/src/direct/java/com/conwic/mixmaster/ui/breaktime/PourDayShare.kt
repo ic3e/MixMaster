@@ -3,8 +3,10 @@ package com.conwic.mixmaster.ui.breaktime
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
 import com.conwic.mixmaster.BuildConfig
+import com.conwic.mixmaster.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -17,12 +19,21 @@ import java.io.File
  */
 object PourDayShare {
 
+    /** What goes with it: how to install a file. */
+    @StringRes val message: Int = R.string.break_time_send_text
+
+    /** The APK, handed to whatever the person picks. Nothing happens if it can't be copied out. */
+    suspend fun share(context: Context, subject: String, text: String, chooser: String) {
+        val apk = prepare(context) ?: return
+        send(context, apk, subject, text, chooser)
+    }
+
     /**
      * The APK copied out where a share target can read it: an app's assets are no file anyone else
      * can open. Named for the build, so the friend's downloads say which one it is. Null if the
      * copy failed — a full phone, say.
      */
-    suspend fun prepare(context: Context): Uri? = withContext(Dispatchers.IO) {
+    private suspend fun prepare(context: Context): Uri? = withContext(Dispatchers.IO) {
         runCatching {
             val dir = File(context.cacheDir, "share").apply { mkdirs() }
             val out = File(dir, "PourDay_${BuildConfig.VERSION_NAME}.apk")
@@ -40,7 +51,7 @@ object PourDayShare {
         }.getOrNull()
     }
 
-    fun send(context: Context, uri: Uri, subject: String, text: String, chooser: String) {
+    private fun send(context: Context, uri: Uri, subject: String, text: String, chooser: String) {
         val send = Intent(Intent.ACTION_SEND)
             .setType("application/vnd.android.package-archive")
             .putExtra(Intent.EXTRA_STREAM, uri)

@@ -81,7 +81,7 @@ object DemoData {
     private const val MAPEI = "Mapei"
     private const val IW_DOCS = "https://www.idealwork.com/download/technical-documentation/"
 
-    // the sheets in app/src/main/assets/demo/sheets
+    // the sheets in app/src/direct/assets/demo/sheets (the Google Play build carries none)
     private const val ARCHITOP = "ARCHITOP_TEC_EN.pdf"
     private const val LIXIO = "tds_LIXIO.pdf"
     private const val LIXIO_PLUS = "LIXIO-PLUS_TEC_ENG.pdf"
@@ -732,8 +732,14 @@ object DemoData {
             db.withTransaction {
                 val sql = db.openHelper.writableDatabase
                 Cleared.forEach { table -> sql.execSQL("DELETE FROM `$table`") }
+                // The Google Play build carries no manufacturer's PDF — they are not ours to hand out on a
+                // public store — and points to the maker's page instead, as a fresh install does.
                 val catalogue = insertCatalogueKeyed(db) { item ->
-                    if (item.pdf.isBlank()) item.url else sheets.getOrPut(item.pdf) { keep(app, "sheets/${item.pdf}", "sheets") }
+                    if (item.pdf.isBlank() || !carries(app, "sheets/${item.pdf}")) {
+                        item.url.ifBlank { if (item.pdf.isNotBlank()) IW_DOCS else "" }
+                    } else {
+                        sheets.getOrPut(item.pdf) { keep(app, "sheets/${item.pdf}", "sheets") }
+                    }
                 }
                 insertJobs(app, db, catalogue)
                 insertWarehouse(db, catalogue)
@@ -745,6 +751,10 @@ object DemoData {
         }
         restart(app)
     }
+
+    /** Whether this build of the app carries one of the demo's files. */
+    private fun carries(app: Context, asset: String): Boolean =
+        runCatching { app.assets.open("demo/$asset").close() }.isSuccess
 
     /** Copies one of the demo's files out of the app into a file of its own; its file:// address. */
     private fun keep(app: Context, asset: String, folder: String): String {

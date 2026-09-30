@@ -56,6 +56,7 @@ import com.conwic.mixmaster.BuildConfig
 import com.conwic.mixmaster.R
 import com.conwic.mixmaster.data.backup.BackupManager
 import com.conwic.mixmaster.data.company.CompanyStore
+import com.conwic.mixmaster.data.update.AppUpdates
 import androidx.compose.ui.text.font.FontWeight
 import com.conwic.mixmaster.ui.navigation.Routes
 import com.conwic.mixmaster.ui.breaktime.PourDayShare
@@ -331,7 +332,8 @@ fun SettingsScreen(navController: NavHostController) {
 
         item { DemoSection(modifier = Modifier.fillMaxWidth()) }
 
-        item { UpdateSection(modifier = Modifier.fillMaxWidth()) }
+        // Only in the copy passed round as a file: Google Play updates its own copy.
+        if (AppUpdates.offered) item { UpdateSection(modifier = Modifier.fillMaxWidth()) }
 
         item {
             Column {
@@ -382,7 +384,8 @@ private fun BreakTimeCard(onPlay: () -> Unit) {
     // the copy out of the app takes a moment; a second tap in it would send twice
     var sending by remember { mutableStateOf(false) }
     val subject = stringResource(R.string.break_time_send_subject)
-    val text = stringResource(R.string.break_time_send_text)
+    // the file itself, or in the Google Play copy the link to Pour Day on Play (see PourDayShare)
+    val text = stringResource(PourDayShare.message)
     val chooser = stringResource(R.string.break_time_send_chooser)
     CardFlat(modifier = Modifier.clip(CardShape).clickable(onClick = onPlay)) {
         Text(text = stringResource(R.string.break_time_title), style = MaterialTheme.typography.titleMedium)
@@ -402,8 +405,7 @@ private fun BreakTimeCard(onPlay: () -> Unit) {
                 onClick = {
                     sending = true
                     scope.launch {
-                        val apk = PourDayShare.prepare(context)
-                        if (apk != null) PourDayShare.send(context, apk, subject, text, chooser)
+                        PourDayShare.share(context, subject, text, chooser)
                         sending = false
                     }
                 },

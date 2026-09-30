@@ -14,6 +14,9 @@ crew's.
   stock count with reminders.
 - **Company:** one set of data on every phone, photos and blueprints included, kept on a server
   of the company's own (see below).
+- **Two builds of each app:** "direct", the APK passed round as a file and updated from GitHub, and
+  "play", a bundle for Google Play without anything Play turns away (`docs/mixmaster-google-play.md`,
+  `docs/pourday-google-play.md`).
 - **Guide:** the app played through like a video, chapter by chapter, read out by the phone's voice.
 - **Pour Day:** the break-time game (module `:game`), also built on its own as the Pour Day app
   (`:pourday`): a "direct" APK that updates itself, and a "play" bundle for Google Play

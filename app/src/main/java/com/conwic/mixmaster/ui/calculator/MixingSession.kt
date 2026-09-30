@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
+import android.content.Intent
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -82,6 +83,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -266,7 +268,11 @@ fun MixingSession(
     DisposableEffect(lifecycleOwner) {
         val watcher = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_RESUME -> onScreen = true
+                Lifecycle.Event.ON_RESUME -> {
+                    onScreen = true
+                    // perhaps back from the phone's settings, with notifications turned on there
+                    canNotify = notificationsAllowed(context)
+                }
                 Lifecycle.Event.ON_PAUSE -> onScreen = false
                 else -> Unit
             }
@@ -581,13 +587,31 @@ fun MixingSession(
                     // Said plainly rather than promised quietly: the alarm off screen depends on
                     // permissions the phone can refuse, and a worker who has turned notifications
                     // down needs to know the screen has to stay open.
-                    alertWarning(canNotify, context)?.let { warning ->
+                    // Asked again whenever the screen comes back: from the phone's settings, say.
+                    val gap = key(onScreen) { alertWarning(canNotify, context) }
+                    if (gap != null) {
                         Text(
-                            text = warning,
+                            text = gap.text,
                             style = MaterialTheme.typography.bodySmall,
                             color = inkSoft,
                             textAlign = TextAlign.Center,
                         )
+                        // and where to put it right, rather than leaving the worker to find it
+                        val fix = gap.fix
+                        if (fix != null) {
+                            Text(
+                                text = stringResource(R.string.mix_alert_fix),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ink,
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.clickable {
+                                    // NEW_TASK: the context here is the language wrapper, not the activity
+                                    runCatching { context.startActivity(fix.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                                },
+                            )
+                        }
                     }
 
                     when (phase) {
@@ -1283,6 +1307,9 @@ private fun notificationsAllowed(context: Context): Boolean {
     return granted && runCatching { NotificationManagerCompat.from(context).areNotificationsEnabled() }.getOrDefault(true)
 }
 
+/** What the screen cannot promise, and the phone's own page where it can be allowed. */
+private class AlertGap(val text: String, val fix: Intent?)
+
 /**
  * What this screen has to admit it cannot do, or null when it can do all of it.
  *
@@ -1291,10 +1318,10 @@ private fun notificationsAllowed(context: Context): Boolean {
  * worker is told here — a timer that quietly cannot ring is worse than one that says so.
  */
 @Composable
-private fun alertWarning(canNotify: Boolean, context: Context): String? = when {
-    !canNotify -> stringResource(R.string.mix_alert_off)
-    !MixAlarm.canAlertOverLockScreen(context) -> stringResource(R.string.mix_alert_shade_only)
-    !MixAlarm.canBeExact(context) -> stringResource(R.string.mix_alert_inexact)
+private fun alertWarning(canNotify: Boolean, context: Context): AlertGap? = when {
+    !canNotify -> AlertGap(stringResource(R.string.mix_alert_off), MixAlarm.notificationSettings(context))
+    !MixAlarm.canAlertOverLockScreen(context) -> AlertGap(stringResource(R.string.mix_alert_shade_only), MixAlarm.lockScreenSettings(context))
+    !MixAlarm.canBeExact(context) -> AlertGap(stringResource(R.string.mix_alert_inexact), MixAlarm.exactSettings(context))
     else -> null
 }
 

@@ -11,6 +11,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.conwic.mixmaster.MainActivity
@@ -105,6 +106,31 @@ object MixAlarm {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return false
         return runCatching { manager.canUseFullScreenIntent() }.getOrDefault(false)
     }
+
+    // The phone's own pages where each of those can be allowed, for the mixing screen to open when
+    // it says one is missing. Null where the phone has no such page.
+
+    fun notificationSettings(context: Context): Intent =
+        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+
+    fun lockScreenSettings(context: Context): Intent? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}"))
+        } else {
+            null
+        }
+
+    /**
+     * "Alarms & reminders". The copy of MixMaster from Google Play needs it: Play lets only an alarm
+     * clock or a calendar have its alarms land to the second without asking, so there the worker
+     * allows it once, from the mixing screen.
+     */
+    fun exactSettings(context: Context): Intent? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))
+        } else {
+            null
+        }
 
     /** What was picked in Settings, or the phone's own alarm sound where nothing was. */
     fun alarmSoundUri(context: Context): Uri? = AlertSoundStore.uri(context)
