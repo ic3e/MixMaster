@@ -1,8 +1,8 @@
 {
-  "versionCode": 248,
-  "versionName": "1.0.248",
-  "apk": "MixMaster_1.0.248.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.248.apk",
-  "sizeBytes": 30139460,
-  "notes": "Ready for the customer: notes signed by name, the sign-in button in words, texts that say what happens"
+  "versionCode": 249,
+  "versionName": "1.0.249",
+  "apk": "MixMaster_1.0.249.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.249.apk",
+  "sizeBytes": 30139787,
+  "notes": "Pour Day for Google Play: a build of its own, with nothing Play turns away"
 }

@@ -1,0 +1,12 @@
+android.permission.BLUETOOTH (up to API 30)
+android.permission.BLUETOOTH_ADMIN (up to API 30)
+android.permission.BLUETOOTH_SCAN
+android.permission.BLUETOOTH_ADVERTISE
+android.permission.BLUETOOTH_CONNECT
+android.permission.ACCESS_WIFI_STATE
+android.permission.CHANGE_WIFI_STATE
+android.permission.NEARBY_WIFI_DEVICES
+android.permission.ACCESS_COARSE_LOCATION (up to API 32)
+android.permission.ACCESS_FINE_LOCATION (up to API 32)
+android.permission.ACCESS_NETWORK_STATE
+com.conwic.pourday.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
