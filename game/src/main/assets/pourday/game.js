@@ -6914,7 +6914,9 @@
       sfx('door', POS.vanDoor.x, POS.vanDoor.z);
       toast('Laser in its case, the receiver in the glovebox. No more beeping today.', 'good');
     });
-    addMarker('lunch', POS.kioskFront, 'Lunch', 1.2, () => gs.phase === 'cure' && gs.H < 90, () => { lunch(); });
+    // open from the moment you arrive: it used to serve only once the pour was done, and stood there
+    // all morning with no ring and no word why — while an empty thermos sent you to it for coffee
+    addMarker('lunch', POS.kioskFront, 'Kebab & coffee', 1.2, () => gs.phase !== 'morning' && gs.phase !== 'end' && !gs.packing && gs.H < 90, () => { lunch(); });
     addMarker('home', POS.vanDoor, 'Go home', 1.2, () => !isGuest() && !gs.packing && ((gs.phase === 'cure' && (gs.panPasses.length > 0 || gs.gaveUp) && (gs.carrying !== 'laser' || gs.gaveUp)) || (gs.phase === 'wash' && gs.gaveUp)), () => { tryGoHome(); });
     site.edges.forEach((e, k) => {
       // corners and collars: the hand trowel only, as soon as the concrete there will take it —
@@ -6936,7 +6938,10 @@
     if (isGuest()) toastOnce('lunchcrew', `The clock is ${net.hostName}'s: your lunch doesn't stop it.`, '', 600000);
     modal({
       personal: true,
-      who: 'Kebab & Coffee', title: 'What\'ll it be?', text: L.lunch,
+      who: 'Kebab & Coffee', title: 'What\'ll it be?',
+      // the clock runs on while you eat: before the pour that's the trucks turning up, during it the concrete
+      text: L.lunch + (gs.phase === 'pour' && gs.truck ? '\n\nThere\'s a truck on site. Whatever you order, the concrete won\'t wait for it.'
+        : gs.phase === 'prep' || gs.phase === 'pipes' || gs.phase === 'pour' ? '\n\nThe day doesn\'t stop while you eat: the trucks come when they come.' : ''),
       choices: [
         { label: 'Kebab, extra garlic (40 min)', primary: true, fn: () => { gs.energy = clamp(gs.energy + 45, 0, 100); gs.needs.poo += 45; gs.needs.wee += 10; simulate(40, true); toast('Kebab. The garlic will guard the slab for you for the rest of the day.', 'good'); remember('Kebab with extra garlic.'); } },
         { label: 'Sausage in a bun, one to go (30 min)', fn: () => { gs.energy = clamp(gs.energy + 32, 0, 100); gs.needs.poo += 25; gs.sausage = true; simulate(30, true); toast('You keep one sausage "for later". Later has plans for it.', 'good'); } },
@@ -7988,7 +7993,9 @@
   function pourTrouble(dt) {
     const progress = filledShare();
     if (gs.mixState === 'stiff' && chance(0.025 * dt)) {
-      gs.blocked = irnd(1, 5);
+      // a joint of this day's line: it runs 3 to 9 pipes long, and a joint picked past its end had
+      // no marker to hit — the line stayed blocked and the pump never started again
+      gs.blocked = irnd(1, PIPE_N - 1);
       gs.stats.blockages++;
       toast(fresh(L.blocked), 'warn');
       blockMarker();
@@ -8006,7 +8013,8 @@
     }
   }
   function blockMarker() {
-    const k = gs.blocked;
+    // kept on the line whatever the number says: a host's, too, comes from a line of its own length
+    const k = clamp(gs.blocked, 0, PIPE_N - 1);
     const a = k === 0 ? POS.pumpOut : PIPE_ROUTE[k - 1], b = PIPE_ROUTE[k];
     const at2 = day.boom ? P(pump.position.x + 1.5, pump.position.z + 3.2) : P((a.x + b.x) / 2, (a.z + b.z) / 2);
     const m = addMarker('block', at2, day.boom ? 'Hit the boom pipe!' : 'Hit the pipe!', 2.4, () => gs.blocked >= 0, () => {
@@ -11320,7 +11328,7 @@
     ['The trucks', 'Every truck is its own mix, and starts setting when it lands, at its own pace: the end the first truck filled is ready before the last. Now and then one comes wrong, or empty. Run short and you can order one more — it takes an hour and a half. A truck kept waiting costs money.\nOn a long pour the first end goes off while the last trucks are still coming. The <b>Hardness</b> panel shows up with the first truck: each truck\'s concrete (T1, T2…), and the orange tick on the bar is the hardest part. The map goes paler as it goes off, the square you look at says how hard it is and whose truck it was, and an empty hand does the thumb test. On a pour of three trucks or more, a truck\'s concrete that\'s all in and lies level (within about 8 mm) gets on with going off: it skips the slow start, and shows an arrow on the panel (T1 12%↑). So level what\'s in, and that end is ready while the last trucks are still coming. From 15% that end takes the edges and corners, from 25% the pans — put the hose down and trowel it between trucks, but fresh concrete poured over work already done means doing it again.'],
     ['Finishing', 'Footprints and marks come out with the float while it\'s under 50% hard, with the hand trowel under 70%, with the machines up to about 80% — after that they\'re in it for good.\nThe pan pass goes on from 25% (earlier and the pans dig in), the blade pass from 55%: fit blades with the button next to Put down. With a machine in hand, orange squares are the ones this pass hasn\'t been over, and blue ones are still too soft for it. A pass is done when nine squares in ten have had it, and it\'s judged on how hard each square was when the machine went over it.\n<b>The edges, all the way round</b>: every metre of board needs edging once it\'s 15% hard. Run the small <b>edge trowel</b> along the boards, or kneel with the <b>hand trowel</b> — look at the concrete right against a board and hold, then move along. With either in hand the metres still to do show orange along the boards (blue: too soft yet), and on the map; done ones get a smooth band. Past 85% an edge still closes, but it isn\'t pretty. The corners and pipe collars are hand-trowel jobs at the purple rings. The thumb test, and the square you look at, tell you how hard that bit is.'],
     ['Washing up', 'After the pour, carry every tool to the water tank and hold Wash before the concrete sets on it — two and a half hours and it\'s part of the tool, and chipping it off costs. Your boots too: empty hands at the tank. Every tool goes back to the van, washed, before you go home. The manager checks.'],
-    ['Your body', 'Energy goes down all day. Coffee helps; so does the kebab stand, which has its own way of getting back at you.\nYou\'ll need a piss every few hours (sooner with coffee), and a shit after the kebab; the weather panel says when. The <b>toilet</b> is the blue box. The little window over the knob is red when somebody\'s in: pull the knob and they\'ll tell you about it, and they come out when they\'re done. Desperate for a piss? Behind the van — there\'s a ring for it, and sometimes a witness.\nHold on too long and you\'ll know: hopping from foot to foot, cramps that fold you in half. Then it happens. The <b>spare clothes</b> are behind the driver\'s seat in the van — and if it was a shit, hose yourself down at the water tank first. There\'s one pair of spare trousers and one pair of spare boots a day; after that it\'s a bin bag.'],
+    ['Your body', 'Energy goes down all day. Coffee helps; so does the kebab stand, open all day, which has its own way of getting back at you. The clock doesn\'t stop while you eat: before the pour the trucks still come, and during it the concrete still sets.\nYou\'ll need a piss every few hours (sooner with coffee), and a shit after the kebab; the weather panel says when. The <b>toilet</b> is the blue box. The little window over the knob is red when somebody\'s in: pull the knob and they\'ll tell you about it, and they come out when they\'re done. Desperate for a piss? Behind the van — there\'s a ring for it, and sometimes a witness.\nHold on too long and you\'ll know: hopping from foot to foot, cramps that fold you in half. Then it happens. The <b>spare clothes</b> are behind the driver\'s seat in the van — and if it was a shit, hose yourself down at the water tank first. There\'s one pair of spare trousers and one pair of spare boots a day; after that it\'s a bin bag.'],
     ['Your phone', 'Texts and calls come up on the phone in your hand. It can slip out of your pocket, or go flying when you fall: it lands face down (orange case, on the ground, or in the pour) and rings to itself until you go back, look at it and hold the button. Face down on a building site means a cracked screen, often.'],
     ['People, dogs and cats', 'Passers-by, dogs and cats head for your slab: look at them and tap the big button to shout. The finger works on anything you look at, and some of them answer back. The pump and truck drivers are on the clock: stand about doing nothing for eight or ten seconds and they let you know. On a big slab the manager sends a helper. The manager rings anyway. Your family texts.'],
     ['Waiting', '<b>Wait</b> makes time fly: for the pump, for the next truck, standing guard over the slab (you\'re up if something happens), or napping in the van behind the wheel — fastest, and nobody guards the slab. Tap Wait again to get out.'],
