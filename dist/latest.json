@@ -1,8 +1,8 @@
 {
-  "versionCode": 250,
-  "versionName": "1.0.250",
-  "apk": "MixMaster_1.0.250.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.250.apk",
-  "sizeBytes": 30141259,
-  "notes": "MixMaster for Google Play too, in case: a build of its own, with nothing Play turns away"
+  "versionCode": 251,
+  "versionName": "1.0.251",
+  "apk": "MixMaster_1.0.251.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.251.apk",
+  "sizeBytes": 30142199,
+  "notes": "Pour Day: a blocked line shows its red marker again, and the kebab stand opens all day"
 }
