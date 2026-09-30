@@ -6,11 +6,10 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import com.conwic.pourday.game.GameScreen
-import com.conwic.pourday.game.GameUpdates
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import kotlin.concurrent.thread
 
 /**
@@ -25,7 +24,7 @@ import kotlin.concurrent.thread
  * No signal is normal on a site, and at a friend's: a check that fails says nothing at all. A
  * download that fails says so, with a way to try again.
  */
-internal class PourDayUpdates(private val activity: Activity) : GameUpdates {
+internal class PourDayUpdates(private val activity: Activity) : StoreUpdates {
     @Volatile override var state: String = "{}"
         private set
 
@@ -43,7 +42,7 @@ internal class PourDayUpdates(private val activity: Activity) : GameUpdates {
     private val folder get() = File(activity.cacheDir, "updates")
 
     /** The quiet look on start. */
-    fun look() {
+    override fun look() {
         if (busy) return
         busy = true
         thread(name = "pourday-update") {
@@ -87,7 +86,7 @@ internal class PourDayUpdates(private val activity: Activity) : GameUpdates {
     }
 
     /** Back in the app, perhaps from the permission screen. */
-    fun resumed() {
+    override fun resumed() {
         if (!askedPermission || file == null) return
         askedPermission = false
         if (canInstall()) {
@@ -182,7 +181,8 @@ internal class PourDayUpdates(private val activity: Activity) : GameUpdates {
         return target
     }
 
-    private fun open(url: String): HttpURLConnection = (URL(url).openConnection() as HttpURLConnection).apply {
+    // URI first: URL's own constructor is deprecated in the Java that Android 16 carries.
+    private fun open(url: String): HttpURLConnection = (URI.create(url).toURL().openConnection() as HttpURLConnection).apply {
         connectTimeout = 15_000
         readTimeout = 30_000
         instanceFollowRedirects = true

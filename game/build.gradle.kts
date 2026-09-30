@@ -16,7 +16,8 @@ plugins {
 // own version numbers are. And the Pour Day app offers its players an update only when this has
 // changed, not every time MixMaster is rebuilt.
 val gameStamp: String = MessageDigest.getInstance("SHA-256").run {
-    val files = fileTree("src/main").files + rootProject.fileTree("pourday/src/main").files
+    // pourday/src whole: the app's own code, and each of its two builds (see pourday/build.gradle.kts)
+    val files = fileTree("src/main").files + rootProject.fileTree("pourday/src").files
     files.map { it.relativeTo(rootDir).invariantSeparatorsPath to it }.sortedBy { it.first }.forEach { (path, f) ->
         update(path.toByteArray())
         update(f.readBytes())

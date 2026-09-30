@@ -1,9 +1,12 @@
 package com.conwic.pourday
 
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -11,12 +14,12 @@ import com.conwic.pourday.game.GameScreen
 
 /**
  * Pour Day on its own: the game, full screen, and nothing else. Its way out on the title and end
- * screens, and in the pause menu, closes the app. Its title screen says when there's a new version
- * (see [PourDayUpdates]).
+ * screens, and in the pause menu, closes the app. The copy passed round as a file says on its title
+ * screen when there's a new version; the one from Google Play leaves that to Play ([StoreUpdates]).
  */
 class PourDayActivity : ComponentActivity() {
     private var game: GameScreen? = null
-    private val updates = PourDayUpdates(this)
+    private val updates = storeUpdates(this)
 
     // the answer to a permission question goes to whoever asked it
     private var permissionAnswer: ((Boolean) -> Unit)? = null
@@ -39,8 +42,18 @@ class PourDayActivity : ComponentActivity() {
             updates = updates,
         )
         game = screen
-        updates.look()
-        setContentView(screen.view)
+        updates?.look()
+        // From Android 15 an app is drawn edge to edge, under the camera's cut-out too, and the
+        // game's buttons at the sides would sit under it on a phone held sideways. It keeps clear
+        // of the cut-out, as it did before, with the dusk showing there instead.
+        val frame = FrameLayout(this)
+        frame.addView(screen.view, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        ViewCompat.setOnApplyWindowInsetsListener(frame) { view, insets ->
+            val cutOut = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(cutOut.left, cutOut.top, cutOut.right, cutOut.bottom)
+            insets
+        }
+        setContentView(frame)
         fullScreen()
         // Mid-shift the back gesture pauses the game; on its title and end screens it leaves.
         onBackPressedDispatcher.addCallback(
@@ -60,7 +73,7 @@ class PourDayActivity : ComponentActivity() {
         super.onResume()
         game?.resume()
         // perhaps back from the phone's "install unknown apps" screen, with the update waiting
-        updates.resumed()
+        updates?.resumed()
         // Android does not always keep the bars hidden across a trip to another app.
         fullScreen()
     }

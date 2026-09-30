@@ -41,7 +41,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.7
+          # the Android Gradle plugin 8.10 needs Gradle 8.11.1 or later
+          gradle-version: 8.11.1
 
       - name: Build debug APK
         id: build
@@ -62,7 +63,53 @@ jobs:
           name: MixMaster_1.0.${{ github.run_number }}
           path: |
             app/build/outputs/apk/debug/*.apk
-            pourday/build/outputs/apk/debug/*.apk
+            pourday/build/outputs/apk/direct/debug/*.apk
+
+      # Pour Day for Google Play: an app bundle, not debuggable, with no self-update and no internet
+      # (the "play" build in pourday/build.gradle.kts). Signed with the upload key once the repository
+      # has it as secrets — PLAY_UPLOAD_KEYSTORE_BASE64 and PLAY_UPLOAD_PASSWORD, see
+      # docs/pourday-google-play.md; without them it is still built, unsigned, to show that it
+      # builds, and not kept. A step of its own that may fail: it never holds back MixMaster.
+      - name: Build Pour Day for Google Play
+        id: play
+        if: success()
+        continue-on-error: true
+        shell: bash
+        env:
+          MIXMASTER_BUILD_NUMBER: ${{ github.run_number }}
+          PLAY_UPLOAD_KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          PLAY_UPLOAD_PASSWORD: ${{ secrets.PLAY_UPLOAD_PASSWORD }}
+        run: |
+          set -o pipefail
+          SIGNED=""
+          if [ -n "$PLAY_UPLOAD_KEYSTORE_BASE64" ] && [ -n "$PLAY_UPLOAD_PASSWORD" ]; then
+            export PLAY_UPLOAD_KEYSTORE="$RUNNER_TEMP/pourday-upload.jks"
+            echo "$PLAY_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$PLAY_UPLOAD_KEYSTORE"
+            SIGNED=yes
+          fi
+          gradle :pourday:bundlePlayRelease --no-daemon --stacktrace 2>&1 | tee /tmp/play.log
+          rm -f "$RUNNER_TEMP/pourday-upload.jks"
+          # The permissions the Play build asks for, as its merged manifest has them — libraries'
+          # included: what the store listing, the privacy policy and the Data safety form must match.
+          MANIFEST=$(find pourday/build/intermediates -path '*playRelease*' -name AndroidManifest.xml | head -n 1)
+          mkdir -p .ci-logs
+          python3 - "$MANIFEST" > .ci-logs/play-permissions.txt <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          A = '{http://schemas.android.com/apk/res/android}'
+          for e in ET.parse(sys.argv[1]).getroot():
+              if e.tag.startswith('uses-permission'):
+                  top = e.get(A + 'maxSdkVersion')
+                  print(e.get(A + 'name') + (' (up to API ' + top + ')' if top else ''))
+          PY
+          cat .ci-logs/play-permissions.txt
+          if [ -n "$SIGNED" ]; then
+            # Only the newest bundle is kept: Play wants each upload's number higher than the last.
+            mkdir -p dist/play
+            rm -f dist/play/*.aab
+            cp pourday/build/outputs/bundle/playRelease/*.aab "dist/play/PourDay_1.0.${{ github.run_number }}.aab"
+          else
+            echo "No upload key in the repository's secrets: the Play bundle was built unsigned and not kept."
+          fi
 
       # This session's network access to GitHub Actions' own artifact
       # storage (Azure blob storage) is blocked, so also commit the APK
@@ -84,7 +131,7 @@ jobs:
           cp app/build/outputs/apk/debug/*.apk "dist/MixMaster_$VERSION.apk"
           # Pour Day on its own, for people outside the company: built from the same run, so it
           # carries the same game as the MixMaster beside it.
-          cp pourday/build/outputs/apk/debug/*.apk "dist/PourDay_$VERSION.apk"
+          cp pourday/build/outputs/apk/direct/debug/*.apk "dist/PourDay_$VERSION.apk"
 
           # The in-app updater reads this to decide whether the phone is behind. versionCode is
           # the same run number the APK was built with, so the file can't describe a build that
@@ -113,8 +160,15 @@ jobs:
 
           git config user.email "ci-bot@users.noreply.github.com"
           git config user.name "CI Bot"
+          # How the Google Play build went: its log when it failed, so the next change can read why.
+          if [ "${{ steps.play.outcome }}" = "failure" ]; then
+            cp /tmp/play.log .ci-logs/play-failure.log
+          else
+            rm -f .ci-logs/play-failure.log
+          fi
+
           git add -A dist
-          git add .ci-logs/warnings.log
+          git add -A .ci-logs
           git add -f app/schemas || true
           git commit -m "ci: publish MixMaster_$VERSION.apk and PourDay_$VERSION.apk" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}

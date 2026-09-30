@@ -16,7 +16,8 @@ crew's.
   of the company's own (see below).
 - **Guide:** the app played through like a video, chapter by chapter, read out by the phone's voice.
 - **Pour Day:** the break-time game (module `:game`), also built on its own as the Pour Day app
-  (`:pourday`). Phones nearby play on the same site.
+  (`:pourday`): a "direct" APK that updates itself, and a "play" bundle for Google Play
+  (`docs/pourday-google-play.md`). Phones nearby play on the same site.
 - English, Estonian and Finnish, an app lock, backup and restore, and an in-app updater.
 
 Kotlin · Jetpack Compose (Material 3) · Navigation · Room · DataStore · Biometric, and Google's

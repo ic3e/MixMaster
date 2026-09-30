@@ -11327,6 +11327,8 @@
     ['Going home', 'Home at 95% hard, with a pan pass and a blade pass done, every metre of edge, every corner and collar trowelled, the laser packed and every tool back in the van, washed. Then the report: flatness, marks, waste, the people you told where to go, how long you played, and the pay slip. Every mistake is on it.'],
     ['Playing together', '"Play together" on the title, with the phones close by and Bluetooth on (location too, on older phones). One hosts, the others join; the host\'s phone keeps the clock and the trucks. It\'s one slab and one set of tools — whoever holds a tool has it.'],
     ['Upright or sideways', 'Pour Day plays both ways. Turn the phone sideways for more slab and less thumb; upright gives your thumbs more room.'],
+    ['Privacy', 'Pour Day collects nothing about you: no account, no ads, no tracking. Playing together, the phones talk to each other directly, over Bluetooth and Wi-Fi, and only the day being played passes between them. The voices are your phone\'s own.\nThe Pour Day app installed from a file, rather than from Google Play, looks on GitHub now and then for a newer version of itself.'],
+    ['Credits', 'The 3D is drawn with three.js (MIT licence), and the letters are Manrope (SIL Open Font Licence 1.1). Both licences travel with the game.'],
   ];
   function howToPlay() {
     $('#htBody').innerHTML = HOWTO.map(([h, p]) => `<h3>${h}</h3>${p.split('\n').map((x) => `<p>${x}</p>`).join('')}`).join('');

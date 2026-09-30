@@ -7,7 +7,7 @@ lands as an installed APK within minutes, so shipping something broken costs a s
 CI run.
 
 Kotlin · Jetpack Compose (Material 3) · Room · DataStore · single activity · hand-rolled DI
-(`di/AppContainer.kt`). minSdk 26, targetSdk 34.
+(`di/AppContainer.kt`). minSdk 26, targetSdk 34 (Pour Day: 36, for Google Play).
 
 **Pour Day**, the break-time game, lives in its own module, `:game` (the page in
 `game/src/main/assets/pourday`, plus the phone's voices, Nearby for co-workers and `GameScreen`,
@@ -18,6 +18,17 @@ together when they carry the same game — the check is a hash of the `:game` mo
 `dist/pourday.json`, and the Pour Day app offers its players an update only when it has changed.
 MixMaster carries the Pour Day APK in its assets (packed at build time by `embedPourDay`) for
 "Send to a friend" under Break time.
+
+`:pourday` comes in two builds. **direct** is the APK passed round as a file (and the one packed
+into MixMaster): it looks on GitHub for a newer version and installs it (`src/direct`). **play** is
+for Google Play, which takes off any app that updates itself outside Play: no updater, no
+`REQUEST_INSTALL_PACKAGES`, no `INTERNET`, and a `targetSdk` that keeps up with Play's yearly
+minimum. Anything that makes Pour Day download or install code goes in `src/direct` only. CI
+builds the Play bundle in a step of its own that may fail without holding MixMaster back: signed
+into `dist/play/` when the upload key is in the repository's secrets, its permissions listed in
+`.ci-logs/play-permissions.txt`, and its log in `.ci-logs/play-failure.log` when it fails.
+`docs/pourday-google-play.md` is the publishing guide, `docs/pourday-privacy.md` the policy the
+store links to — both must stay true to the play build.
 
 Pour Day has a **How to play** page (the `HOWTO` list in `game.js`, opened from the title and the
 pause menu). It describes the whole game, section by section, and must stay true: any change to

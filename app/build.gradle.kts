@@ -80,9 +80,10 @@ android {
 // "Send to a friend" under Break time: the game goes to somebody outside the company as a file, by
 // Quick Share, Bluetooth or a messenger — on a site with no signal too — and nothing of MixMaster
 // goes with it. Built with MixMaster, so it's always the same game as the one the sender has.
+// The copy passed round as a file ("direct"), which looks for its own updates — not the Play one.
 val embedPourDay by tasks.registering(Copy::class) {
-    dependsOn(":pourday:assembleDebug")
-    from(rootProject.file("pourday/build/outputs/apk/debug")) {
+    dependsOn(":pourday:assembleDirectDebug")
+    from(rootProject.file("pourday/build/outputs/apk/direct/debug")) {
         include("*.apk")
         rename { "pourday.apk" }
     }
