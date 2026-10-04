@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A neon wrench, and the sparks a fixed car never makes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- the glow round it -->
+    <path
+        android:pathData="M72.97,42.61A7,7 0 1,1 65.39,35.03M61,47L38,70"
+        android:strokeColor="#2BF0FF"
+        android:strokeAlpha="0.22"
+        android:strokeWidth="16"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M72.97,42.61A7,7 0 1,1 65.39,35.03M61,47L38,70"
+        android:strokeColor="#2BF0FF"
+        android:strokeWidth="8"
+        android:strokeLineCap="round" />
+    <!-- the hot core of the tube -->
+    <path
+        android:pathData="M72.97,42.61A7,7 0 1,1 65.39,35.03M61,47L38,70"
+        android:strokeColor="#D8FDFF"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M77,31L83,25M79,35L86,34M74,29L75,22"
+        android:strokeColor="#FF2BD6"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round" />
+</vector>

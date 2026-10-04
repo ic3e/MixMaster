@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The garage's night: a dark sky, a violet glow on the horizon, and the neon grid of the floor. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#070B16" android:pathData="M0,0H108V108H0Z" />
+    <path android:fillColor="#120E2A" android:pathData="M0,50H108V66H0Z" />
+    <path android:fillColor="#1B0F33" android:pathData="M0,60H108V66H0Z" />
+    <path android:fillColor="#0A0B1C" android:pathData="M0,66H108V108H0Z" />
+    <path
+        android:pathData="M0,71H108M0,79H108M0,92H108M54,66L-60,108M54,66L-14,108M54,66L20,108M54,66L54,108M54,66L88,108M54,66L122,108M54,66L168,108"
+        android:strokeColor="#FF2BD6"
+        android:strokeAlpha="0.45"
+        android:strokeWidth="0.8" />
+    <path
+        android:pathData="M0,66H108"
+        android:strokeColor="#FF2BD6"
+        android:strokeWidth="1.2" />
+</vector>

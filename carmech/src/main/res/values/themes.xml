@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The garage at night, so there's no white flash before the page draws. -->
+    <color name="garage">#05080F</color>
+
+    <style name="CarMech" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/garage</item>
+        <item name="android:statusBarColor">@color/garage</item>
+        <item name="android:navigationBarColor">@color/garage</item>
+    </style>
+</resources>
