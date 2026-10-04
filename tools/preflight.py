@@ -14,8 +14,9 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-# MixMaster, the game module it shares with the Pour Day app, and the Pour Day app itself.
-SRCS = ('app/src/main/java', 'game/src/main/java', 'pourday/src/main/java')
+# MixMaster, the game module it shares with the Pour Day app, the Pour Day app itself, and Car Mech
+# (a build of its own, in carmech/).
+SRCS = ('app/src/main/java', 'game/src/main/java', 'pourday/src/main/java', 'carmech/src/main/java')
 RES = 'app/src/main/res'
 
 # Members of the layout scopes and of Modifier itself: these need no import.
@@ -193,11 +194,12 @@ def main():
                     f'({counted.count(opener)} to {counted.count(closer)})',
                 )
 
-    # 4 · the game's script: no function declared twice
+    # 4 · the games' scripts: no function declared twice
     #
     # Two `function levelTick` in one scope is not an error in JavaScript: the later one silently
     # replaces the earlier everywhere, and the float called the laser's bubble game for a release.
-    for path in sorted(glob.glob('game/src/main/assets/**/*.js', recursive=True)):
+    scripts = glob.glob('game/src/main/assets/**/*.js', recursive=True) + glob.glob('carmech/src/main/assets/**/*.js', recursive=True)
+    for path in sorted(scripts):
         if path.endswith('.min.js'):
             continue
         with open(path, encoding='utf-8') as f:

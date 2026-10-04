@@ -22,6 +22,9 @@ crew's.
   (`:pourday`): a "direct" APK that updates itself, and a "play" bundle for Google Play
   (`docs/pourday-google-play.md`). Phones nearby play on the same site.
 - English, Estonian and Finnish, an app lock, backup and restore, and an in-app updater.
+- **Car Mech** (`carmech/`): a separate game, not part of MixMaster — one long day after another in
+  a neon garage in 2089, fixing cars for customers who should not own them. A Gradle build of its
+  own with its own workflow, published as `dist/CarMech_1.0.<build>.apk`.
 
 Kotlin · Jetpack Compose (Material 3) · Navigation · Room · DataStore · Biometric, and Google's
 Nearby Connections for Pour Day's co-op. No networking, image or DI library. minSdk 26,

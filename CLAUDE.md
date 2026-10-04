@@ -53,6 +53,22 @@ again. It has to stay true the same way: a change to a screen the guide shows �
 or moved, a step added — updates that scene (`GuideScript.kt`, `GuideScreens.kt`) and its caption
 in all three languages in the same commit.
 
+**Car Mech**, a car mechanic game the client asked for on its own, lives in `carmech/` — a Gradle
+build of its own (`carmech/settings.gradle.kts`), not a module of MixMaster's, so nothing in it can
+hold back MixMaster's daily build. It is a web page in a WebView like Pour Day: three.js for the
+garage (`scene.js`: the bay, the procedural cars, the scanner's see-through look, a glow pass that
+blooms only the neon), `game.js` for the day (clock, customers, quote, repairs, money, reviews,
+upgrades), `mini.js` for the eight repair minigames, `faces.js` for the customers' faces,
+`audio.js` for every sound (synthesised, no files), `data.js` for every line the game says. The
+Kotlin around it (`CarMechActivity`, `CarMechVoice`) only shows the page, lends it the phone's
+voices and touch feedback, and passes on back, pause and resume. It asks for no permissions. Its
+**How to play** (`HOWTO` in `game.js`) must stay true to the game the same way Pour Day's does.
+CI builds it in `.github/workflows/build-carmech.yml`, only when `carmech/` changes, and commits
+`dist/CarMech_1.0.<run>.apk` (its own run numbers) or `.ci-logs/carmech-failure.log`; MixMaster's
+workflow ignores `carmech/**`. Open `carmech/src/main/assets/carmech/index.html?test` in a browser to
+play it with `window.cmTest` for scripted runs (stepping the world without drawing, finishing a
+repair); a plain open is the game as the phone runs it.
+
 ## Building
 
 There is **no Android SDK in this sandbox** — never try to run Gradle. The build happens in CI:
@@ -60,6 +76,7 @@ There is **no Android SDK in this sandbox** — never try to run Gradle. The bui
 - Push to `main`. GitHub Actions builds and commits `dist/MixMaster_1.0.<run_number>.apk`,
   `dist/PourDay_1.0.<run_number>.apk` and `dist/latest.json`; a failure commits
   `.ci-logs/last-failure.log` instead. Read that file first when a build fails — it names the line.
+  Car Mech has its own workflow and files: `dist/CarMech_1.0.<run>.apk`, `.ci-logs/carmech-*.log`.
 - `gh` is not installed. Poll with `git fetch -q origin main` in a background loop and look for
   the `ci: publish` commit.
 - CI also commits the Room schema it generates (`app/schemas/`), so `<version>.json` appears after

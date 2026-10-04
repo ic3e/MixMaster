@@ -10,6 +10,9 @@ on:
       - 'CLAUDE.md'
       - 'README.md'
       - 'docs/**'
+      # Car Mech, the garage game, is built by a workflow of its own (build-carmech.yml).
+      - 'carmech/**'
+      - '.github/workflows/build-carmech.yml'
   workflow_dispatch: {}
 
 permissions:
@@ -188,7 +191,12 @@ jobs:
           git add -A .ci-logs
           git add -f app/schemas || true
           git commit -m "ci: publish MixMaster_$VERSION.apk and PourDay_$VERSION.apk" || echo "nothing to commit"
-          git push origin HEAD:${{ github.ref_name }}
+          # Car Mech's workflow may have committed its APK in the meantime: go on top of it
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && exit 0
+            sleep $((i * 3))
+          done
+          exit 1
 
       # This session's network access to GitHub Actions' own log/artifact
       # storage (Azure blob storage) is blocked, so on failure we commit
@@ -203,4 +211,7 @@ jobs:
           git config user.name "CI Bot"
           git add .ci-logs/last-failure.log
           git commit -m "ci: save build failure log" || echo "nothing to commit"
-          git push origin HEAD:${{ github.ref_name }}
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && exit 0
+            sleep $((i * 3))
+          done
