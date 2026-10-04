@@ -54,8 +54,9 @@ jobs:
         run: |
           VERSION="1.0.${{ github.run_number }}"
           mkdir -p dist .ci-logs
-          # the build before this one stays for one more round, as with the other apps
-          ls -1 dist/CarMech_1.0.*.apk 2>/dev/null | sort -t. -k3 -n | head -n -1 | xargs -r rm -f
+          # the build before this one stays for one more round, as with the other apps (the step runs
+          # with pipefail, and on the very first build there is no earlier one for ls to find)
+          ls -1 dist/CarMech_1.0.*.apk 2>/dev/null | sort -t. -k3 -n | head -n -1 | xargs -r rm -f || true
           cp carmech/build/outputs/apk/debug/*.apk "dist/CarMech_$VERSION.apk"
           # the compiler's warnings: the only compiler this code meets
           grep -E '^w: ' /tmp/carmech.log | sed -E 's#file:///home/runner/work/[^/]+/[^/]+/##' | sort -u > .ci-logs/carmech-warnings.log || true
