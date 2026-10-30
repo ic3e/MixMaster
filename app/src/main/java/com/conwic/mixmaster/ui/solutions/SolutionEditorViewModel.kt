@@ -17,6 +17,7 @@ import com.conwic.mixmaster.data.model.DosingMode
 import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.data.repository.SolutionRepository
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.gramsPerKgText
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.domain.toNumberOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -472,7 +473,7 @@ class SolutionEditorViewModel(
                             productId = productId,
                             perKgOfPart = true,
                             againstIndex = targetFor(state.lines, index, line.againstIndex),
-                            partsText = if (product.addOnAmountPerKg > 0.0) formatDecimal(product.addOnAmountPerKg * 1000.0, 2) else "",
+                            partsText = if (product.addOnAmountPerKg > 0.0) gramsPerKgText(product.addOnAmountPerKg) else "",
                         )
                     else -> line.copy(productId = productId)
                 }
@@ -814,7 +815,7 @@ class SolutionEditorViewModel(
             LineDraft(
                 productId = line.productId,
                 label = line.label,
-                partsText = formatDecimal(line.amountPerKg * 1000.0, 2),
+                partsText = gramsPerKgText(line.amountPerKg),
                 perKgOfPart = true,
                 // What the mix maths does with a part it cannot find: the first one. Shown as
                 // that, so the form says what the calculator will do.

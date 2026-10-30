@@ -29,6 +29,24 @@ data class AddOnNeed(
 )
 
 /**
+ * A rate held in kg per kg, as the grams (or ml) per kg it is typed and read in.
+ *
+ * To a tenth of a gram, except under one gram: there a tenth rounded 0.028 to "0", and a colour
+ * typed in the wrong unit showed as "0 g per kg" while still weighing out its fraction of a gram.
+ */
+fun gramsPerKgText(perKg: Double): String {
+    val grams = perKg * 1000.0
+    return formatDecimal(grams, if (grams > 0.0 && grams < 1.0) 3 else 1)
+}
+
+/**
+ * A colour rate typed in grams per kg that looks like the datasheet's kilos per kilo instead:
+ * under a gram per kilo is a trace no pigment is dosed at, and "28 g per kg" written in kilos is
+ * 0.028. Answers the grams it would then be, or null when the figure looks like grams.
+ */
+fun gramsIfTypedInKilos(typed: Double?): Double? = typed?.takeIf { it > 0.0 && it < 1.0 }?.let { it * 1000.0 }
+
+/**
  * How much of each colour or admixture this mix needs.
  *
  * Dosed off one named part, not off the total: a pigment is "28 g per 1 kg of polymer", and how
@@ -51,7 +69,7 @@ fun addOnNeeds(result: MixResult, addOns: List<MixAddOn>): List<AddOnNeed> = add
         againstKg = againstKg,
         amount = amount,
         unit = addOn.amountUnit,
-        rateAmount = formatDecimal(addOn.amountPerKg * 1000, 1),
+        rateAmount = gramsPerKgText(addOn.amountPerKg),
         rateUnit = if (addOn.amountUnit == "L") "ml" else "g",
         packs = packs,
         packLabel = if (addOn.packageSize > 0.0) {

@@ -84,6 +84,8 @@ import com.conwic.mixmaster.data.db.entity.RoomLayerEntity
 import com.conwic.mixmaster.data.db.entity.ProductEntity
 import java.time.Instant
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.gramsPerKgText
+import com.conwic.mixmaster.ui.components.kilosTyped
 import com.conwic.mixmaster.domain.RecordedMix
 import com.conwic.mixmaster.domain.formatStamp
 import com.conwic.mixmaster.domain.formatDueDate
@@ -1254,7 +1256,7 @@ private fun ColourSheet(
     var chosen by remember { mutableStateOf(products.firstOrNull { it.id == coat.layer.colourProductId }) }
     var rate by remember {
         mutableStateOf(
-            if (coat.layer.colourAmountPerKg > 0.0) formatDecimal(coat.layer.colourAmountPerKg * 1000, 1) else "",
+            if (coat.layer.colourAmountPerKg > 0.0) gramsPerKgText(coat.layer.colourAmountPerKg) else "",
         )
     }
     var againstIndex by remember { mutableStateOf(coat.layer.colourAgainstIndex) }
@@ -1286,7 +1288,7 @@ private fun ColourSheet(
                     chosen = picked
                     // The colour's own usual dose, unless one is typed already.
                     if (rate.isBlank() && picked != null && picked.addOnAmountPerKg > 0.0) {
-                        rate = formatDecimal(picked.addOnAmountPerKg * 1000, 1)
+                        rate = gramsPerKgText(picked.addOnAmountPerKg)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -1310,6 +1312,7 @@ private fun ColourSheet(
                     partLabels.getOrNull(againstIndex) ?: "",
                 ),
                 keyboardType = KeyboardType.Decimal,
+                problem = kilosTyped(rate),
                 modifier = Modifier.padding(top = 10.dp),
             )
             Row(

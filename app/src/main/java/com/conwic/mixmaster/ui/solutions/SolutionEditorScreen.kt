@@ -68,6 +68,7 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
 import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FormTextField
+import com.conwic.mixmaster.ui.components.kilosTyped
 import com.conwic.mixmaster.ui.company.rememberAccess
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
@@ -377,6 +378,7 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                                     else -> stringResource(R.string.product_parts)
                                 },
                                 keyboardType = KeyboardType.Decimal,
+                                problem = if (line.perKgOfPart) kilosTyped(line.partsText) else null,
                                 modifier = Modifier.weight(FieldWeightNarrow),
                             )
                         }

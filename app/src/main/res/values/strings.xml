@@ -1223,4 +1223,5 @@
     <string name="product_colour_note">Mixed into a solution at so many grams per kg of one part, never laid on its own. Offered first when a coat is given a colour.</string>
     <string name="product_colour_dose">Usual dose, %1$s per kg</string>
     <string name="product_colour_dose_hint">From the datasheet, e.g. 28. Filled in for you when it goes into a solution or onto a coat.</string>
+    <string name="addon_rate_kg_typed">Under a gram per kg. If the datasheet says %1$s kg per kg, type %2$s.</string>
 </resources>

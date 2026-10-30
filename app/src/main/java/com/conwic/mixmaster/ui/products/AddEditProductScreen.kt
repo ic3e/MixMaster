@@ -46,6 +46,7 @@ import com.conwic.mixmaster.ui.components.DropdownField
 import com.conwic.mixmaster.ui.components.FieldWeightNarrow
 import com.conwic.mixmaster.ui.components.FieldWeightWide
 import com.conwic.mixmaster.ui.components.FormTextField
+import com.conwic.mixmaster.ui.components.kilosTyped
 import com.conwic.mixmaster.ui.components.MixMasterTopBar
 import com.conwic.mixmaster.ui.components.PrimaryButton
 import com.conwic.mixmaster.ui.components.SectionLabel
@@ -220,6 +221,7 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                         label = stringResource(R.string.product_colour_dose, if (state.packUnit == "L") "ml" else "g"),
                         keyboardType = KeyboardType.Decimal,
                         hint = stringResource(R.string.product_colour_dose_hint),
+                        problem = kilosTyped(state.colourDoseText),
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                     )
                 }

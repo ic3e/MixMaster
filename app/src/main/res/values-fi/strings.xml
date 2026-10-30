@@ -1193,4 +1193,5 @@
     <string name="product_colour_note">Sekoitetaan seokseen grammoina yhden osan kiloa kohti, ei levitetä yksinään. Tarjotaan ensimmäisenä, kun kerrokselle valitaan väri.</string>
     <string name="product_colour_dose">Tavallinen annos, %1$s kiloa kohti</string>
     <string name="product_colour_dose_hint">Tekniseltä lehdeltä, esim. 28. Täytetään valmiiksi, kun se lisätään seokseen tai kerrokselle.</string>
+    <string name="addon_rate_kg_typed">Alle gramma kiloa kohti. Jos teknisellä lehdellä lukee %1$s kg kiloa kohti, kirjoita %2$s.</string>
 </resources>

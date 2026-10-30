@@ -15,6 +15,7 @@ import com.conwic.mixmaster.data.repository.ProductRepository
 import com.conwic.mixmaster.domain.densityProblem
 import com.conwic.mixmaster.domain.densityWarning
 import com.conwic.mixmaster.domain.formatDecimal
+import com.conwic.mixmaster.domain.gramsPerKgText
 import com.conwic.mixmaster.domain.toNumberOr
 import com.conwic.mixmaster.domain.toNumberOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -107,7 +108,7 @@ class AddEditProductViewModel(
                         technicalSheet = existing.technicalSheet,
                         suppliedOnSite = existing.suppliedOnSite,
                         isColour = existing.isAddOn,
-                        colourDoseText = if (existing.addOnAmountPerKg > 0.0) formatDecimal(existing.addOnAmountPerKg * 1000.0, 2) else "",
+                        colourDoseText = if (existing.addOnAmountPerKg > 0.0) gramsPerKgText(existing.addOnAmountPerKg) else "",
                     )
                 }
             }

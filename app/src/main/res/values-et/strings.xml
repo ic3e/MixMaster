@@ -1193,4 +1193,5 @@
     <string name="product_colour_note">Segatakse segusse grammides ühe osa kg kohta, üksi seda ei paigaldata. Kihile värvi valides pakutakse seda esimesena.</string>
     <string name="product_colour_dose">Tavaline doos, %1$s kg kohta</string>
     <string name="product_colour_dose_hint">Tehnilisest lehest, nt 28. Täidetakse ise, kui see lisatakse segusse või kihile.</string>
+    <string name="addon_rate_kg_typed">Alla grammi kg kohta. Kui tehnilisel lehel on %1$s kg kg kohta, kirjuta %2$s.</string>
 </resources>
