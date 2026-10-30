@@ -1275,11 +1275,20 @@ private fun ColourSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 10.dp),
             )
+            // Products marked as a colour first; the rest after, so an unmarked pigment can still be picked.
+            val offered = remember(products) { products.sortedByDescending { it.isAddOn } }
             DropdownField(
                 label = stringResource(R.string.prj_colour),
                 selected = chosen?.name ?: stringResource(R.string.prj_no_colour),
-                options = products.map { it.name },
-                onSelect = { name -> chosen = products.firstOrNull { it.name == name } },
+                options = offered.map { it.name },
+                onSelect = { name ->
+                    val picked = offered.firstOrNull { it.name == name }
+                    chosen = picked
+                    // The colour's own usual dose, unless one is typed already.
+                    if (rate.isBlank() && picked != null && picked.addOnAmountPerKg > 0.0) {
+                        rate = formatDecimal(picked.addOnAmountPerKg * 1000, 1)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
             val partLabels = coat.parts.map { it.label }

@@ -367,32 +367,62 @@ fun SolutionEditorScreen(navController: NavHostController, solutionId: Long?) {
                             FormTextField(
                                 value = line.partsText,
                                 onValueChange = { viewModel.setLineParts(index, it) },
-                                label = stringResource(
-                                    when {
-                                        line.percentOfRest -> R.string.solution_line_percent
-                                        state.entry == EntryMode.PER_AREA -> R.string.solution_line_rate
-                                        else -> R.string.product_parts
-                                    },
-                                ),
+                                label = when {
+                                    line.perKgOfPart -> stringResource(
+                                        R.string.solution_line_per_kg,
+                                        if (state.products.firstOrNull { it.id == line.productId }?.packageUnit == "L") "ml" else "g",
+                                    )
+                                    line.percentOfRest -> stringResource(R.string.solution_line_percent)
+                                    state.entry == EntryMode.PER_AREA -> stringResource(R.string.solution_line_rate)
+                                    else -> stringResource(R.string.product_parts)
+                                },
                                 keyboardType = KeyboardType.Decimal,
                                 modifier = Modifier.weight(FieldWeightNarrow),
                             )
                         }
                         // "10 parts A + 2 parts B + water at 10% of (A+B)" is how a fair few
-                        // datasheets word the water and the thinner, and there was no way to
-                        // write it down: the 1.2 parts it comes to had to be worked out by hand,
-                        // and worked out again the day somebody corrected A or B.
+                        // datasheets word the water and the thinner, and a colour is "28 g per kg
+                        // of the catalyst": three ways of measuring, each picked on its line.
                         if (canChange) {
-                            ActionLink(
-                                text = stringResource(
-                                    if (line.percentOfRest) {
-                                        R.string.solution_line_as_parts
-                                    } else {
-                                        R.string.solution_line_as_percent
-                                    },
-                                ),
-                                onClick = { viewModel.setLinePercentOfRest(index, !line.percentOfRest) },
-                                modifier = Modifier.padding(top = 6.dp),
+                            ChipRow(
+                                options = LineMeasure.entries.map { measure ->
+                                    ChipOption(
+                                        label = when (measure) {
+                                            LineMeasure.PARTS -> stringResource(
+                                                if (state.entry == EntryMode.PER_AREA) R.string.solution_line_rate else R.string.product_parts,
+                                            )
+                                            LineMeasure.PERCENT_OF_REST -> stringResource(R.string.solution_line_percent)
+                                            LineMeasure.PER_KG_OF_PART -> stringResource(R.string.solution_measure_per_kg)
+                                        },
+                                        selected = line.measure == measure,
+                                        onClick = { viewModel.setLineMeasure(index, measure) },
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            )
+                        }
+                        if (line.perKgOfPart) {
+                            // The other parts of the ratio, by what they are called in this mix.
+                            val targets = state.lines.indices.filter { it != index && !state.lines[it].perKgOfPart }
+                            val targetNames = targets.map { i ->
+                                val other = state.lines[i]
+                                other.label.trim().ifBlank {
+                                    state.products.firstOrNull { it.id == other.productId }?.name
+                                        ?: stringResource(R.string.product_part_n, i + 1)
+                                }
+                            }
+                            DropdownField(
+                                label = stringResource(R.string.calc_measured_against),
+                                selected = targetNames.getOrNull(targets.indexOf(line.againstIndex)) ?: stringResource(R.string.solution_line_choose_part),
+                                options = targetNames,
+                                onSelect = { name -> targets.getOrNull(targetNames.indexOf(name))?.let { viewModel.setLineAgainst(index, it) } },
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.solution_line_per_kg_hint),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 2.dp),
                             )
                         }
                         if (line.percentOfRest) {

@@ -177,8 +177,8 @@
 
     <!-- Calculator -->
     <string name="calc_title">Calculator</string>
-    <string name="calc_product">Product</string>
-    <string name="calc_choose_product">Choose a product</string>
+    <string name="calc_product">Solution</string>
+    <string name="calc_choose_product">Choose a solution</string>
     <string name="calc_per_coat">per coat</string>
     <string name="calc_per_pour">per pour</string>
     <string name="calc_per_mm">per mm</string>
@@ -794,8 +794,6 @@
     <string name="solution_by_area_hint">Each part as the datasheet gives it, in kg/m². The ratio and the coverage are worked out from them.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_line_percent" formatted="false">% of the rest</string>
-    <string name="solution_line_as_percent" formatted="false">Measure as % of the rest</string>
-    <string name="solution_line_as_parts">Measure as parts</string>
     <string name="solution_line_percent_hint" formatted="false">A share of everything else in the drum — water at 10% of (A+B).</string>
     <string name="solution_coverage_computed">Works out at %1$s g/m²</string>
     <string name="calc_start_mixing">Start mixing</string>
@@ -1216,4 +1214,13 @@
     <string name="settings_empty_word">EMPTY</string>
     <string name="settings_empty_confirm">Empty all</string>
     <string name="settings_empty_working">Emptying the app…</string>
+    <string name="solution_measure_per_kg">Per kg of a part</string>
+    <string name="solution_line_per_kg">%1$s per kg</string>
+    <string name="solution_line_per_kg_hint">Dosed off one part of the mix, outside the ratio: a colour at 28 g per kg of the catalyst. It does not change the ratio.</string>
+    <string name="solution_line_choose_part">Choose a part</string>
+    <string name="solution_problem_per_kg">A part measured per kg needs an amount, and a part of the ratio to measure it against.</string>
+    <string name="product_colour">Colour (pigment)</string>
+    <string name="product_colour_note">Mixed into a solution at so many grams per kg of one part, never laid on its own. Offered first when a coat is given a colour.</string>
+    <string name="product_colour_dose">Usual dose, %1$s per kg</string>
+    <string name="product_colour_dose_hint">From the datasheet, e.g. 28. Filled in for you when it goes into a solution or onto a coat.</string>
 </resources>

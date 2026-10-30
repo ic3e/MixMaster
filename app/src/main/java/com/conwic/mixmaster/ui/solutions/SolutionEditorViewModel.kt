@@ -41,7 +41,36 @@ data class LineDraft(
      * word the water and the thinner.
      */
     val percentOfRest: Boolean = false,
-)
+    /**
+     * Whether this line is dosed off one other part instead of being a part of the ratio — a
+     * colour at 28 g per kg of the catalyst, an additive at 5 ml per kg of the polymer.
+     * [partsText] is then grams (or millilitres) per kg of that part.
+     *
+     * The recipe could always hold such a line, and the demo recipes do, but the form only knew
+     * parts and shares: a colour could not be written into a recipe, and opening one that had it
+     * did not show it.
+     */
+    val perKgOfPart: Boolean = false,
+    /** For a [perKgOfPart] line: which line on the form it is measured against. */
+    val againstIndex: Int = 0,
+) {
+    val measure: LineMeasure
+        get() = when {
+            perKgOfPart -> LineMeasure.PER_KG_OF_PART
+            percentOfRest -> LineMeasure.PERCENT_OF_REST
+            else -> LineMeasure.PARTS
+        }
+}
+
+/** How one line of a recipe is measured. */
+enum class LineMeasure {
+    /** A part of the ratio, or its own rate per m² when the coat is typed that way. */
+    PARTS,
+    /** A share of the others: water at 10% of (A+B). */
+    PERCENT_OF_REST,
+    /** So much per kg of one named part, outside the ratio: a colour, an additive. */
+    PER_KG_OF_PART,
+}
 
 /** How the parts of a coat are typed in. */
 enum class EntryMode {
@@ -117,9 +146,17 @@ data class SolutionFormState(
             lines.none { it.productId > 0L } -> R.string.solution_problem_no_parts
             // A share needs something to be a share of, so a recipe that is nothing but
             // percentages has no ratio either.
-            lines.filter { it.productId > 0L && !it.percentOfRest }
+            lines.filter { it.productId > 0L && !it.percentOfRest && !it.perKgOfPart }
                 .none { (it.partsText.toNumberOrNull() ?: 0.0) > 0.0 } ->
                 R.string.solution_problem_no_ratio
+            // Measured per kg of a part that is not there, or is itself measured that way, it
+            // would quietly be dosed off the first part instead.
+            lines.any { line ->
+                line.productId > 0L && line.perKgOfPart && (
+                    (line.partsText.toNumberOrNull() ?: 0.0) <= 0.0 ||
+                        lines.getOrNull(line.againstIndex)?.let { it.productId <= 0L || it.perKgOfPart } != false
+                    )
+            } -> R.string.solution_problem_per_kg
             else -> null
         }
 
@@ -141,7 +178,8 @@ data class SolutionFormState(
      */
     val perAreaTotal: Double
         get() {
-            val used = lines.filter { it.productId > 0L }
+            // A colour is grams per kg of a part, not kilos per square metre of its own.
+            val used = lines.filter { it.productId > 0L && !it.perKgOfPart }
             val fixed = used.filterNot { it.percentOfRest }.sumOf { it.partsText.toNumberOrNull() ?: 0.0 }
             val shares = used.filter { it.percentOfRest }
                 .sumOf { fixed * (it.partsText.toNumberOrNull() ?: 0.0) / 100.0 }
@@ -306,24 +344,7 @@ class SolutionEditorViewModel(
                         datasheetUrl = solution.datasheetUrl,
                         parentId = solution.parentId,
                         coatName = solution.coatName,
-                        lines = existing.lines
-                            .filter { it.role == SolutionLineRole.BASE }
-                            .sortedBy { it.sortOrder }
-                            .map {
-                                LineDraft(
-                                    productId = it.productId,
-                                    label = it.label,
-                                    // The percentage is what was typed; the parts it came to
-                                    // are worked out again on the way back out.
-                                    partsText = if (it.percentOfRest > 0.0) {
-                                        formatDecimal(it.percentOfRest, 2)
-                                    } else {
-                                        formatDecimal(it.ratioParts, 2)
-                                    },
-                                    percentOfRest = it.percentOfRest > 0.0,
-                                )
-                            }
-                            .ifEmpty { listOf(LineDraft(), LineDraft()) },
+                        lines = draftsOf(existing.lines),
                     )
                 })
             }
@@ -394,7 +415,8 @@ class SolutionEditorViewModel(
                         lines = state.lines.mapIndexed { index, line ->
                             // A percentage is a percentage whichever way the parts are typed:
                             // 10% of the rest is 10% of the rest in parts and in kg/m² alike.
-                            if (line.percentOfRest) return@mapIndexed line
+                            // So is 28 g per kg of a part.
+                            if (line.percentOfRest || line.perKgOfPart) return@mapIndexed line
                             val rate = typed.getOrElse(index) { 0.0 } / parts * coverageKg
                             line.copy(partsText = if (rate > 0.0) formatDecimal(rate, 4) else "")
                         },
@@ -405,7 +427,7 @@ class SolutionEditorViewModel(
                 // Off a fixed line, never off a share: scaling the ratio to a figure that is
                 // itself a tenth of the others would put the whole recipe out.
                 val top = state.lines.indices
-                    .filterNot { state.lines[it].percentOfRest }
+                    .filterNot { state.lines[it].percentOfRest || state.lines[it].perKgOfPart }
                     .mapNotNull { typed.getOrNull(it) }
                     .maxOrNull() ?: 0.0
                 if (top <= 0.0) {
@@ -422,7 +444,7 @@ class SolutionEditorViewModel(
                     state.copy(
                         entry = mode,
                         lines = state.lines.mapIndexed { index, line ->
-                            if (line.percentOfRest) return@mapIndexed line
+                            if (line.percentOfRest || line.perKgOfPart) return@mapIndexed line
                             val part = typed.getOrElse(index) { 0.0 } / top * 100.0
                             line.copy(partsText = if (part > 0.0) formatDecimal(part, 2) else "")
                         },
@@ -434,7 +456,38 @@ class SolutionEditorViewModel(
         }
     }
 
-    fun setLineProduct(index: Int, productId: Long) = updateLine(index) { it.copy(productId = productId) }
+    /**
+     * Picks the product for a line. A colour picked onto a line nothing has been typed on yet is
+     * set to be measured per kg of a part, at the dose its own form gives — that is how every
+     * colour is mixed, and a pigment left as a ratio part would be weighed in by the kilo.
+     */
+    fun setLineProduct(index: Int, productId: Long) = _formState.update { state ->
+        val product = state.products.firstOrNull { it.id == productId }
+        state.copy(
+            lines = state.lines.mapIndexed { i, line ->
+                when {
+                    i != index -> line
+                    product != null && product.isAddOn && line.measure == LineMeasure.PARTS && line.partsText.isBlank() ->
+                        line.copy(
+                            productId = productId,
+                            perKgOfPart = true,
+                            againstIndex = targetFor(state.lines, index, line.againstIndex),
+                            partsText = if (product.addOnAmountPerKg > 0.0) formatDecimal(product.addOnAmountPerKg * 1000.0, 2) else "",
+                        )
+                    else -> line.copy(productId = productId)
+                }
+            },
+        )
+    }
+
+    /** Which part a per-kg line goes against: the one chosen, while it is still a part of the ratio, or else the first. */
+    private fun targetFor(lines: List<LineDraft>, self: Int, current: Int): Int {
+        val ok = { i: Int -> i != self && i in lines.indices && !lines[i].perKgOfPart }
+        if (ok(current)) return current
+        return lines.indices.firstOrNull { ok(it) && lines[it].productId > 0L } ?: lines.indices.firstOrNull { ok(it) } ?: 0
+    }
+
+    fun setLineAgainst(index: Int, against: Int) = updateLine(index) { it.copy(againstIndex = against) }
 
     fun setLineLabel(index: Int, label: String) = updateLine(index) { it.copy(label = label) }
 
@@ -451,7 +504,8 @@ class SolutionEditorViewModel(
      * Works the same whichever way the parts are typed — parts of a ratio or kg/m² each.
      */
     private fun resolvedParts(lines: List<LineDraft>): List<Double> {
-        val typed = lines.map { it.partsText.toNumberOr(0.0) }
+        // A per-kg line is not in the ratio at all: it comes to nothing here.
+        val typed = lines.map { if (it.perKgOfPart) 0.0 else it.partsText.toNumberOr(0.0) }
         val fixed = lines.mapIndexed { index, line -> if (line.percentOfRest) 0.0 else typed[index] }.sum()
         return lines.mapIndexed { index, line ->
             if (line.percentOfRest) fixed * typed[index] / 100.0 else typed[index]
@@ -459,20 +513,42 @@ class SolutionEditorViewModel(
     }
 
     /**
-     * Switches one part between a figure of its own and a share of the others.
+     * Switches how one part is measured: a part of the ratio, a share of the others, or so much
+     * per kg of one other part.
      *
-     * The box is cleared on the way through: 10 parts and 10% of the rest are different
-     * amounts, and a figure left standing under a changed label is how somebody mixes the
-     * wrong thing.
+     * The box is cleared on the way through: 10 parts, 10% of the rest and 10 g per kg are
+     * different amounts, and a figure left standing under a changed label is how somebody mixes
+     * the wrong thing.
      */
-    fun setLinePercentOfRest(index: Int, percent: Boolean) = updateLine(index) {
-        if (it.percentOfRest == percent) it else it.copy(percentOfRest = percent, partsText = "")
+    fun setLineMeasure(index: Int, measure: LineMeasure) = _formState.update { state ->
+        val line = state.lines.getOrNull(index) ?: return@update state
+        if (line.measure == measure) return@update state
+        state.copy(
+            lines = state.lines.mapIndexed { i, l ->
+                if (i != index) {
+                    l
+                } else {
+                    l.copy(
+                        percentOfRest = measure == LineMeasure.PERCENT_OF_REST,
+                        perKgOfPart = measure == LineMeasure.PER_KG_OF_PART,
+                        partsText = "",
+                        againstIndex = if (measure == LineMeasure.PER_KG_OF_PART) targetFor(state.lines, index, l.againstIndex) else l.againstIndex,
+                    )
+                }
+            },
+        )
     }
 
     fun addLine() = _formState.update { it.copy(lines = it.lines + LineDraft()) }
 
+    /** Takes a line off. A line measured against one further down keeps pointing at the same part. */
     fun removeLine(index: Int) = _formState.update { state ->
-        state.copy(lines = state.lines.filterIndexed { i, _ -> i != index }.ifEmpty { listOf(LineDraft()) })
+        val left = state.lines.filterIndexed { i, _ -> i != index }
+            .map { if (it.againstIndex > index) it.copy(againstIndex = it.againstIndex - 1) else it }
+        val fixed = left.mapIndexed { i, line ->
+            if (line.perKgOfPart) line.copy(againstIndex = targetFor(left, i, if (line.againstIndex == index) -1 else line.againstIndex)) else line
+        }
+        state.copy(lines = fixed.ifEmpty { listOf(LineDraft()) })
     }
 
     private fun updateLine(index: Int, change: (LineDraft) -> LineDraft) = _formState.update { state ->
@@ -534,7 +610,7 @@ class SolutionEditorViewModel(
         val sameEntry = saved.entry == now.entry
         fun amount(written: Written, index: Int): Double? {
             val line = written.kept.getOrNull(index) ?: return null
-            return if (line.percentOfRest || sameEntry) line.partsText.toNumberOr(0.0) else written.parts.getOrElse(index) { 0.0 }
+            return if (line.percentOfRest || line.perKgOfPart || sameEntry) line.partsText.toNumberOr(0.0) else written.parts.getOrElse(index) { 0.0 }
         }
         fun shown(written: Written, index: Int): Shown {
             val line = written.kept.getOrNull(index) ?: return Shown()
@@ -543,7 +619,15 @@ class SolutionEditorViewModel(
                 .orEmpty()
             val figure = formatDecimal(amount(written, index) ?: 0.0, 4)
             return Shown(
-                listOf(product, line.label.trim(), if (line.percentOfRest) "$figure%" else figure)
+                listOf(
+                    product,
+                    line.label.trim(),
+                    when {
+                        line.percentOfRest -> "$figure%"
+                        line.perKgOfPart -> "$figure/kg"
+                        else -> figure
+                    },
+                )
                     .filter { it.isNotBlank() }
                     .joinToString(" · "),
             )
@@ -555,6 +639,8 @@ class SolutionEditorViewModel(
                 before.productId == after.productId &&
                 before.label.trim() == after.label.trim() &&
                 before.percentOfRest == after.percentOfRest &&
+                before.perKgOfPart == after.perKgOfPart &&
+                (!after.perKgOfPart || before.againstIndex == after.againstIndex) &&
                 alike(amount(savedAs, index) ?: 0.0, amount(nowAs, index) ?: 0.0)
             if (!same) found += FormChange(R.string.product_parts, part = index + 1, before = shown(savedAs, index), after = shown(nowAs, index))
         }
@@ -630,14 +716,14 @@ class SolutionEditorViewModel(
 
     /** Writes one coat, and answers with the id it was written under. */
     private suspend fun persist(state: SolutionFormState): Long {
-        // Saving rewrites the recipe's lines from what the form holds, and the form only holds
-        // the ratio parts. Anything else on the recipe — a colour dosed off one of them — is
-        // carried across untouched rather than being wiped by a save that never showed it.
+        // Saving rewrites the recipe's lines from what the form holds: the ratio parts and the
+        // lines measured per kg of one of them. A line of any other kind is carried across
+        // untouched rather than being wiped by a save that never showed it.
         val keptOther = if (state.solutionId > 0L) {
             solutionRepository.getAllWithLines()
                 .firstOrNull { it.solution.id == state.solutionId }
                 ?.lines
-                ?.filter { it.role != SolutionLineRole.BASE }
+                ?.filter { it.role != SolutionLineRole.BASE && it.role != SolutionLineRole.ADD_ON }
                 .orEmpty()
         } else {
             emptyList()
@@ -663,23 +749,79 @@ class SolutionEditorViewModel(
                 rangeNote = "",
                 sourceNote = "",
                 datasheetUrl = state.datasheetUrl.trim(),
-                ratioLabel = parts.joinToString(":") { formatDecimal(it, 2) },
+                ratioLabel = kept.indices.filterNot { kept[it].perKgOfPart }.joinToString(":") { formatDecimal(parts[it], 2) },
                 mixSeconds = written.mixSeconds,
                 potLifeMinutes = written.potLifeMinutes,
                 parentId = state.parentId,
                 coatName = canonicalName(state.coatName, state.catalogue.filter { it.id != state.solutionId }.map { it.coatName }),
             ),
-            kept.mapIndexed { index, line ->
-                SolutionLineEntity(
-                    solutionId = state.solutionId,
-                    productId = line.productId,
-                    label = line.label.trim(),
-                    role = SolutionLineRole.BASE,
-                    ratioParts = parts.getOrElse(index) { 0.0 },
-                    percentOfRest = if (line.percentOfRest) line.partsText.toNumberOr(0.0) else 0.0,
-                )
-            } + keptOther,
+            linesToWrite(state, kept, parts) + keptOther,
         )
+    }
+
+    /**
+     * The recipe's lines as they are written: the ratio parts first, then each line measured
+     * per kg of one of them, pointing at it by its place in the list — the parts are written
+     * afresh, so the ids they had are gone by the time it is read.
+     */
+    private fun linesToWrite(state: SolutionFormState, kept: List<LineDraft>, parts: List<Double>): List<SolutionLineEntity> {
+        val ratio = kept.indices.filterNot { kept[it].perKgOfPart }
+        val base = ratio.map { index ->
+            val line = kept[index]
+            SolutionLineEntity(
+                solutionId = state.solutionId,
+                productId = line.productId,
+                label = line.label.trim(),
+                role = SolutionLineRole.BASE,
+                ratioParts = parts.getOrElse(index) { 0.0 },
+                percentOfRest = if (line.percentOfRest) line.partsText.toNumberOr(0.0) else 0.0,
+            )
+        }
+        // The form counts its lines with the empty ones in; the written list does not.
+        val keptFrom = state.lines.indices.filter { state.lines[it].productId > 0L }
+        val addOns = kept.filter { it.perKgOfPart }.map { line ->
+            val target = ratio.indexOf(keptFrom.indexOf(line.againstIndex))
+            val product = state.products.firstOrNull { it.id == line.productId }
+            SolutionLineEntity(
+                solutionId = state.solutionId,
+                productId = line.productId,
+                label = line.label.trim(),
+                role = SolutionLineRole.ADD_ON,
+                // Typed in grams (or millilitres) per kilo, held in kilos per kilo like every
+                // other rate in the app.
+                amountPerKg = line.partsText.toNumberOr(0.0) / 1000.0,
+                amountUnit = if (product?.packageUnit == "L") "L" else "kg",
+                againstLineId = if (target >= 0) SolutionRepository.againstPosition(target) else 0L,
+            )
+        }
+        return base + addOns
+    }
+
+    /** The form's lines for a saved recipe: the ratio parts in order, then the per-kg ones. */
+    private fun draftsOf(lines: List<SolutionLineEntity>): List<LineDraft> {
+        val base = lines.filter { it.role == SolutionLineRole.BASE }.sortedBy { it.sortOrder }
+        val addOns = lines.filter { it.role == SolutionLineRole.ADD_ON }.sortedBy { it.sortOrder }
+        val drafts = base.map {
+            LineDraft(
+                productId = it.productId,
+                label = it.label,
+                // The percentage is what was typed; the parts it came to are worked out again on
+                // the way back out.
+                partsText = if (it.percentOfRest > 0.0) formatDecimal(it.percentOfRest, 2) else formatDecimal(it.ratioParts, 2),
+                percentOfRest = it.percentOfRest > 0.0,
+            )
+        } + addOns.map { line ->
+            LineDraft(
+                productId = line.productId,
+                label = line.label,
+                partsText = formatDecimal(line.amountPerKg * 1000.0, 2),
+                perKgOfPart = true,
+                // What the mix maths does with a part it cannot find: the first one. Shown as
+                // that, so the form says what the calculator will do.
+                againstIndex = base.indexOfFirst { it.id == line.againstLineId }.coerceAtLeast(0),
+            )
+        }
+        return drafts.ifEmpty { listOf(LineDraft(), LineDraft()) }
     }
 
     private fun written(state: SolutionFormState): Written {
@@ -690,7 +832,7 @@ class SolutionEditorViewModel(
         // Typed by area, the figures are rates: the ratio is what they are to each other and
         // the coverage is what they come to, so neither has to be worked out by hand.
         val perArea = state.entry == EntryMode.PER_AREA
-        val top = kept.indices.filterNot { kept[it].percentOfRest }
+        val top = kept.indices.filterNot { kept[it].percentOfRest || kept[it].perKgOfPart }
             .mapNotNull { typed.getOrNull(it) }
             .maxOrNull() ?: 0.0
         val typedMin = state.minDoseText.toNumberOr(0.0)

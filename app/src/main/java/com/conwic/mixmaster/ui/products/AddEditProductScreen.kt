@@ -195,6 +195,34 @@ fun AddEditProductScreen(navController: NavHostController, productId: Long?) {
                     }
                     Switch(checked = state.suppliedOnSite, onCheckedChange = viewModel::setSuppliedOnSite)
                 }
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.padding(vertical = 12.dp),
+                )
+                // A colour pack is bought like anything else but mixed by the gram per kg of one
+                // part. Marked here, it is offered first when a coat is given a colour, and goes
+                // into a solution already measured that way, at this dose.
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                        Text(text = stringResource(R.string.product_colour), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = stringResource(R.string.product_colour_note),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = state.isColour, onCheckedChange = viewModel::setColour)
+                }
+                if (state.isColour) {
+                    FormTextField(
+                        value = state.colourDoseText,
+                        onValueChange = viewModel::setColourDose,
+                        label = stringResource(R.string.product_colour_dose, if (state.packUnit == "L") "ml" else "g"),
+                        keyboardType = KeyboardType.Decimal,
+                        hint = stringResource(R.string.product_colour_dose_hint),
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    )
+                }
             }
         }
 

@@ -161,8 +161,8 @@
     <string name="priority_low">Matala</string>
 
     <string name="calc_title">Laskuri</string>
-    <string name="calc_product">Tuote</string>
-    <string name="calc_choose_product">Valitse tuote</string>
+    <string name="calc_product">Seos</string>
+    <string name="calc_choose_product">Valitse seos</string>
     <string name="calc_per_coat">kerrosta kohti</string>
     <string name="calc_per_pour">valua kohti</string>
     <string name="calc_per_mm">millimetriä kohti</string>
@@ -764,8 +764,6 @@
     <string name="solution_by_area_hint">Jokainen osa niin kuin tuotetiedot antavat — kg/m². Suhde ja menekki lasketaan niistä.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_line_percent" formatted="false">% muista</string>
-    <string name="solution_line_as_percent" formatted="false">Mittaa prosentteina muista</string>
-    <string name="solution_line_as_parts">Mittaa osina</string>
     <string name="solution_line_percent_hint" formatted="false">Osuus kaikesta muusta astiassa — vettä 10 % (A+B):stä.</string>
     <string name="solution_coverage_computed">Tekee yhteensä %1$s g/m²</string>
     <string name="calc_start_mixing">Aloita sekoitus</string>
@@ -1186,4 +1184,13 @@
     <string name="settings_empty_word">TYHJENNÄ</string>
     <string name="settings_empty_confirm">Tyhjennä kaikki</string>
     <string name="settings_empty_working">Sovellusta tyhjennetään…</string>
+    <string name="solution_measure_per_kg">Osan kiloa kohti</string>
+    <string name="solution_line_per_kg">%1$s kiloa kohti</string>
+    <string name="solution_line_per_kg_hint">Annostellaan seoksen yhden osan mukaan, suhteen ulkopuolella: väri 28 g katalyytin kiloa kohti. Se ei muuta sekoitussuhdetta.</string>
+    <string name="solution_line_choose_part">Valitse osa</string>
+    <string name="solution_problem_per_kg">Kiloa kohti mitattavalla osalla pitää olla määrä ja suhteen osa, jonka mukaan se mitataan.</string>
+    <string name="product_colour">Väri (pigmentti)</string>
+    <string name="product_colour_note">Sekoitetaan seokseen grammoina yhden osan kiloa kohti, ei levitetä yksinään. Tarjotaan ensimmäisenä, kun kerrokselle valitaan väri.</string>
+    <string name="product_colour_dose">Tavallinen annos, %1$s kiloa kohti</string>
+    <string name="product_colour_dose_hint">Tekniseltä lehdeltä, esim. 28. Täytetään valmiiksi, kun se lisätään seokseen tai kerrokselle.</string>
 </resources>

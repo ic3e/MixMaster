@@ -15,6 +15,14 @@ class SolutionRepository(
     private val solutionDao: SolutionDao,
     private val usageLogDao: UsageLogDao,
 ) {
+    companion object {
+        /**
+         * For [save]: a line measured against the line at this place in the list being saved,
+         * which has no id yet. Written as a negative number so it can't be mistaken for an id.
+         */
+        fun againstPosition(position: Int): Long = -(position + 1L)
+    }
+
 
     fun observeAll(): Flow<List<SolutionEntity>> = solutionDao.observeAll()
 
@@ -50,8 +58,21 @@ class SolutionRepository(
             solution.id
         }
         solutionDao.deleteLines(id)
+        // The lines are written afresh under new ids, so a line measured against another one is
+        // pointed at it again here. It used to keep the old id, which was gone: the mix maths
+        // fell back to the first part, and a colour given per kg of the catalyst was weighed off
+        // the powder from the first save on.
+        val written = mutableListOf<Long>()
+        val renamed = mutableMapOf<Long, Long>()
         lines.forEachIndexed { index, line ->
-            solutionDao.insertLine(line.copy(id = 0L, solutionId = id, sortOrder = index))
+            val against = when {
+                line.againstLineId < 0L -> written.getOrElse((-line.againstLineId - 1L).toInt()) { 0L }
+                line.againstLineId > 0L -> renamed[line.againstLineId] ?: line.againstLineId
+                else -> 0L
+            }
+            val newId = solutionDao.insertLine(line.copy(id = 0L, solutionId = id, sortOrder = index, againstLineId = against))
+            written += newId
+            if (line.id != 0L) renamed[line.id] = newId
         }
         return id
     }

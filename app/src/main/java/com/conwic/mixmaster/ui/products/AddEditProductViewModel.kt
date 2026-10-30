@@ -45,6 +45,10 @@ data class ProductFormState(
     val technicalSheet: String = "",
     /** Found on site rather than bought — water from the tap. Kept off the shelf and off orders. */
     val suppliedOnSite: Boolean = false,
+    /** A colour (or an additive dosed the same way): mixed in per kg of one part, never laid alone. */
+    val isColour: Boolean = false,
+    /** Its usual dose, as typed: grams (or ml) per kg of the part it goes into. */
+    val colourDoseText: String = "",
     val brands: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
     /** The whole catalogue, to catch the same product added twice and a brand spelt anew. */
@@ -102,6 +106,8 @@ class AddEditProductViewModel(
                         safetySheet = existing.safetySheetUrl,
                         technicalSheet = existing.technicalSheet,
                         suppliedOnSite = existing.suppliedOnSite,
+                        isColour = existing.isAddOn,
+                        colourDoseText = if (existing.addOnAmountPerKg > 0.0) formatDecimal(existing.addOnAmountPerKg * 1000.0, 2) else "",
                     )
                 }
             }
@@ -127,6 +133,8 @@ class AddEditProductViewModel(
     fun setPackType(value: String) = _formState.update { it.copy(packType = value) }
     fun setDensity(value: String) = _formState.update { it.copy(densityText = value) }
     fun setSuppliedOnSite(value: Boolean) = _formState.update { it.copy(suppliedOnSite = value) }
+    fun setColour(value: Boolean) = _formState.update { it.copy(isColour = value) }
+    fun setColourDose(value: String) = _formState.update { it.copy(colourDoseText = value) }
 
     fun setSafetySheet(value: String) = _formState.update { it.copy(safetySheet = value) }
 
@@ -194,6 +202,11 @@ class AddEditProductViewModel(
                     // Carried through by hand: this row is built fresh from the form, and anything
                     // the form does not know about would be reset to its default on every save.
                     suppliedOnSite = state.suppliedOnSite,
+                    // The form never showed these, so every save of a colour pack used to turn
+                    // it back into an ordinary product with no dose.
+                    isAddOn = state.isColour,
+                    addOnAmountPerKg = if (state.isColour) state.colourDoseText.toNumberOr(0.0) / 1000.0 else 0.0,
+                    addOnUnit = if (state.packUnit == "L") "L" else "kg",
                 ),
             )
             onSaved()

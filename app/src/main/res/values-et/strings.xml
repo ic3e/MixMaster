@@ -161,8 +161,8 @@
     <string name="priority_low">Madal</string>
 
     <string name="calc_title">Kalkulaator</string>
-    <string name="calc_product">Toode</string>
-    <string name="calc_choose_product">Vali toode</string>
+    <string name="calc_product">Segu</string>
+    <string name="calc_choose_product">Vali segu</string>
     <string name="calc_per_coat">kihi kohta</string>
     <string name="calc_per_pour">valu kohta</string>
     <string name="calc_per_mm">mm kohta</string>
@@ -764,8 +764,6 @@
     <string name="solution_by_area_hint">Iga osa nii, nagu tehniline leht annab — kg/m². Vahekord ja kulu arvutatakse nendest.</string>
     <string name="solution_line_rate">kg/m²</string>
     <string name="solution_line_percent" formatted="false">% ülejäänust</string>
-    <string name="solution_line_as_percent" formatted="false">Mõõda protsendina ülejäänust</string>
-    <string name="solution_line_as_parts">Mõõda osadena</string>
     <string name="solution_line_percent_hint" formatted="false">Osa kõigest muust nõus — vesi 10% (A+B)-st.</string>
     <string name="solution_coverage_computed">Teeb kokku %1$s g/m²</string>
     <string name="calc_start_mixing">Alusta segamist</string>
@@ -1186,4 +1184,13 @@
     <string name="settings_empty_word">TÜHJENDA</string>
     <string name="settings_empty_confirm">Tühjenda kõik</string>
     <string name="settings_empty_working">Rakendust tühjendatakse…</string>
+    <string name="solution_measure_per_kg">Osa kg kohta</string>
+    <string name="solution_line_per_kg">%1$s kg kohta</string>
+    <string name="solution_line_per_kg_hint">Doseeritakse ühe segu osa järgi, vahekorrast väljaspool: värv 28 g katalüsaatori kg kohta. Vahekorda see ei muuda.</string>
+    <string name="solution_line_choose_part">Vali osa</string>
+    <string name="solution_problem_per_kg">Kg kohta mõõdetaval osal peab olema kogus ja vahekorra osa, mille järgi seda mõõta.</string>
+    <string name="product_colour">Värv (pigment)</string>
+    <string name="product_colour_note">Segatakse segusse grammides ühe osa kg kohta, üksi seda ei paigaldata. Kihile värvi valides pakutakse seda esimesena.</string>
+    <string name="product_colour_dose">Tavaline doos, %1$s kg kohta</string>
+    <string name="product_colour_dose_hint">Tehnilisest lehest, nt 28. Täidetakse ise, kui see lisatakse segusse või kihile.</string>
 </resources>
