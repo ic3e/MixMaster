@@ -1,8 +1,8 @@
 {
-  "versionCode": 252,
-  "versionName": "1.0.252",
-  "apk": "MixMaster_1.0.252.apk",
-  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.252.apk",
-  "sizeBytes": 30163195,
-  "notes": "Solutions: a part can be measured per kg of another, colours are marked as colours"
+  "versionCode": 253,
+  "versionName": "1.0.253",
+  "apk": "MixMaster_1.0.253.apk",
+  "url": "https://raw.githubusercontent.com/ic3e/MixMaster/main/dist/MixMaster_1.0.253.apk",
+  "sizeBytes": 30163879,
+  "notes": "Colours: a rate typed in kilos is caught, and a small rate is no longer shown as 0"
 }
